@@ -9,11 +9,11 @@ export default async function SupporterReferPage() {
   // Check authentication and role
   const { data: { user }, error: authError } = await supabase.auth.getUser()
   if (authError || !user) {
-    redirect('/login?redirect=/supporter/refer')
+    redirect('/auth?redirectTo=/supporter/refer')
   }
 
   const { data: profile } = await supabase
-    .from('profiles')
+    .from('users')
     .select('role')
     .eq('id', user.id)
     .single()
@@ -28,17 +28,15 @@ export default async function SupporterReferPage() {
     .select(`
       id,
       title,
-      summary,
+      pitch_text,
       skills,
-      experience_years,
       location,
-      profiles!inner(
-        full_name,
-        avatar_url
+      users!inner(
+        name
       )
     `)
     .eq('is_active', true)
-    .eq('status', 'approved')
+    .gt('plan_expires_at', new Date().toISOString())
     .order('created_at', { ascending: false })
     .limit(20)
 
@@ -106,7 +104,7 @@ export default async function SupporterReferPage() {
                       {pitch.title}
                     </h3>
                     <p className="text-sm text-gray-600 mb-3">
-                      {pitch.summary?.substring(0, 120)}...
+                      {pitch.pitch_text?.substring(0, 120)}...
                     </p>
                   </div>
                 </div>
@@ -114,24 +112,16 @@ export default async function SupporterReferPage() {
                 <div className="space-y-3 mb-4">
                   <div className="flex items-center gap-2">
                     <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                      {pitch.profiles.avatar_url ? (
-                        <img 
-                          src={pitch.profiles.avatar_url} 
-                          alt={pitch.profiles.full_name}
-                          className="w-8 h-8 rounded-full object-cover"
-                        />
-                      ) : (
-                        <span className="text-sm font-medium text-gray-600">
-                          {pitch.profiles.full_name.charAt(0)}
-                        </span>
-                      )}
+                      <span className="text-sm font-medium text-gray-600">
+                        {pitch.users.name.charAt(0)}
+                      </span>
                     </div>
                     <div>
                       <div className="font-medium text-gray-900">
-                        {pitch.profiles.full_name}
+                        {pitch.users.name}
                       </div>
                       <div className="text-sm text-gray-600">
-                        {pitch.experience_years} years experience • {pitch.location}
+                        {pitch.location}
                       </div>
                     </div>
                   </div>
