@@ -164,7 +164,7 @@ export async function testDonation(params: DonationTestParams) {
 // CLI execution
 if (require.main === module) {
   const testParams: DonationTestParams = {
-    amount: parseInt(process.argv[2]) || 50000,
+    amount: parseInt(process.argv[2] || '50000'),
     donorName: process.argv[3] || 'Test Donor',
     donorEmail: process.argv[4] || 'donor@example.com',
     donorPhone: process.argv[5] || '+919876543210',

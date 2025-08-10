@@ -17,7 +17,7 @@ import {
 export default function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [user, setUser] = useState<any>(null)
-  const [profile, setProfile] = useState(null)
+  const [profile, setProfile] = useState<{ role: string; full_name: string } | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
   const supabase = getBrowserSupabase()
@@ -29,7 +29,7 @@ export default function Navigation() {
       
       if (user) {
         const { data: profile } = await supabase
-          .from('profiles')
+          .from('users')
           .select('role, full_name')
           .eq('id', user.id)
           .single()
@@ -45,7 +45,7 @@ export default function Navigation() {
       setUser(session?.user ?? null)
       if (session?.user) {
         supabase
-          .from('profiles')
+          .from('users')
           .select('role, full_name')
           .eq('id', session.user.id)
           .single()
@@ -70,7 +70,7 @@ export default function Navigation() {
 
   const getDashboardLabel = () => {
     if (!profile?.role) return 'Dashboard'
-    const labels = {
+    const labels: Record<string, string> = {
       veteran: 'Veteran Dashboard',
       recruiter: 'Recruiter Dashboard', 
       supporter: 'Supporter Dashboard',

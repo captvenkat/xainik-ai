@@ -1,38 +1,40 @@
+'use server'
+
 import OpenAI from 'openai'
+import { z } from 'zod'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 })
 
-interface AIPitchContext {
-  job_type: string
-  location_current: string
-  availability: string
-}
+// Input validation schema
+const GeneratePitchInputSchema = z.object({
+  inputType: z.enum(['linkedin', 'resume', 'manual']),
+  text: z.string().optional(),
+  linkedinUrl: z.string().url().optional(),
+  resumeKey: z.string().optional(),
+})
 
-interface AIPitchRequest {
-  method: 'linkedin' | 'resume' | 'manual'
-  linkedinUrl?: string
-  resumeFile?: File
-  summary?: string
-  context: AIPitchContext
-}
+// Output validation schema
+const PitchResultSchema = z.object({
+  title: z.string().max(80, 'Title must be 80 characters or less'),
+  pitch: z.string().max(300, 'Pitch must be 300 characters or less'),
+  skills: z.array(z.string()).length(3, 'Must have exactly 3 skills'),
+})
 
-interface AIPitchResult {
-  title: string
-  pitch: string
-  skills: string[]
-}
+type GeneratePitchInput = z.infer<typeof GeneratePitchInputSchema>
+type PitchResult = z.infer<typeof PitchResultSchema>
 
-const SYSTEM_PROMPT = `You are Xainik AI. Write ultra-concise, outcomes-first copy for military veterans transitioning to civilian careers. 
+const SYSTEM_PROMPT = `You are Xainik AI, specialized in creating ultra-concise, outcomes-first copy for military veterans transitioning to civilian careers.
 
 CRITICAL CONSTRAINTS:
-- Title: MAX 80 characters, no clichés
-- Pitch: MAX 300 characters, focus on achievements and transferable skills
+- Title: MAX 80 characters, no clichés, focus on role/achievement
+- Pitch: MAX 300 characters, focus on achievements, transferable skills, and outcomes
 - Skills: EXACTLY 3 skills, relevant to civilian job market
 - No military jargon unless highly relevant
 - Include job-type/availability/location only if useful
 - Outcomes and metrics first, avoid generic statements
+- No fluff or clichés
 
 FORMAT:
 Return ONLY valid JSON:
@@ -40,26 +42,82 @@ Return ONLY valid JSON:
   "title": "string (≤80 chars)",
   "pitch": "string (≤300 chars)", 
   "skills": ["skill1", "skill2", "skill3"]
+}
+
+EXAMPLES:
+Input: "Led 500+ personnel across complex logistics ops in 3 regions"
+Output: {
+  "title": "Operations Lead — 22 yrs, Indian Army",
+  "pitch": "Led 500+ personnel across complex logistics ops in 3 regions. Immediate joiner; excels in crisis mgmt, vendor ops, cross-functional delivery. Ready to drive outcomes now.",
+  "skills": ["Logistics", "Operations", "Leadership"]
 }`
 
-export async function generateAIPitch(request: AIPitchRequest): Promise<AIPitchResult> {
-  let userContent = ''
+async function retryWithBackoff<T>(
+  fn: () => Promise<T>,
+  maxRetries: number = 3,
+  baseDelay: number = 1000
+): Promise<T> {
+  let lastError: Error
+  
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn()
+    } catch (error) {
+      lastError = error as Error
+      
+      if (attempt === maxRetries) {
+        throw lastError
+      }
+      
+      // Don't retry on validation errors
+      if (error instanceof z.ZodError) {
+        throw error
+      }
+      
+      // Don't retry on rate limits
+      if (error instanceof OpenAI.APIError && error.status === 429) {
+        throw new Error('Rate limit exceeded. Please try again in a moment.')
+      }
+      
+      // Exponential backoff
+      const delay = baseDelay * Math.pow(2, attempt)
+      await new Promise(resolve => setTimeout(resolve, delay))
+    }
+  }
+  
+  throw lastError!
+}
 
-  switch (request.method) {
+export async function generatePitch(input: GeneratePitchInput): Promise<PitchResult> {
+  // Validate input
+  const validatedInput = GeneratePitchInputSchema.parse(input)
+  
+  let userContent = ''
+  
+  switch (validatedInput.inputType) {
     case 'linkedin':
-      userContent = `LinkedIn URL: ${request.linkedinUrl}\nContext: ${JSON.stringify(request.context)}`
+      if (!validatedInput.linkedinUrl) {
+        throw new Error('LinkedIn URL is required for linkedin input type')
+      }
+      userContent = `LinkedIn URL: ${validatedInput.linkedinUrl}\n\nPlease analyze this LinkedIn profile and generate a pitch for a military veteran transitioning to civilian work.`
       break
+      
     case 'resume':
-      // For resume, we'd need to extract text first
-      // For now, we'll use a placeholder approach
-      userContent = `Resume content: [Resume analysis would go here]\nContext: ${JSON.stringify(request.context)}`
+      if (!validatedInput.resumeKey) {
+        throw new Error('Resume key is required for resume input type')
+      }
+      userContent = `Resume content: [Resume analysis would go here - key: ${validatedInput.resumeKey}]\n\nPlease analyze this resume and generate a pitch for a military veteran transitioning to civilian work.`
       break
+      
     case 'manual':
-      userContent = `Manual summary: ${request.summary}\nContext: ${JSON.stringify(request.context)}`
+      if (!validatedInput.text) {
+        throw new Error('Text is required for manual input type')
+      }
+      userContent = `Manual summary: ${validatedInput.text}\n\nPlease generate a pitch based on this manual input for a military veteran transitioning to civilian work.`
       break
   }
 
-  try {
+  return retryWithBackoff(async () => {
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
@@ -83,47 +141,20 @@ export async function generateAIPitch(request: AIPitchRequest): Promise<AIPitchR
       throw new Error('Invalid JSON response from AI')
     }
 
-    // Validate and enforce constraints
-    const result: AIPitchResult = {
-      title: enforceTitleLimit(parsed.title || ''),
-      pitch: enforcePitchLimit(parsed.pitch || ''),
-      skills: enforceSkillsLimit(parsed.skills || [])
-    }
-
+    // Validate output with Zod
+    const result = PitchResultSchema.parse(parsed)
+    
     return result
-  } catch (error) {
-    if (error instanceof OpenAI.APIError) {
-      if (error.status === 429) {
-        throw new Error('Rate limit exceeded. Please try again in a moment.')
-      }
-      throw new Error(`OpenAI API error: ${error.message}`)
-    }
-    throw error
-  }
+  })
 }
 
-function enforceTitleLimit(title: string): string {
-  if (title.length > 80) {
-    return title.substring(0, 77) + '...'
-  }
-  return title
-}
-
-function enforcePitchLimit(pitch: string): string {
-  if (pitch.length > 300) {
-    return pitch.substring(0, 297) + '...'
-  }
-  return pitch
-}
-
-function enforceSkillsLimit(skills: string[]): string[] {
-  // Ensure exactly 3 skills
-  const validSkills = skills.filter(skill => skill && skill.trim().length > 0)
-  if (validSkills.length >= 3) {
-    return validSkills.slice(0, 3)
-  }
+// Fallback function for when AI fails
+export async function generateFallbackPitch(input: GeneratePitchInput): Promise<PitchResult> {
+  const baseText = input.text || 'Military veteran with leadership experience'
   
-  // If we don't have 3 skills, add some defaults
-  const defaultSkills = ['Leadership', 'Project Management', 'Strategic Planning']
-  return [...validSkills, ...defaultSkills].slice(0, 3)
+  return {
+    title: baseText.length > 80 ? baseText.substring(0, 77) + '...' : baseText,
+    pitch: baseText.length > 300 ? baseText.substring(0, 297) + '...' : baseText,
+    skills: ['Leadership', 'Project Management', 'Strategic Planning']
+  }
 }

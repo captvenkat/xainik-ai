@@ -27,7 +27,7 @@ async function applyMigration() {
     
     for (let i = 0; i < statements.length; i++) {
       const statement = statements[i]
-      if (statement.trim()) {
+      if (statement?.trim()) {
         console.log(`⚡ Executing statement ${i + 1}/${statements.length}...`)
         
         try {

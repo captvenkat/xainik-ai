@@ -1,4 +1,5 @@
 import { getServerSupabase } from '@/lib/supabaseClient'
+import { many } from '@/lib/db'
 
 export interface VeteranMetrics {
   pitch: {
@@ -206,7 +207,7 @@ export async function getVeteranMetrics(userId: string): Promise<VeteranMetrics>
     resumeRequests: resumeRequests?.map(r => ({
       id: r.id,
       status: r.status,
-      recruiter_name: r.profiles?.full_name || 'Unknown',
+      recruiter_name: r.profiles?.[0]?.full_name || 'Unknown',
       message: r.message || '',
       created_at: r.created_at
     })) || []
@@ -277,12 +278,12 @@ export async function getRecruiterMetrics(userId: string): Promise<RecruiterMetr
 
   return {
     shortlisted: shortlisted?.map(s => ({
-      id: s.pitches.id,
-      title: s.pitches.title,
-      veteran_name: s.pitches.profiles.full_name,
-      skills: s.pitches.skills || [],
-      phone: s.pitches.profiles.phone || '',
-      email: s.pitches.profiles.email || ''
+      id: s.pitches?.[0]?.id || '',
+      title: s.pitches?.[0]?.title || '',
+      veteran_name: s.pitches?.[0]?.profiles?.[0]?.full_name || 'Unknown',
+      skills: s.pitches?.[0]?.skills || [],
+      phone: s.pitches?.[0]?.profiles?.[0]?.phone || '',
+      email: s.pitches?.[0]?.profiles?.[0]?.email || ''
     })) || [],
     contacted: contacts?.map(c => ({
       id: c.id,
@@ -293,15 +294,15 @@ export async function getRecruiterMetrics(userId: string): Promise<RecruiterMetr
     })) || [],
     resumeRequests: resumeRequests?.map(r => ({
       id: r.id,
-      pitch_title: r.pitches.title,
-      veteran_name: r.pitches.profiles.full_name,
+      pitch_title: r.pitches?.[0]?.title || '',
+      veteran_name: r.pitches?.[0]?.profiles?.[0]?.full_name || 'Unknown',
       status: r.status,
       created_at: r.created_at
     })) || [],
     notes: notes?.map(n => ({
       id: n.id,
-      pitch_title: n.pitches.title,
-      veteran_name: n.pitches.profiles.full_name,
+      pitch_title: n.pitches?.[0]?.title || '',
+      veteran_name: n.pitches?.[0]?.profiles?.[0]?.full_name || 'Unknown',
       text: n.text,
       created_at: n.created_at
     })) || []
@@ -367,9 +368,9 @@ export async function getSupporterMetrics(userId: string): Promise<SupporterMetr
 
   return {
     referredPitches: referrals?.map(r => ({
-      id: r.pitches.id,
-      title: r.pitches.title,
-      veteran_name: r.pitches.profiles.full_name,
+      id: r.pitches?.[0]?.id || '',
+      title: r.pitches?.[0]?.title || '',
+      veteran_name: r.pitches?.[0]?.profiles?.[0]?.full_name || 'Unknown',
       click_count: clickCountMap.get(r.id) || 0,
       last_activity: r.created_at
     })) || [],
@@ -387,8 +388,8 @@ export async function getSupporterMetrics(userId: string): Promise<SupporterMetr
     },
     endorsements: endorsements?.map(e => ({
       id: e.id,
-      veteran_name: e.pitches.profiles.full_name,
-      pitch_title: e.pitches.title,
+      veteran_name: e.pitches?.[0]?.profiles?.[0]?.full_name || 'Unknown',
+      pitch_title: e.pitches?.[0]?.title || '',
       created_at: e.created_at
     })) || []
   }

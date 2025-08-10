@@ -6,11 +6,11 @@ async function testWebhookSimple() {
   
   const adminClient = createAdminClient()
 
-  // Test the logActivity function directly
+  // Test logActivity function
   try {
     console.log('📝 Testing logActivity function...')
     const { logActivity } = await import('../src/lib/activity')
-    await logActivity('test_event', { test: true, message: 'Hello World' })
+    await logActivity('donation_received', { test: true, message: 'Hello World' })
     console.log('✅ logActivity function works')
   } catch (error) {
     console.log('❌ logActivity function failed:', error)
@@ -43,16 +43,12 @@ async function testWebhookSimple() {
     console.log('🧾 Testing generateDonationReceipt function...')
     const { generateDonationReceipt } = await import('../src/lib/billing/receipts')
     await generateDonationReceipt({
-      userId: null,
-      donor: {
-        name: 'Simple Donor',
-        email: 'donor@test.com',
-        phone: '+919876543220'
-      },
+      paymentEventId: '00000000-0000-0000-0000-000000000000',
       amount: 500,
-      paymentId: 'pay_test_simple',
-      orderId: 'order_test_simple',
-      anonymous: false
+      donorName: 'Simple Donor',
+      donorEmail: 'donor@test.com',
+      donorPhone: '+919876543220',
+      isAnonymous: false
     })
     console.log('✅ generateDonationReceipt function works')
   } catch (error) {

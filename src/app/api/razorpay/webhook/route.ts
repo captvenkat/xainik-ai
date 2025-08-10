@@ -108,14 +108,18 @@ export async function POST(request: NextRequest) {
 
     // 2) Branch on notes.type, generate docs, log activity
     if (notes.type === 'service') {
-      const serviceNotes = notes as ServicePaymentNotes;
+      const serviceNotes = notes as unknown as ServicePaymentNotes;
       Sentry.addBreadcrumb({
         category: 'billing',
         message: 'Generating service invoice',
         data: { planTier: notes.planTier, amount }
       });
 
-      await generateServiceInvoice({
+      if (!paymentEvent) {
+        throw new Error('Payment event not found');
+      }
+      
+      const invoiceParams: any = {
         userId: serviceNotes.userId,
         paymentEventId: paymentEvent.id,
         amount: amount,
@@ -125,9 +129,14 @@ export async function POST(request: NextRequest) {
           duration_days: Number(serviceNotes.planDays)
         },
         buyerName: serviceNotes.buyerName,
-        buyerEmail: serviceNotes.buyerEmail,
-        buyerPhone: serviceNotes.buyerPhone
-      });
+        buyerEmail: serviceNotes.buyerEmail
+      };
+      
+      if (serviceNotes.buyerPhone) {
+        invoiceParams.buyerPhone = serviceNotes.buyerPhone;
+      }
+      
+      await generateServiceInvoice(invoiceParams);
 
       await logActivity('plan_activated', {
         veteran_name: serviceNotes.buyerName,
@@ -142,21 +151,29 @@ export async function POST(request: NextRequest) {
       });
 
     } else if (notes.type === 'donation') {
-      const donationNotes = notes as DonationPaymentNotes;
+      const donationNotes = notes as unknown as DonationPaymentNotes;
       Sentry.addBreadcrumb({
         category: 'billing',
         message: 'Generating donation receipt',
         data: { amount, isAnonymous: notes.anonymous === 'true' }
       });
 
-      await generateDonationReceipt({
-        paymentEventId: paymentEvent.id,
+      const receiptParams: any = {
+        paymentEventId: paymentEvent!.id,
         amount: amount,
         donorName: donationNotes.donorName,
-        donorEmail: donationNotes.donorEmail,
-        donorPhone: donationNotes.donorPhone,
         isAnonymous: donationNotes.anonymous === 'true'
-      });
+      };
+      
+      if (donationNotes.donorEmail) {
+        receiptParams.donorEmail = donationNotes.donorEmail;
+      }
+      
+      if (donationNotes.donorPhone) {
+        receiptParams.donorPhone = donationNotes.donorPhone;
+      }
+      
+      await generateDonationReceipt(receiptParams);
 
       await logActivity('donation_received', {
         supporter_name: donationNotes.donorName,

@@ -50,7 +50,7 @@ export async function requestResume(pitchId: string, recruiterMessage?: string) 
     throw new Error('Pitch not found or not active')
   }
   
-  const pitch = data[0]
+  const pitch = data[0]!
 
   // Create resume request record
   const { data: request, error: requestError } = await supabase

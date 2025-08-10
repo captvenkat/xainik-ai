@@ -28,14 +28,14 @@ async function applyBillingMigration() {
     // Execute each statement
     for (let i = 0; i < statements.length; i++) {
       const statement = statements[i]
-      if (statement.trim()) {
+      if (statement?.trim()) {
         console.log(`⚡ Executing statement ${i + 1}/${statements.length}...`)
         
         try {
           // For now, let's just test if we can connect and create a simple table
           // We'll need to apply the migration through the Supabase dashboard
           console.log(`⚠️  Statement ${i + 1} skipped - manual migration required`)
-          console.log(`   SQL: ${statement.substring(0, 100)}...`)
+          console.log(`   SQL: ${statement?.substring(0, 100)}...`)
         } catch (err) {
           console.error(`❌ Error with statement ${i + 1}:`, err)
         }

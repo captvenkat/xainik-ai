@@ -133,8 +133,9 @@ export async function getUserEndorsements(userId: string): Promise<EndorsementWi
 
   if (error) throw error
 
-  return (data || []).map(item => ({
+  return (data || []).map((item: any) => ({
     ...item,
+    endorser: Array.isArray(item.endorser) ? first(item.endorser) : item.endorser,
     veteran: Array.isArray(item.veteran) ? first(item.veteran) : item.veteran
   })) as EndorsementWithUser[]
 }

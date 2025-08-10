@@ -27,6 +27,7 @@ export default function DashboardCards({ metrics, role = 'veteran' }: DashboardC
 }
 
 function VeteranDashboardCards({ metrics }: { metrics: VeteranMetrics }) {
+  const [activeTab, setActiveTab] = useState<'7d' | '30d'>('7d')
   const daysUntilExpiry = metrics.pitch?.plan_expires_at 
     ? Math.ceil((new Date(metrics.pitch.plan_expires_at).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
     : 0
@@ -165,7 +166,7 @@ function VeteranDashboardCards({ metrics }: { metrics: VeteranMetrics }) {
             <div className="text-center p-3 bg-orange-50 rounded-lg">
               <TrendingUp className="w-6 h-6 text-orange-600 mx-auto mb-2" />
               <div className="text-2xl font-bold text-orange-900">
-                {metrics.referrals.topPlatforms.length > 0 ? metrics.referrals.topPlatforms[0].platform : 'N/A'}
+                {metrics.referrals.topPlatforms.length > 0 ? metrics.referrals.topPlatforms[0]?.platform || 'N/A' : 'N/A'}
               </div>
               <div className="text-sm text-orange-700">Top Platform</div>
             </div>

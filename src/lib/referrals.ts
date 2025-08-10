@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { getServerSupabase } from './supabaseClient'
+import { many } from '@/lib/db'
 import { createAdminClient } from './supabaseAdmin'
 import { logActivity } from './activity'
 
@@ -160,7 +161,13 @@ export async function getPitchReferralEvents(pitchId: string): Promise<ReferralE
     throw new Error('Failed to get pitch referral events')
   }
 
-  return data || []
+  return data?.map(item => ({
+    id: item.id,
+    referral_id: item.referrals?.[0]?.pitch_id || '',
+    event_type: item.event_type,
+    platform: item.platform,
+    occurred_at: item.occurred_at
+  })) || []
 }
 
 // Hash IP address for privacy

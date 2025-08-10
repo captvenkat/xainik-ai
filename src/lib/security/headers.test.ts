@@ -25,7 +25,7 @@ describe('Security Headers', () => {
     const req = mockRequest('/')
     const res = mockResponse()
     
-    await middleware(req as any, res as any)
+    await middleware(req as any)
     
     // Check that security headers are set
     expect(res.headers.get('X-Frame-Options')).toBe('DENY')
@@ -50,7 +50,7 @@ describe('Security Headers', () => {
       const req = mockRequest(route)
       const res = mockResponse()
       
-      const result = await middleware(req as any, res as any)
+      const result = await middleware(req as any)
       
       // Should not redirect (allow access)
       expect(result).toBeDefined()

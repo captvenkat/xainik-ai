@@ -1,9 +1,8 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { generateAIPitch } from '@/lib/openai'
 import { validateLinkedInUrl } from '@/lib/validators'
-import { Upload, FileText, Link, Edit3, Loader2 } from 'lucide-react'
+import { Upload, FileText, Link, Edit3, Loader2, RefreshCw, CheckCircle } from 'lucide-react'
 
 interface AIPitchHelperProps {
   formData: any
@@ -14,11 +13,37 @@ interface AIPitchHelperProps {
 
 type InputMethod = 'linkedin' | 'resume' | 'manual' | null
 
+interface GeneratedPitch {
+  title: string
+  pitch: string
+  skills: string[]
+}
+
 export default function AIPitchHelper({ formData, updateFormData, onNext, onBack }: AIPitchHelperProps) {
   const [inputMethod, setInputMethod] = useState<InputMethod>(null)
   const [isGenerating, setIsGenerating] = useState(false)
   const [error, setError] = useState('')
+  const [generatedPitch, setGeneratedPitch] = useState<GeneratedPitch | null>(null)
+  const [currentInput, setCurrentInput] = useState<any>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const callAIApi = async (input: any) => {
+    const response = await fetch('/api/ai/generate-pitch', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(input),
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(errorData.error || 'Failed to generate pitch')
+    }
+
+    const data = await response.json()
+    return data.pitch
+  }
 
   const handleLinkedInSubmit = async (linkedinUrl: string) => {
     if (!validateLinkedInUrl(linkedinUrl)) {
@@ -28,27 +53,17 @@ export default function AIPitchHelper({ formData, updateFormData, onNext, onBack
 
     setIsGenerating(true)
     setError('')
+    setCurrentInput({ inputType: 'linkedin', linkedinUrl })
 
     try {
-      const result = await generateAIPitch({
-        method: 'linkedin',
-        linkedinUrl,
-        context: {
-          job_type: formData.job_type,
-          location_current: formData.location_current,
-          availability: formData.availability
-        }
+      const result = await callAIApi({
+        inputType: 'linkedin',
+        linkedinUrl
       })
 
-      updateFormData({
-        title: result.title,
-        pitch: result.pitch,
-        skills: result.skills,
-        linkedin_url: linkedinUrl
-      })
-
-      onNext()
+      setGeneratedPitch(result)
     } catch (err) {
+      console.error('AI generation failed:', err)
       setError(err instanceof Error ? err.message : 'Failed to generate pitch')
     } finally {
       setIsGenerating(false)
@@ -71,26 +86,33 @@ export default function AIPitchHelper({ formData, updateFormData, onNext, onBack
     setError('')
 
     try {
-      const result = await generateAIPitch({
-        method: 'resume',
-        resumeFile: file,
-        context: {
-          job_type: formData.job_type,
-          location_current: formData.location_current,
-          availability: formData.availability
-        }
+      // First upload the resume
+      const formData = new FormData()
+      formData.append('file', file)
+      
+      const uploadResponse = await fetch('/api/upload/resume', {
+        method: 'POST',
+        body: formData,
       })
 
-      updateFormData({
-        title: result.title,
-        pitch: result.pitch,
-        skills: result.skills,
-        resume_file: file
+      if (!uploadResponse.ok) {
+        const errorData = await uploadResponse.json()
+        throw new Error(errorData.error || 'Failed to upload resume')
+      }
+
+      const uploadData = await uploadResponse.json()
+      setCurrentInput({ inputType: 'resume', resumeKey: uploadData.storagePath })
+
+      // Then generate pitch
+      const result = await callAIApi({
+        inputType: 'resume',
+        resumeKey: uploadData.storagePath
       })
 
-      onNext()
+      setGeneratedPitch(result)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to generate pitch')
+      console.error('Resume upload or AI generation failed:', err)
+      setError(err instanceof Error ? err.message : 'Failed to process resume')
     } finally {
       setIsGenerating(false)
     }
@@ -104,31 +126,52 @@ export default function AIPitchHelper({ formData, updateFormData, onNext, onBack
 
     setIsGenerating(true)
     setError('')
+    setCurrentInput({ inputType: 'manual', text: summary })
 
     try {
-      const result = await generateAIPitch({
-        method: 'manual',
-        summary,
-        context: {
-          job_type: formData.job_type,
-          location_current: formData.location_current,
-          availability: formData.availability
-        }
+      const result = await callAIApi({
+        inputType: 'manual',
+        text: summary
       })
 
-      updateFormData({
-        title: result.title,
-        pitch: result.pitch,
-        skills: result.skills,
-        manual_summary: summary
-      })
-
-      onNext()
+      setGeneratedPitch(result)
     } catch (err) {
+      console.error('AI generation failed:', err)
       setError(err instanceof Error ? err.message : 'Failed to generate pitch')
     } finally {
       setIsGenerating(false)
     }
+  }
+
+  const handleRegenerate = async () => {
+    if (!currentInput) return
+    
+    setIsGenerating(true)
+    setError('')
+
+    try {
+      const result = await callAIApi(currentInput)
+      setGeneratedPitch(result)
+    } catch (err) {
+      console.error('Regeneration failed:', err)
+      setError(err instanceof Error ? err.message : 'Failed to regenerate pitch')
+    } finally {
+      setIsGenerating(false)
+    }
+  }
+
+  const handleUsePitch = () => {
+    if (!generatedPitch) return
+    
+    updateFormData({
+      title: generatedPitch.title,
+      pitch: generatedPitch.pitch,
+      skills: generatedPitch.skills,
+      ...(currentInput?.inputType === 'linkedin' && { linkedin_url: currentInput.linkedinUrl }),
+      ...(currentInput?.inputType === 'manual' && { manual_summary: currentInput.text })
+    })
+
+    onNext()
   }
 
   const renderInputMethod = () => {
@@ -142,6 +185,101 @@ export default function AIPitchHelper({ formData, updateFormData, onNext, onBack
       default:
         return null
     }
+  }
+
+  const renderGeneratedPitch = () => {
+    if (!generatedPitch) return null
+
+    return (
+      <div className="bg-green-50 border border-green-200 rounded-lg p-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <CheckCircle className="w-5 h-5 text-green-600" />
+            <h3 className="font-semibold text-green-900">Generated Pitch</h3>
+          </div>
+          <button
+            onClick={handleRegenerate}
+            disabled={isGenerating}
+            className="flex items-center gap-2 text-green-700 hover:text-green-800 disabled:opacity-50"
+          >
+            <RefreshCw className={`w-4 h-4 ${isGenerating ? 'animate-spin' : ''}`} />
+            Regenerate
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+            <div className="flex items-center justify-between">
+              <input
+                type="text"
+                value={generatedPitch.title}
+                onChange={(e) => setGeneratedPitch({ ...generatedPitch, title: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                maxLength={80}
+              />
+              <span className="text-xs text-gray-500 ml-2 whitespace-nowrap">
+                {generatedPitch.title.length}/80
+              </span>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Pitch</label>
+            <div className="flex items-start justify-between">
+              <textarea
+                value={generatedPitch.pitch}
+                onChange={(e) => setGeneratedPitch({ ...generatedPitch, pitch: e.target.value })}
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                maxLength={300}
+              />
+              <span className="text-xs text-gray-500 ml-2 whitespace-nowrap">
+                {generatedPitch.pitch.length}/300
+              </span>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Skills (exactly 3)</label>
+            <div className="flex gap-2">
+              {generatedPitch.skills.map((skill, index) => (
+                <input
+                  key={index}
+                  type="text"
+                  value={skill}
+                  onChange={(e) => {
+                    const newSkills = [...generatedPitch.skills]
+                    newSkills[index] = e.target.value
+                    setGeneratedPitch({ ...generatedPitch, skills: newSkills })
+                  }}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  maxLength={20}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex gap-3 pt-4">
+          <button
+            onClick={handleUsePitch}
+            className="flex-1 bg-gradient-primary text-white py-3 px-4 rounded-lg font-medium hover:opacity-90 transition-opacity"
+          >
+            Use This Pitch
+          </button>
+          <button
+            onClick={() => {
+              setGeneratedPitch(null)
+              setCurrentInput(null)
+            }}
+            className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+          >
+            Start Over
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -196,7 +334,11 @@ export default function AIPitchHelper({ formData, updateFormData, onNext, onBack
       ) : (
         <div>
           <button
-            onClick={() => setInputMethod(null)}
+            onClick={() => {
+              setInputMethod(null)
+              setGeneratedPitch(null)
+              setCurrentInput(null)
+            }}
             className="flex items-center text-blue-600 hover:text-blue-700 mb-4"
           >
             ← Back to options
@@ -204,6 +346,8 @@ export default function AIPitchHelper({ formData, updateFormData, onNext, onBack
           {renderInputMethod()}
         </div>
       )}
+
+      {renderGeneratedPitch()}
 
       <div className="flex justify-between">
         <button
@@ -264,7 +408,7 @@ function LinkedInInput({ onSubmit, isGenerating }: { onSubmit: (url: string) => 
 function ResumeUpload({ onSubmit, isGenerating, fileInputRef }: { 
   onSubmit: (file: File) => void; 
   isGenerating: boolean;
-  fileInputRef: React.RefObject<HTMLInputElement>;
+  fileInputRef: React.RefObject<HTMLInputElement | null>;
 }) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
 
@@ -346,6 +490,7 @@ function ManualInput({ onSubmit, isGenerating }: { onSubmit: (summary: string) =
             rows={4}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
             required
+            maxLength={500}
           />
           <p className="text-sm text-gray-500 mt-1">
             {summary.length}/500 characters

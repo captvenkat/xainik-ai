@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Share2, Copy, ExternalLink, MessageCircle, Linkedin, Mail } from 'lucide-react'
-import { createClient } from '@/lib/supabaseClient'
+import { getBrowserSupabase } from '@/lib/supabaseClient'
 import { createOrGetReferral, trackReferralEvent } from '@/lib/referrals'
 
 interface ReferModalProps {
@@ -28,7 +28,7 @@ export default function ReferModal({
 
   useEffect(() => {
     const checkUserRole = async () => {
-      const supabase = createClient()
+      const supabase = getBrowserSupabase()
       const { data: profile } = await supabase
         .from('users')
         .select('role')

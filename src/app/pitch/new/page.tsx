@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabaseClient'
+import { getBrowserSupabase } from '@/lib/supabaseClient'
 import AIPitchHelper from '@/components/AIPitchHelper'
 import { Shield, CheckCircle, AlertCircle } from 'lucide-react'
 
@@ -53,7 +53,7 @@ export default function NewPitchPage() {
   }, [])
 
   const checkUserRole = async () => {
-    const supabase = createClient()
+    const supabase = getBrowserSupabase()
     const { data: { user } } = await supabase.auth.getUser()
     
     if (!user) {
@@ -62,7 +62,7 @@ export default function NewPitchPage() {
     }
 
     const { data: profile } = await supabase
-      .from('profiles')
+      .from('users')
       .select('role')
       .eq('id', user.id)
       .single()
@@ -396,7 +396,7 @@ function Step2Review({ formData, onNext, onBack }: any) {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Skills</label>
               <div className="flex flex-wrap gap-2">
-                {formData.skills.map((skill, index) => (
+                {formData.skills.map((skill: string, index: number) => (
                   <span key={index} className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
                     {skill}
                   </span>

@@ -1,4 +1,4 @@
-import { renderToBuffer } from '@react-pdf/renderer'
+import { generatePDFBuffer } from '../server/pdf'
 import React from 'react'
 import { createClient } from '@supabase/supabase-js'
 import * as Sentry from '@sentry/nextjs'
@@ -31,11 +31,6 @@ interface GenerateDonationReceiptResult {
 export async function generateDonationReceipt(
   params: GenerateDonationReceiptParams
 ): Promise<GenerateDonationReceiptResult> {
-  const transaction = Sentry.startTransaction({
-    name: 'billing.generate_receipt',
-    op: 'receipt.generate'
-  });
-
   try {
     console.log('🔄 Generating donation receipt...', params)
 
@@ -82,13 +77,13 @@ export async function generateDonationReceipt(
     });
 
     // 3. Generate PDF
-    const pdfBuffer = await renderToBuffer(
+    const pdfBuffer = await generatePDFBuffer(
       <DonationReceiptPDF
         receiptNumber={receiptNumber}
         date={new Date().toLocaleDateString('en-IN')}
-        donorName={params.donorName}
-        donorEmail={params.donorEmail}
-        donorPhone={params.donorPhone}
+        donorName={params.donorName || ''}
+        donorEmail={params.donorEmail || ''}
+        donorPhone={params.donorPhone || ''}
         amount={params.amount}
         isAnonymous={params.isAnonymous}
         has80G={has80G}
@@ -168,7 +163,7 @@ export async function generateDonationReceipt(
       messageId = await sendReceiptEmail({
         receiptId: receipt.id,
         recipientEmail: params.donorEmail,
-        recipientName: params.donorName,
+        recipientName: params.donorName || '',
         receiptNumber,
         amount: params.amount,
         downloadUrl: signedUrl.data.signedUrl,
@@ -194,7 +189,6 @@ export async function generateDonationReceipt(
     console.log('80G Enabled:', has80G)
     console.log('Message ID:', messageId || 'No email sent (anonymous)')
 
-    transaction.setStatus('ok');
     return {
       number: receiptNumber,
       key: storageKey,
@@ -203,7 +197,6 @@ export async function generateDonationReceipt(
     }
 
   } catch (error) {
-    transaction.setStatus('internal_error');
     Sentry.captureException(error, {
       tags: { component: 'receipt_generation' },
       extra: { 
@@ -214,7 +207,5 @@ export async function generateDonationReceipt(
     });
     console.error('❌ Donation receipt generation failed:', error)
     throw error
-  } finally {
-    transaction.finish();
   }
 }

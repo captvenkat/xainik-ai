@@ -113,12 +113,12 @@ export default async function SupporterReferPage() {
                   <div className="flex items-center gap-2">
                     <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
                       <span className="text-sm font-medium text-gray-600">
-                        {pitch.users.name.charAt(0)}
+                        {pitch.users[0]?.name?.charAt(0) || '?'}
                       </span>
                     </div>
                     <div>
                       <div className="font-medium text-gray-900">
-                        {pitch.users.name}
+                        {pitch.users[0]?.name || 'Unknown'}
                       </div>
                       <div className="text-sm text-gray-600">
                         {pitch.location}
@@ -128,7 +128,7 @@ export default async function SupporterReferPage() {
 
                   {pitch.skills && pitch.skills.length > 0 && (
                     <div className="flex flex-wrap gap-1">
-                      {pitch.skills.slice(0, 3).map((skill, index) => (
+                      {pitch.skills.slice(0, 3).map((skill: string, index: number) => (
                         <span
                           key={index}
                           className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"

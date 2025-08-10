@@ -1,4 +1,18 @@
 import { Shield, Lock, Eye, Database } from 'lucide-react'
+import { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Privacy Policy | Xainik',
+  description: 'Learn how Xainik protects your privacy and handles your personal information. Read our comprehensive privacy policy covering data collection, usage, and your rights.',
+  openGraph: {
+    title: 'Privacy Policy | Xainik',
+    description: 'Learn how Xainik protects your privacy and handles your personal information.',
+    url: '/privacy',
+  },
+  alternates: {
+    canonical: '/privacy',
+  },
+}
 
 export default function PrivacyPage() {
   return (

@@ -92,7 +92,7 @@ async function debugWebhook() {
     console.log('📝 Testing activity logging...')
     const { logActivity } = await import('../src/lib/activity')
     
-    await logActivity('test_event', { debug: true, message: 'Debug test' })
+    await logActivity('donation_received', { debug: true, message: 'Debug test' })
     console.log('✅ Activity logging successful')
   } catch (activityError) {
     console.log('❌ Activity logging failed:', activityError)
