@@ -2,6 +2,20 @@ import { Suspense } from 'react'
 import { getDonationStats, getRecentDonations } from '@/lib/donations'
 import { Heart, TrendingUp, Calendar, Award, Users } from 'lucide-react'
 import DonationForm from '@/components/DonationForm'
+import { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Support Our Mission | Xainik',
+  description: 'Support our mission to connect military veterans with meaningful civilian opportunities. Your donations help us provide free resources and support to veterans during their transition.',
+  openGraph: {
+    title: 'Support Our Mission | Xainik',
+    description: 'Support our mission to connect military veterans with meaningful civilian opportunities.',
+    url: '/donations',
+  },
+  alternates: {
+    canonical: '/donations',
+  },
+}
 
 export default async function DonationsPage() {
   const [stats, recentDonations] = await Promise.all([

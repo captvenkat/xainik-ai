@@ -4,6 +4,7 @@ import Filters from '@/components/Filters'
 import PitchCard from '@/components/PitchCard'
 import { buildSearchQuery } from '@/lib/search'
 import { Shield, Search, Loader2 } from 'lucide-react'
+import { Metadata } from 'next'
 
 interface BrowsePageProps {
   searchParams: Promise<{
@@ -15,6 +16,34 @@ interface BrowsePageProps {
     branch?: string
     page?: string
   }>
+}
+
+export async function generateMetadata({ searchParams }: BrowsePageProps): Promise<Metadata> {
+  const params = await searchParams
+  const hasFilters = Object.keys(params).some(key => 
+    key !== 'page' && params[key]
+  )
+  
+  const title = hasFilters 
+    ? `Browse Veterans - ${params.q || params.skills || params.city || 'Filtered Results'} | Xainik`
+    : 'Browse Veterans | Xainik'
+  
+  const description = hasFilters
+    ? `Find military veterans with ${params.skills || 'various skills'} in ${params.city || 'multiple locations'}. Browse verified veteran profiles and connect directly.`
+    : 'Discover talented military veterans ready for civilian opportunities. Browse verified veteran profiles with direct contact details.'
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      url: '/browse',
+    },
+    alternates: {
+      canonical: '/browse',
+    },
+  }
 }
 
 export default async function BrowsePage({ searchParams }: BrowsePageProps) {
