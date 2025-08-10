@@ -5,14 +5,14 @@
 export type PitchCardData = {
   id: string;
   title: string;
-  pitch: string;           // 300-char summary
-  skills: string[];        // 0..3
+  pitch: string; // 300-char summary
+  skills: string[]; // 0..3
   city: string | null;
   job_type: 'Full-Time' | 'Part-Time' | 'Freelance' | 'Consulting' | 'Hybrid' | 'Project-Based' | 'Remote' | 'On-Site';
   availability: 'Immediate' | '30 Days' | '60 Days' | '90 Days' | 'Negotiable';
   likes: number;
   veteran: {
-    id: string;            // user/veteran id
+    id: string; // user/veteran id
     full_name: string | null;
     rank: string | null;
     service_branch: string | null;
