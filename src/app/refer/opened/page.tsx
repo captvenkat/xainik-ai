@@ -1,12 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { getBrowserSupabase } from '@/lib/supabaseClient'
 import { CheckCircle, ThumbsUp, ThumbsDown, MessageSquare } from 'lucide-react'
 import Link from 'next/link'
 
-export default function ReferralOpenedPage() {
+function ReferralOpenedPageContent() {
   const [feedback, setFeedback] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
@@ -16,7 +16,7 @@ export default function ReferralOpenedPage() {
   const referralId = searchParams.get('ref')
   const pitchId = searchParams.get('pitch')
 
-  const handleFeedback = async (type) => {
+  const handleFeedback = async (type: string) => {
     if (!referralId) return
 
     setIsSubmitting(true)
@@ -185,5 +185,20 @@ export default function ReferralOpenedPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function ReferralOpenedPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-2 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    }>
+      <ReferralOpenedPageContent />
+    </Suspense>
   )
 }
