@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabaseAdmin'
-import { signedUrl } from '@/lib/storage'
+import { getSignedUrl } from '@/lib/storage'
 
 export async function GET(
   request: NextRequest,
@@ -28,23 +28,22 @@ export async function GET(
       return NextResponse.json({ error: 'Receipt not found' }, { status: 404 })
     }
 
-    // Check if user can access this receipt (owner by email or admin)
+    // Check if user can access this receipt (donor or admin)
     const { data: userProfile } = await supabase
       .from('users')
-      .select('role, email')
+      .select('role')
       .eq('id', user.id)
       .single()
 
-    const canAccess = receipt.user_id === user.id || 
-                     receipt.donor_email === userProfile?.email || 
-                     userProfile?.role === 'admin'
+    const canAccess = receipt.donor_email === user.email || userProfile?.role === 'admin'
     
     if (!canAccess) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
     // Generate signed URL
-    const downloadUrl = await signedUrl(receipt.storage_key)
+    const bucket = process.env.BILLING_PDF_BUCKET || 'docs'
+    const downloadUrl = await getSignedUrl(bucket, receipt.storage_key)
 
     // Redirect to signed URL
     return NextResponse.redirect(downloadUrl)
