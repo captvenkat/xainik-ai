@@ -1,5 +1,6 @@
 import { getServerSupabase } from '../supabaseClient'
 import { logActivity } from '../activity'
+import { first } from '@/lib/db'
 
 export interface Endorsement {
   id: string
@@ -84,12 +85,12 @@ export async function getVeteranEndorsements(veteranId: string): Promise<Endorse
     .eq('veteran_id', veteranId)
     .order('created_at', { ascending: false })
 
-  if (error) {
-    console.error('Error getting endorsements:', error)
-    throw new Error('Failed to get endorsements')
-  }
+  if (error) throw error
 
-  return data || []
+  return (data || []).map(item => ({
+    ...item,
+    endorser: Array.isArray(item.endorser) ? first(item.endorser) : item.endorser
+  })) as EndorsementWithUser[]
 }
 
 // Get endorsement count for community verification
@@ -130,10 +131,10 @@ export async function getUserEndorsements(userId: string): Promise<EndorsementWi
     .eq('endorser_id', userId)
     .order('created_at', { ascending: false })
 
-  if (error) {
-    console.error('Error getting user endorsements:', error)
-    throw new Error('Failed to get user endorsements')
-  }
+  if (error) throw error
 
-  return data || []
+  return (data || []).map(item => ({
+    ...item,
+    veteran: Array.isArray(item.veteran) ? first(item.veteran) : item.veteran
+  })) as EndorsementWithUser[]
 }
