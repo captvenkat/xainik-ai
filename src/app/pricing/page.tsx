@@ -3,6 +3,20 @@ import { PLANS, canUseTrial } from '@/lib/pricing'
 import { getServerSupabase } from '@/lib/supabaseClient'
 import { Shield, Check, Star, Zap } from 'lucide-react'
 import PricingCard from '@/components/PricingCard'
+import { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Pricing | Xainik',
+  description: 'Simple, transparent pricing for veteran hiring platform. Choose from trial, monthly, and extended plans. All plans include full visibility and direct recruiter contact.',
+  openGraph: {
+    title: 'Pricing | Xainik',
+    description: 'Simple, transparent pricing for veteran hiring platform. Choose from trial, monthly, and extended plans.',
+    url: '/pricing',
+  },
+  alternates: {
+    canonical: '/pricing',
+  },
+}
 
 export default async function PricingPage() {
   const supabase = getServerSupabase()
