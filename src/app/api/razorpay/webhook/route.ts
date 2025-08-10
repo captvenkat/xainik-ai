@@ -3,15 +3,13 @@ import { createAdminClient } from '@/lib/supabaseAdmin'
 import { logActivity } from '@/lib/activity'
 import { generateServiceInvoice } from '@/lib/billing/invoices'
 import { generateDonationReceipt } from '@/lib/billing/receipts'
+import type { RazorpayWebhookPayload, ServicePaymentNotes, DonationPaymentNotes } from '@/types/razorpay'
 import * as Sentry from '@sentry/nextjs'
 import crypto from 'crypto'
 
 export async function POST(request: NextRequest) {
-  const transaction = Sentry.startTransaction({
-    name: 'razorpay.webhook',
-    op: 'webhook.process'
-  });
-
+  let payload: RazorpayWebhookPayload | null = null;
+  
   try {
     // Verify webhook signature
     const body = await request.text()
@@ -33,7 +31,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
     }
 
-    const payload = JSON.parse(body)
+    payload = JSON.parse(body) as RazorpayWebhookPayload
     
     // Only process payment.captured events
     if (payload.event !== 'payment.captured') {
@@ -46,14 +44,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Extract payment data
-    const p = payload?.payload?.payment?.entity
-    const eventId = payload?.id
-    const paymentId = p?.id
-    const orderId = p?.order_id
-    const notes = p?.notes || {}
-    const amount = p?.amount
-    const currency = p?.currency
-    const status = p?.status
+    const p = payload.payload.payment.entity
+    const eventId = payload.id
+    const paymentId = p.id
+    const orderId = p.order_id
+    const notes = p.notes || {}
+    const amount = p.amount
+    const currency = p.currency
+    const status = p.status
 
     Sentry.addBreadcrumb({
       category: 'payment',
@@ -64,7 +62,7 @@ export async function POST(request: NextRequest) {
     const supabaseAdmin = createAdminClient()
 
     // 1) Idempotent insert to payment_events
-    let paymentEvent: any = null
+    let paymentEvent: { id: string } | null = null
     const { data: insertResult, error: insertError } = await supabaseAdmin
       .from('payment_events')
       .insert({
@@ -109,7 +107,8 @@ export async function POST(request: NextRequest) {
     }
 
     // 2) Branch on notes.type, generate docs, log activity
-    if (notes?.type === 'service') {
+    if (notes.type === 'service') {
+      const serviceNotes = notes as ServicePaymentNotes;
       Sentry.addBreadcrumb({
         category: 'billing',
         message: 'Generating service invoice',
@@ -117,23 +116,23 @@ export async function POST(request: NextRequest) {
       });
 
       await generateServiceInvoice({
-        userId: notes.userId || 'anonymous',
+        userId: serviceNotes.userId,
         paymentEventId: paymentEvent.id,
         amount: amount,
-        planTier: notes.planTier || 'premium',
+        planTier: serviceNotes.planTier,
         planMeta: {
-          plan_name: notes.planName || 'Premium Plan',
-          duration_days: Number(notes.planDays) || 30
+          plan_name: serviceNotes.planName,
+          duration_days: Number(serviceNotes.planDays)
         },
-        buyerName: notes.buyerName || 'Unknown',
-        buyerEmail: notes.buyerEmail || 'unknown@example.com',
-        buyerPhone: notes.buyerPhone
+        buyerName: serviceNotes.buyerName,
+        buyerEmail: serviceNotes.buyerEmail,
+        buyerPhone: serviceNotes.buyerPhone
       });
 
       await logActivity('plan_activated', {
-        veteran_name: notes.buyerName || 'Unknown',
+        veteran_name: serviceNotes.buyerName,
         amount: (amount/100).toFixed(0),
-        pitch_title: notes.planName || 'Premium Plan'
+        pitch_title: serviceNotes.planName
       });
 
       Sentry.addBreadcrumb({
@@ -142,7 +141,8 @@ export async function POST(request: NextRequest) {
         level: 'info'
       });
 
-    } else if (notes?.type === 'donation') {
+    } else if (notes.type === 'donation') {
+      const donationNotes = notes as DonationPaymentNotes;
       Sentry.addBreadcrumb({
         category: 'billing',
         message: 'Generating donation receipt',
@@ -152,14 +152,14 @@ export async function POST(request: NextRequest) {
       await generateDonationReceipt({
         paymentEventId: paymentEvent.id,
         amount: amount,
-        donorName: notes.donorName || 'Anonymous',
-        donorEmail: notes.donorEmail,
-        donorPhone: notes.donorPhone,
-        isAnonymous: notes.anonymous === 'true'
+        donorName: donationNotes.donorName,
+        donorEmail: donationNotes.donorEmail,
+        donorPhone: donationNotes.donorPhone,
+        isAnonymous: donationNotes.anonymous === 'true'
       });
 
       await logActivity('donation_received', {
-        supporter_name: notes.donorName || 'Anonymous',
+        supporter_name: donationNotes.donorName,
         amount: (amount/100).toFixed(0)
       });
 
@@ -170,11 +170,9 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    transaction.setStatus('ok');
     return NextResponse.json({ ok: true });
 
   } catch (error) {
-    transaction.setStatus('internal_error');
     Sentry.captureException(error, {
       tags: { component: 'razorpay_webhook' },
       extra: { 
@@ -184,8 +182,6 @@ export async function POST(request: NextRequest) {
     });
     console.error('Webhook error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
-  } finally {
-    transaction.finish();
   }
 }
 
