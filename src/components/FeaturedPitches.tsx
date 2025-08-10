@@ -2,46 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { getServerSupabase } from '@/lib/supabaseClient'
-import { first, many } from '@/lib/db'
 import PitchCard from './PitchCard'
 import type { PitchCardData } from '@/types/domain'
-
-type RawFeaturedRow = {
-  id: string;
-  title: string | null;
-  summary: string | null;
-  skills: string[] | null;
-  city: string | null;
-  job_type: string | null;
-  availability: string | null;
-  likes: number | null;
-  veteran_id: string;
-  veteran?: any; // array or object depending on relationship
-};
-
-function toPitchCardData(r: RawFeaturedRow): PitchCardData {
-  const v = Array.isArray(r.veteran) ? first(r.veteran) : r.veteran ?? null;
-
-  return {
-    id: r.id,
-    title: r.title ?? '',
-    pitch: r.summary ?? '',
-    skills: r.skills ?? [],
-    city: r.city ?? null,
-    job_type: (r.job_type ?? 'Full-Time') as PitchCardData['job_type'],
-    availability: (r.availability ?? 'Immediate') as PitchCardData['availability'],
-    likes: r.likes ?? 0,
-    veteran: {
-      id: (v?.id ?? r.veteran_id) as string,
-      full_name: v?.full_name ?? null,
-      rank: v?.rank ?? null,
-      service_branch: v?.service_branch ?? null,
-      years_experience: (v?.years_experience ?? null) as number | null,
-      photo_url: v?.photo_url ?? null,
-      is_community_verified: Boolean(v?.is_community_verified),
-    },
-  };
-}
+import { toPitchCardData, type RawPitchRow } from '@/lib/mappers/pitches'
 
 export default function FeaturedPitches() {
   const [pitches, setPitches] = useState<PitchCardData[]>([])
@@ -56,37 +19,38 @@ export default function FeaturedPitches() {
         const sevenDaysAgo = new Date()
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
         
-        const rows = await many(
-          supabase
-            .from('pitches')
-            .select(`
+        const { data, error } = await supabase
+          .from('pitches')
+          .select(`
+            id,
+            title,
+            summary,
+            skills,
+            city,
+            job_type,
+            availability,
+            likes,
+            veteran_id,
+            veteran:profiles!pitches_veteran_id_fkey (
               id,
-              title,
-              summary,
-              skills,
-              city,
-              job_type,
-              availability,
-              likes,
-              veteran_id,
-              veteran:profiles!pitches_veteran_id_fkey (
-                id,
-                full_name,
-                rank,
-                service_branch,
-                years_experience,
-                photo_url,
-                is_community_verified
-              )
-            `)
-            .eq('is_active', true)
-            .gt('plan_expires_at', new Date().toISOString())
-            .gte('created_at', sevenDaysAgo.toISOString())
-            .order('likes', { ascending: false })
-            .limit(4)
-        );
+              full_name,
+              rank,
+              service_branch,
+              years_experience,
+              photo_url,
+              is_community_verified
+            )
+          `)
+          .eq('is_active', true)
+          .gt('plan_expires_at', new Date().toISOString())
+          .gte('created_at', sevenDaysAgo.toISOString())
+          .order('likes', { ascending: false })
+          .limit(4);
 
-        const cards: PitchCardData[] = rows.map(toPitchCardData);
+        if (error) throw error;
+        const rows = data || [];
+
+        const cards: PitchCardData[] = rows.map((r: any) => toPitchCardData(r as RawPitchRow));
         setPitches(cards);
       } catch (error) {
         console.error('Error fetching featured pitches:', error)
