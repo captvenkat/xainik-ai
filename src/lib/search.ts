@@ -16,17 +16,27 @@ export function buildSearchQuery(
 ) {
   const supabase = require('@/lib/supabaseClient').getServerSupabase()
   
-  // Base query for active pitches
+  // Base query for active pitches with explicit columns
   let query = supabase
     .from('pitches')
     .select(`
-      *,
-      profiles!inner(
+      id,
+      title,
+      summary,
+      skills,
+      city,
+      job_type,
+      availability,
+      likes,
+      veteran_id,
+      veteran:profiles!pitches_veteran_id_fkey (
         id,
         full_name,
-        email,
-        phone,
-        verified
+        rank,
+        service_branch,
+        years_experience,
+        photo_url,
+        is_community_verified
       )
     `)
     .eq('is_active', true)
@@ -43,8 +53,8 @@ export function buildSearchQuery(
   // Apply search filters
   if (searchParams.q) {
     const searchTerm = searchParams.q.trim()
-    query = query.or(`title.ilike.%${searchTerm}%,pitch.ilike.%${searchTerm}%,profiles.full_name.ilike.%${searchTerm}%`)
-    totalQuery = totalQuery.or(`title.ilike.%${searchTerm}%,pitch.ilike.%${searchTerm}%,profiles.full_name.ilike.%${searchTerm}%`)
+    query = query.or(`title.ilike.%${searchTerm}%,summary.ilike.%${searchTerm}%,veteran.full_name.ilike.%${searchTerm}%`)
+    totalQuery = totalQuery.or(`title.ilike.%${searchTerm}%,summary.ilike.%${searchTerm}%`)
   }
 
   if (searchParams.skills) {
@@ -57,8 +67,8 @@ export function buildSearchQuery(
 
   if (searchParams.city) {
     const city = searchParams.city.trim()
-    query = query.ilike('location_current', `%${city}%`)
-    totalQuery = totalQuery.ilike('location_current', `%${city}%`)
+    query = query.ilike('city', `%${city}%`)
+    totalQuery = totalQuery.ilike('city', `%${city}%`)
   }
 
   if (searchParams.availability) {
@@ -76,8 +86,8 @@ export function buildSearchQuery(
   if (searchParams.branch) {
     const branches = searchParams.branch.split(',').map(b => b.trim()).filter(Boolean)
     if (branches.length > 0) {
-      query = query.in('service_branch', branches)
-      totalQuery = totalQuery.in('service_branch', branches)
+      query = query.in('veteran.service_branch', branches)
+      totalQuery = totalQuery.in('veteran.service_branch', branches)
     }
   }
 

@@ -3,6 +3,7 @@ import { getServerSupabase } from '@/lib/supabaseClient'
 import Filters from '@/components/Filters'
 import PitchCard from '@/components/PitchCard'
 import { buildSearchQuery } from '@/lib/search'
+import { toPitchCardData } from '@/lib/mappers/pitches'
 import { Shield, Search, Loader2 } from 'lucide-react'
 import { Metadata } from 'next'
 
@@ -21,7 +22,7 @@ interface BrowsePageProps {
 export async function generateMetadata({ searchParams }: BrowsePageProps): Promise<Metadata> {
   const params = await searchParams
   const hasFilters = Object.keys(params).some(key => 
-    key !== 'page' && params[key]
+    key !== 'page' && params[key as keyof typeof params]
   )
   
   const title = hasFilters 
@@ -62,7 +63,7 @@ export default async function BrowsePage({ searchParams }: BrowsePageProps) {
     totalQuery
   ])
 
-  const pitches = pitchesResult.data || []
+  const pitches = (pitchesResult.data || []).map(toPitchCardData)
   const totalCount = totalResult.count || 0
   const totalPages = Math.ceil(totalCount / pageSize)
 
@@ -109,7 +110,7 @@ export default async function BrowsePage({ searchParams }: BrowsePageProps) {
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                 {pitches.map((pitch: any) => (
-                  <PitchCard key={pitch.id} pitch={pitch} />
+                  <PitchCard key={pitch.id} data={pitch} />
                 ))}
               </div>
 
