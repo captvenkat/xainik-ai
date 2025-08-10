@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { Phone, Mail } from 'lucide-react'
 import { getBrowserSupabase } from '@/lib/supabaseClient'
 import { logActivity } from '@/lib/activity'
-import { trackReferralEvent } from '@/lib/referrals'
+import { recordEvent } from '@/lib/referralEvents'
 
 interface ContactButtonsProps {
   phone?: string | undefined
@@ -49,15 +49,16 @@ export default function ContactButtons({
   const onCall = async () => {
     if (referralId) {
       try {
-        await trackReferralEvent({
-          referral_id: referralId,
-          event_type: 'CALL_CLICKED',
+        await recordEvent({
+          referralId,
+          type: 'CALL_CLICKED',
           platform: 'web',
-          user_agent: navigator.userAgent,
-          ip_hash: 'client-side'
+          userAgent: navigator.userAgent,
+          ipAddress: 'client-side' // Will be handled by server-side tracking
         })
       } catch (error) {
         console.error('Failed to log referral event:', error)
+        // Don't break the UI if logging fails
       }
     }
     
@@ -69,6 +70,7 @@ export default function ContactButtons({
       })
     } catch (error) {
       console.error('Failed to log activity:', error)
+      // Don't break the UI if logging fails
     }
     
     if (phone) window.location.href = `tel:${phone}`
@@ -77,26 +79,28 @@ export default function ContactButtons({
   const onEmail = async () => {
     if (referralId) {
       try {
-        await trackReferralEvent({
-          referral_id: referralId,
-          event_type: 'EMAIL_CLICKED',
+        await recordEvent({
+          referralId,
+          type: 'EMAIL_CLICKED',
           platform: 'web',
-          user_agent: navigator.userAgent,
-          ip_hash: 'client-side'
+          userAgent: navigator.userAgent,
+          ipAddress: 'client-side' // Will be handled by server-side tracking
         })
       } catch (error) {
         console.error('Failed to log referral event:', error)
+        // Don't break the UI if logging fails
       }
     }
     
     try {
-      await logActivity('recruiter_called', { 
+      await logActivity('recruiter_emailed', { 
         email,
         veteran_name: veteranName,
         pitch_title: pitchTitle
       })
     } catch (error) {
       console.error('Failed to log activity:', error)
+      // Don't break the UI if logging fails
     }
     
     if (email) window.location.href = `mailto:${email}`

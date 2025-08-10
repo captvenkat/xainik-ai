@@ -1,5 +1,6 @@
 import { getServerSupabase } from '@/lib/supabaseClient'
 import { many } from '@/lib/db'
+import { getReferralFunnel, getPlatformBreakdown, getTopReferrers } from '@/lib/referralEvents'
 
 export interface VeteranMetrics {
   pitch: {
@@ -104,6 +105,12 @@ export interface SupporterMetrics {
     pitch_title: string
     created_at: string
   }>
+  topReferrers: Array<{
+    referralId: string
+    totalEvents: number
+    conversions: number
+    conversionRate: number
+  }>
 }
 
 export async function getVeteranMetrics(userId: string): Promise<VeteranMetrics> {
@@ -126,13 +133,6 @@ export async function getVeteranMetrics(userId: string): Promise<VeteranMetrics>
     .order('created_at', { ascending: false })
     .limit(5)
 
-  // Get referral events (last 7 and 30 days)
-  const sevenDaysAgo = new Date()
-  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
-  
-  const thirtyDaysAgo = new Date()
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-
   // Get referrals for this veteran's pitch
   const { data: referrals } = await supabase
     .from('referrals')
@@ -141,17 +141,12 @@ export async function getVeteranMetrics(userId: string): Promise<VeteranMetrics>
 
   const referralIds = referrals?.map(r => r.id) || []
 
-  const { data: referralEvents7d } = await supabase
-    .from('referral_events')
-    .select('event_type')
-    .in('referral_id', referralIds)
-    .gte('created_at', sevenDaysAgo.toISOString())
-
-  const { data: referralEvents30d } = await supabase
-    .from('referral_events')
-    .select('event_type')
-    .in('referral_id', referralIds)
-    .gte('created_at', thirtyDaysAgo.toISOString())
+  // Get enhanced referral analytics
+  const [last7d, last30d, platformBreakdown] = await Promise.all([
+    getReferralFunnel(referralIds, 7),
+    getReferralFunnel(referralIds, 30),
+    getPlatformBreakdown(referralIds, 30)
+  ])
 
   // Get resume requests
   const { data: resumeRequests } = await supabase
@@ -167,27 +162,6 @@ export async function getVeteranMetrics(userId: string): Promise<VeteranMetrics>
     .order('created_at', { ascending: false })
     .limit(10)
 
-  // Calculate referral metrics
-  const calculateReferralMetrics = (events: any[]) => {
-    return {
-      opens: events.filter(e => e.event_type === 'PITCH_VIEWED').length,
-      views: events.filter(e => e.event_type === 'PITCH_VIEWED').length,
-      calls: events.filter(e => e.event_type === 'CALL_CLICKED').length,
-      emails: events.filter(e => e.event_type === 'EMAIL_CLICKED').length
-    }
-  }
-
-  const last7d = calculateReferralMetrics(referralEvents7d || [])
-  const last30d = calculateReferralMetrics(referralEvents30d || [])
-
-  // Get top platforms (mock data for now)
-  const topPlatforms = [
-    { platform: 'LinkedIn', count: last30d.views * 0.4 },
-    { platform: 'WhatsApp', count: last30d.views * 0.3 },
-    { platform: 'Email', count: last30d.views * 0.2 },
-    { platform: 'Copy Link', count: last30d.views * 0.1 }
-  ].filter(p => p.count > 0)
-
   return {
     pitch: pitch || null,
     endorsements: {
@@ -202,7 +176,10 @@ export async function getVeteranMetrics(userId: string): Promise<VeteranMetrics>
     referrals: {
       last7d,
       last30d,
-      topPlatforms
+      topPlatforms: platformBreakdown.map(p => ({
+        platform: p.platform,
+        count: p.views + p.calls + p.emails
+      }))
     },
     resumeRequests: resumeRequests?.map(r => ({
       id: r.id,
@@ -327,16 +304,18 @@ export async function getSupporterMetrics(userId: string): Promise<SupporterMetr
     .eq('supporter_id', userId)
     .order('created_at', { ascending: false })
 
-  // Get events by platform
-  const { data: eventsByPlatform } = await supabase
-    .from('referral_events')
-    .select('event_type, platform')
-    .eq('supporter_id', userId)
+  const referralIds = referrals?.map(r => r.id) || []
+
+  // Get enhanced analytics
+  const [platformBreakdown, topReferrers] = await Promise.all([
+    getPlatformBreakdown(referralIds, 30),
+    getTopReferrers(userId, 30)
+  ])
 
   // Calculate conversions
-  const views = eventsByPlatform?.filter(e => e.event_type === 'PITCH_VIEWED').length || 0
-  const calls = eventsByPlatform?.filter(e => e.event_type === 'CALL_CLICKED').length || 0
-  const emails = eventsByPlatform?.filter(e => e.event_type === 'EMAIL_CLICKED').length || 0
+  const views = platformBreakdown.reduce((sum, p) => sum + p.views, 0)
+  const calls = platformBreakdown.reduce((sum, p) => sum + p.calls, 0)
+  const emails = platformBreakdown.reduce((sum, p) => sum + p.emails, 0)
 
   // Get endorsements made
   const { data: endorsements } = await supabase
@@ -354,7 +333,6 @@ export async function getSupporterMetrics(userId: string): Promise<SupporterMetr
     .limit(10)
 
   // Get click counts for each referral
-  const referralIds = referrals?.map(r => r.id) || []
   const { data: clickCounts } = await supabase
     .from('referral_events')
     .select('referral_id, count')
@@ -374,12 +352,7 @@ export async function getSupporterMetrics(userId: string): Promise<SupporterMetr
       click_count: clickCountMap.get(r.id) || 0,
       last_activity: r.created_at
     })) || [],
-    eventsByPlatform: [
-      { platform: 'WhatsApp', views: views * 0.4, calls: calls * 0.4, emails: emails * 0.3 },
-      { platform: 'LinkedIn', views: views * 0.3, calls: calls * 0.3, emails: emails * 0.4 },
-      { platform: 'Email', views: views * 0.2, calls: calls * 0.2, emails: emails * 0.2 },
-      { platform: 'Copy Link', views: views * 0.1, calls: calls * 0.1, emails: emails * 0.1 }
-    ],
+    eventsByPlatform: platformBreakdown,
     conversions: {
       views,
       calls,
@@ -391,6 +364,7 @@ export async function getSupporterMetrics(userId: string): Promise<SupporterMetr
       veteran_name: e.pitches?.[0]?.profiles?.[0]?.full_name || 'Unknown',
       pitch_title: e.pitches?.[0]?.title || '',
       created_at: e.created_at
-    })) || []
+    })) || [],
+    topReferrers
   }
 }

@@ -4,9 +4,9 @@ import EndorsementsList from '@/components/EndorsementsList'
 import LikeButton from '@/components/LikeButton'
 import ReferButton from '@/components/ReferButton'
 import RequestResumeButton from '@/components/RequestResumeButton'
-import { trackReferralEvent } from '@/lib/referrals'
+import { recordEvent } from '@/lib/referralEvents'
 import { getVeteranEndorsements, isCommunityVerified } from '@/lib/actions/endorsements'
-import { cookies } from 'next/headers'
+import { cookies, headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 
 export const revalidate = 30
@@ -92,15 +92,20 @@ export default async function PitchDetailPage({
   // Log referral event if referral ID is present
   if (ref) {
     try {
-      await trackReferralEvent({
-        referral_id: ref,
-        event_type: 'PITCH_VIEWED',
+      const headersList = await headers()
+      const userAgent = headersList.get('user-agent') || 'server-side'
+      const ipHash = headersList.get('x-xainik-ip-hash') || 'server-side'
+      
+      await recordEvent({
+        referralId: ref,
+        type: 'PITCH_VIEWED',
         platform: 'web',
-        user_agent: 'server-side',
-        ip_hash: 'server-side'
+        userAgent,
+        ipAddress: ipHash
       })
     } catch (error) {
       console.error('Failed to log referral event:', error)
+      // Don't break the UI if logging fails
     }
   }
 

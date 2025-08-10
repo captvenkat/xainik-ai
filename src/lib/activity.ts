@@ -4,6 +4,7 @@ export type ActivityEvent =
   | 'veteran_joined'
   | 'pitch_referred'
   | 'recruiter_called'
+  | 'recruiter_emailed'
   | 'endorsement_added'
   | 'like_added'
   | 'donation_received'
@@ -117,43 +118,36 @@ export async function getPitchActivity(pitchId: string, limit: number = 20): Pro
   return data || []
 }
 
-// Helper function to format activity for display
+// Format activity text for display
 export function formatActivityText(event: string, meta: ActivityMeta): string {
   switch (event) {
     case 'veteran_joined':
-      return `${meta.veteran_name || 'A veteran'} joined Xainik`
-    
+      return `${meta.veteran_name || 'A veteran'} joined the platform`
     case 'pitch_referred':
       return `${meta.supporter_name || 'Someone'} referred ${meta.veteran_name || 'a veteran'}`
-    
     case 'recruiter_called':
-      return `${meta.recruiter_name || 'A recruiter'} contacted ${meta.veteran_name || 'a veteran'}`
-    
+      return `${meta.recruiter_name || 'A recruiter'} called ${meta.veteran_name || 'a veteran'}`
+    case 'recruiter_emailed':
+      return `${meta.recruiter_name || 'A recruiter'} emailed ${meta.veteran_name || 'a veteran'}`
     case 'endorsement_added':
       return `${meta.endorser_name || 'Someone'} endorsed ${meta.veteran_name || 'a veteran'}`
-    
     case 'like_added':
       return `Someone liked "${meta.pitch_title || 'a pitch'}"`
-    
     case 'donation_received':
-      return `₹${meta.amount || 0} donation received`
-    
+      return `Received ₹${meta.amount || '0'} donation`
     case 'resume_request_sent':
       return `${meta.recruiter_name || 'A recruiter'} requested resume from ${meta.veteran_name || 'a veteran'}`
-    
     case 'resume_request_approved':
-      return `${meta.veteran_name || 'A veteran'} approved a resume request`
-    
+      return `${meta.veteran_name || 'A veteran'} approved resume request`
     case 'resume_request_declined':
-      return `${meta.veteran_name || 'A veteran'} declined a resume request`
-    
+      return `${meta.veteran_name || 'A veteran'} declined resume request`
     case 'pitch_expired':
-      return `"${meta.pitch_title || 'A pitch'}" expired`
-    
+      return `Pitch "${meta.pitch_title || 'Unknown'}" expired`
     case 'plan_activated':
       return `${meta.veteran_name || 'A veteran'} activated ${meta.plan_tier || 'a plan'}`
-    
+    case 'pitch_updated':
+      return `${meta.veteran_name || 'A veteran'} updated their pitch`
     default:
-      return event.replace(/_/g, ' ')
+      return 'New activity on the platform'
   }
 }

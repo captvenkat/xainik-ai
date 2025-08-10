@@ -1,11 +1,9 @@
-import { Suspense } from 'react'
 import { getServerSupabase } from '@/lib/supabaseClient'
 import { redirect } from 'next/navigation'
 import { Shield, Calendar, Users, Eye, Phone, Mail, FileText, Share2, RefreshCw, TrendingUp, Award, Clock, AlertTriangle } from 'lucide-react'
 import { getVeteranMetrics } from '@/lib/metrics'
-import BarChart from '@/components/charts/BarChart'
-import PieChart from '@/components/charts/PieChart'
-import LineChart from '@/components/charts/LineChart'
+import ReferralFunnel from '@/components/ReferralFunnel'
+import PlatformBreakdown from '@/components/PlatformBreakdown'
 
 export default async function VeteranDashboard() {
   const supabase = getServerSupabase()
@@ -152,25 +150,21 @@ export default async function VeteranDashboard() {
         {/* Dashboard Widgets */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           {/* Referral Funnel Chart */}
-          <BarChart
+          <ReferralFunnel
             title="Referral Performance (Last 30 Days)"
-            data={[
-              { label: 'Opens', value: metrics.referrals.last30d.opens, color: '#3B82F6' },
-              { label: 'Views', value: metrics.referrals.last30d.views, color: '#10B981' },
-              { label: 'Calls', value: metrics.referrals.last30d.calls, color: '#F59E0B' },
-              { label: 'Emails', value: metrics.referrals.last30d.emails, color: '#EF4444' }
-            ]}
-            height={250}
+            data={metrics.referrals.last30d}
           />
 
           {/* Platform Distribution */}
-          <PieChart
+          <PlatformBreakdown
             title="Traffic by Platform"
             data={metrics.referrals.topPlatforms.map(p => ({
-              label: p.platform,
-              value: p.count
+              platform: p.platform,
+              views: p.count,
+              calls: Math.floor(p.count * 0.3),
+              emails: Math.floor(p.count * 0.2)
             }))}
-            size={200}
+            chartType="pie"
           />
         </div>
 
