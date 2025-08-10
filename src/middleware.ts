@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { createHash } from 'crypto'
 
 // Role-based route protection
 const roleRoutes = {
@@ -42,6 +43,35 @@ function isPublic(path: string) {
   return PUBLIC_PREFIXES.some(p => path.startsWith(p));
 }
 
+function hashIP(ipAddress: string): string {
+  const salt = process.env.IP_HASH_SALT || 'default-salt-change-in-production'
+  return createHash('sha256')
+    .update(ipAddress + salt)
+    .digest('hex')
+}
+
+function getClientIP(req: NextRequest): string {
+  // Try to get IP from various headers
+  const forwarded = req.headers.get('x-forwarded-for')
+  const realIP = req.headers.get('x-real-ip')
+  const cfConnectingIP = req.headers.get('cf-connecting-ip')
+  
+  if (forwarded && forwarded.length > 0) {
+    const parts = forwarded.split(',')
+    if (parts.length > 0 && parts[0]) {
+      return parts[0].trim()
+    }
+  }
+  if (realIP && realIP.length > 0) {
+    return realIP
+  }
+  if (cfConnectingIP && cfConnectingIP.length > 0) {
+    return cfConnectingIP
+  }
+  
+  return 'unknown'
+}
+
 export async function middleware(req: NextRequest) {
   let res = NextResponse.next()
   
@@ -65,9 +95,52 @@ export async function middleware(req: NextRequest) {
     "form-action 'self'"
   ].join('; '))
 
-  // Check if route requires authentication
+  // Handle referral tracking
   const pathname = req.nextUrl.pathname
+  const searchParams = req.nextUrl.searchParams
+  const ref = searchParams.get('ref')
   
+  // Set referral cookie if ref parameter is present
+  if (ref && pathname.startsWith('/pitch/')) {
+    // Hash the IP address for privacy
+    const clientIP = getClientIP(req)
+    const ipHash = hashIP(clientIP)
+    
+    // Set referral cookie with 30-day expiry
+    res.cookies.set('xainik_ref', ref, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 30 * 24 * 60 * 60, // 30 days
+      path: '/'
+    })
+    
+    // Set IP hash cookie for debouncing
+    res.cookies.set('xainik_ip_hash', ipHash, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 30 * 24 * 60 * 60, // 30 days
+      path: '/'
+    })
+    
+    // Add headers for server-side access
+    res.headers.set('x-xainik-ref', ref)
+    res.headers.set('x-xainik-ip-hash', ipHash)
+  }
+  
+  // Pass referral data to all requests
+  const existingRef = req.cookies.get('xainik_ref')?.value
+  const existingIpHash = req.cookies.get('xainik_ip_hash')?.value
+  
+  if (existingRef) {
+    res.headers.set('x-xainik-ref', existingRef)
+  }
+  if (existingIpHash) {
+    res.headers.set('x-xainik-ip-hash', existingIpHash)
+  }
+
+  // Check if route requires authentication
   // Allow public routes and prefixes
   if (isPublic(pathname)) {
     return res
