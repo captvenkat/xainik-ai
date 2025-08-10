@@ -10,12 +10,22 @@ interface DonationStats {
   today_count: number
   today_amount: number
   highest_donation: number
-  last_donation_at: string
+  last_donation_at: string | null
+}
+
+const defaultStats: DonationStats = {
+  total_donations: 0,
+  total_amount: 0,
+  today_count: 0,
+  today_amount: 0,
+  highest_donation: 0,
+  last_donation_at: null
 }
 
 export default function DonationSnapshot() {
-  const [stats, setStats] = useState<DonationStats | null>(null)
+  const [stats, setStats] = useState<DonationStats>(defaultStats)
   const [isLoading, setIsLoading] = useState(true)
+  const [hasError, setHasError] = useState(false)
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -28,12 +38,26 @@ export default function DonationSnapshot() {
 
         if (error) {
           console.error('Error fetching donation stats:', error)
-          return
+          // Don't throw, just use default stats
+          setStats(defaultStats)
+          setHasError(true)
+        } else {
+          // Ensure all values are safe numbers/strings
+          setStats({
+            total_donations: data?.total_donations || 0,
+            total_amount: data?.total_amount || 0,
+            today_count: data?.today_count || 0,
+            today_amount: data?.today_amount || 0,
+            highest_donation: data?.highest_donation || 0,
+            last_donation_at: data?.last_donation_at || null
+          })
+          setHasError(false)
         }
-
-        setStats(data)
       } catch (error) {
         console.error('Error fetching donation stats:', error)
+        // Don't throw, just use default stats
+        setStats(defaultStats)
+        setHasError(true)
       } finally {
         setIsLoading(false)
       }
@@ -62,31 +86,25 @@ export default function DonationSnapshot() {
     )
   }
 
-  if (!stats) {
-    return (
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-lg shadow-sm text-center">
-          <p className="text-gray-500 text-sm">Unable to load donation stats</p>
-        </div>
-      </div>
-    )
-  }
-
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
       currency: 'INR',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
-    }).format(amount)
+    }).format(amount || 0)
   }
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | null) => {
     if (!dateString) return 'Never'
-    return new Date(dateString).toLocaleDateString('en-IN', {
-      day: 'numeric',
-      month: 'short'
-    })
+    try {
+      return new Date(dateString).toLocaleDateString('en-IN', {
+        day: 'numeric',
+        month: 'short'
+      })
+    } catch (error) {
+      return 'Never'
+    }
   }
 
   return (
@@ -98,8 +116,11 @@ export default function DonationSnapshot() {
           <span className="text-sm font-medium text-gray-600">Total Donations</span>
         </div>
         <div className="text-2xl font-bold text-gray-900">
-          {stats.total_donations || 0}
+          {stats.total_donations}
         </div>
+        {hasError && (
+          <div className="text-xs text-gray-400 mt-1">Using cached data</div>
+        )}
       </div>
 
       {/* Total Amount */}
@@ -109,8 +130,11 @@ export default function DonationSnapshot() {
           <span className="text-sm font-medium text-gray-600">Total Raised</span>
         </div>
         <div className="text-2xl font-bold text-gray-900">
-          {formatCurrency(stats.total_amount || 0)}
+          {formatCurrency(stats.total_amount)}
         </div>
+        {hasError && (
+          <div className="text-xs text-gray-400 mt-1">Using cached data</div>
+        )}
       </div>
 
       {/* Today's Donations */}
@@ -120,11 +144,14 @@ export default function DonationSnapshot() {
           <span className="text-sm font-medium text-gray-600">Today</span>
         </div>
         <div className="text-2xl font-bold text-gray-900">
-          {stats.today_count || 0}
+          {stats.today_count}
         </div>
         <div className="text-sm text-gray-500">
-          {formatCurrency(stats.today_amount || 0)}
+          {formatCurrency(stats.today_amount)}
         </div>
+        {hasError && (
+          <div className="text-xs text-gray-400 mt-1">Using cached data</div>
+        )}
       </div>
 
       {/* Highest Donation */}
@@ -134,11 +161,14 @@ export default function DonationSnapshot() {
           <span className="text-sm font-medium text-gray-600">Highest</span>
         </div>
         <div className="text-2xl font-bold text-gray-900">
-          {formatCurrency(stats.highest_donation || 0)}
+          {formatCurrency(stats.highest_donation)}
         </div>
         <div className="text-sm text-gray-500">
           {formatDate(stats.last_donation_at)}
         </div>
+        {hasError && (
+          <div className="text-xs text-gray-400 mt-1">Using cached data</div>
+        )}
       </div>
     </div>
   )
