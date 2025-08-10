@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabaseAdmin'
-import { signedUrl } from '@/lib/storage'
+import { getSignedUrl } from '@/lib/storage'
 
 export async function GET(
   request: NextRequest,
@@ -42,7 +42,8 @@ export async function GET(
     }
 
     // Generate signed URL
-    const downloadUrl = await signedUrl(invoice.storage_key)
+    const bucket = process.env.BILLING_PDF_BUCKET || 'docs'
+    const downloadUrl = await getSignedUrl(bucket, invoice.storage_key)
 
     // Redirect to signed URL
     return NextResponse.redirect(downloadUrl)
