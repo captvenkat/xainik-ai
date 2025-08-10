@@ -1,5 +1,6 @@
 import { getServerSupabase } from '../supabaseClient'
 import { createAdminClient } from '../supabaseAdmin'
+import { first } from '@/lib/db'
 import { logActivity } from '../activity'
 import { createHmac } from 'crypto'
 
@@ -88,11 +89,11 @@ export function verifyResumeRequestToken(token: string): { requestId: string; ac
     }
     
     const [requestId, action, expiryStr, signature] = parts
-    const expiry = parseInt(expiryStr)
+    const expiry = parseInt(expiryStr || '0')
     
     // Check expiry
     if (Date.now() / 1000 > expiry) {
-      return { requestId, action: action as 'approve' | 'decline', valid: false }
+      return { requestId: requestId || '', action: action as 'approve' | 'decline', valid: false }
     }
     
     // Verify signature
@@ -102,11 +103,11 @@ export function verifyResumeRequestToken(token: string): { requestId: string; ac
     const expectedSignature = hmac.digest('hex')
     
     if (signature !== expectedSignature) {
-      return { requestId, action: action as 'approve' | 'decline', valid: false }
+      return { requestId: requestId || '', action: action as 'approve' | 'decline', valid: false }
     }
     
     return { 
-      requestId, 
+      requestId: requestId || '', 
       action: action as 'approve' | 'decline', 
       valid: true 
     }
@@ -191,13 +192,21 @@ export async function getVeteranResumeRequests(veteranId: string): Promise<Resum
     throw new Error('Failed to get resume requests')
   }
 
-  return data?.map(item => ({
+  return (data || []).map(item => ({
     ...item,
     recruiter: {
-      ...item.recruiter,
-      company_name: item.recruiter_profile?.company_name
-    }
-  })) || []
+      name: first(item.recruiter)?.name || 'Unknown',
+      email: first(item.recruiter)?.email || 'unknown@example.com',
+      company_name: first(item.recruiter_profile)?.company_name
+    },
+    veteran: {
+      name: first(item.veteran)?.name || 'Unknown',
+      email: first(item.veteran)?.email || 'unknown@example.com'
+    },
+    pitch: first(item.pitch) ? {
+      title: first(item.pitch)?.title || 'Unknown'
+    } : undefined
+  })) as ResumeRequestWithUsers[]
 }
 
 // Get resume requests for a recruiter
@@ -228,13 +237,21 @@ export async function getRecruiterResumeRequests(recruiterId: string): Promise<R
     throw new Error('Failed to get resume requests')
   }
 
-  return data?.map(item => ({
+  return (data || []).map(item => ({
     ...item,
     recruiter: {
-      ...item.recruiter,
-      company_name: item.recruiter_profile?.company_name
-    }
-  })) || []
+      name: first(item.recruiter)?.name || 'Unknown',
+      email: first(item.recruiter)?.email || 'unknown@example.com',
+      company_name: first(item.recruiter_profile)?.company_name
+    },
+    veteran: {
+      name: first(item.veteran)?.name || 'Unknown',
+      email: first(item.veteran)?.email || 'unknown@example.com'
+    },
+    pitch: first(item.pitch) ? {
+      title: first(item.pitch)?.title || 'Unknown'
+    } : undefined
+  })) as ResumeRequestWithUsers[]
 }
 
 // Get single resume request with full details
@@ -268,8 +285,16 @@ export async function getResumeRequest(requestId: string): Promise<ResumeRequest
   return {
     ...data,
     recruiter: {
-      ...data.recruiter,
-      company_name: data.recruiter_profile?.company_name
-    }
-  }
+      name: first(data.recruiter)?.name || 'Unknown',
+      email: first(data.recruiter)?.email || 'unknown@example.com',
+      company_name: first(data.recruiter_profile)?.company_name
+    },
+    veteran: {
+      name: first(data.veteran)?.name || 'Unknown',
+      email: first(data.veteran)?.email || 'unknown@example.com'
+    },
+    pitch: first(data.pitch) ? {
+      title: first(data.pitch)?.title || 'Unknown'
+    } : undefined
+  } as ResumeRequestWithUsers
 }

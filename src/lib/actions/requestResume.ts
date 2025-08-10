@@ -1,13 +1,14 @@
 'use server'
 
-import { createClient } from '@/lib/supabaseClient'
+import { getServerSupabase } from '@/lib/supabaseClient'
 import { Resend } from 'resend'
 import { generateToken } from '@/lib/tokens'
+import { mustOne } from '@/lib/db'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
 export async function requestResume(pitchId: string, recruiterMessage?: string) {
-  const supabase = createClient()
+  const supabase = getServerSupabase()
   
   // Get current user (must be recruiter)
   const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -27,7 +28,7 @@ export async function requestResume(pitchId: string, recruiterMessage?: string) 
   }
 
   // Get pitch and veteran details
-  const { data: pitch, error: pitchError } = await supabase
+  const { data, error } = await supabase
     .from('pitches')
     .select(`
       id,
@@ -43,11 +44,13 @@ export async function requestResume(pitchId: string, recruiterMessage?: string) 
     `)
     .eq('id', pitchId)
     .eq('status', 'active')
-    .single()
 
-  if (pitchError || !pitch) {
-    throw new Error('Pitch not found or inactive')
+  if (error) throw error
+  if (!data || data.length === 0) {
+    throw new Error('Pitch not found or not active')
   }
+  
+  const pitch = data[0]
 
   // Create resume request record
   const { data: request, error: requestError } = await supabase
@@ -55,7 +58,7 @@ export async function requestResume(pitchId: string, recruiterMessage?: string) 
     .insert({
       pitch_id: pitchId,
       recruiter_id: user.id,
-      veteran_id: pitch.profiles.id,
+      veteran_id: pitch.profiles?.[0]?.id || '',
       message: recruiterMessage || null,
       status: 'pending'
     })
@@ -74,27 +77,27 @@ export async function requestResume(pitchId: string, recruiterMessage?: string) 
     // Generate HMAC tokens for approve/decline links
     const approveToken = generateToken({
       requestId: request.id,
-      veteranId: pitch.profiles.id,
+      veteranId: pitch.profiles?.[0]?.id || '',
       purpose: 'resume_approve'
     })
     
     const declineToken = generateToken({
       requestId: request.id,
-      veteranId: pitch.profiles.id,
+      veteranId: pitch.profiles?.[0]?.id || '',
       purpose: 'resume_decline'
     })
 
-    const emailHtml = render(ResumeRequestEmail({
-      veteranName: pitch.profiles.full_name,
+    const emailHtml = await render(ResumeRequestEmail({
+      veteranName: pitch.profiles?.[0]?.full_name || 'Unknown',
       pitchTitle: pitch.title,
-      recruiterMessage,
+      recruiterMessage: recruiterMessage || '',
       approveUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/api/resume/approve/${request.id}?token=${approveToken}`,
       declineUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/api/resume/decline/${request.id}?token=${declineToken}`
     }))
 
     await resend.emails.send({
       from: 'Xainik <noreply@xainik.com>',
-      to: pitch.profiles.email,
+      to: pitch.profiles?.[0]?.email || '',
       subject: `Resume Request: ${pitch.title}`,
       html: emailHtml
     })
