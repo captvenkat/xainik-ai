@@ -58,7 +58,7 @@ export async function middleware(req: NextRequest) {
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: https: blob:",
     "font-src 'self'",
-    "connect-src 'self' https://api.supabase.co https://*.supabase.co https://checkout.razorpay.com",
+    "connect-src 'self' https://api.supabase.co https://*.supabase.co https://checkout.razorpay.com https://api.resend.com",
     "frame-src https://checkout.razorpay.com",
     "object-src 'none'",
     "base-uri 'self'",
