@@ -1,0 +1,166 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabaseClient'
+import { Resend } from 'resend'
+import { verifyToken } from '@/lib/tokens'
+import { generatePresignedUrl, extractStoragePath } from '@/lib/storage'
+
+const resend = new Resend(process.env.RESEND_API_KEY)
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ requestId: string }> }
+) {
+  const { requestId } = await params
+  const supabase = createClient()
+  
+  try {
+    // Verify HMAC token
+    const token = request.nextUrl.searchParams.get('token')
+    if (!token) {
+      return NextResponse.json(
+        { error: 'Missing authorization token' },
+        { status: 401 }
+      )
+    }
+
+    const payload = verifyToken(token)
+    if (!payload || payload.requestId !== params.requestId || payload.purpose !== 'resume_approve') {
+      return NextResponse.json(
+        { error: 'Invalid or expired token' },
+        { status: 401 }
+      )
+    }
+
+    // Get the resume request with all related data
+    const { data: resumeRequest, error: requestError } = await supabase
+      .from('resume_requests')
+      .select(`
+        id,
+        status,
+        message,
+        created_at,
+        pitch_id,
+        recruiter_id,
+        veteran_id,
+        responded_at,
+        pitches!inner(
+          title,
+          profiles!inner(
+            id,
+            full_name,
+            email,
+            phone,
+            resume_url,
+            resume_share_enabled
+          )
+        ),
+        profiles!resume_requests_recruiter_id_fkey(
+          full_name,
+          email
+        )
+      `)
+      .eq('id', params.requestId)
+      .single()
+
+    if (requestError || !resumeRequest) {
+      return NextResponse.json(
+        { error: 'Resume request not found' },
+        { status: 404 }
+      )
+    }
+
+    if (resumeRequest.status !== 'pending') {
+      return NextResponse.json(
+        { error: 'Request already processed' },
+        { status: 400 }
+      )
+    }
+
+    if (resumeRequest.responded_at) {
+      return NextResponse.json(
+        { error: 'Request already responded to' },
+        { status: 400 }
+      )
+    }
+
+    // Update request status to approved and set responded_at
+    const { error: updateError } = await supabase
+      .from('resume_requests')
+      .update({ 
+        status: 'approved',
+        approved_at: new Date().toISOString(),
+        responded_at: new Date().toISOString()
+      })
+      .eq('id', params.requestId)
+
+    if (updateError) {
+      throw new Error('Failed to update request status')
+    }
+
+    // Send appropriate email to recruiter based on resume availability
+    const veteran = resumeRequest.pitches.profiles
+    const recruiter = resumeRequest.profiles
+    
+    const hasResume = veteran.resume_url && veteran.resume_share_enabled
+    
+    if (hasResume) {
+      // Generate pre-signed URL for resume
+      const storagePath = extractStoragePath(veteran.resume_url)
+      let presignedUrl = null
+      
+      if (storagePath) {
+        presignedUrl = await generatePresignedUrl(storagePath.bucket, storagePath.path, 24 * 60 * 60) // 24 hours
+      }
+      
+      try {
+        await resend.emails.send({
+          from: 'Xainik <noreply@xainik.com>',
+          to: recruiter.email,
+          subject: `Resume Approved: ${resumeRequest.pitches.title}`,
+          html: `
+            <h2>Resume Request Approved</h2>
+            <p>Great news! Your resume request for <strong>${resumeRequest.pitches.title}</strong> has been approved.</p>
+            <p><strong>Veteran:</strong> ${veteran.full_name}</p>
+            <p><strong>Contact:</strong> ${veteran.email} | ${veteran.phone}</p>
+            ${presignedUrl ? `<p><a href="${presignedUrl}" target="_blank">Download Resume (24h access)</a></p>` : ''}
+            ${resumeRequest.message ? `<p><strong>Your message:</strong> ${resumeRequest.message}</p>` : ''}
+            <p>This link expires in 24 hours. Please download the resume promptly.</p>
+          `
+        })
+      } catch (emailError) {
+        console.error('Failed to send resume email:', emailError)
+      }
+    } else {
+      // No resume available or not opted-in
+      try {
+        await resend.emails.send({
+          from: 'Xainik <noreply@xainik.com>',
+          to: recruiter.email,
+          subject: `Resume Request Approved: ${resumeRequest.pitches.title}`,
+          html: `
+            <h2>Resume Request Approved</h2>
+            <p>Your resume request for <strong>${resumeRequest.pitches.title}</strong> has been approved!</p>
+            <p><strong>Veteran:</strong> ${veteran.full_name}</p>
+            <p><strong>Contact:</strong> ${veteran.email} | ${veteran.phone}</p>
+            <p>Please use the contact information above to coordinate resume sharing directly with the veteran.</p>
+            ${resumeRequest.message ? `<p><strong>Your message:</strong> ${resumeRequest.message}</p>` : ''}
+          `
+        })
+      } catch (emailError) {
+        console.error('Failed to send approval email:', emailError)
+      }
+    }
+
+    // Redirect to success page
+    return NextResponse.redirect(
+      `${process.env.NEXT_PUBLIC_SITE_URL}/resume-request/success?status=approved`
+    )
+
+  } catch (error) {
+    console.error('Error approving resume request:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}

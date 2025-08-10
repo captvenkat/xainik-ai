@@ -1,0 +1,22 @@
+{
+  "id": "evt_test_donation_001",
+  "event": "payment.captured",
+  "payload": {
+    "payment": {
+      "entity": {
+        "id": "pay_test_donation_001",
+        "order_id": "order_test_donation_001",
+        "amount": 50000,
+        "currency": "INR",
+        "status": "captured",
+        "notes": {
+          "type": "donation",
+          "donorName": "Test Donor",
+          "donorEmail": "donor@test.com",
+          "donorPhone": "+919876543211",
+          "anonymous": "false"
+        }
+      }
+    }
+  }
+}

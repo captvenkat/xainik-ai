@@ -1,0 +1,191 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import Link from 'next/link'
+import { 
+  Shield,
+  Users,
+  ArrowRight,
+  ChevronRight,
+  Sparkles
+} from 'lucide-react'
+import LiveActivityTicker from '@/components/LiveActivityTicker'
+import DonationSnapshot from '@/components/DonationSnapshot'
+import FeaturedPitches from '@/components/FeaturedPitches'
+
+export default function HomePage() {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+
+      {/* Hero */}
+      <section className="relative overflow-hidden py-20 lg:py-32">
+        <div className="absolute inset-0 bg-gradient-hero-overlay"></div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/70 text-gray-800 rounded-full text-sm font-semibold mb-8 shadow-sm">
+              <Sparkles className="h-4 w-4" />
+              Built for Veterans and Recruiters
+            </div>
+
+            <h1 className="heading-hero mb-6">
+              The Fastest Hiring Platform
+              <span className="block text-gradient-primary">for Veterans</span>
+            </h1>
+
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed mb-10">
+              Post a pitch, get calls. Browse verified veterans with direct contact details.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link href="/pitch/new" className="btn-primary text-lg inline-flex items-center gap-2">
+                Post My Pitch
+                <ArrowRight className="h-5 w-5" />
+              </Link>
+              <Link href="/browse" className="btn-secondary text-lg inline-flex items-center gap-2">
+                Browse Veterans
+                <ChevronRight className="h-5 w-5" />
+              </Link>
+              <Link href="/support" className="btn-secondary text-lg inline-flex items-center gap-2">
+                Refer a Pitch
+                <ChevronRight className="h-5 w-5" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Activity Ticker */}
+      <section className="py-8 bg-white/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <LiveActivityTicker />
+        </div>
+      </section>
+
+      {/* Donation Snapshot */}
+      <section className="py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <DonationSnapshot />
+        </div>
+      </section>
+
+      {/* Featured Pitches */}
+      <section className="py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              Featured Veterans
+            </h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Discover talented veterans ready for new opportunities
+            </p>
+          </div>
+          <FeaturedPitches />
+        </div>
+      </section>
+
+      {/* Audience cards */}
+      <section className="py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid md:grid-cols-2 gap-8">
+            <div className="text-center p-8 card-glass">
+              <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center mx-auto mb-4">
+                <Shield className="h-6 w-6 text-white" />
+              </div>
+              <h3 className="heading-medium mb-2">Veterans</h3>
+              <p className="text-gray-600">Create a concise pitch. Get contacted directly by recruiters.</p>
+              <div className="mt-6">
+                <Link href="/pitch/new" className="btn-primary inline-flex items-center gap-2">
+                  Post My Pitch
+                  <ArrowRight className="h-5 w-5" />
+                </Link>
+              </div>
+            </div>
+
+            <div className="text-center p-8 card-glass">
+              <div className="w-12 h-12 bg-gradient-success rounded-xl flex items-center justify-center mx-auto mb-4">
+                <Users className="h-6 w-6 text-white" />
+              </div>
+              <h3 className="heading-medium mb-2">Recruiters</h3>
+              <p className="text-gray-600">Browse ready-to-join veterans with verified details.</p>
+              <div className="mt-6">
+                <Link href="/browse" className="btn-secondary inline-flex items-center gap-2">
+                  Browse Veterans
+                  <ChevronRight className="h-5 w-5" />
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Featured Pitches (empty state, no dummy data) */}
+      <section className="py-20 bg-white/60 backdrop-blur-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-10">
+            <h2 className="heading-large mb-3">Featured Veterans</h2>
+            <p className="text-gray-600">No featured pitches yet.</p>
+          </div>
+          <div className="flex items-center justify-center">
+            <Link href="/pitch/new" className="btn-primary inline-flex items-center gap-2">
+              Be the first to post
+              <ArrowRight className="h-5 w-5" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-gradient-to-br from-gray-900 via-slate-900 to-gray-900 text-white py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div>
+              <div className="flex items-center mb-6">
+                <div className="w-10 h-10 bg-gradient-primary rounded-xl flex items-center justify-center">
+                  <Shield className="h-6 w-6 text-white" />
+                </div>
+                <span className="ml-3 text-2xl font-bold">XAINIK</span>
+              </div>
+              <p className="text-gray-400 mb-6 leading-relaxed">
+                Helping veterans connect with meaningful opportunities.
+              </p>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-bold mb-6">Platform</h3>
+              <ul className="space-y-3 text-gray-400">
+                <li><Link href="/pricing" className="hover:text-white transition-colors duration-200">Pricing</Link></li>
+                <li><Link href="/donations" className="hover:text-white transition-colors duration-200">Donations</Link></li>
+                <li><Link href="/about" className="hover:text-white transition-colors duration-200">About</Link></li>
+                <li><Link href="/support" className="hover:text-white transition-colors duration-200">Support</Link></li>
+              </ul>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-bold mb-6">Resources</h3>
+              <ul className="space-y-3 text-gray-400">
+                <li><Link href="/browse" className="hover:text-white transition-colors duration-200">Browse Veterans</Link></li>
+                <li><Link href="/pitch/new" className="hover:text-white transition-colors duration-200">Post Pitch</Link></li>
+                <li><Link href="/support-the-mission" className="hover:text-white transition-colors duration-200">Support Mission</Link></li>
+                <li><Link href="/contact" className="hover:text-white transition-colors duration-200">Contact</Link></li>
+              </ul>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-bold mb-6">Legal</h3>
+              <ul className="space-y-3 text-gray-400">
+                <li><Link href="/about" className="hover:text-white transition-colors duration-200">About</Link></li>
+                <li><Link href="/contact" className="hover:text-white transition-colors duration-200">Contact</Link></li>
+                <li><Link href="/terms" className="hover:text-white transition-colors duration-200">Terms</Link></li>
+                <li><Link href="/privacy" className="hover:text-white transition-colors duration-200">Privacy</Link></li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
+            <p>&copy; 2024 Xainik. All rights reserved.</p>
+          </div>
+        </div>
+      </footer>
+    </div>
+  )
+}
