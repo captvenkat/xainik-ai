@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabaseAdmin'
 import { logActivity } from '@/lib/activity'
+import { notifyPlanExpiryWarning, notifyPlanExpired } from '@/lib/notify'
 
 export async function POST(request: NextRequest) {
   try {
@@ -52,9 +53,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Database error' }, { status: 500 })
     }
 
-    // Log activity for each expired pitch
-    const activityPromises = expiredPitches.map(pitch => 
-      logActivity('pitch_expired', {
+    // Log activity and send notifications for each expired pitch
+    const activityPromises = expiredPitches.map(async pitch => {
+      // Log activity
+      await logActivity('pitch_expired', {
         pitch_id: pitch.id,
         pitch_title: pitch.title,
         veteran_name: pitch.users?.[0]?.name,
@@ -62,12 +64,18 @@ export async function POST(request: NextRequest) {
         plan_tier: pitch.plan_tier,
         expired_at: pitch.plan_expires_at
       })
-    )
+
+      // Send notification to veteran
+      try {
+        await notifyPlanExpired(pitch.veteran_id, {
+          plan_tier: pitch.plan_tier
+        })
+      } catch (notificationError) {
+        console.error('Failed to send plan expired notification:', notificationError)
+      }
+    })
 
     await Promise.all(activityPromises)
-
-    // Send notifications to veterans (optional - can be implemented later)
-    // await sendExpiryNotifications(expiredPitches)
 
     return NextResponse.json({
       message: 'Successfully processed expired pitches',
@@ -103,7 +111,7 @@ export async function GET(request: NextRequest) {
   
   const { data: expiringSoon, error } = await supabase
     .from('pitches')
-    .select('id, title, plan_expires_at')
+    .select('id, title, plan_expires_at, veteran_id, plan_tier')
     .eq('is_active', true)
     .gte('plan_expires_at', new Date().toISOString())
     .lte('plan_expires_at', threeDaysFromNow)
@@ -111,6 +119,28 @@ export async function GET(request: NextRequest) {
 
   if (error) {
     return NextResponse.json({ error: 'Database error' }, { status: 500 })
+  }
+
+  // Send warning notifications for pitches expiring in 3 days
+  if (expiringSoon && expiringSoon.length > 0) {
+    const warningPromises = expiringSoon.map(async pitch => {
+      const expiryDate = new Date(pitch.plan_expires_at)
+      const now = new Date()
+      const daysLeft = Math.ceil((expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+      
+      if (daysLeft <= 3) {
+        try {
+          await notifyPlanExpiryWarning(pitch.veteran_id, {
+            plan_tier: pitch.plan_tier,
+            days_left: daysLeft
+          })
+        } catch (notificationError) {
+          console.error('Failed to send plan expiry warning:', notificationError)
+        }
+      }
+    })
+
+    await Promise.all(warningPromises)
   }
 
   return NextResponse.json({

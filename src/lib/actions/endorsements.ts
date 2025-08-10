@@ -1,6 +1,7 @@
 import { getServerSupabase } from '../supabaseClient'
 import { logActivity } from '../activity'
 import { first } from '@/lib/db'
+import { notifyEndorsementReceived, notifyVerifiedBadge } from '@/lib/notify'
 
 export interface Endorsement {
   id: string
@@ -42,6 +43,13 @@ export async function createEndorsement(
     throw new Error('You have already endorsed this veteran')
   }
 
+  // Get endorser details for notification
+  const { data: endorser } = await supabase
+    .from('users')
+    .select('name')
+    .eq('id', endorserId)
+    .single()
+
   // Create endorsement
   const { data, error } = await supabase
     .from('endorsements')
@@ -56,6 +64,28 @@ export async function createEndorsement(
   if (error) {
     console.error('Error creating endorsement:', error)
     throw new Error('Failed to create endorsement')
+  }
+
+  // Send notification to veteran
+  try {
+    await notifyEndorsementReceived(veteranId, {
+      endorser_name: endorser?.name || 'Someone',
+      message: text || 'Endorsed your pitch'
+    })
+  } catch (notificationError) {
+    console.error('Failed to send endorsement notification:', notificationError)
+    // Don't fail the endorsement if notification fails
+  }
+
+  // Check if veteran should get verified badge (10+ endorsements)
+  try {
+    const endorsementCount = await getEndorsementCount(veteranId)
+    if (endorsementCount === 10) {
+      await notifyVerifiedBadge(veteranId)
+    }
+  } catch (badgeError) {
+    console.error('Failed to check/send verified badge notification:', badgeError)
+    // Don't fail the endorsement if badge notification fails
   }
 
   // Log activity
@@ -97,18 +127,16 @@ export async function getVeteranEndorsements(veteranId: string): Promise<Endorse
 export async function getEndorsementCount(veteranId: string): Promise<number> {
   const supabase = getServerSupabase()
   
-  const { data, error } = await supabase
-    .rpc('get_endorsement_count', { veteran_uuid: veteranId })
+  const { count, error } = await supabase
+    .from('endorsements')
+    .select('*', { count: 'exact', head: true })
+    .eq('veteran_id', veteranId)
 
-  if (error) {
-    console.error('Error getting endorsement count:', error)
-    return 0
-  }
-
-  return data || 0
+  if (error) throw error
+  return count || 0
 }
 
-// Check if veteran is community verified (>=10 endorsements)
+// Check if veteran is community verified (10+ endorsements)
 export async function isCommunityVerified(veteranId: string): Promise<boolean> {
   const count = await getEndorsementCount(veteranId)
   return count >= 10
@@ -133,9 +161,8 @@ export async function getUserEndorsements(userId: string): Promise<EndorsementWi
 
   if (error) throw error
 
-  return (data || []).map((item: any) => ({
+  return (data || []).map(item => ({
     ...item,
-    endorser: Array.isArray(item.endorser) ? first(item.endorser) : item.endorser,
-    veteran: Array.isArray(item.veteran) ? first(item.veteran) : item.veteran
+    endorser: Array.isArray(item.veteran) ? first(item.veteran) : item.veteran
   })) as EndorsementWithUser[]
 }
