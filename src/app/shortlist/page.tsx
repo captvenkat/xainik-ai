@@ -66,10 +66,11 @@ export default async function ShortlistPage() {
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                      {item.pitches.title}
+                      {item.pitches[0]?.title || 'Untitled'}
                     </h3>
                     <p className="text-sm text-gray-600 mb-3">
-                      {item.pitches.summary?.substring(0, 120)}...
+                      {item.pitches[0]?.summary?.substring(0, 120) || 'No description available'}
+                      {item.pitches[0]?.summary && item.pitches[0].summary.length > 120 ? '...' : ''}
                     </p>
                   </div>
                   <button
@@ -81,33 +82,33 @@ export default async function ShortlistPage() {
                 </div>
 
                 <div className="space-y-3 mb-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                      {item.pitches.profiles.avatar_url ? (
-                        <img 
-                          src={item.pitches.profiles.avatar_url} 
-                          alt={item.pitches.profiles.full_name}
-                          className="w-8 h-8 rounded-full object-cover"
-                        />
-                      ) : (
-                        <span className="text-sm font-medium text-gray-600">
-                          {item.pitches.profiles.full_name.charAt(0)}
-                        </span>
-                      )}
-                    </div>
-                    <div>
-                      <div className="font-medium text-gray-900">
-                        {item.pitches.profiles.full_name}
+                                      <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+                        {Array.isArray(item.pitches[0]?.profiles) && item.pitches[0]?.profiles?.[0]?.avatar_url ? (
+                          <img 
+                            src={item.pitches[0].profiles[0].avatar_url} 
+                            alt={item.pitches[0].profiles[0].full_name}
+                            className="w-8 h-8 rounded-full object-cover"
+                          />
+                        ) : (
+                          <span className="text-sm font-medium text-gray-600">
+                            {Array.isArray(item.pitches[0]?.profiles) ? item.pitches[0]?.profiles?.[0]?.full_name?.charAt(0) || '?' : '?'}
+                          </span>
+                        )}
                       </div>
-                      <div className="text-sm text-gray-600">
-                        {item.pitches.experience_years} years experience • {item.pitches.location}
+                      <div>
+                        <div className="font-medium text-gray-900">
+                          {Array.isArray(item.pitches[0]?.profiles) ? item.pitches[0]?.profiles?.[0]?.full_name || 'Unknown' : 'Unknown'}
+                        </div>
+                        <div className="text-sm text-gray-600">
+                          {item.pitches[0]?.experience_years || 0} years experience • {item.pitches[0]?.location || 'Unknown'}
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {item.pitches.skills && item.pitches.skills.length > 0 && (
+                  {item.pitches[0]?.skills && item.pitches[0].skills.length > 0 && (
                     <div className="flex flex-wrap gap-1">
-                      {item.pitches.skills.slice(0, 3).map((skill, index) => (
+                      {item.pitches[0].skills.slice(0, 3).map((skill: string, index: number) => (
                         <span
                           key={index}
                           className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
@@ -115,9 +116,9 @@ export default async function ShortlistPage() {
                           {skill}
                         </span>
                       ))}
-                      {item.pitches.skills.length > 3 && (
+                      {item.pitches[0].skills.length > 3 && (
                         <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
-                          +{item.pitches.skills.length - 3} more
+                          +{item.pitches[0].skills.length - 3} more
                         </span>
                       )}
                     </div>
@@ -126,7 +127,7 @@ export default async function ShortlistPage() {
 
                 <div className="flex gap-2 mb-4">
                   <a
-                    href={`/pitch/${item.pitches.id}`}
+                    href={`/pitch/${item.pitches[0]?.id || ''}`}
                     className="flex-1 flex items-center justify-center gap-2 py-2 px-3 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors"
                   >
                     <Eye className="w-4 h-4" />
@@ -136,14 +137,14 @@ export default async function ShortlistPage() {
 
                 <div className="flex gap-2">
                   <a
-                    href={`tel:${item.pitches.profiles.phone}`}
+                    href={`tel:${Array.isArray(item.pitches[0]?.profiles) ? item.pitches[0]?.profiles?.[0]?.phone || '' : ''}`}
                     className="flex-1 flex items-center justify-center gap-2 py-2 px-3 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors"
                   >
                     <Phone className="w-4 h-4" />
                     Call
                   </a>
                   <a
-                    href={`mailto:${item.pitches.profiles.email}`}
+                    href={`mailto:${Array.isArray(item.pitches[0]?.profiles) ? item.pitches[0]?.profiles?.[0]?.email || '' : ''}`}
                     className="flex-1 flex items-center justify-center gap-2 py-2 px-3 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-colors"
                   >
                     <Mail className="w-4 h-4" />
