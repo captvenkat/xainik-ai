@@ -1,4 +1,18 @@
 import { Shield, FileText, Users, CreditCard } from 'lucide-react'
+import { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Terms of Service | Xainik',
+  description: 'Read Xainik\'s Terms of Service. Learn about user responsibilities, payment terms, privacy protection, and platform usage guidelines for veterans and recruiters.',
+  openGraph: {
+    title: 'Terms of Service | Xainik',
+    description: 'Read Xainik\'s Terms of Service and platform usage guidelines.',
+    url: '/terms',
+  },
+  alternates: {
+    canonical: '/terms',
+  },
+}
 
 export default function TermsPage() {
   return (

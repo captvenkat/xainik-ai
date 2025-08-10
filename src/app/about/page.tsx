@@ -1,4 +1,18 @@
 import { Shield, Users, Target, Heart, Award, Globe } from 'lucide-react'
+import { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'About Us | Xainik',
+  description: 'Learn about Xainik\'s mission to empower veterans by bridging the gap between military service and civilian careers. Discover how we connect veterans with meaningful opportunities.',
+  openGraph: {
+    title: 'About Us | Xainik',
+    description: 'Learn about Xainik\'s mission to empower veterans by bridging the gap between military service and civilian careers.',
+    url: '/about',
+  },
+  alternates: {
+    canonical: '/about',
+  },
+}
 
 export default function AboutPage() {
   return (

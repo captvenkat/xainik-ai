@@ -12,6 +12,7 @@ export type ActivityEvent =
   | 'resume_request_declined'
   | 'pitch_expired'
   | 'plan_activated'
+  | 'pitch_updated'
 
 export interface ActivityMeta {
   [key: string]: any
@@ -117,7 +118,7 @@ export async function getPitchActivity(pitchId: string, limit: number = 20): Pro
 }
 
 // Helper function to format activity for display
-export function formatActivityText(event: ActivityEvent, meta: ActivityMeta): string {
+export function formatActivityText(event: string, meta: ActivityMeta): string {
   switch (event) {
     case 'veteran_joined':
       return `${meta.veteran_name || 'A veteran'} joined Xainik`

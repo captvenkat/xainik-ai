@@ -3,9 +3,6 @@ import { config } from 'dotenv'
 // Load test environment variables
 config({ path: '.env.test' })
 
-// Set test environment
-process.env.NODE_ENV = 'test'
-
 // Mock Next.js environment
 process.env.NEXT_PUBLIC_SITE_URL = 'http://localhost:3000'
 

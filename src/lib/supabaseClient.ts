@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import type { Database } from '@/types/supabase'
 
 // Re-export createClient for direct use
 export { createClient }
@@ -10,7 +11,7 @@ export function getBrowserSupabase() {
   if (!url || !anon) {
     throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY')
   }
-  return createClient(url, anon, {
+  return createClient<Database>(url, anon, {
     auth: { persistSession: true, autoRefreshToken: true },
   })
 }
@@ -22,7 +23,7 @@ export function getServerSupabase() {
   if (!url || !anon) {
     throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY')
   }
-  return createClient(url, anon, {
+  return createClient<Database>(url, anon, {
     auth: { persistSession: false, autoRefreshToken: false },
   })
 }

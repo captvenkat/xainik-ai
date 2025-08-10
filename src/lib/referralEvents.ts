@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabaseClient'
+import { getServerSupabase } from '@/lib/supabaseClient'
 import { createHash } from 'crypto'
 
 const IP_SALT = process.env.IP_HASH_SALT || 'default-salt-change-in-production'
@@ -12,7 +12,7 @@ export interface ReferralEventData {
 }
 
 export async function recordEvent(data: ReferralEventData): Promise<void> {
-  const supabase = createClient()
+  const supabase = getServerSupabase()
   
   // Hash IP address if provided
   const ipHash = data.ipAddress ? hashIP(data.ipAddress) : null

@@ -21,7 +21,7 @@ export default function RoleAwareLink({
   onClick 
 }: RoleAwareLinkProps) {
   const [user, setUser] = useState<any>(null)
-  const [profile, setProfile] = useState(null)
+  const [profile, setProfile] = useState<{ role: string } | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
   const supabase = getBrowserSupabase()
@@ -33,7 +33,7 @@ export default function RoleAwareLink({
       
       if (user) {
         const { data: profile } = await supabase
-          .from('profiles')
+          .from('users')
           .select('role')
           .eq('id', user.id)
           .single()
@@ -49,7 +49,7 @@ export default function RoleAwareLink({
       setUser(session?.user ?? null)
       if (session?.user) {
         supabase
-          .from('profiles')
+          .from('users')
           .select('role')
           .eq('id', session.user.id)
           .single()

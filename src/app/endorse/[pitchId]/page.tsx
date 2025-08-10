@@ -52,7 +52,7 @@ export default function EndorsePage() {
     }
   }, [pitchId, supabase])
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     
     if (!formData.message.trim()) {
@@ -89,7 +89,7 @@ export default function EndorsePage() {
     }
   }
 
-  const handleInputChange = (e) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({
       ...prev,

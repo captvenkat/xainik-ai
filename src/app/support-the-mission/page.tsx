@@ -1,5 +1,19 @@
 import { Heart, Shield, Users, Target, ArrowRight, CheckCircle } from 'lucide-react'
 import Link from 'next/link'
+import { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Support the Mission | Xainik',
+  description: 'Support Xainik\'s mission to empower veterans. Your contributions help us build technology, provide veteran services, and foster community connections for meaningful careers.',
+  openGraph: {
+    title: 'Support the Mission | Xainik',
+    description: 'Support Xainik\'s mission to empower veterans and build meaningful career connections.',
+    url: '/support-the-mission',
+  },
+  alternates: {
+    canonical: '/support-the-mission',
+  },
+}
 
 export default function SupportTheMissionPage() {
   return (

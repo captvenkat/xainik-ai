@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from 'react'
-import { createClient } from '@/lib/supabaseClient'
+import { getBrowserSupabase } from '@/lib/supabaseClient'
 import { logActivity } from '@/lib/activity'
 import { FileText, Save, AlertCircle, CheckCircle } from 'lucide-react'
 
@@ -20,7 +20,7 @@ export default function RecruiterNotes({ pitchId, veteranName, initialNote = '' 
   const [userId, setUserId] = useState<string | null>(null)
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-  const supabase = createClient()
+  const supabase = getBrowserSupabase()
 
   useEffect(() => {
     const checkUser = async () => {
@@ -82,7 +82,7 @@ export default function RecruiterNotes({ pitchId, veteranName, initialNote = '' 
       if (error) throw error
 
       // Log activity
-      await logActivity('recruiter_note_updated', {
+      await logActivity('pitch_updated', {
         pitch_id: pitchId,
         recruiter_id: userId,
         note_length: noteText.length

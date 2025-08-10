@@ -158,7 +158,7 @@ if (require.main === module) {
   const testParams: ServicePurchaseTestParams = {
     userId: process.argv[2] || 'test-user-id',
     planTier: process.argv[3] || 'premium',
-    amount: parseInt(process.argv[4]) || 29900,
+    amount: parseInt(process.argv[4] || '29900'),
     buyerName: process.argv[5] || 'Test User',
     buyerEmail: process.argv[6] || 'test@example.com',
     buyerPhone: process.argv[7] || '+919876543210'

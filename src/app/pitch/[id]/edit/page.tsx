@@ -3,17 +3,18 @@ import { redirect } from 'next/navigation'
 import { FileText, Save, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 
-export default async function EditPitchPage({ params }: { params: { id: string } }) {
+export default async function EditPitchPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const supabase = getServerSupabase()
   
   // Check authentication and role
   const { data: { user }, error: authError } = await supabase.auth.getUser()
   if (authError || !user) {
-    redirect('/login?redirect=/pitch/' + params.id + '/edit')
+    redirect('/login?redirect=/pitch/' + id + '/edit')
   }
 
   const { data: profile } = await supabase
-    .from('profiles')
+    .from('users')
     .select('role')
     .eq('id', user.id)
     .single()
@@ -26,7 +27,7 @@ export default async function EditPitchPage({ params }: { params: { id: string }
   const { data: pitch, error: pitchError } = await supabase
     .from('pitches')
     .select('*')
-    .eq('id', params.id)
+    .eq('id', id)
     .eq('user_id', user.id)
     .single()
 
@@ -73,14 +74,14 @@ export default async function EditPitchPage({ params }: { params: { id: string }
             </div>
 
             <div>
-              <label htmlFor="summary" className="block text-sm font-medium text-gray-700 mb-2">
-                Summary
+              <label htmlFor="pitch_text" className="block text-sm font-medium text-gray-700 mb-2">
+                Pitch Text
               </label>
               <textarea
-                id="summary"
-                name="summary"
+                id="pitch_text"
+                name="pitch_text"
                 rows={4}
-                defaultValue={pitch.summary}
+                defaultValue={pitch.pitch_text}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="Brief overview of your background, skills, and what you're looking for..."
               />
@@ -88,17 +89,24 @@ export default async function EditPitchPage({ params }: { params: { id: string }
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label htmlFor="experience_years" className="block text-sm font-medium text-gray-700 mb-2">
-                  Years of Experience
+                <label htmlFor="job_type" className="block text-sm font-medium text-gray-700 mb-2">
+                  Job Type
                 </label>
-                <input
-                  type="number"
-                  id="experience_years"
-                  name="experience_years"
-                  defaultValue={pitch.experience_years}
-                  min="0"
+                <select
+                  id="job_type"
+                  name="job_type"
+                  defaultValue={pitch.job_type}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
+                >
+                  <option value="full-time">Full-time</option>
+                  <option value="part-time">Part-time</option>
+                  <option value="freelance">Freelance</option>
+                  <option value="consulting">Consulting</option>
+                  <option value="hybrid">Hybrid</option>
+                  <option value="project-based">Project-based</option>
+                  <option value="remote">Remote</option>
+                  <option value="on-site">On-site</option>
+                </select>
               </div>
 
               <div>
@@ -131,31 +139,20 @@ export default async function EditPitchPage({ params }: { params: { id: string }
             </div>
 
             <div>
-              <label htmlFor="military_background" className="block text-sm font-medium text-gray-700 mb-2">
-                Military Background
+              <label htmlFor="availability" className="block text-sm font-medium text-gray-700 mb-2">
+                Availability
               </label>
-              <textarea
-                id="military_background"
-                name="military_background"
-                rows={3}
-                defaultValue={pitch.military_background}
+              <select
+                id="availability"
+                name="availability"
+                defaultValue={pitch.availability}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Brief description of your military service and relevant experience..."
-              />
-            </div>
-
-            <div>
-              <label htmlFor="looking_for" className="block text-sm font-medium text-gray-700 mb-2">
-                What You're Looking For
-              </label>
-              <textarea
-                id="looking_for"
-                name="looking_for"
-                rows={3}
-                defaultValue={pitch.looking_for}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Describe the type of opportunities you're seeking..."
-              />
+              >
+                <option value="immediate">Immediate</option>
+                <option value="30">30 days</option>
+                <option value="60">60 days</option>
+                <option value="90">90 days</option>
+              </select>
             </div>
 
             <div className="flex gap-4 pt-6">
@@ -182,7 +179,7 @@ export default async function EditPitchPage({ params }: { params: { id: string }
           <div className="space-y-2 text-sm text-blue-800">
             <div className="flex justify-between">
               <span>Status:</span>
-              <span className="font-medium">{pitch.status}</span>
+              <span className="font-medium">{pitch.is_active ? 'Active' : 'Inactive'}</span>
             </div>
             <div className="flex justify-between">
               <span>Plan:</span>

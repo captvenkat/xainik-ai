@@ -1,5 +1,19 @@
 import { Users, Share2, Target, ArrowRight, CheckCircle, Heart } from 'lucide-react'
 import Link from 'next/link'
+import { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Support Veterans | Xainik',
+  description: 'Become a supporter and help veterans connect with meaningful career opportunities. Share veteran pitches with your network and track your impact.',
+  openGraph: {
+    title: 'Support Veterans | Xainik',
+    description: 'Become a supporter and help veterans connect with meaningful career opportunities.',
+    url: '/support',
+  },
+  alternates: {
+    canonical: '/support',
+  },
+}
 
 export default function SupportPage() {
   return (

@@ -32,9 +32,9 @@ export async function createOrder(params: CreateOrderParams): Promise<OrderRespo
 
     return {
       id: order.id,
-      amount: order.amount / 100, // Convert back to rupees
+      amount: Number(order.amount || 0) / 100, // Convert back to rupees
       currency: order.currency,
-      receipt: order.receipt,
+      receipt: order.receipt || '',
       status: order.status,
     }
   } catch (error) {
@@ -81,13 +81,13 @@ export async function getPaymentDetails(paymentId: string): Promise<PaymentDetai
     return {
       orderId: payment.order_id,
       paymentId: payment.id,
-      amount: payment.amount / 100, // Convert from paise to rupees
+      amount: Number(payment.amount || 0) / 100, // Convert from paise to rupees
       currency: payment.currency,
       status: payment.status,
       method: payment.method,
       description: payment.description || '',
       email: payment.email,
-      contact: payment.contact,
+      contact: String(payment.contact || ''),
       notes: payment.notes || {},
     }
   } catch (error) {

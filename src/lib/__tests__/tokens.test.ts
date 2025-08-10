@@ -29,7 +29,7 @@ describe('Token Security', () => {
     // Manually expire the token by modifying the exp time
     const decoded = Buffer.from(token, 'base64url').toString('utf-8')
     const [data, signature] = decoded.split('.')
-    const tokenData = JSON.parse(data)
+    const tokenData = JSON.parse(data || '{}')
     tokenData.exp = Date.now() - 1000 // 1 second ago
     
     const expiredData = JSON.stringify(tokenData)

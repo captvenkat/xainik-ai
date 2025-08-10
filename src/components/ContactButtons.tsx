@@ -2,17 +2,17 @@
 
 import { useState, useEffect } from 'react'
 import { Phone, Mail } from 'lucide-react'
-import { createClient } from '@/lib/supabaseClient'
+import { getBrowserSupabase } from '@/lib/supabaseClient'
 import { logActivity } from '@/lib/activity'
 import { trackReferralEvent } from '@/lib/referrals'
 
 interface ContactButtonsProps {
-  phone?: string
-  email?: string
-  referralId?: string
-  pitchId?: string
-  veteranName?: string
-  pitchTitle?: string
+  phone?: string | undefined
+  email?: string | undefined
+  referralId?: string | undefined
+  pitchId?: string | undefined
+  veteranName?: string | undefined
+  pitchTitle?: string | undefined
 }
 
 export default function ContactButtons({ 
@@ -28,7 +28,7 @@ export default function ContactButtons({
 
   useEffect(() => {
     const checkUserRole = async () => {
-      const supabase = createClient()
+      const supabase = getBrowserSupabase()
       const { data: { user } } = await supabase.auth.getUser()
       
       if (user) {

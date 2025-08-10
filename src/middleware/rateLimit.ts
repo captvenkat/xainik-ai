@@ -61,7 +61,7 @@ export function createRateLimit(config: RateLimitConfig) {
 
 function getRateLimitKey(req: NextRequest): string {
   // Use IP address as key
-  const ip = req.ip || req.headers.get('x-forwarded-for') || 'unknown'
+  const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown'
   
   // Add route-specific key for different limits
   const route = req.nextUrl.pathname
@@ -84,6 +84,16 @@ export const rateLimits = {
   referralEvent: createRateLimit({
     windowMs: 60 * 1000, // 1 minute
     maxRequests: 20, // 20 requests per minute
+  }),
+  
+  aiPitchGeneration: createRateLimit({
+    windowMs: 60 * 1000, // 1 minute
+    maxRequests: 5, // 5 requests per minute per user
+  }),
+  
+  aiPitchGenerationDaily: createRateLimit({
+    windowMs: 24 * 60 * 60 * 1000, // 24 hours
+    maxRequests: 50, // 50 requests per day per user
   }),
   
   general: createRateLimit({

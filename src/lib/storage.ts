@@ -31,6 +31,36 @@ export async function uploadPdf(
   }
 }
 
+export async function uploadResume(
+  userId: string,
+  file: File,
+  fileName: string
+): Promise<string> {
+  try {
+    // Create a unique path for the resume
+    const timestamp = Date.now()
+    const fileExtension = fileName.split('.').pop()?.toLowerCase()
+    const path = `resumes/${userId}/${timestamp}.${fileExtension}`
+
+    const { data, error } = await supabase.storage
+      .from('resumes')
+      .upload(path, file, {
+        contentType: file.type,
+        upsert: false
+      })
+
+    if (error) {
+      console.error('Resume upload error:', error)
+      throw new Error(`Failed to upload resume: ${error.message}`)
+    }
+
+    return data.path
+  } catch (error) {
+    console.error('Storage resume upload error:', error)
+    throw error
+  }
+}
+
 export async function getSignedUrl(
   bucket: string,
   path: string,
@@ -76,4 +106,10 @@ export function generateStorageKey(
 ): string {
   const timestamp = new Date().toISOString().split('T')[0]
   return `${userId}/${type}s/${timestamp}/${number}.pdf`
+}
+
+export function generateResumeKey(userId: string, fileName: string): string {
+  const timestamp = Date.now()
+  const fileExtension = fileName.split('.').pop()?.toLowerCase()
+  return `resumes/${userId}/${timestamp}.${fileExtension}`
 }

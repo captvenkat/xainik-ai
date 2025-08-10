@@ -57,8 +57,8 @@ export async function POST(request: NextRequest) {
       logActivity('pitch_expired', {
         pitch_id: pitch.id,
         pitch_title: pitch.title,
-        veteran_name: pitch.users?.name,
-        veteran_email: pitch.users?.email,
+        veteran_name: pitch.users?.[0]?.name,
+        veteran_email: pitch.users?.[0]?.email,
         plan_tier: pitch.plan_tier,
         expired_at: pitch.plan_expires_at
       })
@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
       expired_pitches: expiredPitches.map(p => ({
         id: p.id,
         title: p.title,
-        veteran_name: p.users?.name,
+        veteran_name: p.users?.[0]?.name,
         plan_tier: p.plan_tier,
         expired_at: p.plan_expires_at
       }))

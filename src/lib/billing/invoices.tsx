@@ -1,4 +1,4 @@
-import { renderToBuffer } from '@react-pdf/renderer'
+import { generatePDFBuffer } from '../server/pdf'
 import React from 'react'
 import { createClient } from '@supabase/supabase-js'
 import * as Sentry from '@sentry/nextjs'
@@ -33,11 +33,6 @@ interface GenerateServiceInvoiceResult {
 export async function generateServiceInvoice(
   params: GenerateServiceInvoiceParams
 ): Promise<GenerateServiceInvoiceResult> {
-  const transaction = Sentry.startTransaction({
-    name: 'billing.generate_invoice',
-    op: 'invoice.generate'
-  });
-
   try {
     console.log('🔄 Generating service invoice...', params)
 
@@ -63,13 +58,13 @@ export async function generateServiceInvoice(
     });
 
     // 2. Generate PDF
-    const pdfBuffer = await renderToBuffer(
+    const pdfBuffer = await generatePDFBuffer(
       <InvoicePDF
         invoiceNumber={invoiceNumber}
         date={new Date().toLocaleDateString('en-IN')}
         buyerName={params.buyerName}
         buyerEmail={params.buyerEmail}
-        buyerPhone={params.buyerPhone}
+        buyerPhone={params.buyerPhone || ''}
         amount={params.amount}
         planTier={params.planTier}
         planMeta={params.planMeta}
@@ -83,7 +78,7 @@ export async function generateServiceInvoice(
     });
 
     // 3. Upload to storage
-    const storageKey = generateStorageKey('invoice', params.userId, invoiceNumber)
+    const storageKey = generateStorageKey('invoice', params.userId || 'unknown', invoiceNumber)
     const bucket = process.env.BILLING_PDF_BUCKET || 'docs'
     
     await uploadPdf(bucket, storageKey, pdfBuffer)
@@ -106,7 +101,7 @@ export async function generateServiceInvoice(
         plan_meta: params.planMeta,
         buyer_name: params.buyerName,
         buyer_email: params.buyerEmail,
-        buyer_phone: params.buyerPhone,
+        buyer_phone: params.buyerPhone || null,
         storage_key: storageKey
       })
       .select()
@@ -162,7 +157,6 @@ export async function generateServiceInvoice(
     console.log('Storage Key:', storageKey)
     console.log('Message ID:', messageId)
 
-    transaction.setStatus('ok');
     return {
       number: invoiceNumber,
       key: storageKey,
@@ -171,7 +165,6 @@ export async function generateServiceInvoice(
     }
 
   } catch (error) {
-    transaction.setStatus('internal_error');
     Sentry.captureException(error, {
       tags: { component: 'invoice_generation' },
       extra: { 
@@ -182,7 +175,5 @@ export async function generateServiceInvoice(
     });
     console.error('❌ Service invoice generation failed:', error)
     throw error
-  } finally {
-    transaction.finish();
   }
 }

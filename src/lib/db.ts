@@ -8,7 +8,7 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey)
 
 // DB shape normalizers and guards
 export function first<T>(arr: T[] | null | undefined): T | null {
-  return Array.isArray(arr) && arr.length > 0 ? arr[0] : null;
+  return Array.isArray(arr) && arr.length > 0 ? arr[0] || null : null;
 }
 
 export async function many<T>(q: Promise<{ data: T[] | null; error: any }>): Promise<T[]> {
@@ -20,7 +20,7 @@ export async function many<T>(q: Promise<{ data: T[] | null; error: any }>): Pro
 export async function one<T>(q: Promise<{ data: T[] | null; error: any }>): Promise<T | null> {
   const { data, error } = await q;
   if (error) throw error;
-  return data && data.length ? data[0] : null;
+  return data && data.length ? data[0] || null : null;
 }
 
 export async function mustOne<T>(q: Promise<{ data: T[] | null; error: any }>): Promise<T> {

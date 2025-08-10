@@ -1,20 +1,47 @@
-import { NextSeoProps } from 'next-seo'
+export interface SEOProps {
+  title?: string
+  titleTemplate?: string
+  defaultTitle?: string
+  description?: string
+  canonical?: string
+  openGraph?: {
+    title?: string
+    description?: string
+    url?: string
+    type?: string
+    siteName?: string
+    images?: Array<{
+      url: string
+      width?: number
+      height?: number
+      alt?: string
+    }>
+  }
+  twitter?: {
+    cardType?: string
+    handle?: string
+    site?: string
+  }
+  additionalMetaTags?: Array<{
+    name: string
+    content: string
+  }>
+}
 
-export const defaultSEO: NextSeoProps = {
+export const defaultSEO: SEOProps = {
   titleTemplate: '%s | Xainik',
   defaultTitle: 'Xainik - Connecting Military Veterans with Civilian Opportunities',
   description: 'Xainik bridges the gap between military excellence and civilian success. Veterans showcase their skills, recruiters find exceptional talent.',
-  canonical: process.env.NEXT_PUBLIC_SITE_URL,
+  canonical: process.env.NEXT_PUBLIC_SITE_URL || '',
   openGraph: {
     type: 'website',
-    locale: 'en_US',
-    url: process.env.NEXT_PUBLIC_SITE_URL,
+    url: process.env.NEXT_PUBLIC_SITE_URL || '',
     siteName: 'Xainik',
     title: 'Xainik - Connecting Military Veterans with Civilian Opportunities',
     description: 'Xainik bridges the gap between military excellence and civilian success. Veterans showcase their skills, recruiters find exceptional talent.',
     images: [
       {
-        url: `${process.env.NEXT_PUBLIC_SITE_URL}/og-image.jpg`,
+        url: `${process.env.NEXT_PUBLIC_SITE_URL || ''}/og-image.jpg`,
         width: 1200,
         height: 630,
         alt: 'Xainik - Military Veterans Platform',
@@ -45,7 +72,7 @@ export function getPitchSEO(pitch: {
   veteran_name: string
   skills: string[]
   location_current?: string
-}): NextSeoProps {
+}): SEOProps {
   const description = pitch.pitch.length > 300 
     ? pitch.pitch.substring(0, 297) + '...'
     : pitch.pitch
@@ -86,7 +113,7 @@ export function getBrowseSEO(filters?: {
   city?: string
   availability?: string
   jobType?: string
-}): NextSeoProps {
+}): SEOProps {
   let title = 'Browse Veterans'
   let description = 'Discover talented military veterans ready for civilian opportunities'
 
@@ -115,7 +142,7 @@ export function getBrowseSEO(filters?: {
   }
 }
 
-export function getPricingSEO(): NextSeoProps {
+export function getPricingSEO(): SEOProps {
   return {
     title: 'Pricing - Simple, Transparent Plans',
     description: 'Choose the plan that works best for your career transition. All plans include full visibility and direct recruiter contact.',
@@ -128,7 +155,7 @@ export function getPricingSEO(): NextSeoProps {
   }
 }
 
-export function getDonationsSEO(): NextSeoProps {
+export function getDonationsSEO(): SEOProps {
   return {
     title: 'Support Our Mission - Donate to Help Veterans',
     description: 'Your donations help us connect more military veterans with meaningful civilian opportunities. Every contribution makes a difference.',

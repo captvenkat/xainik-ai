@@ -43,7 +43,7 @@ export async function likePitch(pitchId: string, userId: string): Promise<{ succ
     await logActivity('like_added', {
       pitch_id: pitchId,
       pitch_title: pitch.title,
-      veteran_name: pitch.users?.name,
+      veteran_name: pitch.users?.[0]?.name || 'Unknown',
       user_id: userId
     })
 
