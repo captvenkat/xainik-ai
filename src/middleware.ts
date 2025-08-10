@@ -14,10 +14,9 @@ const roleRoutes = {
 }
 
 // Public routes that don't require authentication
-const publicRoutes = [
+const PUBLIC_PATHS = [
   '/',
   '/browse',
-  '/pitch',
   '/pricing',
   '/donations',
   '/support',
@@ -30,6 +29,18 @@ const publicRoutes = [
   '/api/razorpay/webhook',
   '/api/cron/expire'
 ]
+
+// Public prefixes that don't require authentication
+const PUBLIC_PREFIXES = [
+  '/pitch/',
+  '/r/',
+  '/api/'
+]
+
+function isPublic(path: string) {
+  if (PUBLIC_PATHS.includes(path)) return true;
+  return PUBLIC_PREFIXES.some(p => path.startsWith(p));
+}
 
 export async function middleware(req: NextRequest) {
   let res = NextResponse.next()
@@ -57,13 +68,8 @@ export async function middleware(req: NextRequest) {
   // Check if route requires authentication
   const pathname = req.nextUrl.pathname
   
-  // Allow public routes
-  if (publicRoutes.some(route => pathname.startsWith(route))) {
-    return res
-  }
-
-  // Allow API routes (they handle auth internally)
-  if (pathname.startsWith('/api/')) {
+  // Allow public routes and prefixes
+  if (isPublic(pathname)) {
     return res
   }
 
