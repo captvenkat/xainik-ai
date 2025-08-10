@@ -1,6 +1,7 @@
 import { renderToBuffer } from '@react-pdf/renderer'
 import React from 'react'
 import { createClient } from '@supabase/supabase-js'
+import * as Sentry from '@sentry/nextjs'
 import InvoicePDF from '@/pdfs/InvoicePDF'
 import { getNextNumber, formatInvoiceNumber, computeFY } from './numbering'
 import { uploadPdf, generateStorageKey } from '../storage'
@@ -32,13 +33,34 @@ interface GenerateServiceInvoiceResult {
 export async function generateServiceInvoice(
   params: GenerateServiceInvoiceParams
 ): Promise<GenerateServiceInvoiceResult> {
+  const transaction = Sentry.startTransaction({
+    name: 'billing.generate_invoice',
+    op: 'invoice.generate'
+  });
+
   try {
     console.log('🔄 Generating service invoice...', params)
+
+    Sentry.addBreadcrumb({
+      category: 'billing',
+      message: 'Starting invoice generation',
+      data: { 
+        userId: params.userId,
+        amount: params.amount,
+        planTier: params.planTier 
+      }
+    });
 
     // 1. Get next invoice number
     const fy = computeFY()
     const nextNumber = await getNextNumber('INV', fy)
     const invoiceNumber = formatInvoiceNumber(nextNumber, fy)
+
+    Sentry.addBreadcrumb({
+      category: 'billing',
+      message: 'Invoice number generated',
+      data: { invoiceNumber, fy }
+    });
 
     // 2. Generate PDF
     const pdfBuffer = await renderToBuffer(
@@ -54,18 +76,30 @@ export async function generateServiceInvoice(
       />
     )
 
+    Sentry.addBreadcrumb({
+      category: 'pdf',
+      message: 'PDF generated successfully',
+      data: { size: pdfBuffer.length }
+    });
+
     // 3. Upload to storage
     const storageKey = generateStorageKey('invoice', params.userId, invoiceNumber)
     const bucket = process.env.BILLING_PDF_BUCKET || 'docs'
     
     await uploadPdf(bucket, storageKey, pdfBuffer)
 
+    Sentry.addBreadcrumb({
+      category: 'storage',
+      message: 'PDF uploaded to storage',
+      data: { bucket, storageKey }
+    });
+
     // 4. Insert into database
     const { data: invoice, error: dbError } = await supabase
       .from('invoices')
       .insert({
         number: invoiceNumber,
-        user_id: params.userId || null, // Make user_id optional
+        user_id: params.userId || null,
         payment_event_id: params.paymentEventId,
         amount: params.amount,
         plan_tier: params.planTier,
@@ -79,9 +113,19 @@ export async function generateServiceInvoice(
       .single()
 
     if (dbError) {
+      Sentry.captureException(dbError, {
+        tags: { component: 'invoice_db_insert' },
+        extra: { invoiceNumber, paymentEventId: params.paymentEventId }
+      });
       console.error('Database error:', dbError)
       throw new Error(`Failed to insert invoice: ${dbError.message}`)
     }
+
+    Sentry.addBreadcrumb({
+      category: 'database',
+      message: 'Invoice inserted into database',
+      data: { invoiceId: invoice.id }
+    });
 
     // 5. Generate signed URL
     const signedUrl = await supabase.storage
@@ -89,6 +133,10 @@ export async function generateServiceInvoice(
       .createSignedUrl(storageKey, parseInt(process.env.BILLING_SIGNED_URL_TTL || '86400'))
 
     if (signedUrl.error) {
+      Sentry.captureException(signedUrl.error, {
+        tags: { component: 'invoice_signed_url' },
+        extra: { storageKey, bucket }
+      });
       console.error('Signed URL error:', signedUrl.error)
       throw new Error(`Failed to create signed URL: ${signedUrl.error.message}`)
     }
@@ -103,11 +151,18 @@ export async function generateServiceInvoice(
       downloadUrl: signedUrl.data.signedUrl
     })
 
+    Sentry.addBreadcrumb({
+      category: 'email',
+      message: 'Invoice email sent',
+      data: { messageId, recipientEmail: params.buyerEmail }
+    });
+
     console.log('✅ Service invoice generated successfully')
     console.log('Invoice Number:', invoiceNumber)
     console.log('Storage Key:', storageKey)
     console.log('Message ID:', messageId)
 
+    transaction.setStatus('ok');
     return {
       number: invoiceNumber,
       key: storageKey,
@@ -116,7 +171,18 @@ export async function generateServiceInvoice(
     }
 
   } catch (error) {
+    transaction.setStatus('internal_error');
+    Sentry.captureException(error, {
+      tags: { component: 'invoice_generation' },
+      extra: { 
+        userId: params.userId,
+        paymentEventId: params.paymentEventId,
+        amount: params.amount 
+      }
+    });
     console.error('❌ Service invoice generation failed:', error)
     throw error
+  } finally {
+    transaction.finish();
   }
 }
