@@ -13,6 +13,7 @@ import {
   Settings,
   BarChart3
 } from 'lucide-react'
+import NotificationBell from './NotificationBell'
 
 export default function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -118,41 +119,46 @@ export default function Navigation() {
             {!isLoading && (
               <>
                 {user ? (
-                  <div className="relative group">
-                    <button className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 transition-colors">
-                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                        <User className="h-4 w-4 text-blue-600" />
-                      </div>
-                      <span className="font-medium">{profile?.full_name || user.email}</span>
-                    </button>
+                  <>
+                    {/* Notification Bell */}
+                    <NotificationBell />
                     
-                    {/* Dropdown Menu */}
-                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
-                      <div className="py-2">
-                        <Link 
-                          href={getDashboardLink()}
-                          className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
-                        >
-                          <BarChart3 className="h-4 w-4 mr-3" />
-                          {getDashboardLabel()}
-                        </Link>
-                        <Link 
-                          href="/settings"
-                          className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
-                        >
-                          <Settings className="h-4 w-4 mr-3" />
-                          Settings
-                        </Link>
-                        <button
-                          onClick={handleSignOut}
-                          className="flex items-center w-full px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
-                        >
-                          <LogOut className="h-4 w-4 mr-3" />
-                          Sign Out
-                        </button>
+                    <div className="relative group">
+                      <button className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 transition-colors">
+                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                          <User className="h-4 w-4 text-blue-600" />
+                        </div>
+                        <span className="font-medium">{profile?.full_name || user.email}</span>
+                      </button>
+                      
+                      {/* Dropdown Menu */}
+                      <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                        <div className="py-2">
+                          <Link 
+                            href={getDashboardLink()}
+                            className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
+                          >
+                            <BarChart3 className="h-4 w-4 mr-3" />
+                            {getDashboardLabel()}
+                          </Link>
+                          <Link 
+                            href="/settings/notifications"
+                            className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
+                          >
+                            <Settings className="h-4 w-4 mr-3" />
+                            Notification Settings
+                          </Link>
+                          <button
+                            onClick={handleSignOut}
+                            className="flex items-center w-full px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
+                          >
+                            <LogOut className="h-4 w-4 mr-3" />
+                            Sign Out
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  </>
                 ) : (
                   <>
                     <Link href="/auth" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
@@ -227,53 +233,60 @@ export default function Navigation() {
                 Contact
               </Link>
               
-              {!isLoading && (
+              {user ? (
                 <>
-                  {user ? (
-                    <>
-                      <Link 
-                        href={getDashboardLink()}
-                        className="text-blue-600 font-medium px-4 py-2 rounded-lg hover:bg-blue-50 transition-all duration-200"
-                        onClick={() => setIsMenuOpen(false)}
-                      >
-                        {getDashboardLabel()}
-                      </Link>
-                      <Link 
-                        href="/settings"
-                        className="text-gray-700 hover:text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 transition-all duration-200"
-                        onClick={() => setIsMenuOpen(false)}
-                      >
-                        Settings
-                      </Link>
-                      <button
-                        onClick={() => {
-                          handleSignOut()
-                          setIsMenuOpen(false)
-                        }}
-                        className="text-left text-gray-700 hover:text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 transition-all duration-200"
-                      >
-                        Sign Out
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <Link 
-                        href="/auth" 
-                        className="text-gray-700 hover:text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 transition-all duration-200"
-                        onClick={() => setIsMenuOpen(false)}
-                      >
-                        Sign In
-                      </Link>
-                      <Link 
-                        href="/auth" 
-                        className="btn-primary text-center"
-                        onClick={() => setIsMenuOpen(false)}
-                      >
-                        Get Started
-                      </Link>
-                    </>
-                  )}
+                  <div className="border-t border-gray-200 pt-4 mt-4">
+                    <div className="flex items-center px-4 py-2">
+                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                        <User className="h-4 w-4 text-blue-600" />
+                      </div>
+                      <span className="ml-3 font-medium text-gray-900">{profile?.full_name || user.email}</span>
+                    </div>
+                    <Link 
+                      href={getDashboardLink()}
+                      className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <BarChart3 className="h-4 w-4 mr-3" />
+                      {getDashboardLabel()}
+                    </Link>
+                    <Link 
+                      href="/settings/notifications"
+                      className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <Settings className="h-4 w-4 mr-3" />
+                      Notification Settings
+                    </Link>
+                    <button
+                      onClick={() => {
+                        handleSignOut()
+                        setIsMenuOpen(false)
+                      }}
+                      className="flex items-center w-full px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      <LogOut className="h-4 w-4 mr-3" />
+                      Sign Out
+                    </button>
+                  </div>
                 </>
+              ) : (
+                <div className="border-t border-gray-200 pt-4 mt-4">
+                  <Link 
+                    href="/auth" 
+                    className="block text-gray-700 hover:text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 transition-all duration-200"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Sign In
+                  </Link>
+                  <Link 
+                    href="/auth" 
+                    className="block btn-primary mt-2"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Get Started
+                  </Link>
+                </div>
               )}
             </div>
           </div>

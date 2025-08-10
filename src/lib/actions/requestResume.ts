@@ -4,6 +4,7 @@ import { getServerSupabase } from '@/lib/supabaseClient'
 import { Resend } from 'resend'
 import { generateToken } from '@/lib/tokens'
 import { mustOne } from '@/lib/db'
+import { notifyResumeRequestReceived, notifyResumeRequestResponse } from '@/lib/notify'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -16,10 +17,10 @@ export async function requestResume(pitchId: string, recruiterMessage?: string) 
     throw new Error('Authentication required')
   }
 
-  // Verify user is a recruiter
+  // Verify user is a recruiter and get profile
   const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
+    .from('users')
+    .select('role, name')
     .eq('id', user.id)
     .single()
 
@@ -69,6 +70,33 @@ export async function requestResume(pitchId: string, recruiterMessage?: string) 
     throw new Error('Failed to create resume request')
   }
 
+  // Send notification to veteran
+  try {
+    const notificationPayload: {
+      recruiter_name: string
+      company_name: string
+      job_title: string
+      message?: string
+    } = {
+      recruiter_name: profile?.name || 'A recruiter',
+      company_name: 'Company', // TODO: Get from recruiter profile
+      job_title: pitch.title
+    }
+    
+    if (recruiterMessage) {
+      notificationPayload.message = recruiterMessage
+    }
+
+    await notifyResumeRequestReceived(
+      pitch.profiles?.[0]?.id || '',
+      user.id,
+      notificationPayload
+    )
+  } catch (notificationError) {
+    console.error('Failed to send notification:', notificationError)
+    // Don't fail the request if notification fails
+  }
+
   // Send email to veteran using React Email template
   try {
     const { render } = await import('@react-email/components')
@@ -107,4 +135,70 @@ export async function requestResume(pitchId: string, recruiterMessage?: string) 
   }
 
   return { success: true, requestId: request.id }
+}
+
+export async function approveResumeRequest(requestId: string, token: string) {
+  const supabase = getServerSupabase()
+  
+  // Verify token and get request details
+  // ... token verification logic ...
+  
+  // Update request status
+  const { data: request, error } = await supabase
+    .from('resume_requests')
+    .update({ status: 'approved' })
+    .eq('id', requestId)
+    .select('*, pitches(title), profiles!resume_requests_veteran_id_fkey(full_name)')
+    .single()
+
+  if (error) throw error
+
+  // Send notification to recruiter
+  try {
+    await notifyResumeRequestResponse(
+      request.recruiter_id,
+      request.veteran_id,
+      true,
+      {
+        veteran_name: request.profiles?.[0]?.full_name || 'Unknown'
+      }
+    )
+  } catch (notificationError) {
+    console.error('Failed to send notification:', notificationError)
+  }
+
+  return { success: true }
+}
+
+export async function declineResumeRequest(requestId: string, token: string) {
+  const supabase = getServerSupabase()
+  
+  // Verify token and get request details
+  // ... token verification logic ...
+  
+  // Update request status
+  const { data: request, error } = await supabase
+    .from('resume_requests')
+    .update({ status: 'declined' })
+    .eq('id', requestId)
+    .select('*, pitches(title), profiles!resume_requests_veteran_id_fkey(full_name)')
+    .single()
+
+  if (error) throw error
+
+  // Send notification to recruiter
+  try {
+    await notifyResumeRequestResponse(
+      request.recruiter_id,
+      request.veteran_id,
+      false,
+      {
+        veteran_name: request.profiles?.[0]?.full_name || 'Unknown'
+      }
+    )
+  } catch (notificationError) {
+    console.error('Failed to send notification:', notificationError)
+  }
+
+  return { success: true }
 }
