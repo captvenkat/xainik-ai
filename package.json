@@ -28,6 +28,9 @@
     "check-user-creation": "node scripts/check-user-creation.js",
     "apply-profiles-view": "node scripts/apply-profiles-view.js",
     "apply-rls-fix": "node scripts/apply-rls-fix.js",
+    "apply-simple-rls-fix": "node scripts/apply-simple-rls-fix.js",
+    "check-column-names": "node scripts/check-column-names.js",
+    "check-actual-schema": "node scripts/check-actual-schema.js",
     "create-existing-user": "node scripts/create-existing-user.js"
   },
   "dependencies": {
