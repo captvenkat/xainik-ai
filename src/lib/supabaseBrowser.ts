@@ -1,36 +1,26 @@
 'use client';
-import { createBrowserClient } from '@supabase/ssr';
+import { createClient } from '@supabase/supabase-js';
 
 export function createSupabaseBrowser() {
-  const supabase = createBrowserClient(
+  const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
-      cookies: {
-        get: (key: string) => {
-          if (typeof document === 'undefined') return '';
-          const m = document.cookie.match(new RegExp('(^| )' + key + '=([^;]+)'));
-          return m && m[2] ? decodeURIComponent(m[2] || '') : '';
-        },
-        set: (key: string, value: string, options: any) => {
-          if (typeof document === 'undefined') return;
-          document.cookie = `${key}=${encodeURIComponent(value)}; path=/; max-age=${options?.maxAge || 31536000}`;
-        },
-        remove: (key: string, options: any) => {
-          if (typeof document === 'undefined') return;
-          document.cookie = `${key}=; path=/; max-age=0`;
-        },
-      },
+      auth: {
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: true
+      }
     }
   );
   return supabase;
 }
 
-// Helper: start OAuth with simple redirect
+// Helper: start OAuth with proper redirect handling
 export async function signInWithGoogle(returnTo: string = '/') {
   // Ensure we have the correct site URL
   const site = process.env.NEXT_PUBLIC_SITE_URL || 'https://xainik.com';
-  
+
   // Store the return path in sessionStorage for later retrieval
   if (typeof window !== 'undefined') {
     sessionStorage.setItem('auth_redirect', returnTo);
