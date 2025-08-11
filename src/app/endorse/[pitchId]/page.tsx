@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { getBrowserSupabase } from '@/lib/supabaseClient'
+import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 import { Shield, CheckCircle, AlertCircle, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 
@@ -20,7 +20,7 @@ export default function EndorsePage() {
   
   const params = useParams()
   const router = useRouter()
-  const supabase = getBrowserSupabase()
+  const supabase = createSupabaseBrowser()
   const pitchId = params.pitchId
 
   useEffect(() => {

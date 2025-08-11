@@ -1,4 +1,4 @@
-import { getServerSupabase } from '../supabaseClient'
+import { createSupabaseServerOnly } from '../supabaseServerOnly'
 import { createAdminClient } from '../supabaseAdmin'
 import { first } from '@/lib/db'
 import { logActivity } from '../activity'
@@ -38,7 +38,7 @@ export async function createResumeRequest(
   pitchId?: string,
   jobRole?: string
 ): Promise<ResumeRequest> {
-  const supabase = getServerSupabase()
+  const supabase = createSupabaseServerOnly()
   
   const { data, error } = await supabase
     .from('resume_requests')
@@ -178,7 +178,7 @@ export async function declineResumeRequest(requestId: string): Promise<void> {
 
 // Get resume requests for a veteran
 export async function getVeteranResumeRequests(veteranId: string): Promise<ResumeRequestWithUsers[]> {
-  const supabase = getServerSupabase()
+  const supabase = createSupabaseServerOnly()
   
   const { data, error } = await supabase
     .from('resume_requests')
@@ -223,7 +223,7 @@ export async function getVeteranResumeRequests(veteranId: string): Promise<Resum
 
 // Get resume requests for a recruiter
 export async function getRecruiterResumeRequests(recruiterId: string): Promise<ResumeRequestWithUsers[]> {
-  const supabase = getServerSupabase()
+  const supabase = createSupabaseServerOnly()
   
   const { data, error } = await supabase
     .from('resume_requests')
@@ -268,7 +268,7 @@ export async function getRecruiterResumeRequests(recruiterId: string): Promise<R
 
 // Get single resume request with full details
 export async function getResumeRequest(requestId: string): Promise<ResumeRequestWithUsers | null> {
-  const supabase = getServerSupabase()
+  const supabase = createSupabaseServerOnly()
   
   const { data, error } = await supabase
     .from('resume_requests')

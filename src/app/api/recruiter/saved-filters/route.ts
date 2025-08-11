@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSupabase } from '@/lib/supabaseClient';
+import { createSupabaseServerOnly } from '@/lib/supabaseServerOnly';
 
 // GET: Retrieve saved filters for the authenticated recruiter
 export async function GET() {
   try {
-    const supabase = getServerSupabase();
+    const supabase = createSupabaseServerOnly();
     
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -45,7 +45,7 @@ export async function GET() {
 // POST: Save new filter for the authenticated recruiter
 export async function POST(request: NextRequest) {
   try {
-    const supabase = getServerSupabase();
+    const supabase = createSupabaseServerOnly();
     
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser();

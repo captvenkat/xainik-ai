@@ -1,4 +1,5 @@
 import { SupabaseClient } from '@supabase/supabase-js'
+import { createSupabaseServerOnly } from './supabaseServerOnly'
 
 interface SearchParams {
   q?: string
@@ -14,7 +15,7 @@ export function buildSearchQuery(
   pageSize: number,
   offset: number
 ) {
-  const supabase = require('@/lib/supabaseClient').getServerSupabase()
+  const supabase = createSupabaseServerOnly()
   
   // Base query for active pitches with explicit columns
   let query = supabase

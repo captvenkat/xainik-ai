@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Bell, Mail, Clock, Save, Check } from 'lucide-react'
-import { getBrowserSupabase } from '@/lib/supabaseClient'
+import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 
 interface NotificationPrefs {
   user_id: string
@@ -40,7 +40,7 @@ export default function NotificationPreferencesForm({ initialPrefs }: Notificati
     setIsSaved(false)
 
     try {
-      const supabase = getBrowserSupabase()
+      const supabase = createSupabaseBrowser()
       
       // Get user
       const { data: { user } } = await supabase.auth.getUser()

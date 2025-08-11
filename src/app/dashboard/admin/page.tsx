@@ -1,4 +1,4 @@
-import { getServerSupabase } from '@/lib/supabaseClient'
+import { createSupabaseServerOnly } from '@/lib/supabaseServerOnly'
 import { redirect } from 'next/navigation'
 import { 
   Users, 
@@ -13,7 +13,7 @@ import {
 import Link from 'next/link'
 
 export default async function AdminDashboard() {
-  const supabase = getServerSupabase()
+  const supabase = createSupabaseServerOnly()
   
   // Check admin access
   const { data: { user } } = await supabase.auth.getUser()

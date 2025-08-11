@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { getServerSupabase } from '@/lib/supabaseClient'
+import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 import PitchCard from './PitchCard'
 import type { PitchCardData } from '@/types/domain'
 import { toPitchCardData, type RawPitchRow } from '@/lib/mappers/pitches'
@@ -13,7 +13,7 @@ export default function FeaturedPitches() {
   useEffect(() => {
     const fetchFeaturedPitches = async () => {
       try {
-        const supabase = getServerSupabase()
+        const supabase = createSupabaseBrowser()
         
         // Get pitches from last 7 days, ordered by likes
         const sevenDaysAgo = new Date()

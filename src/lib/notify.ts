@@ -1,4 +1,4 @@
-import { getServerSupabase } from '@/lib/supabaseClient'
+import { createSupabaseServerOnly } from '@/lib/supabaseServerOnly'
 import { createAdminClient } from './supabaseAdmin'
 import { Resend } from 'resend'
 
@@ -32,7 +32,7 @@ export interface NotificationData {
 
 // Check if user is in quiet hours
 async function isInQuietHours(userId: string): Promise<boolean> {
-  const supabase = getServerSupabase()
+  const supabase = createSupabaseServerOnly()
   
   const { data: prefs } = await supabase
     .from('notification_prefs')
@@ -63,7 +63,7 @@ async function getUserNotificationPrefs(userId: string): Promise<{
   in_app_enabled: boolean
   digest_enabled: boolean
 }> {
-  const supabase = getServerSupabase()
+  const supabase = createSupabaseServerOnly()
   
   const { data: prefs } = await supabase
     .from('notification_prefs')
@@ -95,7 +95,7 @@ async function createInAppNotification(userId: string, type: NotificationType, p
 
 // Send email notification
 async function sendEmailNotification(userId: string, type: NotificationType, payload: NotificationPayload): Promise<void> {
-  const supabase = getServerSupabase()
+  const supabase = createSupabaseServerOnly()
   
   // Get user email
   const { data: user } = await supabase

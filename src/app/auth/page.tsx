@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { getBrowserSupabase } from '@/lib/supabaseClient'
+import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 import { Shield, ArrowRight, CheckCircle, AlertCircle } from 'lucide-react'
 
 function AuthPageContent() {
@@ -13,7 +13,7 @@ function AuthPageContent() {
   const [user, setUser] = useState<any>(null)
   const router = useRouter()
   const searchParams = useSearchParams()
-  const supabase = getBrowserSupabase()
+  const supabase = createSupabaseBrowser()
 
   const redirectTo = searchParams.get('redirectTo') || '/'
 
@@ -70,7 +70,8 @@ function AuthPageContent() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth?redirectTo=${encodeURIComponent(redirectTo)}`
+          redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback?next=${encodeURIComponent(redirectTo)}`,
+          queryParams: { access_type: 'offline', prompt: 'consent' }
         }
       })
       
@@ -89,7 +90,8 @@ function AuthPageContent() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'linkedin',
         options: {
-          redirectTo: `${window.location.origin}/auth?redirectTo=${encodeURIComponent(redirectTo)}`
+          redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback?next=${encodeURIComponent(redirectTo)}`,
+          queryParams: { access_type: 'offline', prompt: 'consent' }
         }
       })
       

@@ -1,4 +1,4 @@
-import { getServerSupabase } from '@/lib/supabaseClient'
+import { createSupabaseServer } from '@/lib/supabaseServer'
 import { v4 as uuidv4 } from 'uuid'
 
 // Environment guard to prevent accidental prod data modification
@@ -32,17 +32,9 @@ const getTestSupabase = () => {
     }
   }
   
-  const { createClient } = require('@supabase/supabase-js')
-  return createClient(
-    process.env.TEST_SUPABASE_URL!,
-    process.env.TEST_SUPABASE_SERVICE_ROLE_KEY!,
-    {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false
-      }
-    }
-  )
+  // Use the new server client for tests
+  const { createSupabaseServer } = require('@/lib/supabaseServer')
+  return createSupabaseServer()
 }
 
 // Factory interfaces

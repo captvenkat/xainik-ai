@@ -1,4 +1,4 @@
-import { getServerSupabase } from '@/lib/supabaseClient'
+import { createSupabaseServerOnly } from '@/lib/supabaseServerOnly'
 import { many } from '@/lib/db'
 import { getReferralFunnel, getPlatformBreakdown, getTopReferrers } from '@/lib/referralEvents'
 
@@ -91,7 +91,7 @@ export type AvgTime = { hours: number; samples: number };
 
 // Enhanced function: Get trendline data for all pitches with veteran filtering
 export async function getTrendlineAllPitches(opt: WindowOpt): Promise<Trendline[]> {
-  const supabase = getServerSupabase();
+  const supabase = createSupabaseServerOnly();
   const since = new Date();
   since.setDate(since.getDate() - opt.window);
 
@@ -193,7 +193,7 @@ export async function getTrendlineAllPitches(opt: WindowOpt): Promise<Trendline[
 
 // Enhanced function: Get cohort conversions by source with veteran filtering
 export async function getCohortsBySource(opt: WindowOpt): Promise<CohortRow[]> {
-  const supabase = getServerSupabase();
+  const supabase = createSupabaseServerOnly();
   const since = new Date();
   since.setDate(since.getDate() - opt.window);
 
@@ -256,7 +256,7 @@ export async function getCohortsBySource(opt: WindowOpt): Promise<CohortRow[]> {
 
 // Enhanced function: Get average time to first contact with veteran filtering
 export async function getAvgTimeToFirstContact(opt: WindowOpt): Promise<AvgTime> {
-  const supabase = getServerSupabase();
+  const supabase = createSupabaseServerOnly();
   const since = new Date();
   since.setDate(since.getDate() - opt.window);
 
@@ -449,7 +449,7 @@ export interface SupporterMetrics {
 }
 
 export async function getVeteranMetrics(userId: string): Promise<VeteranMetrics> {
-  const supabase = getServerSupabase()
+  const supabase = createSupabaseServerOnly()
   
   // Get pitch status
   const { data: pitch } = await supabase
@@ -527,7 +527,7 @@ export async function getVeteranMetrics(userId: string): Promise<VeteranMetrics>
 }
 
 export async function getRecruiterMetrics(userId: string): Promise<RecruiterMetrics> {
-  const supabase = getServerSupabase()
+  const supabase = createSupabaseServerOnly()
   
   // Get shortlisted pitches
   const { data: shortlisted } = await supabase
@@ -622,7 +622,7 @@ export async function getRecruiterMetrics(userId: string): Promise<RecruiterMetr
 }
 
 export async function getSupporterMetrics(userId: string): Promise<SupporterMetrics> {
-  const supabase = getServerSupabase()
+  const supabase = createSupabaseServerOnly()
   
   // Get referred pitches
   const { data: referrals } = await supabase
@@ -706,7 +706,7 @@ export async function getSupporterMetrics(userId: string): Promise<SupporterMetr
 
 // New analytics functions
 export async function getTrendlineData(userId: string, days: number = 90): Promise<AnalyticsMetrics['trendlines']> {
-  const supabase = getServerSupabase()
+  const supabase = createSupabaseServerOnly()
   
   const startDate = new Date()
   startDate.setDate(startDate.getDate() - days)
@@ -839,7 +839,7 @@ export async function getTrendlineData(userId: string, days: number = 90): Promi
 }
 
 export async function getCohortConversions(userId: string, days: number = 90): Promise<CohortConversionData[]> {
-  const supabase = getServerSupabase()
+  const supabase = createSupabaseServerOnly()
   
   const startDate = new Date()
   startDate.setDate(startDate.getDate() - days)
@@ -958,7 +958,7 @@ export async function getCohortConversions(userId: string, days: number = 90): P
 }
 
 export async function getPerformanceInsights(userId: string): Promise<AnalyticsMetrics['performanceInsights']> {
-  const supabase = getServerSupabase()
+  const supabase = createSupabaseServerOnly()
   
   // Get pitch data
   const { data: pitch } = await supabase
@@ -1077,7 +1077,7 @@ export async function getVeteranAnalytics(userId: string): Promise<AnalyticsMetr
 
 // New function for recruiter analytics with saved filters and reporting
 export async function getRecruiterAnalytics(userId: string) {
-  const supabase = getServerSupabase()
+  const supabase = createSupabaseServerOnly()
   
   // Get recruiter metrics
   const metrics = await getRecruiterMetrics(userId)
@@ -1123,7 +1123,7 @@ export async function getRecruiterAnalytics(userId: string) {
 }
 
 export async function getComparativeMetrics(userId: string): Promise<AnalyticsMetrics['comparativeMetrics']> {
-  const supabase = getServerSupabase()
+  const supabase = createSupabaseServerOnly()
   
   // Get pitch ID for this veteran
   const { data: pitch } = await supabase

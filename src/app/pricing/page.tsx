@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 import { PLANS, canUseTrial } from '@/lib/pricing'
-import { getServerSupabase } from '@/lib/supabaseClient'
+import { createSupabaseServerOnly } from '@/lib/supabaseServerOnly'
 import { Shield, Check, Star, Zap } from 'lucide-react'
 import PricingCard from '@/components/PricingCard'
 import { Metadata } from 'next'
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
 }
 
 export default async function PricingPage() {
-  const supabase = getServerSupabase()
+  const supabase = createSupabaseServerOnly()
   
   // Check if user is logged in and get their trial status
   let canUseTrialPlan = true

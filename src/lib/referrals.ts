@@ -1,5 +1,4 @@
-import { createClient } from '@supabase/supabase-js'
-import { getServerSupabase } from './supabaseClient'
+import { createSupabaseServerOnly } from './supabaseServerOnly'
 import { many } from '@/lib/db'
 import { createAdminClient } from './supabaseAdmin'
 import { logActivity } from './activity'
@@ -26,7 +25,7 @@ export interface ReferralStats {
 
 // Create or get unique referral link for supporter + pitch
 export async function createOrGetReferral(supporterId: string, pitchId: string): Promise<string> {
-  const supabase = getServerSupabase()
+  const supabase = createSupabaseServerOnly()
   
   // Check if referral already exists
   const { data: existing } = await supabase
@@ -169,7 +168,7 @@ export async function trackReferralEvent(event: ReferralEvent): Promise<void> {
 
 // Get referral statistics for a supporter
 export async function getReferralStats(supporterId: string): Promise<ReferralStats> {
-  const supabase = getServerSupabase()
+  const supabase = createSupabaseServerOnly()
   
   const { data, error } = await supabase
     .rpc('get_supporter_referral_stats', { supporter_uuid: supporterId })
@@ -188,7 +187,7 @@ export async function getReferralStats(supporterId: string): Promise<ReferralSta
 
 // Get referral events for a pitch (veteran view)
 export async function getPitchReferralEvents(pitchId: string): Promise<ReferralEvent[]> {
-  const supabase = getServerSupabase()
+  const supabase = createSupabaseServerOnly()
   
   const { data, error } = await supabase
     .from('referral_events')

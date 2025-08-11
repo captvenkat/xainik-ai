@@ -1,6 +1,7 @@
 import './globals.css'
 import Navigation from '@/components/Navigation'
 import Footer from '@/components/Footer'
+import AuthSessionWatcher from '@/components/AuthSessionWatcher'
 
 export const metadata = {
   title: {
@@ -68,6 +69,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {children}
         </main>
         <Footer />
+        <AuthSessionWatcher />
       </body>
     </html>
   )

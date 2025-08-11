@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { getServerSupabase } from '@/lib/supabaseClient'
+import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 import { TrendingUp, Users, Heart, Award } from 'lucide-react'
 
 interface DonationStats {
@@ -30,7 +30,7 @@ export default function DonationSnapshot() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const supabase = getServerSupabase()
+        const supabase = createSupabaseBrowser()
         const { data, error } = await supabase
           .from('donations_aggregates')
           .select('*')

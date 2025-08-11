@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server'
-import { getServerSupabase } from '@/lib/supabaseClient'
+import { createSupabaseServerOnly } from '@/lib/supabaseServerOnly'
 import { toCSV } from '@/lib/csv'
 
 export async function GET() {
-  const supabase = getServerSupabase()
+  const supabase = createSupabaseServerOnly()
   const { data: rows } = await supabase
     .from('pitches')
     .select('id, title, is_active, plan_tier, plan_expires_at, veteran_id, created_at')

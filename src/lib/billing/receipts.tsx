@@ -1,16 +1,13 @@
 import { generatePDFBuffer } from '../server/pdf'
 import React from 'react'
-import { createClient } from '@supabase/supabase-js'
+import { createSupabaseServerOnly } from '../supabaseServerOnly'
 import * as Sentry from '@sentry/nextjs'
 import DonationReceiptPDF from '@/pdfs/DonationReceiptPDF'
 import { getNextNumber, formatReceiptNumber, computeFY } from './numbering'
 import { uploadPdf, generateStorageKey } from '../storage'
 import { sendReceiptEmail } from '../emails/sendReceiptEmail'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+const supabase = createSupabaseServerOnly()
 
 interface GenerateDonationReceiptParams {
   paymentEventId: string

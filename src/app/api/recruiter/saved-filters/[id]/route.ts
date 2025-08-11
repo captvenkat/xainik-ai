@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSupabase } from '@/lib/supabaseClient';
+import { createSupabaseServerOnly } from '@/lib/supabaseServerOnly';
 
 // DELETE: Remove a saved filter
 export async function DELETE(
@@ -7,7 +7,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const supabase = getServerSupabase();
+    const supabase = createSupabaseServerOnly();
     
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser();

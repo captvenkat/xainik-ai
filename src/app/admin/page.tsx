@@ -1,4 +1,4 @@
-import { getServerSupabase } from '@/lib/supabaseClient'
+import { createSupabaseServerOnly } from '@/lib/supabaseServerOnly'
 import { redirect } from 'next/navigation'
 import { 
   Users, 
@@ -16,7 +16,7 @@ import Link from 'next/link'
 
 // Server component for Users tab
 async function UsersTab() {
-  const supabase = getServerSupabase()
+  const supabase = createSupabaseServerOnly()
   
   const { data: users } = await supabase
     .from('users')
@@ -82,7 +82,7 @@ async function UsersTab() {
 
 // Server component for Pitches tab
 async function PitchesTab() {
-  const supabase = getServerSupabase()
+  const supabase = createSupabaseServerOnly()
   
   const { data: pitches } = await supabase
     .from('pitches')
@@ -152,7 +152,7 @@ async function PitchesTab() {
 
 // Server component for Endorsements tab
 async function EndorsementsTab() {
-  const supabase = getServerSupabase()
+  const supabase = createSupabaseServerOnly()
   
   const { data: endorsements } = await supabase
     .from('endorsements')
@@ -211,7 +211,7 @@ async function EndorsementsTab() {
 
 // Server component for Donations tab
 async function DonationsTab() {
-  const supabase = getServerSupabase()
+  const supabase = createSupabaseServerOnly()
   
   const { data: donations } = await supabase
     .from('receipts')
@@ -281,7 +281,7 @@ async function DonationsTab() {
 
 // Server component for Resume Requests tab
 async function ResumeRequestsTab() {
-  const supabase = getServerSupabase()
+  const supabase = createSupabaseServerOnly()
   
   const { data: requests } = await supabase
     .from('resume_requests')
@@ -354,7 +354,7 @@ async function ResumeRequestsTab() {
 
 // Server component for Activity tab
 async function ActivityTab() {
-  const supabase = getServerSupabase()
+  const supabase = createSupabaseServerOnly()
   
   const { data: activities } = await supabase
     .from('activity_log')
@@ -419,7 +419,7 @@ async function ActivityTab() {
 
 // Server component for Suspicious Activity tab
 async function SuspiciousActivityTab() {
-  const supabase = getServerSupabase()
+  const supabase = createSupabaseServerOnly()
   
   // Get activity data for analysis
   const { data: activities } = await supabase
@@ -598,7 +598,7 @@ export default async function AdminPage({
 }: {
   searchParams: Promise<{ tab?: string }>
 }) {
-  const supabase = getServerSupabase()
+  const supabase = createSupabaseServerOnly()
   
   // Check admin access
   const { data: { user } } = await supabase.auth.getUser()

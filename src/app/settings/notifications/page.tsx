@@ -1,10 +1,10 @@
-import { getServerSupabase } from '@/lib/supabaseClient'
+import { createSupabaseServerOnly } from '@/lib/supabaseServerOnly'
 import { redirect } from 'next/navigation'
 import { Bell, Mail, Clock, Settings, Save } from 'lucide-react'
 import NotificationPreferencesForm from '@/components/NotificationPreferencesForm'
 
 export default async function NotificationSettingsPage() {
-  const supabase = getServerSupabase()
+  const supabase = createSupabaseServerOnly()
   
   // Check authentication
   const { data: { user }, error: authError } = await supabase.auth.getUser()

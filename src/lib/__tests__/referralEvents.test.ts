@@ -1,9 +1,9 @@
 import { recordEvent } from '../referralEvents'
-import { createClient } from '../supabaseClient'
+import { createSupabaseServerOnly } from '../supabaseServerOnly'
 
 // Mock Supabase client
-jest.mock('../supabaseClient', () => ({
-  createClient: jest.fn()
+jest.mock('../supabaseServerOnly', () => ({
+  createSupabaseServerOnly: jest.fn()
 }))
 
 describe('Referral Events Debounce', () => {
@@ -18,7 +18,7 @@ describe('Referral Events Debounce', () => {
 
   beforeEach(() => {
     jest.clearAllMocks()
-    ;(createClient as jest.Mock).mockReturnValue(mockSupabase)
+    ;(createSupabaseServerOnly as jest.Mock).mockReturnValue(mockSupabase)
   })
 
   it('should not log duplicate events within 10 minutes', async () => {
