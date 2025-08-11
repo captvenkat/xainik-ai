@@ -182,6 +182,13 @@ function AuthPageContent() {
         setIsCheckingAuth(false);
       }
     }, 2000);
+    
+    // Ultra quick fallback: force show sign-in after 1 second
+    const ultraQuickTimer = setTimeout(() => {
+      if (isMounted && isCheckingAuth) {
+        setIsCheckingAuth(false);
+      }
+    }, 1000);
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: string, session: any) => {
       if (event === 'INITIAL_SESSION') {
@@ -240,6 +247,7 @@ function AuthPageContent() {
       clearTimeout(emergencyTimer);
       clearTimeout(superEmergencyTimer);
       clearTimeout(quickFallbackTimer);
+      clearTimeout(ultraQuickTimer);
       subscription.unsubscribe();
     };
   }, [router]);
@@ -509,24 +517,74 @@ function AuthPageContent() {
 // Wrap the component in Suspense to handle useSearchParams
 export default function AuthPage() {
   return (
-    <Suspense fallback={
+    <Suspense fallback={<AuthPageFallback />}>
+      <AuthPageContent />
+    </Suspense>
+  );
+}
+
+// Separate fallback component with timeout logic
+function AuthPageFallback() {
+  const [showFallback, setShowFallback] = useState(false);
+  
+  useEffect(() => {
+    // Force fallback after 3 seconds
+    const timer = setTimeout(() => {
+      setShowFallback(true);
+    }, 3000);
+    
+    return () => clearTimeout(timer);
+  }, []);
+  
+  if (showFallback) {
+    return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8 text-center">
           <div className="flex justify-center">
-            <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center animate-spin">
+            <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center">
               <Shield className="h-6 w-6 text-white" />
             </div>
           </div>
           <h2 className="text-xl font-semibold text-gray-900">
-            Loading...
+            Authentication Page
           </h2>
           <p className="text-sm text-gray-600">
-            Please wait while we prepare the authentication page
+            The authentication system is taking longer than expected.
           </p>
+          <div className="space-y-4">
+            <button 
+              onClick={() => window.location.reload()} 
+              className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              Refresh Page
+            </button>
+            <button 
+              onClick={() => window.location.href = '/auth'} 
+              className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+            >
+              Go to Auth Page
+            </button>
+          </div>
         </div>
       </div>
-    }>
-      <AuthPageContent />
-    </Suspense>
+    );
+  }
+  
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8 text-center">
+        <div className="flex justify-center">
+          <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center animate-spin">
+            <Shield className="h-6 w-6 text-white" />
+          </div>
+        </div>
+        <h2 className="text-xl font-semibold text-gray-900">
+          Loading...
+        </h2>
+        <p className="text-sm text-gray-600">
+          Please wait while we prepare the authentication page
+        </p>
+      </div>
+    </div>
   );
 }
