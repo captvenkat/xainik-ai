@@ -27,7 +27,7 @@ export default async function VeteranDashboard() {
     .single()
 
   if (profile?.role !== 'veteran') {
-    redirect('/dashboard')
+    redirect('/auth?redirect=/dashboard/veteran')
   }
 
   // Fetch veteran metrics and analytics (using cached analytics)
