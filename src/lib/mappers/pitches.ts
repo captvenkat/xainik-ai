@@ -4,36 +4,38 @@ import type { PitchCardData } from '@/types/domain'
 export type RawPitchRow = {
   id: string;
   title: string | null;
-  summary: string | null;
+  pitch_text: string | null;
   skills: string[] | null;
-  city: string | null;
+  location: string | null;
   job_type: string | null;
   availability: string | null;
-  likes: number | null;
+  likes_count: number | null;
   veteran_id: string;
   veteran?: any; // array or object depending on relationship
+  veteran_profile?: any; // array or object depending on relationship
 };
 
 export function toPitchCardData(r: RawPitchRow): PitchCardData {
   const v = Array.isArray(r.veteran) ? first(r.veteran) : r.veteran ?? null;
+  const vp = Array.isArray(r.veteran_profile) ? first(r.veteran_profile) : r.veteran_profile ?? null;
 
   return {
     id: r.id,
     title: r.title ?? '',
-    pitch: r.summary ?? '',
+    pitch: r.pitch_text ?? '',
     skills: r.skills ?? [],
-    city: r.city ?? null,
+    city: r.location ? r.location.split(',')[0].trim() : null, // Extract city from "City, Country"
     job_type: (r.job_type ?? 'Full-Time') as PitchCardData['job_type'],
     availability: (r.availability ?? 'Immediate') as PitchCardData['availability'],
-    likes: r.likes ?? 0,
+    likes: r.likes_count ?? 0,
     veteran: {
       id: (v?.id ?? r.veteran_id) as string,
-      full_name: v?.full_name ?? null,
-      rank: v?.rank ?? null,
-      service_branch: v?.service_branch ?? null,
-      years_experience: (v?.years_experience ?? null) as number | null,
-      photo_url: v?.photo_url ?? null,
-      is_community_verified: Boolean(v?.is_community_verified),
+      full_name: v?.name ?? null,
+      rank: vp?.rank ?? null,
+      service_branch: vp?.service_branch ?? null,
+      years_experience: (vp?.years_experience ?? null) as number | null,
+      photo_url: null, // Not available in current schema
+      is_community_verified: false, // Not available in current schema
     },
   };
 }
