@@ -23,21 +23,24 @@ export function buildSearchQuery(
     .select(`
       id,
       title,
-      summary,
+      pitch_text,
       skills,
-      city,
+      location,
       job_type,
       availability,
-      likes,
+      likes_count,
       veteran_id,
-      veteran:profiles!pitches_veteran_id_fkey (
+      veteran:users!pitches_veteran_id_fkey (
         id,
-        full_name,
+        name,
+        email,
+        phone
+      ),
+      veteran_profile:veterans!veteran_id (
         rank,
         service_branch,
         years_experience,
-        photo_url,
-        is_community_verified
+        location_current
       )
     `)
     .eq('is_active', true)
@@ -54,8 +57,8 @@ export function buildSearchQuery(
   // Apply search filters
   if (searchParams.q) {
     const searchTerm = searchParams.q.trim()
-    query = query.or(`title.ilike.%${searchTerm}%,summary.ilike.%${searchTerm}%,veteran.full_name.ilike.%${searchTerm}%`)
-    totalQuery = totalQuery.or(`title.ilike.%${searchTerm}%,summary.ilike.%${searchTerm}%`)
+    query = query.or(`title.ilike.%${searchTerm}%,pitch_text.ilike.%${searchTerm}%,veteran.name.ilike.%${searchTerm}%`)
+    totalQuery = totalQuery.or(`title.ilike.%${searchTerm}%,pitch_text.ilike.%${searchTerm}%`)
   }
 
   if (searchParams.skills) {
@@ -68,8 +71,8 @@ export function buildSearchQuery(
 
   if (searchParams.city) {
     const city = searchParams.city.trim()
-    query = query.ilike('city', `%${city}%`)
-    totalQuery = totalQuery.ilike('city', `%${city}%`)
+    query = query.ilike('location', `%${city}%`)
+    totalQuery = totalQuery.ilike('location', `%${city}%`)
   }
 
   if (searchParams.availability) {
@@ -87,8 +90,8 @@ export function buildSearchQuery(
   if (searchParams.branch) {
     const branches = searchParams.branch.split(',').map(b => b.trim()).filter(Boolean)
     if (branches.length > 0) {
-      query = query.in('veteran.service_branch', branches)
-      totalQuery = totalQuery.in('veteran.service_branch', branches)
+      query = query.in('veteran_profile.service_branch', branches)
+      totalQuery = totalQuery.in('veteran_profile.service_branch', branches)
     }
   }
 
