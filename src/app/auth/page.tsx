@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabaseBrowser';
 import { updateUserRole } from '@/lib/actions/updateUserRole';
 import { Shield, CheckCircle, AlertCircle } from 'lucide-react';
@@ -14,54 +14,73 @@ export default function AuthPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get('redirect');
 
   useEffect(() => {
     let isMounted = true;
     
     const checkUser = async () => {
       try {
-        // First check if we have a session
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        // Try multiple methods to get user authentication
+        let user = null;
         
-        if (sessionError) {
-          if (isMounted) setIsCheckingAuth(false);
-          return;
-        }
-        
-        if (!session) {
-          if (isMounted) setIsCheckingAuth(false);
-          return;
-        }
-        
-        // Now check the user from the session
-        const user = session.user;
-        
-        if (user) {
-          // Check if user has a role
-          const { data: profile, error: profileError } = await supabase
-            .from('users')
-            .select('role')
-            .eq('id', user.id)
-            .single();
-          
-          if (profileError) {
-            if (isMounted) {
-              setShowRoleSelection(true);
-              setIsCheckingAuth(false);
-            }
-            return;
+        // Method 1: Try getSession first
+        try {
+          const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+          if (!sessionError && session?.user) {
+            user = session.user;
           }
-          
-          if (profile?.role) {
-            if (isMounted) router.push(`/dashboard/${profile.role}`);
-          } else {
-            if (isMounted) {
-              setShowRoleSelection(true);
-              setIsCheckingAuth(false);
+        } catch (err) {
+          // Session method failed, continue to next method
+        }
+        
+        // Method 2: If session failed, try getUser
+        if (!user) {
+          try {
+            const { data: { user: userData }, error: userError } = await supabase.auth.getUser();
+            if (!userError && userData) {
+              user = userData;
+            }
+          } catch (err) {
+            // User method also failed
+          }
+        }
+        
+        if (!user) {
+          if (isMounted) setIsCheckingAuth(false);
+          return;
+        }
+        
+        // Check if user has a role
+        const { data: profile, error: profileError } = await supabase
+          .from('users')
+          .select('role')
+          .eq('id', user.id)
+          .single();
+        
+        if (profileError) {
+          if (isMounted) {
+            setShowRoleSelection(true);
+            setIsCheckingAuth(false);
+          }
+          return;
+        }
+        
+        if (profile?.role) {
+          if (isMounted) {
+            // If there's a redirect parameter and it matches the user's role, use it
+            if (redirectTo && redirectTo.includes(`/dashboard/${profile.role}`)) {
+              router.push(redirectTo);
+            } else {
+              router.push(`/dashboard/${profile.role}`);
             }
           }
         } else {
-          if (isMounted) setIsCheckingAuth(false);
+          if (isMounted) {
+            setShowRoleSelection(true);
+            setIsCheckingAuth(false);
+          }
         }
       } catch (err) {
         if (isMounted) setIsCheckingAuth(false);
@@ -71,11 +90,21 @@ export default function AuthPage() {
     // Enhanced session check that waits for session to be fully ready
     const waitForSession = async () => {
       let attempts = 0;
-      const maxAttempts = 10;
+      const maxAttempts = 15; // Increased attempts
       
       while (attempts < maxAttempts && isMounted) {
         try {
-          const { data: { session } } = await supabase.auth.getSession();
+          const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+          
+          if (sessionError) {
+            // If there's a session error, try getUser as fallback
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+              await checkUser();
+              return;
+            }
+          }
+          
           if (session?.user) {
             await checkUser();
             return;
@@ -83,12 +112,12 @@ export default function AuthPage() {
           
           attempts++;
           if (attempts < maxAttempts) {
-            await new Promise(resolve => setTimeout(resolve, 200));
+            await new Promise(resolve => setTimeout(resolve, 300)); // Increased delay
           }
         } catch (err) {
           attempts++;
           if (attempts < maxAttempts) {
-            await new Promise(resolve => setTimeout(resolve, 200));
+            await new Promise(resolve => setTimeout(resolve, 300));
           }
         }
       }
@@ -98,6 +127,9 @@ export default function AuthPage() {
       }
     };
 
+    // Immediate check first
+    checkUser();
+    
     // Wait for session to be established
     const timer = setTimeout(() => {
       if (isMounted) {
@@ -111,6 +143,13 @@ export default function AuthPage() {
         setIsCheckingAuth(false);
       }
     }, 3000);
+    
+    // Emergency fallback: if still checking after 5 seconds, force stop
+    const emergencyTimer = setTimeout(() => {
+      if (isMounted && isCheckingAuth) {
+        setIsCheckingAuth(false);
+      }
+    }, 5000);
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: string, session: any) => {
       if (event === 'INITIAL_SESSION') {
@@ -166,6 +205,7 @@ export default function AuthPage() {
       isMounted = false;
       clearTimeout(timer);
       clearTimeout(fallbackTimer);
+      clearTimeout(emergencyTimer);
       subscription.unsubscribe();
     };
   }, [router]);
