@@ -17,18 +17,18 @@ async function fetchPitch(id: string) {
     .from('pitches')
     .select(`
       *,
-      veteran:users!veteran_id(
+      veteran:users!pitches_veteran_id_fkey(
         id,
         name,
         email,
-        phone
-      ),
-      veteran_profile:veterans!veteran_id(
-        rank,
-        service_branch,
-        years_experience,
-        location_current,
-        locations_preferred
+        phone,
+        veterans!veterans_user_id_fkey(
+          rank,
+          service_branch,
+          years_experience,
+          location_current,
+          locations_preferred
+        )
       )
     `)
     .eq('id', id)

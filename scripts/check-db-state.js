@@ -1,10 +1,14 @@
-import { createClient } from '@supabase/supabase-js'
+const { createClient } = require('@supabase/supabase-js')
+require('dotenv').config({ path: '.env.local' })
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL
 const serviceRole = process.env.SUPABASE_SERVICE_ROLE_KEY
 
 if (!url || !serviceRole) {
   console.error('Missing Supabase environment variables')
+  console.error('Please check your .env.local file contains:')
+  console.error('NEXT_PUBLIC_SUPABASE_URL=...')
+  console.error('SUPABASE_SERVICE_ROLE_KEY=...')
   process.exit(1)
 }
 
@@ -25,8 +29,8 @@ async function checkDatabaseState() {
       'notification_prefs', 'email_logs'
     ]
     
-    let missingTables: string[] = []
-    let existingTables: string[] = []
+    let missingTables = []
+    let existingTables = []
     
     for (const table of requiredTables) {
       try {

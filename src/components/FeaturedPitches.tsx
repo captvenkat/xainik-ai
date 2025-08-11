@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
+import { supabase } from '@/lib/supabaseBrowser'
 import PitchCard from './PitchCard'
 import type { PitchCardData } from '@/types/domain'
 import { toPitchCardData, type RawPitchRow } from '@/lib/mappers/pitches'
@@ -13,8 +13,6 @@ export default function FeaturedPitches() {
   useEffect(() => {
     const fetchFeaturedPitches = async () => {
       try {
-        const supabase = createSupabaseBrowser()
-        
         // Get pitches from last 7 days, ordered by likes
         const sevenDaysAgo = new Date()
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
@@ -35,19 +33,19 @@ export default function FeaturedPitches() {
               id,
               name,
               email,
-              phone
-            ),
-            veteran_profile:veterans!veteran_id (
-              rank,
-              service_branch,
-              years_experience,
-              location_current
+              phone,
+              veterans!veterans_user_id_fkey (
+                rank,
+                service_branch,
+                years_experience,
+                location_current
+              )
             )
           `)
           .eq('is_active', true)
           .gt('plan_expires_at', new Date().toISOString())
           .gte('created_at', sevenDaysAgo.toISOString())
-          .order('likes', { ascending: false })
+          .order('likes_count', { ascending: false })
           .limit(4);
 
         if (error) throw error;
