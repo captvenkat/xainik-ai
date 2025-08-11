@@ -58,11 +58,6 @@ export default function AuthCallbackPage() {
           return;
         }
 
-          userId: data.session.user.id,
-          email: data.session.user.email,
-          expiresAt: data.session.expires_at
-        });
-
         // Verify the session is properly set
         const { data: { session: verifySession } } = await supabase.auth.getSession();
         if (!verifySession) {
