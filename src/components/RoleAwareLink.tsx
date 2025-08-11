@@ -45,7 +45,7 @@ export default function RoleAwareLink({
 
     getUser()
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event: string, session: any) => {
       setUser(session?.user ?? null)
       if (session?.user) {
         supabase
