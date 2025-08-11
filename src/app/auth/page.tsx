@@ -21,12 +21,26 @@ export default function AuthPage() {
     const checkUser = async () => {
       try {
         console.log('🔍 Checking user authentication status...');
-        const { data: { user }, error: authError } = await supabase.auth.getUser();
         
-        if (authError) {
-          console.error('❌ Auth error:', authError.message);
+        // First check if we have a session
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error('❌ Session error:', sessionError.message);
+          if (isMounted) setIsCheckingAuth(false);
           return;
         }
+        
+        if (!session) {
+          console.log('❌ No session found');
+          if (isMounted) setIsCheckingAuth(false);
+          return;
+        }
+        
+        console.log('✅ Session found, checking user...');
+        
+        // Now check the user from the session
+        const user = session.user;
         
         if (user) {
           console.log('✅ User authenticated:', user.email);
@@ -41,7 +55,10 @@ export default function AuthPage() {
           
           if (profileError) {
             console.error('❌ Error fetching user profile:', profileError);
-            if (isMounted) setShowRoleSelection(true);
+            if (isMounted) {
+              setShowRoleSelection(true);
+              setIsCheckingAuth(false);
+            }
             return;
           }
           
@@ -52,32 +69,87 @@ export default function AuthPage() {
             if (isMounted) router.push(`/dashboard/${profile.role}`);
           } else {
             console.log('🔄 User needs role selection');
-            if (isMounted) setShowRoleSelection(true);
+            if (isMounted) {
+              setShowRoleSelection(true);
+              setIsCheckingAuth(false);
+            }
           }
         } else {
-          console.log('❌ No authenticated user found');
+          console.log('❌ No user in session');
+          if (isMounted) setIsCheckingAuth(false);
         }
       } catch (err) {
         console.error('❌ Auth check error:', err);
+        if (isMounted) setIsCheckingAuth(false);
+      }
+    };
+    
+    // Enhanced session check that waits for session to be fully ready
+    const waitForSession = async () => {
+      let attempts = 0;
+      const maxAttempts = 10;
+      
+      while (attempts < maxAttempts && isMounted) {
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session?.user) {
+            console.log('✅ Session ready after', attempts + 1, 'attempts');
+            await checkUser();
+            return;
+          }
+          
+          attempts++;
+          if (attempts < maxAttempts) {
+            await new Promise(resolve => setTimeout(resolve, 200));
+          }
+        } catch (err) {
+          console.log('⚠️ Session check attempt', attempts + 1, 'failed:', err.message);
+          attempts++;
+          if (attempts < maxAttempts) {
+            await new Promise(resolve => setTimeout(resolve, 200));
+          }
+        }
+      }
+      
+      if (isMounted) {
+        console.log('⏰ Max session check attempts reached, stopping');
+        setIsCheckingAuth(false);
       }
     };
 
-    // Wait a bit for session to be established
+    // Wait for session to be established
     const timer = setTimeout(() => {
       if (isMounted) {
-        checkUser();
+        waitForSession();
+      }
+    }, 1000);
+    
+    // Fallback: if still checking after 3 seconds, stop and show sign-in
+    const fallbackTimer = setTimeout(() => {
+      if (isMounted && isCheckingAuth) {
+        console.log('⏰ Fallback: stopping auth check, showing sign-in options');
         setIsCheckingAuth(false);
       }
-    }, 500);
+    }, 3000);
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: string, session: any) => {
       console.log('🔄 Auth state change:', event, session?.user?.email);
       
-      if (event === 'INITIAL_SESSION' && session?.user) {
-        console.log('✅ Initial session established, checking role...');
-        if (isMounted) {
-          checkUser();
-          setIsCheckingAuth(false);
+      if (event === 'INITIAL_SESSION') {
+        console.log('✅ Initial session event received');
+        if (session?.user) {
+          console.log('✅ Initial session has user, checking role...');
+          if (isMounted) {
+            checkUser();
+          }
+        } else {
+          console.log('🔄 Initial session but no user yet, waiting...');
+          // Wait a bit more for session to fully establish
+          setTimeout(() => {
+            if (isMounted) {
+              checkUser();
+            }
+          }, 500);
         }
       } else if (event === 'SIGNED_IN' && session?.user) {
         console.log('✅ User signed in, checking role...');
@@ -91,7 +163,10 @@ export default function AuthPage() {
         
         if (profileError) {
           console.error('❌ Error fetching profile on auth state change:', profileError);
-          if (isMounted) setShowRoleSelection(true);
+          if (isMounted) {
+            setShowRoleSelection(true);
+            setIsCheckingAuth(false);
+          }
           return;
         }
         
@@ -102,17 +177,29 @@ export default function AuthPage() {
           if (isMounted) router.push(`/dashboard/${profile.role}`);
         } else {
           console.log('🔄 User needs role selection on auth state change');
-          if (isMounted) setShowRoleSelection(true);
+          if (isMounted) {
+            setShowRoleSelection(true);
+            setIsCheckingAuth(false);
+          }
         }
       } else if (event === 'SIGNED_OUT') {
         console.log('🔄 User signed out');
-        if (isMounted) setShowRoleSelection(false);
+        if (isMounted) {
+          setShowRoleSelection(false);
+          setIsCheckingAuth(false);
+        }
+      } else if (event === 'TOKEN_REFRESHED') {
+        console.log('🔄 Token refreshed, checking session...');
+        if (isMounted) {
+          checkUser();
+        }
       }
     });
 
     return () => {
       isMounted = false;
       clearTimeout(timer);
+      clearTimeout(fallbackTimer);
       subscription.unsubscribe();
     };
   }, [router]);
