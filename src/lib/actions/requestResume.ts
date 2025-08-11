@@ -5,6 +5,7 @@ import { Resend } from 'resend'
 import { generateToken } from '@/lib/tokens'
 import { mustOne } from '@/lib/db'
 import { notifyResumeRequestReceived, notifyResumeRequestResponse } from '@/lib/notify'
+import { revalidateMetricsForVeteran } from '@/lib/metrics-cache'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -95,6 +96,16 @@ export async function requestResume(pitchId: string, recruiterMessage?: string) 
   } catch (notificationError) {
     console.error('Failed to send notification:', notificationError)
     // Don't fail the request if notification fails
+  }
+
+  // Invalidate metrics cache for the veteran
+  try {
+    const veteranId = pitch.profiles?.[0]?.id;
+    if (veteranId) {
+      await revalidateMetricsForVeteran(veteranId);
+    }
+  } catch (error) {
+    console.warn('Failed to invalidate metrics cache for resume request:', error);
   }
 
   // Send email to veteran using React Email template

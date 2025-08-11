@@ -3,6 +3,7 @@ import { createAdminClient } from '../supabaseAdmin'
 import { first } from '@/lib/db'
 import { logActivity } from '../activity'
 import { createHmac } from 'crypto'
+import { revalidateMetricsForVeteran } from '../metrics-cache'
 
 export interface ResumeRequest {
   id: string
@@ -62,6 +63,13 @@ export async function createResumeRequest(
     pitch_id: pitchId,
     job_role: jobRole
   })
+
+  // Invalidate metrics cache for the veteran
+  try {
+    await revalidateMetricsForVeteran(veteranId);
+  } catch (error) {
+    console.warn('Failed to invalidate metrics cache for resume request:', error);
+  }
 
   return data
 }

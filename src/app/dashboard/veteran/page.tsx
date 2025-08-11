@@ -1,9 +1,15 @@
 import { getServerSupabase } from '@/lib/supabaseClient'
 import { redirect } from 'next/navigation'
-import { Shield, Calendar, Users, Eye, Phone, Mail, FileText, Share2, RefreshCw, TrendingUp, Award, Clock, AlertTriangle } from 'lucide-react'
-import { getVeteranMetrics } from '@/lib/metrics'
+import { Shield, Calendar, Users, Eye, Phone, Mail, FileText, Share2, RefreshCw, TrendingUp, Award, Clock, AlertTriangle, Target, Lightbulb } from 'lucide-react'
+import { getVeteranMetrics, getVeteranAnalytics, getTrendlineAllPitches, getCohortsBySource, getAvgTimeToFirstContact } from '@/lib/metrics'
+import { getCachedVeteranAnalytics } from '@/lib/actions/analytics'
 import ReferralFunnel from '@/components/ReferralFunnel'
 import PlatformBreakdown from '@/components/PlatformBreakdown'
+import TrendlineChart from '@/components/Trendline'
+import CohortTable from '@/components/CohortTable'
+import PerformanceInsights from '@/components/PerformanceInsights'
+import RefreshButton from '@/components/RefreshButton'
+import PitchImprovementTips from '@/components/PitchImprovementTips'
 
 export default async function VeteranDashboard() {
   const supabase = getServerSupabase()
@@ -24,8 +30,18 @@ export default async function VeteranDashboard() {
     redirect('/dashboard')
   }
 
-  // Fetch veteran metrics
-  const metrics = await getVeteranMetrics(user.id)
+  // Fetch veteran metrics and analytics (using cached analytics)
+  const [metrics, analytics] = await Promise.all([
+    getVeteranMetrics(user.id),
+    getCachedVeteranAnalytics(user.id)
+  ])
+
+  // Fetch additional data for new components
+  const [trendlineData, cohortData, avgTimeData] = await Promise.all([
+    getTrendlineAllPitches({ window: 30 }),
+    getCohortsBySource({ window: 30 }),
+    getAvgTimeToFirstContact({ window: 30 })
+  ])
 
   // Fetch invoices
   const { data: invoices } = await supabase
@@ -101,6 +117,62 @@ export default async function VeteranDashboard() {
           </div>
         )}
 
+        {/* Performance Insights & Goal Prompts */}
+        {analytics.performanceInsights && (
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 mb-8">
+            <div className="flex items-center gap-2 mb-4">
+              <Target className="w-6 h-6 text-blue-600" />
+              <h2 className="text-xl font-semibold text-gray-900">Performance Insights & Goals</h2>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Performance Insights */}
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 mb-3 flex items-center gap-2">
+                  <Lightbulb className="w-5 h-5 text-amber-500" />
+                  Smart Suggestions
+                </h3>
+                <div className="space-y-2">
+                  {analytics.performanceInsights.suggestions.map((suggestion: string, index: number) => (
+                    <div key={index} className="flex items-start gap-2">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                      <p className="text-sm text-gray-700">{suggestion}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Goal Prompts */}
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 mb-3 flex items-center gap-2">
+                  <Target className="w-5 h-5 text-green-500" />
+                  Goal Setting
+                </h3>
+                <div className="space-y-3">
+                  {analytics.performanceInsights.lowViews && (
+                    <div className="bg-white rounded-lg p-3 border-l-4 border-blue-500">
+                      <p className="text-sm font-medium text-gray-900">Increase Visibility</p>
+                      <p className="text-xs text-gray-600">Target: 50+ views this month</p>
+                    </div>
+                  )}
+                  {analytics.performanceInsights.lowConversions && (
+                    <div className="bg-white rounded-lg p-3 border-l-4 border-green-500">
+                      <p className="text-sm font-medium text-gray-900">Improve Conversion</p>
+                      <p className="text-xs text-gray-600">Target: 10%+ conversion rate</p>
+                    </div>
+                  )}
+                  {!analytics.performanceInsights.lowViews && !analytics.performanceInsights.lowConversions && (
+                    <div className="bg-white rounded-lg p-3 border-l-4 border-purple-500">
+                      <p className="text-sm font-medium text-gray-900">Maintain Momentum</p>
+                      <p className="text-xs text-gray-600">Keep engaging your network</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <a
@@ -147,25 +219,62 @@ export default async function VeteranDashboard() {
           </a>
         </div>
 
-        {/* Dashboard Widgets */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          {/* Referral Funnel Chart */}
-          <ReferralFunnel
-            title="Referral Performance (Last 30 Days)"
-            data={metrics.referrals.last30d}
-          />
-
-          {/* Platform Distribution */}
-          <PlatformBreakdown
-            title="Traffic by Platform"
-            data={metrics.referrals.topPlatforms.map(p => ({
-              platform: p.platform,
-              views: p.count,
-              calls: Math.floor(p.count * 0.3),
-              emails: Math.floor(p.count * 0.2)
-            }))}
-            chartType="pie"
-          />
+        {/* Analytics Section */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">Analytics & Performance</h2>
+            <RefreshButton 
+              userId={user.id}
+              role="veteran"
+              path="/dashboard/veteran"
+            />
+          </div>
+          
+          {/* Goal Prompts & Performance Tips */}
+          <div className="border rounded p-4 bg-amber-50 mb-6">
+            <h3 className="font-semibold mb-2">Improve your pitch</h3>
+            {(() => {
+              // derive simple conversion from trend
+              const views = trendlineData.find(s => s.label === 'pitch_viewed')?.points.reduce((a, p) => a + p.value, 0) ?? 0;
+              const calls = trendlineData.find(s => s.label === 'recruiter_called')?.points.reduce((a, p) => a + p.value, 0) ?? 0;
+              const emails = trendlineData.find(s => s.label === 'recruiter_emailed')?.points.reduce((a, p) => a + p.value, 0) ?? 0;
+              const conv = views ? calls / views : 0;
+              
+              return (
+                <>
+                  {views > 30 && conv < 0.10 ? (
+                    <ul className="list-disc ml-5 text-sm">
+                      <li>Tighten your title with a metric (e.g., "Saved ₹3Cr / yr").</li>
+                      <li>Front-load outcomes in the first 120 characters.</li>
+                      <li>Reorder skills so the most hireable skill is first.</li>
+                    </ul>
+                  ) : (
+                    <p className="text-sm">Great momentum. Keep sharing your pitch with supporters.</p>
+                  )}
+                  {calls > 0 && emails === 0 && (
+                    <p className="mt-2 text-sm">Tip: Add a clear email CTA in your pitch for off-hours outreach.</p>
+                  )}
+                  <p className="mt-2 text-xs text-gray-600">Avg time to first contact (last 30d): {avgTimeData.hours} hrs</p>
+                </>
+              );
+            })()}
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            {/* Performance Insights */}
+            <PerformanceInsights 
+              insights={analytics.performanceInsights}
+              comparativeMetrics={analytics.comparativeMetrics}
+            />
+            
+            {/* Trendline Chart */}
+            <TrendlineChart series={trendlineData} />
+          </div>
+          
+          {/* Cohort Analysis */}
+          <div className="mb-8">
+            <CohortTable rows={cohortData} />
+          </div>
         </div>
 
         {/* Recent Activity */}
