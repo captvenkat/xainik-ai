@@ -1,6 +1,29 @@
+'use client'
+
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 
 export default function AuthErrorPage() {
+  const searchParams = useSearchParams()
+  const error = searchParams.get('error')
+  const details = searchParams.get('details')
+  const description = searchParams.get('description')
+
+  const getErrorMessage = () => {
+    switch (error) {
+      case 'no_code':
+        return 'No authorization code received from OAuth provider'
+      case 'exchange_failed':
+        return 'Failed to exchange authorization code for session'
+      case 'no_user':
+        return 'No user data received after authentication'
+      case 'unexpected':
+        return 'An unexpected error occurred during authentication'
+      default:
+        return description || 'There was a problem signing you in. Please try again.'
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
@@ -16,8 +39,16 @@ export default function AuthErrorPage() {
             Authentication Error
           </h2>
           <p className="mt-2 text-sm text-gray-600">
-            There was a problem signing you in. Please try again.
+            {getErrorMessage()}
           </p>
+          
+          {details && (
+            <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-3">
+              <p className="text-xs text-red-700 font-mono break-all">
+                {details}
+              </p>
+            </div>
+          )}
         </div>
 
         <div className="space-y-4">
