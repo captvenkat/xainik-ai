@@ -18,7 +18,7 @@ test('Crawl internal links up to depth=2 and verify 200', async ({ page, request
 
     const res = await request.get(url.replace(base.origin, ''));
     const status = res.status();
-    if (status >= 400) failures.push({ url, status, referer });
+    if (status >= 400) failures.push({ url, status, ...(referer && { referer }) });
     if (depth >= 2) continue;
 
     // parse links on-page

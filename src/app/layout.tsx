@@ -7,8 +7,8 @@ export const metadata = {
     default: 'Xainik - Veteran Hiring Platform',
     template: '%s | Xainik'
   },
-  description: 'Empowering veterans to showcase their military experience and connect with meaningful career opportunities. Post a pitch, get calls. Browse verified veterans with direct contact details.',
-  keywords: ['veteran hiring', 'military careers', 'veteran jobs', 'recruitment platform', 'veteran employment'],
+  description: 'AI-First, Resume-Free Hiring for Military Veterans — Fast, Trusted, Community-Supported.',
+  keywords: ['veteran hiring', 'military careers', 'veteran jobs', 'recruitment platform', 'veteran employment', 'AI-first hiring', 'resume-free', 'community-supported'],
   authors: [{ name: 'Xainik Team' }],
   creator: 'Xainik',
   publisher: 'Xainik',
@@ -26,7 +26,7 @@ export const metadata = {
     locale: 'en_US',
     url: '/',
     title: 'Xainik - Veteran Hiring Platform',
-    description: 'Empowering veterans to showcase their military experience and connect with meaningful career opportunities.',
+    description: 'AI-First, Resume-Free Hiring for Military Veterans — Fast, Trusted, Community-Supported.',
     siteName: 'Xainik',
     images: [
       {
@@ -40,7 +40,7 @@ export const metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Xainik - Veteran Hiring Platform',
-    description: 'Empowering veterans to showcase their military experience and connect with meaningful career opportunities.',
+    description: 'AI-First, Resume-Free Hiring for Military Veterans — Fast, Trusted, Community-Supported.',
     images: ['/og-image.jpg'],
   },
   robots: {
