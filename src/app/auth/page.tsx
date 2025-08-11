@@ -1,129 +1,129 @@
-'use client'
+'use client';
 
-import { useState, useEffect, Suspense } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { supabase } from '@/lib/supabaseBrowser'
-import { updateUserRole } from '@/lib/actions/updateUserRole'
-import { Shield, ArrowRight, CheckCircle, AlertCircle } from 'lucide-react'
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabaseBrowser';
+import { updateUserRole } from '@/lib/actions/updateUserRole';
+import { Shield, CheckCircle, AlertCircle } from 'lucide-react';
 
-function AuthPageContent() {
-  const [isLoading, setIsLoading] = useState(false)
-  const [showRoleSelection, setShowRoleSelection] = useState(false)
-  const [selectedRole, setSelectedRole] = useState('')
-  const [error, setError] = useState('')
-  const [user, setUser] = useState<any>(null)
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const supabase = supabase
-
-  const redirectTo = searchParams.get('redirectTo') || '/'
+export default function AuthPage() {
+  const [isLoading, setIsLoading] = useState(false);
+  const [showRoleSelection, setShowRoleSelection] = useState(false);
+  const [selectedRole, setSelectedRole] = useState('');
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const router = useRouter();
 
   useEffect(() => {
     const checkUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        setUser(user)
-        // Check if user has a role
-        const { data: profile } = await supabase
-          .from('users')
-          .select('role')
-          .eq('id', user.id)
-          .single()
-        
-        if (profile?.role) {
-          // User has role, redirect to intended destination
-          router.push(redirectTo)
-        } else {
-          // User needs role selection
-          setShowRoleSelection(true)
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          // Check if user has a role
+          const { data: profile } = await supabase
+            .from('users')
+            .select('role')
+            .eq('id', user.id)
+            .single();
+          
+          if (profile?.role) {
+            // User has role, redirect to dashboard
+            router.push(`/dashboard/${profile.role}`);
+          } else {
+            // User needs role selection
+            setShowRoleSelection(true);
+          }
         }
+      } catch (err) {
+        console.error('Auth check error:', err);
       }
-    }
+    };
 
-    checkUser()
+    checkUser();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: string, session: any) => {
       if (event === 'SIGNED_IN' && session?.user) {
-        setUser(session.user)
         // Check if user has a role
         const { data: profile } = await supabase
           .from('users')
           .select('role')
           .eq('id', session.user.id)
-          .single()
+          .single();
         
         if (profile?.role) {
-          router.push(redirectTo)
+          router.push(`/dashboard/${profile.role}`);
         } else {
-          setShowRoleSelection(true)
+          setShowRoleSelection(true);
         }
       }
-    })
+    });
 
-    return () => subscription.unsubscribe()
-  }, [supabase, router, redirectTo])
+    return () => subscription.unsubscribe();
+  }, [router]);
 
   const handleGoogleSignIn = async () => {
-    setIsLoading(true)
-    setError('')
+    setIsLoading(true);
+    setError('');
     
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(redirectTo)}`,
+          redirectTo: `${window.location.origin}/auth/callback`,
           queryParams: { access_type: 'offline', prompt: 'consent' }
         }
-      })
+      });
       
-      if (error) throw error
-    } catch (error: unknown) {
-      setError('Failed to sign in with Google. Please try again.')
-      setIsLoading(false)
+      if (error) throw error;
+    } catch (error) {
+      setError('Failed to sign in with Google. Please try again.');
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleLinkedInSignIn = async () => {
-    setIsLoading(true)
-    setError('')
+    setIsLoading(true);
+    setError('');
     
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'linkedin',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(redirectTo)}`,
+          redirectTo: `${window.location.origin}/auth/callback`,
           queryParams: { access_type: 'offline', prompt: 'consent' }
         }
-      })
+      });
       
-      if (error) throw error
-    } catch (error: unknown) {
-      setError('Failed to sign in with LinkedIn. Please try again.')
-      setIsLoading(false)
+      if (error) throw error;
+    } catch (error) {
+      setError('Failed to sign in with LinkedIn. Please try again.');
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleRoleSelection = async () => {
     if (!selectedRole) {
-      setError('Please select a role')
-      return
+      setError('Please select a role');
+      return;
     }
 
-    setIsLoading(true)
-    setError('')
+    setIsLoading(true);
+    setError('');
 
     try {
-      await updateUserRole(selectedRole)
-
-      // Redirect to appropriate dashboard or intended destination
-      const dashboardPath = `/dashboard/${selectedRole}`
-      router.push(redirectTo === '/' ? dashboardPath : redirectTo)
-    } catch (error: unknown) {
-      console.error('Error updating role:', error)
-      setError(error instanceof Error ? error.message : 'Failed to update role. Please try again.')
-      setIsLoading(false)
+      await updateUserRole(selectedRole as 'veteran' | 'recruiter' | 'supporter');
+      setSuccess(`Role updated to ${selectedRole}! Redirecting...`);
+      
+      // Redirect to appropriate dashboard
+      setTimeout(() => {
+        router.push(`/dashboard/${selectedRole}`);
+      }, 1500);
+    } catch (error) {
+      console.error('Error updating role:', error);
+      setError(error instanceof Error ? error.message : 'Failed to update role. Please try again.');
+      setIsLoading(false);
     }
-  }
+  };
 
   if (showRoleSelection) {
     return (
@@ -139,7 +139,7 @@ function AuthPageContent() {
               Choose Your Role
             </h2>
             <p className="mt-2 text-sm text-gray-600">
-              Select how you'd like to use Xainik
+              Select how you&apos;d like to use Xainik
             </p>
           </div>
 
@@ -148,6 +148,15 @@ function AuthPageContent() {
               <div className="flex">
                 <AlertCircle className="h-5 w-5 text-red-400" />
                 <p className="ml-3 text-sm text-red-700">{error}</p>
+              </div>
+            </div>
+          )}
+
+          {success && (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <div className="flex">
+                <CheckCircle className="h-5 w-5 text-green-400" />
+                <p className="ml-3 text-sm text-green-700">{success}</p>
               </div>
             </div>
           )}
@@ -220,7 +229,7 @@ function AuthPageContent() {
           </button>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -290,20 +299,5 @@ function AuthPageContent() {
         </div>
       </div>
     </div>
-  )
-}
-
-export default function AuthPage() {
-  return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-2 text-gray-600">Loading...</p>
-        </div>
-      </div>
-    }>
-      <AuthPageContent />
-    </Suspense>
-  )
+  );
 }

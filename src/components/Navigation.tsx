@@ -50,7 +50,7 @@ export default function Navigation() {
           .select('role, name')
           .eq('id', session.user.id)
           .single()
-          .then(({ data }) => setProfile(data))
+          .then(({ data }: { data: any }) => setProfile(data))
       } else {
         setProfile(null)
       }

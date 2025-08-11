@@ -53,7 +53,7 @@ export default function RoleAwareLink({
           .select('role')
           .eq('id', session.user.id)
           .single()
-          .then(({ data }) => setProfile(data))
+          .then(({ data }: { data: any }) => setProfile(data))
       } else {
         setProfile(null)
       }

@@ -74,7 +74,7 @@ export default function NotificationBell() {
 
       if (notificationsData) {
         setNotifications(notificationsData)
-        setUnreadCount(notificationsData.filter(n => !n.read_at).length)
+        setUnreadCount(notificationsData.filter((n: any) => !n.read_at).length)
       }
     } catch (error) {
       console.error('Error fetching notifications:', error)

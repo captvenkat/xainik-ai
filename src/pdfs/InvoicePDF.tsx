@@ -130,7 +130,7 @@ interface InvoicePDFProps {
   buyerPhone?: string
   amount: number
   planTier: string
-  planMeta?: any
+  planMeta?: Record<string, unknown>
 }
 
 const InvoicePDF: React.FC<InvoicePDFProps> = ({
@@ -140,8 +140,7 @@ const InvoicePDF: React.FC<InvoicePDFProps> = ({
   buyerEmail,
   buyerPhone,
   amount,
-  planTier,
-  planMeta
+  planTier
 }) => (
   <Document>
     <Page size="A4" style={styles.page}>
