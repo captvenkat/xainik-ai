@@ -52,76 +52,41 @@ export async function GET(req: Request) {
     console.log('[AUTH] Code length:', code.length);
     console.log('[AUTH] Code preview:', code.substring(0, 10) + '...');
     
-    // Try the direct token exchange approach first
+    // Use the simplest possible approach - just exchangeCodeForSession
     try {
-      console.log('[AUTH] Attempting direct token exchange...');
-      const response = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/token?grant_type=authorization_code&code=${code}&redirect_uri=${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        },
-      });
+      const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
       
-      console.log('[AUTH] Token exchange response status:', response.status);
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('[AUTH] Token exchange failed:', response.status, errorText);
-        throw new Error(`Token exchange failed: ${response.status} ${response.statusText}`);
+      if (exchangeError) {
+        console.error('[AUTH] exchangeCodeForSession error:', exchangeError);
+        console.error('[AUTH] Error details:', {
+          message: exchangeError.message,
+          status: exchangeError.status,
+          name: exchangeError.name
+        });
+        return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/auth?error=exchange_failed&details=${encodeURIComponent(exchangeError.message)}`);
       }
-      
-      const tokenData = await response.json();
-      console.log('[AUTH] Direct token exchange successful, tokens received');
-      
-      // Set the session manually
-      const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
-        access_token: tokenData.access_token,
-        refresh_token: tokenData.refresh_token,
-      });
-      
-      if (sessionError) {
-        console.error('[AUTH] Session creation failed:', sessionError);
-        throw sessionError;
+
+      if (!data.session) {
+        console.error('[AUTH] No session created');
+        return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/auth?error=no_session`);
       }
-      
+
       console.log('[AUTH] Session created successfully:', {
-        userId: sessionData.session?.user.id,
-        expiresAt: sessionData.session?.expires_at
+        userId: data.session.user.id,
+        expiresAt: data.session.expires_at
       });
       
       console.log('[AUTH] Redirecting to dashboard');
       return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/dashboard/veteran`);
       
-    } catch (directError) {
-      console.error('[AUTH] Direct token exchange failed, trying exchangeCodeForSession...');
+    } catch (exchangeError) {
+      console.error('[AUTH] exchangeCodeForSession exception:', exchangeError);
+      console.error('[AUTH] Exception details:', {
+        message: exchangeError instanceof Error ? exchangeError.message : 'Unknown error',
+        stack: exchangeError instanceof Error ? exchangeError.stack : 'No stack trace'
+      });
       
-      // Fallback to the standard method
-      try {
-        const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
-        
-        if (exchangeError) {
-          console.error('[AUTH] exchangeCodeForSession error:', exchangeError);
-          throw exchangeError;
-        }
-
-        if (!data.session) {
-          console.error('[AUTH] No session created');
-          throw new Error('No session created');
-        }
-
-        console.log('[AUTH] Session created successfully via exchangeCodeForSession:', {
-          userId: data.session.user.id,
-          expiresAt: data.session.expires_at
-        });
-        
-        console.log('[AUTH] Redirecting to dashboard');
-        return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/dashboard/veteran`);
-        
-      } catch (fallbackError) {
-        console.error('[AUTH] Both methods failed:', { directError, fallbackError });
-        throw directError; // Throw the original error
-      }
+      return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/auth?error=exchange_exception&details=${encodeURIComponent(exchangeError instanceof Error ? exchangeError.message : 'Unknown error')}`);
     }
     
   } catch (e) {

@@ -9,6 +9,8 @@ export async function createSupabaseServer() {
       throw new Error('Missing Supabase environment variables');
     }
 
+    console.log('[SUPABASE] Creating server client with URL:', process.env.NEXT_PUBLIC_SUPABASE_URL.substring(0, 30) + '...');
+
     return createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
@@ -16,7 +18,9 @@ export async function createSupabaseServer() {
         cookies: {
           get(name: string) {
             try {
-              return cookieStore.get(name)?.value;
+              const value = cookieStore.get(name)?.value;
+              console.log(`[SUPABASE] Cookie get ${name}:`, value ? 'present' : 'missing');
+              return value;
             } catch (error) {
               console.error('[SUPABASE] Cookie get error:', error);
               return undefined;
@@ -24,6 +28,7 @@ export async function createSupabaseServer() {
           },
           set(name: string, value: string, options: any) {
             try {
+              console.log(`[SUPABASE] Cookie set ${name}:`, value.substring(0, 20) + '...');
               cookieStore.set({
                 name,
                 value,
@@ -35,6 +40,7 @@ export async function createSupabaseServer() {
           },
           remove(name: string, options: any) {
             try {
+              console.log(`[SUPABASE] Cookie remove ${name}`);
               cookieStore.set({
                 name,
                 value: '',
