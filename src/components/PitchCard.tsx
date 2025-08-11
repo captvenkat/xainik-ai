@@ -44,7 +44,7 @@ export default function PitchCard({ data, variant = 'default' }: Props) {
     : pitch
 
   return (
-    <div className="group bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
+    <div data-test="pitch-card" className="group bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
       <div className="p-6">
         {/* Header */}
         <div className="flex items-start justify-between mb-4">
