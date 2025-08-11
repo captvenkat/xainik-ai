@@ -17,66 +17,49 @@ function AuthPageContent() {
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get('redirect');
   
-  // Debug logging
-  console.log('🔍 AuthPageContent rendered with redirectTo:', redirectTo);
-  
   // If user has a redirect parameter but no session, show a helpful message
   useEffect(() => {
     if (redirectTo && !isCheckingAuth) {
-      console.log('💡 User has redirect parameter but no session, showing helpful message');
       setError(`You need to sign in to access ${redirectTo}. Please sign in with your account.`);
     }
   }, [redirectTo, isCheckingAuth]);
 
-  useEffect(() => {
+    useEffect(() => {
     let isMounted = true;
-    
-    console.log('🔍 useEffect triggered, isCheckingAuth:', isCheckingAuth);
     
     const checkUser = async () => {
       try {
-        console.log('🔍 checkUser called');
-        
         // Try multiple methods to get user authentication
         let user = null;
         
         // Method 1: Try getSession first
         try {
-          console.log('🔍 Trying getSession...');
           const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-          console.log('🔍 getSession result:', { session: !!session, error: sessionError });
           
           if (!sessionError && session?.user) {
             user = session.user;
-            console.log('✅ User found via getSession:', user.email);
           }
         } catch (err) {
-          console.log('❌ getSession failed:', err.message);
+          // Session method failed, continue to next method
         }
         
         // Method 2: If session failed, try getUser
         if (!user) {
           try {
-            console.log('🔍 Trying getUser...');
             const { data: { user: userData }, error: userError } = await supabase.auth.getUser();
-            console.log('🔍 getUser result:', { user: !!userData, error: userError });
             
             if (!userError && userData) {
               user = userData;
-              console.log('✅ User found via getUser:', user.email);
             }
           } catch (err) {
-            console.log('❌ getUser failed:', err.message);
+            // User method also failed
           }
         }
         
         if (!user) {
-          console.log('❌ No user found, stopping auth check');
           if (isMounted) setIsCheckingAuth(false);
           return;
         }
-        
-        console.log('🔍 Checking user role for:', user.email);
         
         // Check if user has a role
         const { data: profile, error: profileError } = await supabase
@@ -86,7 +69,6 @@ function AuthPageContent() {
           .single();
         
         if (profileError) {
-          console.log('❌ Profile error:', profileError.message);
           if (isMounted) {
             setShowRoleSelection(true);
             setIsCheckingAuth(false);
@@ -94,29 +76,22 @@ function AuthPageContent() {
           return;
         }
         
-        console.log('📋 User profile:', profile);
-        
         if (profile?.role) {
-          console.log('✅ User has role:', profile.role);
           if (isMounted) {
             // If there's a redirect parameter and it matches the user's role, use it
             if (redirectTo && redirectTo.includes(`/dashboard/${profile.role}`)) {
-              console.log('🔄 Redirecting to:', redirectTo);
               router.push(redirectTo);
             } else {
-              console.log('🔄 Redirecting to dashboard:', profile.role);
               router.push(`/dashboard/${profile.role}`);
             }
           }
         } else {
-          console.log('🔄 User needs role selection');
           if (isMounted) {
             setShowRoleSelection(true);
             setIsCheckingAuth(false);
           }
         }
       } catch (err) {
-        console.log('❌ checkUser error:', err.message);
         if (isMounted) setIsCheckingAuth(false);
       }
     };
@@ -126,34 +101,26 @@ function AuthPageContent() {
       let attempts = 0;
       const maxAttempts = 10; // Reduced attempts for faster fallback
       
-      console.log('🔍 waitForSession started, max attempts:', maxAttempts);
-      
       while (attempts < maxAttempts && isMounted) {
         try {
-          console.log(`🔍 Session check attempt ${attempts + 1}/${maxAttempts}`);
-          
           const { data: { session }, error: sessionError } = await supabase.auth.getSession();
           
           if (sessionError) {
-            console.log('⚠️ Session error, trying getUser fallback...');
             // If there's a session error, try getUser as fallback
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
-              console.log('✅ User found via fallback, calling checkUser');
               await checkUser();
               return;
             }
           }
           
           if (session?.user) {
-            console.log('✅ Session user found, calling checkUser');
             await checkUser();
             return;
           }
           
           // Early exit if no session after first few attempts
           if (attempts >= 2 && !session) {
-            console.log('⚡ Early exit: no session detected after 2 attempts');
             if (isMounted) {
               setIsCheckingAuth(false);
             }
@@ -162,11 +129,9 @@ function AuthPageContent() {
           
           attempts++;
           if (attempts < maxAttempts) {
-            console.log(`⏳ Waiting 200ms before attempt ${attempts + 1}...`);
             await new Promise(resolve => setTimeout(resolve, 200)); // Reduced delay
           }
         } catch (err) {
-          console.log(`❌ Session check attempt ${attempts + 1} failed:`, err.message);
           attempts++;
           if (attempts < maxAttempts) {
             await new Promise(resolve => setTimeout(resolve, 200));
@@ -175,19 +140,16 @@ function AuthPageContent() {
       }
       
       if (isMounted) {
-        console.log('⏰ Max session check attempts reached, stopping');
         setIsCheckingAuth(false);
       }
     };
 
     // Immediate check first
-    console.log('🔍 Starting immediate auth check...');
     checkUser();
     
     // Wait for session to be established
     const timer = setTimeout(() => {
       if (isMounted) {
-        console.log('🔍 Starting delayed session wait...');
         waitForSession();
       }
     }, 1000);
@@ -202,7 +164,6 @@ function AuthPageContent() {
     // Emergency fallback: if still checking after 5 seconds, force stop
     const emergencyTimer = setTimeout(() => {
       if (isMounted && isCheckingAuth) {
-        console.log('🚨 Emergency timeout reached, forcing auth check to stop');
         setIsCheckingAuth(false);
       }
     }, 5000);
@@ -210,7 +171,6 @@ function AuthPageContent() {
     // Super emergency fallback: if still checking after 8 seconds, force stop and show error
     const superEmergencyTimer = setTimeout(() => {
       if (isMounted && isCheckingAuth) {
-        console.log('🚨🚨 Super emergency timeout reached, forcing stop');
         setIsCheckingAuth(false);
         setError('Authentication check timed out. Please try refreshing the page.');
       }
@@ -219,33 +179,25 @@ function AuthPageContent() {
     // Quick fallback: if no session after 2 seconds, show sign-in options
     const quickFallbackTimer = setTimeout(() => {
       if (isMounted && isCheckingAuth) {
-        console.log('⚡ Quick fallback: no session detected, showing sign-in options');
         setIsCheckingAuth(false);
       }
     }, 2000);
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: string, session: any) => {
-      console.log('🔄 Auth state change:', event, session?.user?.email);
-      
       if (event === 'INITIAL_SESSION') {
-        console.log('✅ Initial session event received');
         if (session?.user) {
-          console.log('✅ Initial session has user, checking role...');
           if (isMounted) {
             checkUser();
           }
         } else {
-          console.log('🔄 Initial session but no user yet, waiting...');
           // Wait a bit more for session to fully establish
           setTimeout(() => {
             if (isMounted) {
-              console.log('🔄 Calling checkUser after delay...');
               checkUser();
             }
           }, 500);
         }
       } else if (event === 'SIGNED_IN' && session?.user) {
-        console.log('✅ User signed in, checking role...');
         // Check if user has a role
         const { data: profile, error: profileError } = await supabase
           .from('users')
@@ -254,7 +206,6 @@ function AuthPageContent() {
           .single();
         
         if (profileError) {
-          console.log('❌ Error fetching profile on auth state change:', profileError);
           if (isMounted) {
             setShowRoleSelection(true);
             setIsCheckingAuth(false);
@@ -262,26 +213,20 @@ function AuthPageContent() {
           return;
         }
         
-        console.log('📋 Profile on auth state change:', profile);
-        
         if (profile?.role) {
-          console.log('✅ User has role, redirecting to dashboard:', profile.role);
           if (isMounted) router.push(`/dashboard/${profile.role}`);
         } else {
-          console.log('🔄 User needs role selection on auth state change');
           if (isMounted) {
             setShowRoleSelection(true);
             setIsCheckingAuth(false);
           }
         }
       } else if (event === 'SIGNED_OUT') {
-        console.log('🔄 User signed out');
         if (isMounted) {
           setShowRoleSelection(false);
           setIsCheckingAuth(false);
         }
       } else if (event === 'TOKEN_REFRESHED') {
-        console.log('🔄 Token refreshed, checking session...');
         if (isMounted) {
           checkUser();
         }
@@ -563,8 +508,6 @@ function AuthPageContent() {
 
 // Wrap the component in Suspense to handle useSearchParams
 export default function AuthPage() {
-  console.log('🔍 AuthPage wrapper rendered');
-  
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
