@@ -19,6 +19,14 @@ function AuthPageContent() {
   
   // Debug logging
   console.log('🔍 AuthPageContent rendered with redirectTo:', redirectTo);
+  
+  // If user has a redirect parameter but no session, show a helpful message
+  useEffect(() => {
+    if (redirectTo && !isCheckingAuth) {
+      console.log('💡 User has redirect parameter but no session, showing helpful message');
+      setError(`You need to sign in to access ${redirectTo}. Please sign in with your account.`);
+    }
+  }, [redirectTo, isCheckingAuth]);
 
   useEffect(() => {
     let isMounted = true;
@@ -116,7 +124,7 @@ function AuthPageContent() {
     // Enhanced session check that waits for session to be fully ready
     const waitForSession = async () => {
       let attempts = 0;
-      const maxAttempts = 15; // Increased attempts
+      const maxAttempts = 10; // Reduced attempts for faster fallback
       
       console.log('🔍 waitForSession started, max attempts:', maxAttempts);
       
@@ -143,16 +151,25 @@ function AuthPageContent() {
             return;
           }
           
+          // Early exit if no session after first few attempts
+          if (attempts >= 2 && !session) {
+            console.log('⚡ Early exit: no session detected after 2 attempts');
+            if (isMounted) {
+              setIsCheckingAuth(false);
+            }
+            return;
+          }
+          
           attempts++;
           if (attempts < maxAttempts) {
-            console.log(`⏳ Waiting 300ms before attempt ${attempts + 1}...`);
-            await new Promise(resolve => setTimeout(resolve, 300)); // Increased delay
+            console.log(`⏳ Waiting 200ms before attempt ${attempts + 1}...`);
+            await new Promise(resolve => setTimeout(resolve, 200)); // Reduced delay
           }
         } catch (err) {
           console.log(`❌ Session check attempt ${attempts + 1} failed:`, err.message);
           attempts++;
           if (attempts < maxAttempts) {
-            await new Promise(resolve => setTimeout(resolve, 300));
+            await new Promise(resolve => setTimeout(resolve, 200));
           }
         }
       }
@@ -198,6 +215,14 @@ function AuthPageContent() {
         setError('Authentication check timed out. Please try refreshing the page.');
       }
     }, 8000);
+    
+    // Quick fallback: if no session after 2 seconds, show sign-in options
+    const quickFallbackTimer = setTimeout(() => {
+      if (isMounted && isCheckingAuth) {
+        console.log('⚡ Quick fallback: no session detected, showing sign-in options');
+        setIsCheckingAuth(false);
+      }
+    }, 2000);
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: string, session: any) => {
       console.log('🔄 Auth state change:', event, session?.user?.email);
@@ -269,6 +294,7 @@ function AuthPageContent() {
       clearTimeout(fallbackTimer);
       clearTimeout(emergencyTimer);
       clearTimeout(superEmergencyTimer);
+      clearTimeout(quickFallbackTimer);
       subscription.unsubscribe();
     };
   }, [router]);
