@@ -30,7 +30,6 @@ export default function RefreshButton({ userId, role, path, className = '' }: Re
         }, 2000)
       }
     } catch (error) {
-      console.error('Failed to refresh analytics:', error)
       // Show error feedback
       const button = document.querySelector(`[data-refresh-button="${userId}"]`) as HTMLElement
       if (button) {

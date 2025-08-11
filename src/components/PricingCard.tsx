@@ -28,7 +28,6 @@ export default function PricingCard({ plan, canUseTrial, userId, isPopular }: Pr
       // Redirect to pitch creation with plan pre-selected
       router.push(`/pitch/new?plan=${plan.id}`)
     } catch (error) {
-      console.error('Failed to select plan:', error)
     } finally {
       setIsLoading(false)
     }

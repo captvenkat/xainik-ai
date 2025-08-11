@@ -20,7 +20,6 @@ export async function POST(request: NextRequest) {
     const cutoffDate = new Date()
     cutoffDate.setDate(cutoffDate.getDate() - 180)
 
-    console.log(`🔄 Archiving payment events older than ${cutoffDate.toISOString()}`)
 
     // Get old payment events
     const { data: oldEvents, error: fetchError } = await supabase
@@ -33,14 +32,12 @@ export async function POST(request: NextRequest) {
     }
 
     if (!oldEvents || oldEvents.length === 0) {
-      console.log('ℹ️  No old payment events to archive')
       return NextResponse.json({ 
         message: 'No events to archive',
         archived: 0
       })
     }
 
-    console.log(`📦 Found ${oldEvents.length} events to archive`)
 
     // Insert into archive table
     const eventsToArchive = oldEvents.map(event => ({
@@ -66,7 +63,6 @@ export async function POST(request: NextRequest) {
       throw new Error(`Failed to delete old events: ${deleteError.message}`)
     }
 
-    console.log(`✅ Successfully archived ${oldEvents.length} payment events`)
 
     return NextResponse.json({
       message: 'Payment events archived successfully',
@@ -75,7 +71,6 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Archive payment events error:', error)
     return NextResponse.json(
       { error: 'Archive failed' },
       { status: 500 }

@@ -63,7 +63,6 @@ export async function createEndorsement(
     .single()
 
   if (error) {
-    console.error('Error creating endorsement:', error)
     throw new Error('Failed to create endorsement')
   }
 
@@ -74,7 +73,6 @@ export async function createEndorsement(
       message: text || 'Endorsed your pitch'
     })
   } catch (notificationError) {
-    console.error('Failed to send endorsement notification:', notificationError)
     // Don't fail the endorsement if notification fails
   }
 
@@ -85,7 +83,6 @@ export async function createEndorsement(
       await notifyVerifiedBadge(veteranId)
     }
   } catch (badgeError) {
-    console.error('Failed to check/send verified badge notification:', badgeError)
     // Don't fail the endorsement if badge notification fails
   }
 
@@ -104,7 +101,6 @@ export async function createEndorsement(
       body: JSON.stringify({ veteranId }),
     });
   } catch (error) {
-    console.warn('Failed to invalidate metrics cache for endorsement:', error);
   }
 
   return data

@@ -41,7 +41,6 @@ export default function SavedFiltersClient({ initialFilters }: SavedFiltersClien
         setShowSaveModal(false);
       }
     } catch (error) {
-      console.error('Failed to save filters:', error);
     } finally {
       setIsLoading(false);
     }
@@ -57,7 +56,6 @@ export default function SavedFiltersClient({ initialFilters }: SavedFiltersClien
         setSavedFilters(prev => prev.filter(f => f.id !== filterId));
       }
     } catch (error) {
-      console.error('Failed to delete filter:', error);
     }
   };
 

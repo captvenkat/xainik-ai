@@ -85,7 +85,6 @@ export async function POST(request: NextRequest) {
           tags: { component: 'payment_events_insert' },
           extra: { eventId, paymentId }
         });
-        console.error('Error inserting payment event:', insertError)
         throw insertError
       }
       // For duplicate, fetch the existing record
@@ -197,7 +196,6 @@ export async function POST(request: NextRequest) {
         paymentId: payload?.payload?.payment?.entity?.id 
       }
     });
-    console.error('Webhook error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

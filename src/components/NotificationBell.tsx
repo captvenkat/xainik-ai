@@ -77,7 +77,6 @@ export default function NotificationBell() {
         setUnreadCount(notificationsData.filter((n: any) => !n.read_at).length)
       }
     } catch (error) {
-      console.error('Error fetching notifications:', error)
     } finally {
       setIsLoading(false)
     }
@@ -102,7 +101,6 @@ export default function NotificationBell() {
       )
       setUnreadCount(prev => Math.max(0, prev - 1))
     } catch (error) {
-      console.error('Error marking notification as read:', error)
     }
   }
 
@@ -126,7 +124,6 @@ export default function NotificationBell() {
       )
       setUnreadCount(0)
     } catch (error) {
-      console.error('Error marking all notifications as read:', error)
     }
   }
 

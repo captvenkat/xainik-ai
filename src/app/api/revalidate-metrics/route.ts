@@ -13,7 +13,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error revalidating metrics:', error);
     return NextResponse.json({ error: 'Failed to revalidate metrics' }, { status: 500 });
   }
 }

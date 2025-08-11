@@ -105,14 +105,12 @@ async function sendEmailNotification(userId: string, type: NotificationType, pay
     .single()
 
   if (!user?.email) {
-    console.error('No email found for user:', userId)
     return
   }
 
   // Check if in quiet hours
   const inQuietHours = await isInQuietHours(userId)
   if (inQuietHours) {
-    console.log('Skipping email notification due to quiet hours for user:', userId)
     return
   }
 
@@ -128,7 +126,6 @@ async function sendEmailNotification(userId: string, type: NotificationType, pay
     })
 
     if (error) {
-      console.error('Failed to send email notification:', error)
       // Log to email_logs
       await supabase
         .from('email_logs')
@@ -155,7 +152,6 @@ async function sendEmailNotification(userId: string, type: NotificationType, pay
         })
     }
   } catch (error) {
-    console.error('Error sending email notification:', error)
   }
 }
 
@@ -288,7 +284,6 @@ export async function notify(data: NotificationData): Promise<void> {
       await sendEmailNotification(userId, type, payload)
     }
   } catch (error) {
-    console.error('Error sending notification:', error)
   }
 }
 

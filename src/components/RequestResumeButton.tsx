@@ -30,7 +30,13 @@ export default function RequestResumeButton({
     setMessage('')
 
     try {
-      await createResumeRequest(recruiterId, veteranId, pitchId, jobRole)
+      const requestData = {
+        pitch_id: pitchId,
+        user_id: veteranId, // Changed from veteran_id
+        recruiter_user_id: recruiterId, // Changed from recruiter_id
+        job_role: jobRole
+      }
+      await createResumeRequest(requestData)
       
       // Log activity
       await logActivity('resume_request_sent', {
@@ -44,7 +50,6 @@ export default function RequestResumeButton({
       setIsOpen(false)
       setJobRole('')
     } catch (error) {
-      console.error('Error requesting resume:', error)
       setMessage('Failed to send resume request. Please try again.')
     } finally {
       setIsLoading(false)

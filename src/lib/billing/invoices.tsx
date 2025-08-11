@@ -31,7 +31,6 @@ export async function generateServiceInvoice(
   params: GenerateServiceInvoiceParams
 ): Promise<GenerateServiceInvoiceResult> {
   try {
-    console.log('🔄 Generating service invoice...', params)
 
     Sentry.addBreadcrumb({
       category: 'billing',
@@ -109,7 +108,6 @@ export async function generateServiceInvoice(
         tags: { component: 'invoice_db_insert' },
         extra: { invoiceNumber, paymentEventId: params.paymentEventId }
       });
-      console.error('Database error:', dbError)
       throw new Error(`Failed to insert invoice: ${dbError.message}`)
     }
 
@@ -129,7 +127,6 @@ export async function generateServiceInvoice(
         tags: { component: 'invoice_signed_url' },
         extra: { storageKey, bucket }
       });
-      console.error('Signed URL error:', signedUrl.error)
       throw new Error(`Failed to create signed URL: ${signedUrl.error.message}`)
     }
 
@@ -149,10 +146,6 @@ export async function generateServiceInvoice(
       data: { messageId, recipientEmail: params.buyerEmail }
     });
 
-    console.log('✅ Service invoice generated successfully')
-    console.log('Invoice Number:', invoiceNumber)
-    console.log('Storage Key:', storageKey)
-    console.log('Message ID:', messageId)
 
     return {
       number: invoiceNumber,
@@ -170,7 +163,6 @@ export async function generateServiceInvoice(
         amount: params.amount 
       }
     });
-    console.error('❌ Service invoice generation failed:', error)
     throw error
   }
 }

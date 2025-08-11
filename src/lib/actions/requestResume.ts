@@ -94,7 +94,6 @@ export async function requestResume(pitchId: string, recruiterMessage?: string) 
       notificationPayload
     )
   } catch (notificationError) {
-    console.error('Failed to send notification:', notificationError)
     // Don't fail the request if notification fails
   }
 
@@ -109,7 +108,6 @@ export async function requestResume(pitchId: string, recruiterMessage?: string) 
       });
     }
   } catch (error) {
-    console.warn('Failed to invalidate metrics cache for resume request:', error);
   }
 
   // Send email to veteran using React Email template
@@ -145,7 +143,6 @@ export async function requestResume(pitchId: string, recruiterMessage?: string) 
       html: emailHtml
     })
   } catch (emailError) {
-    console.error('Failed to send email:', emailError)
     // Don't fail the request if email fails
   }
 
@@ -179,7 +176,6 @@ export async function approveResumeRequest(requestId: string, token: string) {
       }
     )
   } catch (notificationError) {
-    console.error('Failed to send notification:', notificationError)
   }
 
   return { success: true }
@@ -212,7 +208,6 @@ export async function declineResumeRequest(requestId: string, token: string) {
       }
     )
   } catch (notificationError) {
-    console.error('Failed to send notification:', notificationError)
   }
 
   return { success: true }

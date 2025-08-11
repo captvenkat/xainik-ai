@@ -118,7 +118,6 @@ export default function ReferModal({
           ip_hash: 'client-side'
         })
       } catch (error) {
-        console.error('Failed to log share event:', error)
       }
     }
   }

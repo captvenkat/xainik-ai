@@ -110,7 +110,6 @@ export default function DonationForm() {
                 throw new Error('Payment verification failed')
               }
             } catch (error) {
-              console.error('Payment verification error:', error)
               alert('Payment completed but verification failed. Please contact support.')
             }
           },

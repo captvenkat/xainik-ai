@@ -37,7 +37,6 @@ export default function DonationSnapshot() {
           .single()
 
         if (error) {
-          console.error('Error fetching donation stats:', error)
           // Don't throw, just use default stats
           setStats(defaultStats)
           setHasError(true)
@@ -54,7 +53,6 @@ export default function DonationSnapshot() {
           setHasError(false)
         }
       } catch (error) {
-        console.error('Error fetching donation stats:', error)
         // Don't throw, just use default stats
         setStats(defaultStats)
         setHasError(true)

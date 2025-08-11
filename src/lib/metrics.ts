@@ -455,7 +455,7 @@ export async function getVeteranMetrics(userId: string): Promise<VeteranMetrics>
   const { data: pitch } = await supabase
     .from('pitches')
     .select('id, title, plan_tier, plan_expires_at, is_active, status')
-    .eq('veteran_id', userId)
+    .eq('user_id', userId) // Changed from veteran_id
     .order('created_at', { ascending: false })
     .limit(1)
     .single()
@@ -464,7 +464,7 @@ export async function getVeteranMetrics(userId: string): Promise<VeteranMetrics>
   const { data: endorsements } = await supabase
     .from('endorsements')
     .select('id, endorser_name, message, created_at')
-    .eq('veteran_id', userId)
+    .eq('user_id', userId) // Changed from veteran_id
     .order('created_at', { ascending: false })
     .limit(5)
 
@@ -493,7 +493,7 @@ export async function getVeteranMetrics(userId: string): Promise<VeteranMetrics>
       created_at,
       profiles!resume_requests_recruiter_id_fkey(full_name)
     `)
-    .eq('veteran_id', userId)
+    .eq('user_id', userId) // Changed from veteran_id
     .order('created_at', { ascending: false })
     .limit(10)
 
@@ -541,7 +541,7 @@ export async function getRecruiterMetrics(userId: string): Promise<RecruiterMetr
         skills
       )
     `)
-    .eq('recruiter_id', userId)
+    .eq('recruiter_user_id', userId) // Changed from recruiter_id
 
   // Get recent contacts (from activity_log)
   const thirtyDaysAgo = new Date()
@@ -568,7 +568,7 @@ export async function getRecruiterMetrics(userId: string): Promise<RecruiterMetr
         profiles!inner(full_name)
       )
     `)
-    .eq('recruiter_id', userId)
+    .eq('recruiter_user_id', userId) // Changed from recruiter_id
     .order('created_at', { ascending: false })
     .limit(10)
 
@@ -584,7 +584,7 @@ export async function getRecruiterMetrics(userId: string): Promise<RecruiterMetr
         profiles!inner(full_name)
       )
     `)
-    .eq('recruiter_id', userId)
+    .eq('recruiter_user_id', userId) // Changed from recruiter_id
     .order('created_at', { ascending: false })
     .limit(10)
 
@@ -636,7 +636,7 @@ export async function getSupporterMetrics(userId: string): Promise<SupporterMetr
         profiles!inner(full_name)
       )
     `)
-    .eq('supporter_id', userId)
+    .eq('user_id', userId) // Changed from supporter_id
     .order('created_at', { ascending: false })
 
   const referralIds = referrals?.map(r => r.id) || []
@@ -663,7 +663,7 @@ export async function getSupporterMetrics(userId: string): Promise<SupporterMetr
         profiles!inner(full_name)
       )
     `)
-    .eq('supporter_id', userId)
+    .eq('user_id', userId) // Changed from supporter_id
     .order('created_at', { ascending: false })
     .limit(10)
 
@@ -715,7 +715,7 @@ export async function getTrendlineData(userId: string, days: number = 90): Promi
   const { data: pitch } = await supabase
     .from('pitches')
     .select('id')
-    .eq('veteran_id', userId)
+    .eq('user_id', userId) // Changed from veteran_id
     .single()
   
   if (!pitch) {
@@ -848,7 +848,7 @@ export async function getCohortConversions(userId: string, days: number = 90): P
   const { data: pitch } = await supabase
     .from('pitches')
     .select('id')
-    .eq('veteran_id', userId)
+    .eq('user_id', userId) // Changed from veteran_id
     .single()
   
   if (!pitch) return []
@@ -964,7 +964,7 @@ export async function getPerformanceInsights(userId: string): Promise<AnalyticsM
   const { data: pitch } = await supabase
     .from('pitches')
     .select('id, created_at')
-    .eq('veteran_id', userId)
+    .eq('user_id', userId) // Changed from veteran_id
     .single()
   
   if (!pitch) {
@@ -1129,7 +1129,7 @@ export async function getComparativeMetrics(userId: string): Promise<AnalyticsMe
   const { data: pitch } = await supabase
     .from('pitches')
     .select('id')
-    .eq('veteran_id', userId)
+    .eq('user_id', userId) // Changed from veteran_id
     .single()
   
   if (!pitch) {

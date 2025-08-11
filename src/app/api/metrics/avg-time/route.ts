@@ -32,7 +32,6 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ avg });
   } catch (error) {
-    console.error('Error fetching average time metrics:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

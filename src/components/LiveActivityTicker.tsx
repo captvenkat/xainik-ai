@@ -21,7 +21,6 @@ export default function LiveActivityTicker() {
         const recentActivities = await getRecentActivity(10)
         setActivities(recentActivities)
       } catch (error) {
-        console.error('Error fetching activities:', error)
       } finally {
         setIsLoading(false)
       }

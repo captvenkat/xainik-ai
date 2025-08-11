@@ -41,7 +41,6 @@ export async function middleware(req: NextRequest) {
       const refreshToken = req.cookies.get('sb-refresh-token')?.value;
       
       if (!accessToken && !refreshToken) {
-        console.log('[MIDDLEWARE] No tokens found for role selection, redirecting to auth');
         const url = req.nextUrl.clone();
         url.pathname = '/auth';
         url.searchParams.set('redirect', pathname);
@@ -51,7 +50,6 @@ export async function middleware(req: NextRequest) {
       // User is authenticated, allow access to role selection
       return NextResponse.next();
     } catch (error) {
-      console.error('[MIDDLEWARE] Error checking authentication for role selection:', error);
       const url = req.nextUrl.clone();
       url.pathname = '/auth';
       url.searchParams.set('redirect', pathname);
@@ -83,7 +81,6 @@ export async function middleware(req: NextRequest) {
         const { data: { user }, error } = await supabase.auth.getUser();
         
         if (error || !user) {
-          console.log('[MIDDLEWARE] Auth header invalid, redirecting to auth');
           const url = req.nextUrl.clone();
           url.pathname = '/auth';
           url.searchParams.set('redirect', pathname);
@@ -98,7 +95,6 @@ export async function middleware(req: NextRequest) {
         const refreshToken = req.cookies.get('sb-refresh-token')?.value;
         
         if (!accessToken && !refreshToken) {
-          console.log('[MIDDLEWARE] No tokens found, redirecting to auth');
           const url = req.nextUrl.clone();
           url.pathname = '/auth';
           url.searchParams.set('redirect', pathname);
@@ -110,7 +106,6 @@ export async function middleware(req: NextRequest) {
           const { data: { user }, error } = await supabase.auth.getUser(accessToken);
           
           if (error || !user) {
-            console.log('[MIDDLEWARE] Access token invalid, redirecting to auth');
             const url = req.nextUrl.clone();
             url.pathname = '/auth';
             url.searchParams.set('redirect', pathname);
@@ -122,14 +117,12 @@ export async function middleware(req: NextRequest) {
         }
         
         // If we only have refresh token, redirect to auth to get a new access token
-        console.log('[MIDDLEWARE] Only refresh token found, redirecting to auth');
         const url = req.nextUrl.clone();
         url.pathname = '/auth';
         url.searchParams.set('redirect', pathname);
         return NextResponse.redirect(url);
       }
     } catch (error) {
-      console.error('[MIDDLEWARE] Error checking authentication:', error);
       // On error, redirect to auth
       const url = req.nextUrl.clone();
       url.pathname = '/auth';

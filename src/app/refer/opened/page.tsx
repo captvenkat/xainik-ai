@@ -34,7 +34,6 @@ function ReferralOpenedPageContent() {
       if (error) throw error
       setSubmitted(true)
     } catch (error) {
-      console.error('Failed to submit feedback:', error)
     } finally {
       setIsSubmitting(false)
     }
@@ -57,7 +56,6 @@ function ReferralOpenedPageContent() {
       if (error) throw error
       setSubmitted(true)
     } catch (error) {
-      console.error('Failed to submit comment:', error)
     } finally {
       setIsSubmitting(false)
     }

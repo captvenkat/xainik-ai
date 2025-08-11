@@ -35,7 +35,6 @@ export default function SavedFilters({ currentFilters, onApplyFilters, onExportC
         setSavedFilters(data);
       }
     } catch (error) {
-      console.error('Failed to load saved filters:', error);
     }
   };
 
@@ -59,7 +58,6 @@ export default function SavedFilters({ currentFilters, onApplyFilters, onExportC
         await loadSavedFilters();
       }
     } catch (error) {
-      console.error('Failed to save filters:', error);
     } finally {
       setIsLoading(false);
     }
@@ -75,7 +73,6 @@ export default function SavedFilters({ currentFilters, onApplyFilters, onExportC
         await loadSavedFilters();
       }
     } catch (error) {
-      console.error('Failed to delete filter:', error);
     }
   };
 

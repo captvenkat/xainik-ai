@@ -2,25 +2,32 @@
  * Domain types for UI components aligned with database schema
  */
 
-export type PitchCardData = {
+export interface PitchCardData {
   id: string;
   title: string;
-  pitch: string; // 300-char summary
-  skills: string[]; // 0..3
-  city: string | null;
-  job_type: 'Full-Time' | 'Part-Time' | 'Freelance' | 'Consulting' | 'Hybrid' | 'Project-Based' | 'Remote' | 'On-Site';
-  availability: 'Immediate' | '30 Days' | '60 Days' | '90 Days' | 'Negotiable';
-  likes: number;
-  veteran: {
-    id: string; // user/veteran id
-    full_name: string | null;
-    rank: string | null;
-    service_branch: string | null;
-    years_experience: number | null;
-    photo_url: string | null;
-    is_community_verified: boolean;
+  pitch_text: string;
+  skills: string[];
+  job_type: string;
+  location: string;
+  availability: string;
+  experience_years: number | null;
+  photo_url: string | null;
+  phone: string | null;
+  linkedin_url: string | null;
+  resume_url: string | null;
+  resume_share_enabled: boolean;
+  plan_tier: string | null;
+  plan_expires_at: string | null;
+  is_active: boolean;
+  likes_count: number;
+  created_at: string;
+  updated_at: string;
+  user_id: string; // Changed from veteran_id
+  user: {
+    name: string;
+    role: string;
   };
-};
+}
 
 export interface PitchDetailData extends PitchCardData {
   created_at: string
@@ -34,38 +41,37 @@ export interface PitchDetailData extends PitchCardData {
 }
 
 export interface EndorsementItem {
-  id: string
-  veteran_id: string
-  endorser_id: string
-  text: string
-  created_at: string
+  id: string;
+  user_id: string; // Changed from veteran_id
+  endorser_user_id: string | null; // Changed from endorser_id
+  text: string;
+  created_at: string;
   endorser?: {
-    name: string
-    role: string
-  } | null
+    name: string;
+    role: string;
+  };
 }
 
-export interface ResumeRequestItem {
-  id: string
-  pitch_id: string
-  recruiter_id: string
-  status: 'pending' | 'approved' | 'declined'
-  created_at: string
-  updated_at: string
-  recruiter?: {
-    name: string
-    email: string
-    company_name?: string | null
-  } | null
+export interface ResumeRequest {
+  id: string;
+  pitch_id: string | null;
+  user_id: string; // Changed from veteran_id
+  recruiter_user_id: string; // Changed from recruiter_id
+  job_role: string | null;
+  status: 'PENDING' | 'APPROVED' | 'DECLINED';
+  responded_at: string | null;
+  created_at: string;
   pitch?: {
-    id: string
-    title: string
-    profiles?: {
-      full_name: string
-      phone: string | null
-      email: string
-    } | null
-  } | null
+    title: string;
+    user: {
+      name: string;
+      role: string;
+    };
+  };
+  recruiter?: {
+    name: string;
+    role: string;
+  };
 }
 
 export interface ReferralEventItem {
@@ -132,12 +138,16 @@ export interface ActivityItem {
 }
 
 export interface UserProfile {
-  id: string
-  email: string
-  full_name: string
-  role: 'veteran' | 'recruiter' | 'supporter' | 'admin'
-  avatar_url?: string | null
-  phone?: string | null
-  created_at: string
-  updated_at: string
+  id: string;
+  email: string;
+  name: string; // Changed from full_name
+  phone: string | null;
+  role: 'veteran' | 'recruiter' | 'supporter' | 'admin';
+  avatar_url: string | null;
+  created_at: string;
+  updated_at: string;
+  profile?: {
+    profile_type: string;
+    profile_data: Record<string, any>;
+  };
 }

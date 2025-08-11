@@ -29,7 +29,6 @@ export async function generateDonationReceipt(
   params: GenerateDonationReceiptParams
 ): Promise<GenerateDonationReceiptResult> {
   try {
-    console.log('🔄 Generating donation receipt...', params)
 
     Sentry.addBreadcrumb({
       category: 'billing',
@@ -46,7 +45,6 @@ export async function generateDonationReceipt(
       Sentry.captureException(orgError, {
         tags: { component: 'receipt_org_data' }
       });
-      console.error('Organization data error:', orgError)
       throw new Error(`Failed to get organization data: ${orgError.message}`)
     }
 
@@ -130,7 +128,6 @@ export async function generateDonationReceipt(
         tags: { component: 'receipt_db_insert' },
         extra: { receiptNumber, paymentEventId: params.paymentEventId }
       });
-      console.error('Database error:', dbError)
       throw new Error(`Failed to insert receipt: ${dbError.message}`)
     }
 
@@ -150,7 +147,6 @@ export async function generateDonationReceipt(
         tags: { component: 'receipt_signed_url' },
         extra: { storageKey, bucket }
       });
-      console.error('Signed URL error:', signedUrl.error)
       throw new Error(`Failed to create signed URL: ${signedUrl.error.message}`)
     }
 
@@ -180,11 +176,6 @@ export async function generateDonationReceipt(
       });
     }
 
-    console.log('✅ Donation receipt generated successfully')
-    console.log('Receipt Number:', receiptNumber)
-    console.log('Storage Key:', storageKey)
-    console.log('80G Enabled:', has80G)
-    console.log('Message ID:', messageId || 'No email sent (anonymous)')
 
     return {
       number: receiptNumber,
@@ -202,7 +193,6 @@ export async function generateDonationReceipt(
         isAnonymous: params.isAnonymous 
       }
     });
-    console.error('❌ Donation receipt generation failed:', error)
     throw error
   }
 }

@@ -32,7 +32,6 @@ function AuthPageContent() {
           }
         }
       } catch (err) {
-        console.error('Auth check failed:', err);
       } finally {
         setIsCheckingAuth(false);
       }
@@ -61,7 +60,6 @@ function AuthPageContent() {
     try {
       await signInWithGoogle(redirect);
     } catch (error) {
-      console.error('Google sign-in failed:', error);
       // Handle error appropriately
     }
   }

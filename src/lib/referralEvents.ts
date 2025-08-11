@@ -154,7 +154,7 @@ export async function getTopReferrers(userId: string, days: number = 30) {
   const { data: referrals } = await supabase
     .from('referrals')
     .select('id, created_at')
-    .eq('supporter_id', userId)
+    .eq('user_id', userId) // Changed from supporter_id
     .gte('created_at', startDate.toISOString())
   
   if (!referrals || referrals.length === 0) return []

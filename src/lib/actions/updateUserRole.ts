@@ -20,7 +20,6 @@ export async function updateUserRole(role: 'veteran' | 'recruiter' | 'supporter'
     .single();
 
   if (error) {
-    console.error('Error updating user role:', error);
     throw new Error(`Failed to update role: ${error.message}`);
   }
 
@@ -43,7 +42,6 @@ export async function getUserRole() {
     .single();
 
   if (error) {
-    console.error('Error getting user role:', error);
     return null;
   }
 

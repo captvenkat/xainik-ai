@@ -57,7 +57,6 @@ export default function ContactButtons({
           ipAddress: 'client-side' // Will be handled by server-side tracking
         })
       } catch (error) {
-        console.error('Failed to log referral event:', error)
         // Don't break the UI if logging fails
       }
     }
@@ -69,7 +68,6 @@ export default function ContactButtons({
         pitch_title: pitchTitle
       })
     } catch (error) {
-      console.error('Failed to log activity:', error)
       // Don't break the UI if logging fails
     }
     
@@ -87,7 +85,6 @@ export default function ContactButtons({
           ipAddress: 'client-side' // Will be handled by server-side tracking
         })
       } catch (error) {
-        console.error('Failed to log referral event:', error)
         // Don't break the UI if logging fails
       }
     }
@@ -99,7 +96,6 @@ export default function ContactButtons({
         pitch_title: pitchTitle
       })
     } catch (error) {
-      console.error('Failed to log activity:', error)
       // Don't break the UI if logging fails
     }
     

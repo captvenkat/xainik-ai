@@ -9,7 +9,6 @@ export async function GET() {
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     
     if (authError) {
-      console.error('[TEST-AUTH] Auth error:', authError);
       return NextResponse.json({ 
         success: false, 
         error: 'Auth error', 
@@ -32,7 +31,6 @@ export async function GET() {
       .single();
     
     if (profileError) {
-      console.error('[TEST-AUTH] Profile error:', profileError);
       return NextResponse.json({ 
         success: false, 
         error: 'Profile error', 
@@ -52,7 +50,6 @@ export async function GET() {
     });
     
   } catch (error) {
-    console.error('[TEST-AUTH] Unexpected error:', error);
     return NextResponse.json({ 
       success: false, 
       error: 'Unexpected error', 

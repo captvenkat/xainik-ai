@@ -17,13 +17,11 @@ export async function uploadPdf(
       })
 
     if (error) {
-      console.error('Upload error:', error)
       throw new Error(`Failed to upload PDF: ${error.message}`)
     }
 
     return data.path
   } catch (error) {
-    console.error('Storage upload error:', error)
     throw error
   }
 }
@@ -47,13 +45,11 @@ export async function uploadResume(
       })
 
     if (error) {
-      console.error('Resume upload error:', error)
       throw new Error(`Failed to upload resume: ${error.message}`)
     }
 
     return data.path
   } catch (error) {
-    console.error('Storage resume upload error:', error)
     throw error
   }
 }
@@ -69,13 +65,11 @@ export async function getSignedUrl(
       .createSignedUrl(path, expiresIn)
 
     if (error) {
-      console.error('Signed URL error:', error)
       throw new Error(`Failed to create signed URL: ${error.message}`)
     }
 
     return data.signedUrl
   } catch (error) {
-    console.error('Storage signed URL error:', error)
     throw error
   }
 }
@@ -87,11 +81,9 @@ export async function deleteFile(bucket: string, path: string): Promise<void> {
       .remove([path])
 
     if (error) {
-      console.error('Delete error:', error)
       throw new Error(`Failed to delete file: ${error.message}`)
     }
   } catch (error) {
-    console.error('Storage delete error:', error)
     throw error
   }
 }

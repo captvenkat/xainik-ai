@@ -37,7 +37,6 @@ async function fetchPitch(id: string) {
     .single()
 
   if (error) {
-    console.error('Error fetching pitch:', error)
     return null
   }
   
@@ -104,7 +103,6 @@ export default async function PitchDetailPage({
         ipAddress: ipHash
       })
     } catch (error) {
-      console.error('Failed to log referral event:', error)
       // Don't break the UI if logging fails
     }
   }

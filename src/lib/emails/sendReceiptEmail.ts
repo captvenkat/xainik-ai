@@ -74,7 +74,6 @@ export async function sendReceiptEmail(data: ReceiptEmailData): Promise<string> 
     })
 
     if (error) {
-      console.error('Resend error:', error)
       throw new Error(`Failed to send receipt email: ${error.message}`)
     }
 
@@ -86,14 +85,10 @@ export async function sendReceiptEmail(data: ReceiptEmailData): Promise<string> 
       message_id: emailData?.id
     })
 
-    console.log('✅ Receipt email sent successfully')
-    console.log('Message ID:', emailData?.id)
-    console.log('To:', data.recipientEmail)
 
     return emailData?.id || ''
 
   } catch (error) {
-    console.error('Receipt email error:', error)
     throw error
   }
 }

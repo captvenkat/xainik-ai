@@ -58,17 +58,12 @@ export async function POST(request: NextRequest) {
     })
 
     if (error) {
-      console.error('Resend error:', error)
       return NextResponse.json(
         { error: 'Failed to send message' },
         { status: 500 }
       )
     }
 
-    console.log('✅ Contact form message sent successfully')
-    console.log('Message ID:', data?.id)
-    console.log('From:', name, email)
-    console.log('Subject:', subject)
 
     return NextResponse.json({ 
       success: true, 
@@ -77,7 +72,6 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Contact form error:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

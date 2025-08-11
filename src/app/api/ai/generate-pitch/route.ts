@@ -64,7 +64,6 @@ export async function POST(request: NextRequest) {
       })
 
     } catch (error) {
-      console.error('AI generation failed:', error)
       
       // Use fallback
       const fallback = generateFallbackPitch({
@@ -82,7 +81,6 @@ export async function POST(request: NextRequest) {
     }
 
   } catch (error) {
-    console.error('Pitch generation error:', error)
     return NextResponse.json({ 
       error: 'Failed to generate pitch' 
     }, { status: 500 })

@@ -31,7 +31,7 @@ export async function createOrGetReferral(supporterId: string, pitchId: string):
   const { data: existing } = await supabase
     .from('referrals')
     .select('share_link')
-    .eq('supporter_id', supporterId)
+    .eq('user_id', supporterId)
     .eq('pitch_id', pitchId)
     .single()
 
@@ -45,7 +45,7 @@ export async function createOrGetReferral(supporterId: string, pitchId: string):
   const { data, error } = await supabase
     .from('referrals')
     .insert({
-      supporter_id: supporterId,
+      user_id: supporterId,
       pitch_id: pitchId,
       share_link: shareLink
     })
@@ -53,13 +53,12 @@ export async function createOrGetReferral(supporterId: string, pitchId: string):
     .single()
 
   if (error) {
-    console.error('Error creating referral:', error)
     throw new Error('Failed to create referral')
   }
 
   // Log activity
   await logActivity('pitch_referred', {
-    supporter_id: supporterId,
+    user_id: supporterId,
     pitch_id: pitchId,
     share_link: shareLink
   })
@@ -68,19 +67,18 @@ export async function createOrGetReferral(supporterId: string, pitchId: string):
   try {
     const { data: pitch } = await supabase
       .from('pitches')
-      .select('veteran_id')
+      .select('user_id')
       .eq('id', pitchId)
       .single();
     
-    if (pitch?.veteran_id) {
+    if (pitch?.user_id) {
       await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/revalidate-metrics`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ veteranId: pitch.veteran_id }),
+        body: JSON.stringify({ veteranId: pitch.user_id }),
       });
     }
   } catch (error) {
-    console.warn('Failed to invalidate metrics cache for referral:', error);
   }
 
   return data.share_link
@@ -129,24 +127,22 @@ export async function trackReferralEvent(event: ReferralEvent): Promise<void> {
     if (referral?.pitch_id) {
       const { data: pitch } = await supabase
         .from('pitches')
-        .select('veteran_id')
+        .select('user_id')
         .eq('id', referral.pitch_id)
         .single();
       
-      if (pitch?.veteran_id) {
+      if (pitch?.user_id) {
         await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/revalidate-metrics`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ veteranId: pitch.veteran_id }),
+          body: JSON.stringify({ veteranId: pitch.user_id }),
         });
       }
     }
   } catch (error) {
-    console.warn('Failed to invalidate metrics cache for referral event:', error);
   }
 
   if (error) {
-    console.error('Error tracking referral event:', error)
     throw new Error('Failed to track referral event')
   }
 
@@ -155,12 +151,12 @@ export async function trackReferralEvent(event: ReferralEvent): Promise<void> {
     await supabase
       .from('shared_pitches')
       .upsert({
-        supporter_id: event.referral_id.split('_')[0], // Extract from referral_id
+        user_id: event.referral_id.split('_')[0], // Extract from referral_id
         pitch_id: event.referral_id.split('_')[1],
         share_link: event.referral_id,
         click_count: 1
       }, {
-        onConflict: 'supporter_id,pitch_id',
+        onConflict: 'user_id,pitch_id',
         ignoreDuplicates: false
       })
   }
@@ -174,7 +170,6 @@ export async function getReferralStats(supporterId: string): Promise<ReferralSta
     .rpc('get_supporter_referral_stats', { supporter_uuid: supporterId })
 
   if (error) {
-    console.error('Error getting referral stats:', error)
     throw new Error('Failed to get referral stats')
   }
 
@@ -203,7 +198,6 @@ export async function getPitchReferralEvents(pitchId: string): Promise<ReferralE
     .limit(50)
 
   if (error) {
-    console.error('Error getting pitch referral events:', error)
     throw new Error('Failed to get pitch referral events')
   }
 
