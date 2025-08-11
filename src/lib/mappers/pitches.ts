@@ -17,7 +17,7 @@ export type RawPitchRow = {
 
 export function toPitchCardData(r: RawPitchRow): PitchCardData {
   const v = Array.isArray(r.veteran) ? first(r.veteran) : r.veteran ?? null;
-  const vp = Array.isArray(r.veteran_profile) ? first(r.veteran_profile) : r.veteran_profile ?? null;
+  const vp = v?.veterans ? (Array.isArray(v.veterans) ? first(v.veterans) : v.veterans) : null;
 
   return {
     id: r.id,

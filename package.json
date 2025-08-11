@@ -21,7 +21,13 @@
     "test-referral": "node scripts/test-referral-system.js",
     "test-profile": "node scripts/test-profile-system.js",
     "test-todo": "node scripts/test-todo-features.js",
-    "health-check": "./scripts/check-site-health.sh"
+    "health-check": "./scripts/check-site-health.sh",
+    "check-db-state": "node scripts/check-db-state.js",
+    "check-table-schema": "node scripts/check-table-schema.js",
+    "check-constraints": "node scripts/check-constraints.js",
+    "check-user-creation": "node scripts/check-user-creation.js",
+    "apply-profiles-view": "node scripts/apply-profiles-view.js",
+    "create-existing-user": "node scripts/create-existing-user.js"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.7",

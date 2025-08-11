@@ -31,7 +31,7 @@ export default async function SupporterReferPage() {
       pitch_text,
       skills,
       location,
-      users!inner(
+      veteran:users!pitches_veteran_id_fkey(
         name
       )
     `)
@@ -113,12 +113,12 @@ export default async function SupporterReferPage() {
                   <div className="flex items-center gap-2">
                     <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
                       <span className="text-sm font-medium text-gray-600">
-                        {pitch.users[0]?.name?.charAt(0) || '?'}
+                        {pitch.veteran?.name?.charAt(0) || '?'}
                       </span>
                     </div>
                     <div>
                       <div className="font-medium text-gray-900">
-                        {pitch.users[0]?.name || 'Unknown'}
+                        {pitch.veteran?.name || 'Unknown'}
                       </div>
                       <div className="text-sm text-gray-600">
                         {pitch.location}

@@ -22,7 +22,20 @@ export function createSupabaseBrowser() {
     console.log('🔧 Creating new Supabase client instance (global singleton)');
     globalThis.__supabaseClient = createBrowserClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true,
+          flowType: 'pkce'
+        },
+        realtime: {
+          params: {
+            eventsPerSecond: 10
+          }
+        }
+      }
     );
   } else {
     console.log('♻️  Reusing existing Supabase client instance (global singleton)');
@@ -31,9 +44,5 @@ export function createSupabaseBrowser() {
   return globalThis.__supabaseClient;
 }
 
-// Reset function for testing (development only)
-export function resetSupabaseClient() {
-  if (process.env.NODE_ENV === 'development') {
-    globalThis.__supabaseClient = undefined;
-  }
-}
+// Export a default instance for components that need it
+export const supabase = createSupabaseBrowser();

@@ -34,13 +34,13 @@ export function buildSearchQuery(
         id,
         name,
         email,
-        phone
-      ),
-      veteran_profile:veterans!veteran_id (
-        rank,
-        service_branch,
-        years_experience,
-        location_current
+        phone,
+        veterans!veterans_user_id_fkey (
+          rank,
+          service_branch,
+          years_experience,
+          location_current
+        )
       )
     `)
     .eq('is_active', true)

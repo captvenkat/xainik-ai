@@ -2,7 +2,8 @@
 
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
+import { supabase } from '@/lib/supabaseBrowser'
+import { updateUserRole } from '@/lib/actions/updateUserRole'
 import { Shield, ArrowRight, CheckCircle, AlertCircle } from 'lucide-react'
 
 function AuthPageContent() {
@@ -13,7 +14,7 @@ function AuthPageContent() {
   const [user, setUser] = useState<any>(null)
   const router = useRouter()
   const searchParams = useSearchParams()
-  const supabase = createSupabaseBrowser()
+  const supabase = supabase
 
   const redirectTo = searchParams.get('redirectTo') || '/'
 
@@ -112,18 +113,14 @@ function AuthPageContent() {
     setError('')
 
     try {
-      const { error } = await supabase
-        .from('users')
-        .update({ role: selectedRole })
-        .eq('id', user.id)
-
-      if (error) throw error
+      await updateUserRole(selectedRole)
 
       // Redirect to appropriate dashboard or intended destination
       const dashboardPath = `/dashboard/${selectedRole}`
       router.push(redirectTo === '/' ? dashboardPath : redirectTo)
     } catch (error: unknown) {
-      setError('Failed to update role. Please try again.')
+      console.error('Error updating role:', error)
+      setError(error instanceof Error ? error.message : 'Failed to update role. Please try again.')
       setIsLoading(false)
     }
   }
