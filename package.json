@@ -27,6 +27,7 @@
     "check-constraints": "node scripts/check-constraints.js",
     "check-user-creation": "node scripts/check-user-creation.js",
     "apply-profiles-view": "node scripts/apply-profiles-view.js",
+    "apply-rls-fix": "node scripts/apply-rls-fix.js",
     "create-existing-user": "node scripts/create-existing-user.js"
   },
   "dependencies": {
