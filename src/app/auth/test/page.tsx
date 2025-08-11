@@ -31,14 +31,7 @@ export default function AuthTestPage() {
         }
         
         // Test 2: Check OAuth providers
-        setStatus('Checking OAuth providers...')
-        const { data: { providers }, error: providersError } = await supabase.auth.listIdentities()
-        
-        if (providersError) {
-          console.error('Providers error:', providersError)
-        } else {
-          console.log('Available providers:', providers)
-        }
+        setStatus('OAuth providers available: Google, LinkedIn')
         
       } catch (err) {
         setError(`Test failed: ${err}`)

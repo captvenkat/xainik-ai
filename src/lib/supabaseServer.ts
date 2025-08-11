@@ -8,15 +8,25 @@ export async function createSupabaseServer() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get: (key) => cookieStore.get(key)?.value,
-        set: (key, value, options) => {
-          cookieStore.set(key, value, { ...options, httpOnly: true, sameSite: 'lax', secure: true });
+        get(name: string) {
+          return cookieStore.get(name)?.value;
         },
-        remove: (key, options) => {
-          cookieStore.set(key, '', { ...options, maxAge: 0 });
-          cookieStore.delete(key);
-        }
-      }
+        set(name: string, value: string, options: any) {
+          cookieStore.set({
+            name,
+            value,
+            ...options,
+          });
+        },
+        remove(name: string, options: any) {
+          cookieStore.set({
+            name,
+            value: '',
+            ...options,
+            maxAge: 0,
+          });
+        },
+      },
     }
   );
 }

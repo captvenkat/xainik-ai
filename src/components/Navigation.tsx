@@ -34,7 +34,7 @@ export default function Navigation() {
           .select('role, name')
           .eq('id', user.id)
           .single()
-        setProfile(profile)
+        setProfile(profile ? { role: profile.role, full_name: profile.name } : null)
       }
       
       setIsLoading(false)
@@ -50,7 +50,7 @@ export default function Navigation() {
           .select('role, name')
           .eq('id', session.user.id)
           .single()
-          .then(({ data }: { data: any }) => setProfile(data))
+          .then(({ data }: { data: any }) => setProfile(data ? { role: data.role, full_name: data.name } : null))
       } else {
         setProfile(null)
       }
