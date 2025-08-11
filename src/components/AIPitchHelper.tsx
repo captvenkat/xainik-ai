@@ -63,7 +63,6 @@ export default function AIPitchHelper({ formData, updateFormData, onNext, onBack
 
       setGeneratedPitch(result)
     } catch (err) {
-      console.error('AI generation failed:', err)
       setError(err instanceof Error ? err.message : 'Failed to generate pitch')
     } finally {
       setIsGenerating(false)
@@ -111,7 +110,6 @@ export default function AIPitchHelper({ formData, updateFormData, onNext, onBack
 
       setGeneratedPitch(result)
     } catch (err) {
-      console.error('Resume upload or AI generation failed:', err)
       setError(err instanceof Error ? err.message : 'Failed to process resume')
     } finally {
       setIsGenerating(false)
@@ -136,7 +134,6 @@ export default function AIPitchHelper({ formData, updateFormData, onNext, onBack
 
       setGeneratedPitch(result)
     } catch (err) {
-      console.error('AI generation failed:', err)
       setError(err instanceof Error ? err.message : 'Failed to generate pitch')
     } finally {
       setIsGenerating(false)
@@ -153,7 +150,6 @@ export default function AIPitchHelper({ formData, updateFormData, onNext, onBack
       const result = await callAIApi(currentInput)
       setGeneratedPitch(result)
     } catch (err) {
-      console.error('Regeneration failed:', err)
       setError(err instanceof Error ? err.message : 'Failed to regenerate pitch')
     } finally {
       setIsGenerating(false)

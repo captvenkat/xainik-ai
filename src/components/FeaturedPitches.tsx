@@ -57,7 +57,6 @@ export default function FeaturedPitches() {
         const cards: PitchCardData[] = rows.map((r: any) => toPitchCardData(r as RawPitchRow));
         setPitches(cards);
       } catch (error) {
-        console.error('Error fetching featured pitches:', error)
       } finally {
         setIsLoading(false)
       }

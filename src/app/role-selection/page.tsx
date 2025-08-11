@@ -69,7 +69,6 @@ export default function RoleSelectionPage() {
       router.push(`/dashboard/${selectedRole}`);
       
     } catch (err) {
-      console.error('Role selection error:', err);
       setError('Failed to update role. Please try again.');
     } finally {
       setIsLoading(false);

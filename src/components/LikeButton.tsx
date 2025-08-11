@@ -45,7 +45,6 @@ export default function LikeButton({ pitchId, initialCount, userId }: LikeButton
           setCount(prevCount)
         }
       } catch (error) {
-        console.error('Error toggling like:', error)
         // Rollback on error
         setLiked(prevLiked)
         setCount(prevCount)

@@ -38,7 +38,6 @@ export async function createOrder(params: CreateOrderParams): Promise<OrderRespo
       status: order.status,
     }
   } catch (error) {
-    console.error('Razorpay order creation failed:', error)
     throw new Error('Failed to create payment order')
   }
 }
@@ -91,7 +90,6 @@ export async function getPaymentDetails(paymentId: string): Promise<PaymentDetai
       notes: payment.notes || {},
     }
   } catch (error) {
-    console.error('Failed to fetch payment details:', error)
     throw new Error('Failed to fetch payment details')
   }
 }

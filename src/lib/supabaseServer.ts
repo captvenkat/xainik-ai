@@ -13,7 +13,6 @@ export async function createSupabaseServer() {
         throw new Error('Missing Supabase environment variables');
       }
 
-      console.log('[SUPABASE] Creating server client with stable supabase-js...');
 
       // Use the stable supabase-js client instead of @supabase/ssr
       supabaseServerInstance = createClient(
@@ -33,13 +32,11 @@ export async function createSupabaseServer() {
         }
       );
 
-      console.log('[SUPABASE] Stable client created successfully');
     }
     
     return supabaseServerInstance;
 
   } catch (error) {
-    console.error('[SUPABASE] Server client creation error:', error);
     throw error;
   }
 }

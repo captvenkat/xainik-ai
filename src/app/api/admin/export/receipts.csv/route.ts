@@ -75,7 +75,6 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Receipt export error:', error)
     return NextResponse.json(
       { error: 'Export failed' },
       { status: 500 }

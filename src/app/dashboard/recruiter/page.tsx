@@ -39,7 +39,6 @@ export default async function RecruiterDashboard() {
         .order('created_at', { ascending: false });
       
       if (error) {
-        console.error('Error fetching saved filters:', error);
         return [];
       }
       return filters || [];

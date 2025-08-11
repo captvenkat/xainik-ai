@@ -31,13 +31,11 @@ export async function getNextNumber(prefix: string, fy?: string): Promise<number
     })
     
     if (error) {
-      console.error('Error getting next number:', error)
       throw new Error(`Failed to get next number: ${error.message}`)
     }
     
     return data
   } catch (error) {
-    console.error('Numbering system error:', error)
     throw error
   }
 }

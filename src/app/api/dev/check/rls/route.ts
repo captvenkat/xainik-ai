@@ -101,7 +101,6 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('RLS check error:', error)
     return NextResponse.json(
       { error: 'RLS check failed' },
       { status: 500 }

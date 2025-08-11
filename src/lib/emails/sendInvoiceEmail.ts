@@ -62,7 +62,6 @@ export async function sendInvoiceEmail(data: InvoiceEmailData): Promise<string> 
     })
 
     if (error) {
-      console.error('Resend error:', error)
       throw new Error(`Failed to send invoice email: ${error.message}`)
     }
 
@@ -74,14 +73,10 @@ export async function sendInvoiceEmail(data: InvoiceEmailData): Promise<string> 
       message_id: emailData?.id
     })
 
-    console.log('✅ Invoice email sent successfully')
-    console.log('Message ID:', emailData?.id)
-    console.log('To:', data.recipientEmail)
 
     return emailData?.id || ''
 
   } catch (error) {
-    console.error('Invoice email error:', error)
     throw error
   }
 }

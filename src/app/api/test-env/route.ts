@@ -20,7 +20,6 @@ export async function GET() {
     });
     
   } catch (error) {
-    console.error('[TEST-ENV] Error:', error);
     return NextResponse.json({ 
       success: false, 
       error: 'Environment check failed',

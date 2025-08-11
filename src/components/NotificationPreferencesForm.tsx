@@ -58,14 +58,12 @@ export default function NotificationPreferencesForm({ initialPrefs }: Notificati
         })
 
       if (error) {
-        console.error('Error saving preferences:', error)
         throw error
       }
 
       setIsSaved(true)
       setTimeout(() => setIsSaved(false), 3000)
     } catch (error) {
-      console.error('Error saving notification preferences:', error)
     } finally {
       setIsSaving(false)
     }

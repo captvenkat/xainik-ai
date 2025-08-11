@@ -49,7 +49,6 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Resume upload error:', error)
     return NextResponse.json({ 
       error: 'Failed to upload resume' 
     }, { status: 500 })

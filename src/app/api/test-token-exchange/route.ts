@@ -2,13 +2,11 @@ import { NextResponse } from 'next/server';
 
 export async function GET() {
   try {
-    console.log('[TEST-TOKEN] Testing Supabase token exchange endpoint...');
     
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
     
-    console.log('[TEST-TOKEN] Environment check:', {
       hasUrl: !!supabaseUrl,
       hasKey: !!supabaseKey,
       hasSiteUrl: !!siteUrl,
@@ -23,7 +21,6 @@ export async function GET() {
     // Test the token endpoint with a mock request
     const testUrl = `${supabaseUrl}/auth/v1/token?grant_type=authorization_code&code=test_code&redirect_uri=${siteUrl}/auth/callback`;
     
-    console.log('[TEST-TOKEN] Testing URL:', testUrl.substring(0, 50) + '...');
     
     const response = await fetch(testUrl, {
       method: 'POST',
@@ -33,12 +30,9 @@ export async function GET() {
       },
     });
     
-    console.log('[TEST-TOKEN] Response status:', response.status);
-    console.log('[TEST-TOKEN] Response headers:', Object.fromEntries(response.headers.entries()));
     
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('[TEST-TOKEN] Error response:', errorText);
       
       return NextResponse.json({
         success: false,
@@ -50,7 +44,6 @@ export async function GET() {
     }
     
     const responseText = await response.text();
-    console.log('[TEST-TOKEN] Response body:', responseText);
     
     return NextResponse.json({
       success: true,
@@ -60,7 +53,6 @@ export async function GET() {
     });
     
   } catch (error) {
-    console.error('[TEST-TOKEN] Test failed:', error);
     return NextResponse.json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',

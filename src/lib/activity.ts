@@ -35,7 +35,6 @@ export async function logActivity(event: ActivityEvent, meta: ActivityMeta = {})
     })
 
   if (error) {
-    console.error('Error logging activity:', error)
     // Don't throw - activity logging shouldn't break main functionality
   }
 }
@@ -54,7 +53,6 @@ export async function getRecentActivity(limit: number = 10): Promise<Array<{
     .limit(limit)
 
   if (error) {
-    console.error('Error getting recent activity:', error)
     return []
   }
 
@@ -73,12 +71,11 @@ export async function getUserActivity(userId: string, limit: number = 20): Promi
   const { data, error } = await supabase
     .from('activity_log')
     .select('*')
-    .or(`meta->>'user_id'.eq.${userId},meta->>'veteran_id'.eq.${userId},meta->>'recruiter_id'.eq.${userId},meta->>'supporter_id'.eq.${userId}`)
+    .or(`meta->>'user_id'.eq.${userId},meta->>'user_id'.eq.${userId},meta->>'recruiter_user_id'.eq.${userId},meta->>'user_id'.eq.${userId}`)
     .order('created_at', { ascending: false })
     .limit(limit)
 
   if (error) {
-    console.error('Error getting user activity:', error)
     return []
   }
 
@@ -102,7 +99,6 @@ export async function getPitchActivity(pitchId: string, limit: number = 20): Pro
     .limit(limit)
 
   if (error) {
-    console.error('Error getting pitch activity:', error)
     return []
   }
 

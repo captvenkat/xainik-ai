@@ -36,13 +36,11 @@ export async function DELETE(
       .eq('recruiter_id', user.id);
 
     if (error) {
-      console.error('Database error:', error);
       return NextResponse.json({ error: 'Database error' }, { status: 500 });
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Unexpected error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

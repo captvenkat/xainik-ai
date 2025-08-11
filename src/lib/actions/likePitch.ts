@@ -8,19 +8,13 @@ export async function likePitch(pitchId: string, userId: string): Promise<{ succ
   
   try {
     // Get pitch details for activity logging
-    const { data: pitch, error: pitchError } = await supabase
+    const { data: pitch } = await supabase
       .from('pitches')
-      .select(`
-        id,
-        title,
-        likes_count,
-        veteran_id,
-        users!veteran_id(name)
-      `)
+      .select('user_id') // Changed from veteran_id
       .eq('id', pitchId)
       .single()
 
-    if (pitchError || !pitch) {
+    if (!pitch) {
       throw new Error('Pitch not found')
     }
 
@@ -35,7 +29,6 @@ export async function likePitch(pitchId: string, userId: string): Promise<{ succ
       .single()
 
     if (updateError) {
-      console.error('Error updating pitch likes:', updateError)
       throw new Error('Failed to update pitch likes')
     }
 
@@ -53,7 +46,6 @@ export async function likePitch(pitchId: string, userId: string): Promise<{ succ
     }
 
   } catch (error) {
-    console.error('Error liking pitch:', error)
     throw new Error('Failed to like pitch')
   }
 }
@@ -86,7 +78,6 @@ export async function unlikePitch(pitchId: string, userId: string): Promise<{ su
       .single()
 
     if (updateError) {
-      console.error('Error updating pitch likes:', updateError)
       throw new Error('Failed to update pitch likes')
     }
 
@@ -96,7 +87,6 @@ export async function unlikePitch(pitchId: string, userId: string): Promise<{ su
     }
 
   } catch (error) {
-    console.error('Error unliking pitch:', error)
     throw new Error('Failed to unlike pitch')
   }
 }

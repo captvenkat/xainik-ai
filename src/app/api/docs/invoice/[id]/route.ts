@@ -49,7 +49,6 @@ export async function GET(
     return NextResponse.redirect(downloadUrl)
 
   } catch (error) {
-    console.error('Error serving invoice:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

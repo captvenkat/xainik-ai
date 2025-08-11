@@ -30,7 +30,6 @@ export async function POST(request: NextRequest) {
       .lt('plan_expires_at', new Date().toISOString())
 
     if (fetchError) {
-      console.error('Error fetching expired pitches:', fetchError)
       return NextResponse.json({ error: 'Database error' }, { status: 500 })
     }
 
@@ -49,7 +48,6 @@ export async function POST(request: NextRequest) {
       .in('id', pitchIds)
 
     if (updateError) {
-      console.error('Error updating expired pitches:', updateError)
       return NextResponse.json({ error: 'Database error' }, { status: 500 })
     }
 
@@ -71,7 +69,6 @@ export async function POST(request: NextRequest) {
           plan_tier: pitch.plan_tier
         })
       } catch (notificationError) {
-        console.error('Failed to send plan expired notification:', notificationError)
       }
     })
 
@@ -90,7 +87,6 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Cron job error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -135,7 +131,6 @@ export async function GET(request: NextRequest) {
             days_left: daysLeft
           })
         } catch (notificationError) {
-          console.error('Failed to send plan expiry warning:', notificationError)
         }
       }
     })

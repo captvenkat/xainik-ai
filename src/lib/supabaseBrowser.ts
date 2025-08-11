@@ -46,7 +46,6 @@ export async function signInWithGoogle(returnTo: string = '/') {
   });
 
   if (error) {
-    console.error('[AUTH] signIn error', error);
     throw error;
   }
   return data;

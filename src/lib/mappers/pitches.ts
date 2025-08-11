@@ -10,32 +10,66 @@ export type RawPitchRow = {
   job_type: string | null;
   availability: string | null;
   likes_count: number | null;
-  veteran_id: string;
-  veteran?: any; // array or object depending on relationship
-  veteran_profile?: any; // array or object depending on relationship
+  user_id: string;
+  user?: any; // array or object depending on relationship
+  user_profile?: any; // array or object depending on relationship
 };
 
+export interface PitchWithVeteran {
+  id: string;
+  title: string;
+  pitch_text: string;
+  skills: string[];
+  job_type: string;
+  location: string;
+  availability: string;
+  experience_years: number | null;
+  photo_url: string | null;
+  phone: string | null;
+  linkedin_url: string | null;
+  resume_url: string | null;
+  resume_share_enabled: boolean;
+  plan_tier: string | null;
+  plan_expires_at: string | null;
+  is_active: boolean;
+  likes_count: number;
+  created_at: string;
+  updated_at: string;
+  user_id: string; // Changed from veteran_id
+  user: {
+    name: string;
+    role: string;
+  };
+}
+
 export function toPitchCardData(r: RawPitchRow): PitchCardData {
-  const v = Array.isArray(r.veteran) ? first(r.veteran) : r.veteran ?? null;
-  const vp = v?.veterans ? (Array.isArray(v.veterans) ? first(v.veterans) : v.veterans) : null;
+  const v = Array.isArray(r.user) ? first(r.user) : r.user ?? null;
+  const vp = v?.users ? (Array.isArray(v.users) ? first(v.users) : v.users) : null;
 
   return {
-    id: r.id,
-    title: r.title ?? '',
-    pitch: r.pitch_text ?? '',
-    skills: r.skills ?? [],
-    city: r.location ? r.location.split(',')[0]?.trim() || null : null, // Extract city from "City, Country"
-    job_type: (r.job_type ?? 'Full-Time') as PitchCardData['job_type'],
-    availability: (r.availability ?? 'Immediate') as PitchCardData['availability'],
-    likes: r.likes_count ?? 0,
-    veteran: {
-      id: (v?.id ?? r.veteran_id) as string,
-      full_name: v?.name ?? null,
-      rank: vp?.rank ?? null,
-      service_branch: vp?.service_branch ?? null,
-      years_experience: (vp?.years_experience ?? null) as number | null,
-      photo_url: null, // Not available in current schema
-      is_community_verified: false, // Not available in current schema
-    },
+    id: v.id,
+    title: v.title,
+    pitch_text: v.pitch_text,
+    skills: v.skills,
+    job_type: v.job_type,
+    location: v.location,
+    availability: v.availability,
+    experience_years: v.experience_years,
+    photo_url: v.photo_url,
+    phone: v.phone,
+    linkedin_url: v.linkedin_url,
+    resume_url: v.resume_url,
+    resume_share_enabled: v.resume_share_enabled,
+    plan_tier: v.plan_tier,
+    plan_expires_at: v.plan_expires_at,
+    is_active: v.is_active,
+    likes_count: v.likes_count,
+    created_at: v.created_at,
+    updated_at: v.updated_at,
+    user_id: (v?.id ?? r.user_id) as string, // Changed from veteran_id
+    user: {
+      name: r.user?.name || 'Unknown',
+      role: r.user?.role || 'veteran'
+    }
   };
 }

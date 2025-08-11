@@ -49,7 +49,7 @@ export default function RecruiterNotes({ pitchId, veteranName, initialNote = '' 
         .from('recruiter_notes')
         .select('note_text, updated_at')
         .eq('pitch_id', pitchId)
-        .eq('recruiter_id', recruiterId)
+        .eq('user_id', recruiterId) // Changed from recruiter_id
         .single()
 
       if (!error && data) {
@@ -57,7 +57,6 @@ export default function RecruiterNotes({ pitchId, veteranName, initialNote = '' 
         setLastSaved(new Date(data.updated_at))
       }
     } catch (error) {
-      console.error('Error loading note:', error)
     }
   }
 
@@ -72,11 +71,11 @@ export default function RecruiterNotes({ pitchId, veteranName, initialNote = '' 
         .from('recruiter_notes')
         .upsert({
           pitch_id: pitchId,
-          recruiter_id: userId,
+          user_id: userId, // Changed from recruiter_id
           note_text: noteText,
           updated_at: new Date().toISOString()
         }, {
-          onConflict: 'pitch_id,recruiter_id'
+          onConflict: 'pitch_id,user_id' // Changed from pitch_id,recruiter_id
         })
 
       if (error) throw error
@@ -84,7 +83,7 @@ export default function RecruiterNotes({ pitchId, veteranName, initialNote = '' 
       // Log activity
       await logActivity('pitch_updated', {
         pitch_id: pitchId,
-        recruiter_id: userId,
+        user_id: userId, // Changed from recruiter_id
         note_length: noteText.length
       })
 

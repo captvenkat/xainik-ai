@@ -7,8 +7,8 @@ import { createHmac } from 'crypto'
 
 export interface ResumeRequest {
   id: string
-  recruiter_id: string
-  veteran_id: string
+  recruiter_user_id: string // Changed from recruiter_id
+  user_id: string // Changed from veteran_id
   pitch_id?: string
   job_role?: string
   status: 'PENDING' | 'APPROVED' | 'DECLINED'
@@ -31,6 +31,13 @@ export interface ResumeRequestWithUsers extends ResumeRequest {
   }
 }
 
+export interface CreateResumeRequestParams {
+  pitchId: string;
+  user_id: string; // Changed from veteran_id
+  recruiter_user_id: string; // Changed from recruiter_id
+  job_role?: string;
+}
+
 // Create resume request
 export async function createResumeRequest(
   recruiterId: string,
@@ -43,8 +50,8 @@ export async function createResumeRequest(
   const { data, error } = await supabase
     .from('resume_requests')
     .insert({
-      recruiter_id: recruiterId,
-      veteran_id: veteranId,
+      recruiter_user_id: recruiterId, // Changed from recruiter_id
+      user_id: veteranId, // Changed from veteran_id
       pitch_id: pitchId,
       job_role: jobRole
     })
@@ -52,14 +59,13 @@ export async function createResumeRequest(
     .single()
 
   if (error) {
-    console.error('Error creating resume request:', error)
     throw new Error('Failed to create resume request')
   }
 
   // Log activity
   await logActivity('resume_request_sent', {
-    recruiter_id: recruiterId,
-    veteran_id: veteranId,
+    recruiter_user_id: recruiterId, // Changed from recruiter_id
+    user_id: veteranId, // Changed from veteran_id
     pitch_id: pitchId,
     job_role: jobRole
   })
@@ -72,7 +78,6 @@ export async function createResumeRequest(
       body: JSON.stringify({ veteranId }),
     });
   } catch (error) {
-    console.warn('Failed to invalidate metrics cache for resume request:', error);
   }
 
   return data
@@ -142,7 +147,6 @@ export async function approveResumeRequest(requestId: string): Promise<void> {
     .eq('status', 'PENDING')
 
   if (error) {
-    console.error('Error approving resume request:', error)
     throw new Error('Failed to approve resume request')
   }
 
@@ -166,7 +170,6 @@ export async function declineResumeRequest(requestId: string): Promise<void> {
     .eq('status', 'PENDING')
 
   if (error) {
-    console.error('Error declining resume request:', error)
     throw new Error('Failed to decline resume request')
   }
 
@@ -184,23 +187,22 @@ export async function getVeteranResumeRequests(veteranId: string): Promise<Resum
     .from('resume_requests')
     .select(`
       id,
-      recruiter_id,
-      veteran_id,
+      recruiter_user_id, // Changed from recruiter_id
+      user_id, // Changed from veteran_id
       pitch_id,
       job_role,
       status,
       created_at,
       responded_at,
-      recruiter:users!recruiter_id(name, email),
-      recruiter_profile:recruiters!recruiter_id(company_name),
-      veteran:users!veteran_id(name, email),
-      pitch:pitches!pitch_id(title)
+      recruiter:users!resume_requests_recruiter_user_id_fkey(name, email), // Changed from recruiter_id
+      recruiter_profile:user_profiles!resume_requests_recruiter_user_id_fkey(profile_data), // Changed from recruiter_id
+      veteran:users!resume_requests_user_id_fkey(name, email), // Changed from veteran_id
+      pitch:pitches!resume_requests_pitch_id_fkey(title)
     `)
-    .eq('veteran_id', veteranId)
+    .eq('user_id', veteranId) // Changed from veteran_id
     .order('created_at', { ascending: false })
 
   if (error) {
-    console.error('Error getting veteran resume requests:', error)
     throw new Error('Failed to get resume requests')
   }
 
@@ -209,7 +211,7 @@ export async function getVeteranResumeRequests(veteranId: string): Promise<Resum
     recruiter: {
       name: first(item.recruiter)?.name || 'Unknown',
       email: first(item.recruiter)?.email || 'unknown@example.com',
-      company_name: first(item.recruiter_profile)?.company_name
+      company_name: first(item.recruiter_profile)?.profile_data?.company_name
     },
     veteran: {
       name: first(item.veteran)?.name || 'Unknown',
@@ -229,23 +231,22 @@ export async function getRecruiterResumeRequests(recruiterId: string): Promise<R
     .from('resume_requests')
     .select(`
       id,
-      recruiter_id,
-      veteran_id,
+      recruiter_user_id, // Changed from recruiter_id
+      user_id, // Changed from veteran_id
       pitch_id,
       job_role,
       status,
       created_at,
       responded_at,
-      recruiter:users!recruiter_id(name, email),
-      recruiter_profile:recruiters!recruiter_id(company_name),
-      veteran:users!veteran_id(name, email),
-      pitch:pitches!pitch_id(title)
+      recruiter:users!resume_requests_recruiter_user_id_fkey(name, email), // Changed from recruiter_id
+      recruiter_profile:user_profiles!resume_requests_recruiter_user_id_fkey(profile_data), // Changed from recruiter_id
+      veteran:users!resume_requests_user_id_fkey(name, email), // Changed from veteran_id
+      pitch:pitches!resume_requests_pitch_id_fkey(title)
     `)
-    .eq('recruiter_id', recruiterId)
+    .eq('recruiter_user_id', recruiterId) // Changed from recruiter_id
     .order('created_at', { ascending: false })
 
   if (error) {
-    console.error('Error getting recruiter resume requests:', error)
     throw new Error('Failed to get resume requests')
   }
 
@@ -254,7 +255,7 @@ export async function getRecruiterResumeRequests(recruiterId: string): Promise<R
     recruiter: {
       name: first(item.recruiter)?.name || 'Unknown',
       email: first(item.recruiter)?.email || 'unknown@example.com',
-      company_name: first(item.recruiter_profile)?.company_name
+      company_name: first(item.recruiter_profile)?.profile_data?.company_name
     },
     veteran: {
       name: first(item.veteran)?.name || 'Unknown',
@@ -274,23 +275,22 @@ export async function getResumeRequest(requestId: string): Promise<ResumeRequest
     .from('resume_requests')
     .select(`
       id,
-      recruiter_id,
-      veteran_id,
+      recruiter_user_id, // Changed from recruiter_id
+      user_id, // Changed from veteran_id
       pitch_id,
       job_role,
       status,
       created_at,
       responded_at,
-      recruiter:users!recruiter_id(name, email),
-      recruiter_profile:recruiters!recruiter_id(company_name),
-      veteran:users!veteran_id(name, email),
-      pitch:pitches!pitch_id(title)
+      recruiter:users!resume_requests_recruiter_user_id_fkey(name, email), // Changed from recruiter_id
+      recruiter_profile:user_profiles!resume_requests_recruiter_user_id_fkey(profile_data), // Changed from recruiter_id
+      veteran:users!resume_requests_user_id_fkey(name, email), // Changed from veteran_id
+      pitch:pitches!resume_requests_pitch_id_fkey(title)
     `)
     .eq('id', requestId)
     .single()
 
   if (error) {
-    console.error('Error getting resume request:', error)
     return null
   }
 
@@ -299,7 +299,7 @@ export async function getResumeRequest(requestId: string): Promise<ResumeRequest
     recruiter: {
       name: first(data.recruiter)?.name || 'Unknown',
       email: first(data.recruiter)?.email || 'unknown@example.com',
-      company_name: first(data.recruiter_profile)?.company_name
+      company_name: first(data.recruiter_profile)?.profile_data?.company_name
     },
     veteran: {
       name: first(data.veteran)?.name || 'Unknown',

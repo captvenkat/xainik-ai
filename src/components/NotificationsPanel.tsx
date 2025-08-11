@@ -44,7 +44,6 @@ export default function NotificationsPanel() {
         setNotifications(notificationsData)
       }
     } catch (error) {
-      console.error('Error fetching notifications:', error)
     } finally {
       setIsLoading(false)
     }
@@ -68,7 +67,6 @@ export default function NotificationsPanel() {
         )
       )
     } catch (error) {
-      console.error('Error marking notification as read:', error)
     }
   }
 
@@ -91,7 +89,6 @@ export default function NotificationsPanel() {
         prev.map(n => ({ ...n, read_at: n.read_at || new Date().toISOString() }))
       )
     } catch (error) {
-      console.error('Error marking all notifications as read:', error)
     }
   }
 
@@ -107,7 +104,6 @@ export default function NotificationsPanel() {
       // Update local state
       setNotifications(prev => prev.filter(n => n.id !== notificationId))
     } catch (error) {
-      console.error('Error deleting notification:', error)
     }
   }
 

@@ -11,40 +11,32 @@ export default function AuthCallbackPage() {
   useEffect(() => {
     async function processCallback() {
       try {
-        console.log('[AUTH-CALLBACK] Processing callback...');
         
         // Check if we have hash fragment tokens
         const hash = window.location.hash.substring(1);
         if (!hash) {
-          console.error('[AUTH-CALLBACK] No hash fragment found');
           setError('No authentication data received');
           setStatus('error');
           return;
         }
 
-        console.log('[AUTH-CALLBACK] Hash fragment found, parsing tokens...');
         const params = new URLSearchParams(hash);
         const accessToken = params.get('access_token');
         const refreshToken = params.get('refresh_token');
         const error = params.get('error');
 
         if (error) {
-          console.error('[AUTH-CALLBACK] OAuth error:', error);
           setError(`Authentication error: ${error}`);
           setStatus('error');
           return;
         }
 
         if (!accessToken || !refreshToken) {
-          console.error('[AUTH-CALLBACK] Missing tokens');
           setError('Missing authentication tokens');
           setStatus('error');
           return;
         }
 
-        console.log('[AUTH-CALLBACK] Tokens received, creating session...');
-        console.log('[AUTH-CALLBACK] Access token length:', accessToken.length);
-        console.log('[AUTH-CALLBACK] Refresh token length:', refreshToken.length);
 
         // Create Supabase client and set session
         const supabase = createSupabaseBrowser();
@@ -55,20 +47,17 @@ export default function AuthCallbackPage() {
         });
 
         if (sessionError) {
-          console.error('[AUTH-CALLBACK] Session creation failed:', sessionError);
           setError(`Session creation failed: ${sessionError.message}`);
           setStatus('error');
           return;
         }
 
         if (!data.session) {
-          console.error('[AUTH-CALLBACK] No session created');
           setError('No session created');
           setStatus('error');
           return;
         }
 
-        console.log('[AUTH-CALLBACK] Session created successfully:', {
           userId: data.session.user.id,
           email: data.session.user.email,
           expiresAt: data.session.expires_at
@@ -77,7 +66,6 @@ export default function AuthCallbackPage() {
         // Verify the session is properly set
         const { data: { session: verifySession } } = await supabase.auth.getSession();
         if (!verifySession) {
-          console.error('[AUTH-CALLBACK] Session verification failed');
           setError('Session verification failed');
           setStatus('error');
           return;
@@ -89,7 +77,6 @@ export default function AuthCallbackPage() {
         const redirectPath = sessionStorage.getItem('auth_redirect') || '/dashboard/veteran';
         sessionStorage.removeItem('auth_redirect');
         
-        console.log('[AUTH-CALLBACK] Redirecting to:', redirectPath);
         
         // Clear any hash fragments from the URL
         if (typeof window !== 'undefined') {
@@ -102,7 +89,6 @@ export default function AuthCallbackPage() {
         }, 1000);
 
       } catch (e) {
-        console.error('[AUTH-CALLBACK] Processing failed:', e);
         setError(e instanceof Error ? e.message : 'Unknown error occurred');
         setStatus('error');
       }

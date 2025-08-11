@@ -42,13 +42,9 @@ export async function POST(request: NextRequest) {
     })
 
     if (error) {
-      console.error('Resend error:', error)
       return NextResponse.json({ error: 'Failed to send email' }, { status: 500 })
     }
 
-    console.log('✅ Test email sent successfully')
-    console.log('Message ID:', data?.id)
-    console.log('To:', adminEmail)
 
     return NextResponse.json({ 
       success: true, 
@@ -60,7 +56,6 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Test email error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
