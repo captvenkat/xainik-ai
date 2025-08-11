@@ -27,15 +27,9 @@ async function testAuthFlow() {
       console.log('ℹ️  No active session')
     }
     
-    // Test 2: Check OAuth providers
-    console.log('\n🔗 Test 2: Checking OAuth providers...')
-    const { data: { providers }, error: providersError } = await supabase.auth.listIdentities()
-    
-    if (providersError) {
-      console.error('❌ Providers check failed:', providersError)
-    } else {
-      console.log('✅ Available providers:', providers?.length || 0)
-    }
+    // Test 2: Check OAuth providers (removed - method doesn't exist)
+    console.log('\n🔗 Test 2: OAuth providers check skipped (method not available)')
+    console.log('ℹ️  OAuth providers are configured in Supabase dashboard')
     
     // Test 3: Test OAuth sign-in URL generation
     console.log('\n🌐 Test 3: Testing OAuth URL generation...')
