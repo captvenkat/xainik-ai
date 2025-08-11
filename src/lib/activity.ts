@@ -44,18 +44,8 @@ export async function getRecentActivity(limit: number = 10): Promise<Array<{
   created_at: string
   display_text: string
 }>> {
-  // Use client-side Supabase client for browser access
-  const { createClient } = await import('@supabase/supabase-js')
-  
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  
-  if (!url || !anonKey) {
-    console.error('Missing Supabase environment variables for client-side access')
-    return []
-  }
-  
-  const supabase = createClient(url, anonKey)
+  // Use the proper browser client from supabaseBrowser
+  const { supabase } = await import('@/lib/supabaseBrowser')
   
   const { data, error } = await supabase
     .from('activity_recent')
