@@ -52,7 +52,49 @@ export async function GET(req: Request) {
     console.log('[AUTH] Code length:', code.length);
     console.log('[AUTH] Code preview:', code.substring(0, 10) + '...');
     
-    const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+    // For PKCE, we need to pass the code verifier
+    // Since this is server-side, we'll try without it first, then with a fallback
+    let exchangeResult;
+    try {
+      // First attempt: try with the code directly
+      exchangeResult = await supabase.auth.exchangeCodeForSession(code);
+    } catch (pkceError) {
+      console.log('[AUTH] First attempt failed, trying alternative approach...');
+      // If that fails, try using the auth API directly
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/token?grant_type=authorization_code&code=${code}&redirect_uri=${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+          },
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Token exchange failed: ${response.status} ${response.statusText}`);
+        }
+        
+        const tokenData = await response.json();
+        console.log('[AUTH] Direct token exchange successful');
+        
+        // Set the session manually
+        const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
+          access_token: tokenData.access_token,
+          refresh_token: tokenData.refresh_token,
+        });
+        
+        if (sessionError) {
+          throw sessionError;
+        }
+        
+        exchangeResult = { data: sessionData, error: null };
+      } catch (directError) {
+        console.error('[AUTH] Direct token exchange also failed:', directError);
+        throw pkceError; // Throw the original error
+      }
+    }
+    
+    const { data, error: exchangeError } = exchangeResult;
     
     if (exchangeError) {
       console.error('[AUTH] exchangeCodeForSession error:', exchangeError);
