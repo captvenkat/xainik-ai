@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Shield, Heart, Mail, Phone } from 'lucide-react'
+import { Shield, Heart, Mail } from 'lucide-react'
 
 export default function Footer() {
   return (
@@ -80,7 +80,7 @@ export default function Footer() {
 
         {/* Contact Info */}
         <div className="mt-8 pt-8 border-t border-gray-800">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="flex items-center">
               <Mail className="h-5 w-5 text-blue-400 mr-3" />
               <div>
@@ -88,13 +88,7 @@ export default function Footer() {
                 <a href="mailto:ceo@faujnet.com" className="text-white hover:text-blue-300 transition-colors">ceo@faujnet.com</a>
               </div>
             </div>
-            <div className="flex items-center">
-              <Phone className="h-5 w-5 text-blue-400 mr-3" />
-              <div>
-                <p className="text-sm text-gray-400">Phone</p>
-                <a href="tel:+919848872296" className="text-white hover:text-blue-300 transition-colors">+91 9848872296</a>
-              </div>
-            </div>
+
             <div className="flex items-center">
               <Shield className="h-5 w-5 text-blue-400 mr-3" />
               <div>
