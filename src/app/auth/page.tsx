@@ -41,7 +41,7 @@ function AuthPageContent() {
 
     checkUser()
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: string, session: any) => {
       if (event === 'SIGNED_IN' && session?.user) {
         setUser(session.user)
         // Check if user has a role
@@ -76,7 +76,7 @@ function AuthPageContent() {
       })
       
       if (error) throw error
-    } catch (error) {
+    } catch (error: unknown) {
       setError('Failed to sign in with Google. Please try again.')
       setIsLoading(false)
     }
@@ -96,7 +96,7 @@ function AuthPageContent() {
       })
       
       if (error) throw error
-    } catch (error) {
+    } catch (error: unknown) {
       setError('Failed to sign in with LinkedIn. Please try again.')
       setIsLoading(false)
     }
@@ -122,7 +122,7 @@ function AuthPageContent() {
       // Redirect to appropriate dashboard or intended destination
       const dashboardPath = `/dashboard/${selectedRole}`
       router.push(redirectTo === '/' ? dashboardPath : redirectTo)
-    } catch (error) {
+    } catch (error: unknown) {
       setError('Failed to update role. Please try again.')
       setIsLoading(false)
     }
