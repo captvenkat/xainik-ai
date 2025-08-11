@@ -1,5 +1,4 @@
 import { unstable_cache } from 'next/cache';
-import { revalidateTag } from 'next/cache';
 import { getTrendlineAllPitches, getCohortsBySource, getAvgTimeToFirstContact, type WindowOpt } from './metrics';
 
 // Cache TTL: 10 minutes (600 seconds)
@@ -45,33 +44,3 @@ export const getCachedAvgTime = unstable_cache(
     tags: ['metrics-avg-time'],
   }
 );
-
-// Revalidation function for veteran-specific metrics
-export async function revalidateMetricsForVeteran(veteranId: string) {
-  // Revalidate all metrics for this veteran
-  await Promise.all([
-    revalidateTag('metrics-trendline'),
-    revalidateTag('metrics-cohorts'),
-    revalidateTag('metrics-avg-time'),
-  ]);
-}
-
-// Revalidation function for global metrics (no veteran filter)
-export async function revalidateGlobalMetrics() {
-  // Revalidate all global metrics
-  await Promise.all([
-    revalidateTag('metrics-trendline'),
-    revalidateTag('metrics-cohorts'),
-    revalidateTag('metrics-avg-time'),
-  ]);
-}
-
-// Revalidation function for specific window and veteran
-export async function revalidateMetrics(opt: WindowOpt) {
-  // Revalidate all metrics (simplified approach)
-  await Promise.all([
-    revalidateTag('metrics-trendline'),
-    revalidateTag('metrics-cohorts'),
-    revalidateTag('metrics-avg-time'),
-  ]);
-}

@@ -85,14 +85,14 @@ export default function Footer() {
               <Mail className="h-5 w-5 text-blue-400 mr-3" />
               <div>
                 <p className="text-sm text-gray-400">Email</p>
-                <p className="text-white">support@xainik.com</p>
+                <a href="mailto:ceo@faujnet.com" className="text-white hover:text-blue-300 transition-colors">ceo@faujnet.com</a>
               </div>
             </div>
             <div className="flex items-center">
               <Phone className="h-5 w-5 text-blue-400 mr-3" />
               <div>
                 <p className="text-sm text-gray-400">Phone</p>
-                <p className="text-white">+91 98765 43210</p>
+                <a href="tel:+919848872296" className="text-white hover:text-blue-300 transition-colors">+91 9848872296</a>
               </div>
             </div>
             <div className="flex items-center">

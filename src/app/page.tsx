@@ -134,58 +134,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-gradient-to-br from-gray-900 via-slate-900 to-gray-900 text-white py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div>
-              <div className="flex items-center mb-6">
-                <div className="w-10 h-10 bg-gradient-primary rounded-xl flex items-center justify-center">
-                  <Shield className="h-6 w-6 text-white" />
-                </div>
-                <span className="ml-3 text-2xl font-bold">XAINIK</span>
-              </div>
-              <p className="text-gray-400 mb-6 leading-relaxed">
-                Helping veterans connect with meaningful opportunities.
-              </p>
-            </div>
 
-            <div>
-              <h3 className="text-lg font-bold mb-6">Platform</h3>
-              <ul className="space-y-3 text-gray-400">
-                <li><Link href="/pricing" className="hover:text-white transition-colors duration-200">Pricing</Link></li>
-                <li><Link href="/donations" className="hover:text-white transition-colors duration-200">Donations</Link></li>
-                <li><Link href="/about" className="hover:text-white transition-colors duration-200">About</Link></li>
-                <li><Link href="/support" className="hover:text-white transition-colors duration-200">Support</Link></li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-bold mb-6">Resources</h3>
-              <ul className="space-y-3 text-gray-400">
-                <li><Link href="/browse" className="hover:text-white transition-colors duration-200">Browse Veterans</Link></li>
-                <li><Link href="/pitch/new" className="hover:text-white transition-colors duration-200">Post Pitch</Link></li>
-                <li><Link href="/support-the-mission" className="hover:text-white transition-colors duration-200">Support Mission</Link></li>
-                <li><Link href="/contact" className="hover:text-white transition-colors duration-200">Contact</Link></li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-bold mb-6">Legal</h3>
-              <ul className="space-y-3 text-gray-400">
-                <li><Link href="/about" className="hover:text-white transition-colors duration-200">About</Link></li>
-                <li><Link href="/contact" className="hover:text-white transition-colors duration-200">Contact</Link></li>
-                <li><Link href="/terms" className="hover:text-white transition-colors duration-200">Terms</Link></li>
-                <li><Link href="/privacy" className="hover:text-white transition-colors duration-200">Privacy</Link></li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 Xainik. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
     </div>
   )
 }
