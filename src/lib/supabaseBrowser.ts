@@ -1,19 +1,26 @@
 'use client';
 import { createClient } from '@supabase/supabase-js';
 
+// Singleton pattern to prevent multiple GoTrueClient instances
+let supabaseInstance: ReturnType<typeof createClient> | null = null;
+
 export function createSupabaseBrowser() {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      auth: {
-        autoRefreshToken: true,
-        persistSession: true,
-        detectSessionInUrl: true
+  if (!supabaseInstance) {
+    supabaseInstance = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        auth: {
+          autoRefreshToken: true,
+          persistSession: true,
+          detectSessionInUrl: true,
+          storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+          storageKey: 'xainik-auth'
+        }
       }
-    }
-  );
-  return supabase;
+    );
+  }
+  return supabaseInstance;
 }
 
 // Helper: start OAuth with proper redirect handling

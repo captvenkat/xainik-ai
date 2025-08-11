@@ -15,13 +15,15 @@ import {
 } from 'lucide-react'
 import NotificationBell from './NotificationBell'
 
+// Create supabase instance once outside component
+const supabase = createSupabaseBrowser()
+
 export default function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [user, setUser] = useState<any>(null)
   const [profile, setProfile] = useState<{ role: string; full_name: string } | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
-  const supabase = createSupabaseBrowser()
 
   useEffect(() => {
     const getUser = async () => {
@@ -57,7 +59,7 @@ export default function Navigation() {
     })
 
     return () => subscription.unsubscribe()
-  }, [supabase])
+  }, [])
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()

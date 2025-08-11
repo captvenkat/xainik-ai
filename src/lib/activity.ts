@@ -1,4 +1,8 @@
 import { createAdminClient } from './supabaseAdmin'
+import { createSupabaseBrowser } from './supabaseBrowser'
+
+// Create browser client instance once
+const supabaseBrowser = createSupabaseBrowser()
 
 export type ActivityEvent = 
   | 'veteran_joined'
@@ -44,10 +48,7 @@ export async function getRecentActivity(limit: number = 10): Promise<Array<{
   created_at: string
   display_text: string
 }>> {
-  // Use the proper browser client from supabaseBrowser
-  const { createSupabaseBrowser } = await import('@/lib/supabaseBrowser')
-  
-  const { data, error } = await createSupabaseBrowser()
+  const { data, error } = await supabaseBrowser
     .from('activity_recent')
     .select('*')
     .limit(limit)

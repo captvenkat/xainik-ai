@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
-import Link from 'next/link'
 
 interface RoleAwareLinkProps {
   href: string
@@ -12,6 +12,9 @@ interface RoleAwareLinkProps {
   className?: string
   onClick?: () => void
 }
+
+// Create supabase instance once outside component
+const supabase = createSupabaseBrowser()
 
 export default function RoleAwareLink({ 
   href, 
@@ -24,7 +27,6 @@ export default function RoleAwareLink({
   const [profile, setProfile] = useState<{ role: string } | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
-  const supabase = createSupabaseBrowser()
 
   useEffect(() => {
     const getUser = async () => {
@@ -60,7 +62,7 @@ export default function RoleAwareLink({
     })
 
     return () => subscription.unsubscribe()
-  }, [supabase])
+  }, [])
 
   const handleClick = (e: React.MouseEvent) => {
     if (onClick) {

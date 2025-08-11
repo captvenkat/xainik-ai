@@ -13,6 +13,14 @@ import {
   Calendar
 } from 'lucide-react'
 import Link from 'next/link'
+import type { Database } from '@/types/supabase'
+
+type User = Database['public']['Tables']['users']['Row']
+type Pitch = Database['public']['Tables']['pitches']['Row']
+type Endorsement = Database['public']['Tables']['endorsements']['Row']
+type Receipt = Database['public']['Tables']['receipts']['Row']
+type ResumeRequest = Database['public']['Tables']['resume_requests']['Row']
+type ActivityLog = Database['public']['Tables']['activity_log']['Row']
 
 // Server component for Users tab
 async function UsersTab() {
@@ -49,26 +57,28 @@ async function UsersTab() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {users?.map((user) => (
-                <tr key={user.id} className="hover:bg-gray-50">
+              {users?.map((user: Pick<User, 'id' | 'email' | 'role' | 'created_at'>, index: number) => (
+                <tr key={`user-${index}-${user?.id || 'unknown'}`} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{user.id.substring(0, 8)}...</div>
+                    <div className="text-sm font-medium text-gray-900">
+                      {typeof user?.id === 'string' ? user.id.substring(0, 8) + '...' : 'N/A'}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{user.email}</div>
+                    <div className="text-sm text-gray-900">{user?.email || 'N/A'}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      user.role === 'admin' ? 'bg-red-100 text-red-800' :
-                      user.role === 'veteran' ? 'bg-blue-100 text-blue-800' :
-                      user.role === 'recruiter' ? 'bg-green-100 text-green-800' :
+                      user?.role === 'admin' ? 'bg-red-100 text-red-800' :
+                      user?.role === 'veteran' ? 'bg-blue-100 text-blue-800' :
+                      user?.role === 'recruiter' ? 'bg-green-100 text-green-800' :
                       'bg-purple-100 text-purple-800'
                     }`}>
-                      {user.role || 'Unknown'}
+                      {user?.role || 'Unknown'}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(user.created_at).toLocaleDateString()}
+                    {user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}
                   </td>
                 </tr>
               ))}
@@ -86,7 +96,7 @@ async function PitchesTab() {
   
   const { data: pitches } = await supabase
     .from('pitches')
-    .select('id, title, is_active, plan_tier, plan_expires_at, veteran_id, created_at')
+    .select('id, title, plan_tier, created_at')
     .order('created_at', { ascending: false })
     .limit(50)
 
@@ -108,37 +118,32 @@ async function PitchesTab() {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pitch</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Veteran ID</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Plan</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pitch ID</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Plan Tier</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {pitches?.map((pitch) => (
-                <tr key={pitch.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4">
-                    <div>
-                      <div className="text-sm font-medium text-gray-900">{pitch.title}</div>
-                      <div className="text-sm text-gray-500">ID: {pitch.id.substring(0, 8)}...</div>
+              {pitches?.map((pitch: Pick<Pitch, 'id' | 'title' | 'plan_tier' | 'created_at'>, index: number) => (
+                <tr key={`pitch-${index}-${pitch?.id || 'unknown'}`} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm font-medium text-gray-900">
+                      {typeof pitch?.id === 'string' ? pitch.id.substring(0, 8) + '...' : 'N/A'}
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {pitch.veteran_id?.substring(0, 8)}...
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">{pitch?.title || 'N/A'}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      pitch.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                      pitch?.plan_tier ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
                     }`}>
-                      {pitch.is_active ? 'Active' : 'Inactive'}
+                      {pitch?.plan_tier || 'Free'}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {pitch.plan_tier || 'None'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(pitch.created_at).toLocaleDateString()}
+                    {pitch?.created_at ? new Date(pitch.created_at).toLocaleDateString() : 'N/A'}
                   </td>
                 </tr>
               ))}
@@ -156,7 +161,7 @@ async function EndorsementsTab() {
   
   const { data: endorsements } = await supabase
     .from('endorsements')
-    .select('id, veteran_id, endorser_id, created_at')
+    .select('id, text, created_at')
     .order('created_at', { ascending: false })
     .limit(50)
 
@@ -178,26 +183,26 @@ async function EndorsementsTab() {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Veteran ID</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Endorser ID</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Endorsement ID</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Text</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {endorsements?.map((endorsement) => (
-                <tr key={endorsement.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {endorsement.id.substring(0, 8)}...
+              {endorsements?.map((endorsement: Pick<Endorsement, 'id' | 'text' | 'created_at'>, index: number) => (
+                <tr key={`endorsement-${index}-${endorsement?.id || 'unknown'}`} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm font-medium text-gray-900">
+                      {typeof endorsement?.id === 'string' ? endorsement.id.substring(0, 8) + '...' : 'N/A'}
+                    </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {endorsement.veteran_id?.substring(0, 8)}...
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {endorsement.endorser_id?.substring(0, 8)}...
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900 max-w-xs truncate">
+                      {endorsement?.text || 'N/A'}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(endorsement.created_at).toLocaleDateString()}
+                    {endorsement?.created_at ? new Date(endorsement.created_at).toLocaleDateString() : 'N/A'}
                   </td>
                 </tr>
               ))}
@@ -244,30 +249,30 @@ async function DonationsTab() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {donations?.map((donation) => (
-                <tr key={donation.id} className="hover:bg-gray-50">
+              {donations?.map((donation: Pick<Receipt, 'id' | 'amount_paise' | 'donor_name' | 'donor_email' | 'anonymous' | 'created_at'>, index: number) => (
+                <tr key={`donation-${index}-${donation?.id || 'unknown'}`} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>
                       <div className="text-sm font-medium text-gray-900">
-                        {donation.anonymous ? 'Anonymous' : donation.donor_name}
+                        {donation?.anonymous ? 'Anonymous' : donation?.donor_name || 'N/A'}
                       </div>
-                      {!donation.anonymous && (
-                        <div className="text-sm text-gray-500">{donation.donor_email}</div>
+                      {!donation?.anonymous && (
+                        <div className="text-sm text-gray-500">{donation?.donor_email || 'N/A'}</div>
                       )}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
-                    ₹{(donation.amount_paise / 100).toFixed(2)}
+                    ₹{donation?.amount_paise ? (donation.amount_paise / 100).toFixed(2) : 'N/A'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      donation.anonymous ? 'bg-gray-100 text-gray-800' : 'bg-green-100 text-green-800'
+                      donation?.anonymous ? 'bg-gray-100 text-gray-800' : 'bg-green-100 text-green-800'
                     }`}>
-                      {donation.anonymous ? 'Yes' : 'No'}
+                      {donation?.anonymous ? 'Yes' : 'No'}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(donation.created_at).toLocaleDateString()}
+                    {donation?.created_at ? new Date(donation.created_at).toLocaleDateString() : 'N/A'}
                   </td>
                 </tr>
               ))}
@@ -285,7 +290,7 @@ async function ResumeRequestsTab() {
   
   const { data: requests } = await supabase
     .from('resume_requests')
-    .select('id, recruiter_id, veteran_id, pitch_id, status, created_at')
+    .select('id, recruiter_id, pitch_id, status, created_at')
     .order('created_at', { ascending: false })
     .limit(50)
 
@@ -309,38 +314,40 @@ async function ResumeRequestsTab() {
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Request ID</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Recruiter ID</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Veteran ID</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pitch ID</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {requests?.map((request) => (
-                <tr key={request.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {request.id.substring(0, 8)}...
+              {requests?.map((request: Pick<ResumeRequest, 'id' | 'recruiter_id' | 'pitch_id' | 'status' | 'created_at'>, index: number) => (
+                <tr key={`request-${index}-${request?.id || 'unknown'}`} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm font-medium text-gray-900">
+                      {typeof request?.id === 'string' ? request.id.substring(0, 8) + '...' : 'N/A'}
+                    </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {request.recruiter_id?.substring(0, 8)}...
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">
+                      {typeof request?.recruiter_id === 'string' ? request.recruiter_id.substring(0, 8) + '...' : 'N/A'}
+                    </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {request.veteran_id?.substring(0, 8)}...
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {request.pitch_id?.substring(0, 8)}...
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">
+                      {typeof request?.pitch_id === 'string' ? request.pitch_id.substring(0, 8) + '...' : 'N/A'}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      request.status === 'approved' ? 'bg-green-100 text-green-800' :
-                      request.status === 'declined' ? 'bg-red-100 text-red-800' :
+                      request?.status === 'approved' ? 'bg-green-100 text-green-800' :
+                      request?.status === 'declined' ? 'bg-red-100 text-red-800' :
                       'bg-yellow-100 text-yellow-800'
                     }`}>
-                      {request.status}
+                      {request?.status || 'Unknown'}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(request.created_at).toLocaleDateString()}
+                    {request?.created_at ? new Date(request.created_at).toLocaleDateString() : 'N/A'}
                   </td>
                 </tr>
               ))}
@@ -360,32 +367,26 @@ async function ActivityTab() {
     .from('activity_log')
     .select('id, event_type, event_data, created_at')
     .order('created_at', { ascending: false })
-    .limit(100)
+    .limit(50)
 
   const getActivityDescription = (event: { event_type: string; event_data: unknown }) => {
-    const data = event.event_data as Record<string, any> || {}
-    switch (event.event_type) {
-      case 'veteran_joined':
-        return `${data.veteran_name || 'A veteran'} joined the platform`
-      case 'pitch_referred':
-        return `${data.supporter_name || 'Someone'} referred ${data.veteran_name || 'a veteran'}`
-      case 'recruiter_called':
-        return `${data.recruiter_name || 'A recruiter'} called ${data.veteran_name || 'a veteran'}`
-      case 'endorsement_added':
-        return `${data.endorser_name || 'Someone'} endorsed ${data.veteran_name || 'a veteran'}`
-      case 'like_added':
-        return `Someone liked "${data.pitch_title || 'a pitch'}"`
-      case 'donation_received':
-        return `Received ₹${(data.amount || 0) / 100} donation`
-      default:
-        return event.event_type
+    try {
+      if (typeof event.event_data === 'object' && event.event_data !== null) {
+        const data = event.event_data as Record<string, unknown>
+        if (data.description) return String(data.description)
+        if (data.message) return String(data.message)
+        if (data.text) return String(data.text)
+      }
+      return event.event_type
+    } catch {
+      return event.event_type
     }
   }
 
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h3 className="text-lg font-medium">Activity Feed ({activities?.length || 0})</h3>
+        <h3 className="text-lg font-medium">Activity Log ({activities?.length || 0})</h3>
         <Link 
           href="/api/admin/export/activity.csv"
           className="flex items-center gap-2 text-blue-600 hover:text-blue-700 transition-colors"
@@ -396,21 +397,39 @@ async function ActivityTab() {
       </div>
       
       <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="overflow-y-auto max-h-96">
-          <div className="p-4 space-y-3">
-            {activities?.map((activity) => (
-              <div key={activity.id} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-                <div className="flex-1">
-                  <p className="text-sm text-gray-900">{getActivityDescription(activity)}</p>
-                  <p className="text-xs text-gray-500 flex items-center gap-1">
-                    <Calendar className="h-3 w-3" />
-                    {new Date(activity.created_at).toLocaleString()}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Activity ID</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event Type</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {activities?.map((activity: Pick<ActivityLog, 'id' | 'event_type' | 'event_data' | 'created_at'>, index: number) => (
+                <tr key={`activity-${index}-${activity?.id || 'unknown'}`} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm font-medium text-gray-900">
+                      {typeof activity?.id === 'string' ? activity.id.substring(0, 8) + '...' : 'N/A'}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">{activity?.event_type || 'N/A'}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900 max-w-xs truncate">
+                      {getActivityDescription(activity)}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {activity?.created_at ? new Date(activity.created_at).toLocaleDateString() : 'N/A'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -421,178 +440,145 @@ async function ActivityTab() {
 async function SuspiciousActivityTab() {
   const supabase = createSupabaseServerOnly()
   
-  // Get activity data for analysis
-  const { data: activities } = await supabase
+  // Get recent activity to analyze for suspicious patterns
+  const { data: recentActivity } = await supabase
     .from('activity_log')
-    .select('id, event_type, event_data, created_at')
+    .select('event_type, created_at')
+    .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()) // Last 24 hours
     .order('created_at', { ascending: false })
-    .limit(1000)
 
-  // Analyze for suspicious patterns
-  const flags: any[] = []
-  
-  if (activities && activities.length > 0) {
-    // Group activities by IP hash (if available in event_data)
-    const ipActivity = new Map<string, { calls: number; emails: number; referrals: number; lastActivity: Date }>()
-    
-    activities.forEach(activity => {
-      const data = activity.event_data as Record<string, any> || {}
-      const ipHash = data.ip_hash || 'unknown'
-      
-      if (!ipActivity.has(ipHash)) {
-        ipActivity.set(ipHash, { calls: 0, emails: 0, referrals: 0, lastActivity: new Date(activity.created_at) })
-      }
-      
-      const ipData = ipActivity.get(ipHash)!
-      
-      switch (activity.event_type) {
-        case 'recruiter_called':
-          ipData.calls++
-          break
-        case 'email_sent':
-          ipData.emails++
-          break
-        case 'pitch_referred':
-          ipData.referrals++
-          break
-      }
-      
-      if (new Date(activity.created_at) > ipData.lastActivity) {
-        ipData.lastActivity = new Date(activity.created_at)
-      }
-    })
-    
-    // Check for suspicious patterns
-    ipActivity.forEach((data, ipHash) => {
-      // Flag excessive calls (>10 in 24 hours)
-      if (data.calls > 10) {
-        flags.push({
-          type: 'excessive_calls',
-          severity: 'high',
-          description: `IP ${ipHash.substring(0, 8)}... made ${data.calls} calls`,
-          ipHash,
-          count: data.calls,
-          lastActivity: data.lastActivity
-        })
-      }
-      
-      // Flag excessive emails (>20 in 24 hours)
-      if (data.emails > 20) {
-        flags.push({
-          type: 'excessive_emails',
-          severity: 'medium',
-          description: `IP ${ipHash.substring(0, 8)}... sent ${data.emails} emails`,
-          ipHash,
-          count: data.emails,
-          lastActivity: data.lastActivity
-        })
-      }
-      
-      // Flag referral bursts (>50 referrals in 24 hours)
-      if (data.referrals > 50) {
-        flags.push({
-          type: 'referral_burst',
-          severity: 'high',
-          description: `IP ${ipHash.substring(0, 8)}... made ${data.referrals} referrals`,
-          ipHash,
-          count: data.referrals,
-          lastActivity: data.lastActivity
-        })
-      }
-    })
-    
-    // Check for rapid-fire activity (multiple events in short time)
-    const rapidFireThreshold = 5 // events per minute
-    const timeWindow = 60 * 1000 // 1 minute in ms
-    
-    for (let i = 0; i < activities.length - rapidFireThreshold; i++) {
-      const activity = activities[i]
-      if (!activity) continue
-      
-      const currentTime = new Date(activity.created_at).getTime()
-      const eventsInWindow = activities.slice(i, i + rapidFireThreshold + 1)
-        .filter(event => {
-          if (!event) return false
-          const eventTime = new Date(event.created_at).getTime()
-          return eventTime - currentTime <= timeWindow
-        })
-      
-      if (eventsInWindow.length > rapidFireThreshold) {
-        flags.push({
-          type: 'rapid_fire',
-          severity: 'medium',
-          description: `${eventsInWindow.length} events in 1 minute`,
-          eventTypes: eventsInWindow.map(e => e?.event_type || 'unknown'),
-          timestamp: new Date(activity.created_at)
-        })
-      }
+  // Analyze activity patterns
+  const eventsInWindow = recentActivity || []
+  const eventCounts = eventsInWindow.reduce((acc, event) => {
+    acc[event.event_type] = (acc[event.event_type] || 0) + 1
+    return acc
+  }, {} as Record<string, number>)
+
+  // Define suspicious patterns
+  const suspiciousPatterns = [
+    {
+      name: 'High Login Attempts',
+      description: 'Multiple login attempts in short time',
+      severity: 'medium',
+      count: eventCounts['auth.login'] || 0,
+      threshold: 10
+    },
+    {
+      name: 'Multiple Failed Payments',
+      description: 'Multiple failed payment attempts',
+      severity: 'high',
+      count: eventCounts['payment.failed'] || 0,
+      threshold: 5
+    },
+    {
+      name: 'Bulk Data Access',
+      description: 'Multiple data export requests',
+      severity: 'medium',
+      count: eventCounts['data.export'] || 0,
+      threshold: 20
     }
-  }
+  ]
+
+  const flags = suspiciousPatterns.filter(pattern => pattern.count > pattern.threshold)
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h3 className="text-lg font-medium">Suspicious Activity ({flags.length})</h3>
-        <div className="flex gap-2">
-          <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded-full">High: {flags.filter(f => f.severity === 'high').length}</span>
-          <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">Medium: {flags.filter(f => f.severity === 'medium').length}</span>
+        <h3 className="text-lg font-medium">Suspicious Activity Monitoring</h3>
+        <div className="flex items-center gap-2">
+          <Calendar className="h-4 w-4 text-gray-500" />
+          <span className="text-sm text-gray-500">Last 24 hours</span>
         </div>
       </div>
-      
-      {flags.length === 0 ? (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
-          <div className="text-green-600 font-medium">No suspicious activity detected</div>
-          <div className="text-green-500 text-sm mt-1">All activity appears normal</div>
+
+      {/* Activity Summary */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-white p-4 rounded-lg shadow">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Total Events</p>
+              <p className="text-2xl font-bold text-gray-900">{eventsInWindow.length}</p>
+            </div>
+            <Activity className="h-8 w-8 text-blue-500" />
+          </div>
         </div>
-      ) : (
+        
+        <div className="bg-white p-4 rounded-lg shadow">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Event Types</p>
+              <p className="text-2xl font-bold text-gray-900">{Object.keys(eventCounts).length}</p>
+            </div>
+            <TrendingUp className="h-8 w-8 text-green-500" />
+          </div>
+        </div>
+        
+        <div className="bg-white p-4 rounded-lg shadow">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Flags Raised</p>
+              <p className="text-2xl font-bold text-red-600">{flags.length}</p>
+            </div>
+            <AlertTriangle className="h-8 w-8 text-red-500" />
+          </div>
+        </div>
+      </div>
+
+      {/* Event Type Breakdown */}
+      <div className="bg-white rounded-lg shadow p-6">
+        <h4 className="text-lg font-medium text-gray-900 mb-4">Event Type Breakdown</h4>
         <div className="space-y-3">
-          {flags.map((flag, index) => (
-            <div key={index} className={`border rounded-lg p-4 ${
-              flag.severity === 'high' ? 'border-red-200 bg-red-50' : 'border-yellow-200 bg-yellow-50'
-            }`}>
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <AlertTriangle className={`h-4 w-4 ${
-                      flag.severity === 'high' ? 'text-red-600' : 'text-yellow-600'
-                    }`} />
-                    <span className={`text-sm font-medium ${
-                      flag.severity === 'high' ? 'text-red-800' : 'text-yellow-800'
-                    }`}>
-                      {flag.type.replace('_', ' ').toUpperCase()}
-                    </span>
-                    <span className={`text-xs px-2 py-1 rounded-full ${
-                      flag.severity === 'high' ? 'bg-red-200 text-red-800' : 'bg-yellow-200 text-yellow-800'
-                    }`}>
-                      {flag.severity}
-                    </span>
-                  </div>
-                  <p className={`text-sm ${
-                    flag.severity === 'high' ? 'text-red-700' : 'text-yellow-700'
-                  }`}>
-                    {flag.description}
-                  </p>
-                  {flag.count && (
-                    <p className="text-xs text-gray-600 mt-1">
-                      Count: {flag.count} | Last Activity: {flag.lastActivity?.toLocaleString()}
-                    </p>
-                  )}
-                  {flag.timestamp && (
-                    <p className="text-xs text-gray-600 mt-1">
-                      Detected: {flag.timestamp.toLocaleString()}
-                    </p>
-                  )}
-                </div>
-              </div>
+          {Object.entries(eventCounts).map(([eventType, count]) => (
+            <div key={eventType} className="flex items-center justify-between">
+              <span className="text-sm font-medium text-gray-700">{eventType}</span>
+              <span className="text-sm text-gray-500">{count} events</span>
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* Suspicious Activity Flags */}
+      {flags.length > 0 ? (
+        <div className="bg-white rounded-lg shadow p-6">
+          <h4 className="text-lg font-medium text-red-900 mb-4">⚠️ Suspicious Activity Detected</h4>
+          <div className="space-y-4">
+            {flags.map((flag, index) => (
+              <div key={index} className="border-l-4 border-red-500 pl-4 py-2">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h5 className="font-medium text-red-900">{flag.name}</h5>
+                    <p className="text-sm text-red-700">{flag.description}</p>
+                    <p className="text-xs text-red-600">
+                      {flag.count} events (threshold: {flag.threshold})
+                    </p>
+                  </div>
+                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                    flag.severity === 'high' ? 'bg-red-100 text-red-800' :
+                    flag.severity === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                    'bg-blue-100 text-blue-800'
+                  }`}>
+                    {flag.severity}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+          <div className="flex items-center">
+            <Shield className="h-6 w-6 text-green-600 mr-2" />
+            <div>
+              <h4 className="text-lg font-medium text-green-900">All Clear</h4>
+              <p className="text-green-700">No suspicious activity detected in the last 24 hours.</p>
+            </div>
+          </div>
         </div>
       )}
     </div>
   )
 }
 
-// Main Admin Page Component
 export default async function AdminPage({
   searchParams
 }: {
@@ -600,81 +586,75 @@ export default async function AdminPage({
 }) {
   const supabase = createSupabaseServerOnly()
   
-  // Check admin access
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
+  // Check if user is authenticated and has admin role
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  
+  if (authError || !user) {
     redirect('/auth')
   }
 
+  // Check if user has admin role
   const { data: profile } = await supabase
     .from('users')
     .select('role')
     .eq('id', user.id)
     .single()
 
-  if (profile?.role !== 'admin') {
-    redirect('/dashboard/veteran')
+  if (!profile || profile.role !== 'admin') {
+    redirect('/dashboard')
   }
 
-  const params = await searchParams
-  const currentTab = params.tab || 'users'
+  const resolvedSearchParams = await searchParams
+  const activeTab = resolvedSearchParams.tab || 'users'
+
   const tabs = [
-    { id: 'users', label: 'Users', icon: Users },
-    { id: 'pitches', label: 'Pitches', icon: FileText },
-    { id: 'endorsements', label: 'Endorsements', icon: Heart },
-    { id: 'donations', label: 'Donations', icon: TrendingUp },
-    { id: 'resume-requests', label: 'Resume Requests', icon: Eye },
-    { id: 'activity', label: 'Activity', icon: Activity },
-    { id: 'suspicious', label: 'Suspicious Activity', icon: AlertTriangle }
+    { id: 'users', label: 'Users', icon: Users, component: UsersTab },
+    { id: 'pitches', label: 'Pitches', icon: FileText, component: PitchesTab },
+    { id: 'endorsements', label: 'Endorsements', icon: Heart, component: EndorsementsTab },
+    { id: 'donations', label: 'Donations', icon: TrendingUp, component: DonationsTab },
+    { id: 'resume-requests', label: 'Resume Requests', icon: FileText, component: ResumeRequestsTab },
+    { id: 'activity', label: 'Activity Log', icon: Activity, component: ActivityTab },
+    { id: 'suspicious', label: 'Suspicious Activity', icon: Shield, component: SuspiciousActivityTab }
   ]
 
+  const ActiveComponent = tabs.find(tab => tab.id === activeTab)?.component || UsersTab
+
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <div className="flex items-center gap-2 mb-4">
-            <Shield className="w-8 h-8 text-red-600" />
-            <h1 className="text-3xl font-bold text-gray-900">Admin Panel</h1>
-          </div>
-          <p className="text-gray-600">Monitor platform activity and manage data</p>
+          <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+          <p className="mt-2 text-gray-600">Monitor and manage platform activity</p>
         </div>
 
-        {/* Tabs */}
-        <div className="bg-white rounded-lg shadow-sm mb-8">
-          <div className="border-b border-gray-200">
-            <nav className="-mb-px flex space-x-8 px-6 overflow-x-auto">
-              {tabs.map((tab) => {
-                const Icon = tab.icon
-                const isActive = currentTab === tab.id
-                return (
-                  <Link
-                    key={tab.id}
-                    href={`/admin?tab=${tab.id}`}
-                    className={`flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
-                      isActive
-                        ? 'border-red-500 text-red-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    }`}
-                  >
-                    <Icon className="h-4 w-4" />
-                    {tab.label}
-                  </Link>
-                )
-              })}
-            </nav>
-          </div>
+        {/* Tab Navigation */}
+        <div className="mb-8">
+          <nav className="flex space-x-8 border-b border-gray-200">
+            {tabs.map((tab) => {
+              const Icon = tab.icon
+              return (
+                <Link
+                  key={tab.id}
+                  href={`/admin?tab=${tab.id}`}
+                  className={`flex items-center gap-2 py-2 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === tab.id
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  <Icon className="h-4 w-4" />
+                  {tab.label}
+                </Link>
+              )
+            })}
+          </nav>
         </div>
 
         {/* Tab Content */}
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          {currentTab === 'users' && <UsersTab />}
-          {currentTab === 'pitches' && <PitchesTab />}
-          {currentTab === 'endorsements' && <EndorsementsTab />}
-          {currentTab === 'donations' && <DonationsTab />}
-          {currentTab === 'resume-requests' && <ResumeRequestsTab />}
-          {currentTab === 'activity' && <ActivityTab />}
-          {currentTab === 'suspicious' && <SuspiciousActivityTab />}
+        <div className="bg-white rounded-lg shadow">
+          <div className="p-6">
+            <ActiveComponent />
+          </div>
         </div>
       </div>
     </div>
