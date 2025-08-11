@@ -33,6 +33,7 @@ export async function signInWithGoogle(returnTo: string = '/') {
       queryParams: {
         access_type: 'offline',
         prompt: 'consent',
+        response_type: 'code', // Force authorization code flow
       },
     },
   });
