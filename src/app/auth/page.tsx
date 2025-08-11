@@ -261,7 +261,12 @@ function AuthPageContent() {
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
-          queryParams: { access_type: 'offline', prompt: 'consent' }
+          queryParams: { 
+            access_type: 'offline', 
+            prompt: 'consent',
+            hd: '*'
+          },
+          scopes: 'email profile'
         }
       });
       
@@ -281,7 +286,11 @@ function AuthPageContent() {
         provider: 'linkedin',
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
-          queryParams: { access_type: 'offline', prompt: 'consent' }
+          queryParams: { 
+            access_type: 'offline', 
+            prompt: 'consent'
+          },
+          scopes: 'r_liteprofile r_emailaddress'
         }
       });
       

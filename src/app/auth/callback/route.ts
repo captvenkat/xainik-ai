@@ -7,8 +7,7 @@ export async function GET(req: Request) {
   const next = searchParams.get('next') || '/';
   const error = searchParams.get('error');
   const errorDescription = searchParams.get('error_description');
-
-  console.log('🔐 Auth callback received:', { code: !!code, next, error, errorDescription });
+  const state = searchParams.get('state');
 
   // Handle OAuth errors
   if (error) {
@@ -21,23 +20,40 @@ export async function GET(req: Request) {
     return NextResponse.redirect(new URL('/auth/error?error=no_code', req.url));
   }
 
+  // Validate state parameter for security
+  if (!state) {
+    console.error('No state parameter in callback');
+    return NextResponse.redirect(new URL('/auth/error?error=no_state', req.url));
+  }
+
   try {
     const supabase = await createSupabaseServer();
-    console.log('🔄 Exchanging code for session...');
     
+    // Exchange code for session with proper error handling
     const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
     
     if (exchangeError) {
       console.error('Auth exchange error:', exchangeError);
-      return NextResponse.redirect(new URL(`/auth/error?error=exchange_failed&details=${encodeURIComponent(exchangeError.message)}`, req.url));
+      
+      // Handle specific OAuth errors
+      if (exchangeError.message.includes('expired')) {
+        return NextResponse.redirect(new URL('/auth/error?error=code_expired&details=Please try signing in again', req.url));
+      } else if (exchangeError.message.includes('invalid')) {
+        return NextResponse.redirect(new URL('/auth/error?error=invalid_code&details=Please try signing in again', req.url));
+      } else {
+        return NextResponse.redirect(new URL(`/auth/error?error=exchange_failed&details=${encodeURIComponent(exchangeError.message)}`, req.url));
+      }
     }
 
     if (!data?.user) {
       console.error('No user data after exchange');
-      return NextResponse.redirect(new URL('/auth/error?error=no_user', req.url));
+      return NextResponse.redirect(new URL('/auth/error?error=no_user&details=Authentication completed but no user data received', req.url));
     }
 
-    console.log('✅ Auth exchange successful for user:', data.user.email);
+    if (!data.session) {
+      console.error('No session data after exchange');
+      return NextResponse.redirect(new URL('/auth/error?error=no_session&details=Authentication completed but no session created', req.url));
+    }
     
     // Create user record in public.users table if it doesn't exist
     console.log('🔄 Checking if user exists in public.users...');
@@ -73,7 +89,6 @@ export async function GET(req: Request) {
     }
     
     // Check if user has a role and route accordingly
-    console.log('🔄 Checking user role for routing...');
     const { data: userProfile, error: roleCheckError } = await supabase
       .from('users')
       .select('role')
@@ -84,21 +99,37 @@ export async function GET(req: Request) {
     
     if (roleCheckError) {
       console.error('❌ Error checking user role:', roleCheckError);
-      console.log('💡 Fallback to auth page for role selection');
       redirectUrl = '/auth';
     } else if (userProfile?.role) {
-      // User has role, redirect to appropriate dashboard
-      redirectUrl = `/dashboard/${userProfile.role}`;
-      console.log('✅ User has role, redirecting to dashboard:', redirectUrl);
+      // User has role, check if they have a specific redirect request
+      if (next && next !== '/' && next.startsWith('/dashboard/')) {
+        // User requested a specific dashboard, validate it matches their role
+        const requestedRole = next.split('/')[2];
+        if (requestedRole === userProfile.role) {
+          redirectUrl = next;
+        } else {
+          redirectUrl = `/dashboard/${userProfile.role}`;
+        }
+      } else {
+        redirectUrl = `/dashboard/${userProfile.role}`;
+      }
     } else {
       // User needs role selection
       redirectUrl = '/auth';
-      console.log('🔄 User has no role, redirecting to auth page for role selection');
     }
     
-    console.log('🔄 Final redirect to:', redirectUrl);
-    console.log('🔗 Redirect URL:', new URL(redirectUrl, req.url).toString());
-    return NextResponse.redirect(new URL(redirectUrl, req.url));
+    // Set cookies for client-side session detection
+    const response = NextResponse.redirect(new URL(redirectUrl, req.url));
+    
+    // Add session cookies for better client-side detection
+    response.cookies.set('sb-access-token', data.session.access_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7 // 7 days
+    });
+    
+    return response;
     
   } catch (error) {
     console.error('Unexpected error in auth callback:', error);
