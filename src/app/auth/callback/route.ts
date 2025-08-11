@@ -72,12 +72,33 @@ export async function GET(req: Request) {
       console.log('✅ User already exists in public.users');
     }
     
-    // Optional: role routing
-    const profile = data?.user ?? null;
-    const to = next.startsWith('/') ? next : '/';
+    // Check if user has a role and route accordingly
+    console.log('🔄 Checking user role for routing...');
+    const { data: userProfile, error: roleCheckError } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', data.user.id)
+      .single();
     
-    console.log('🔄 Redirecting to:', to);
-    return NextResponse.redirect(new URL(to, req.url));
+    let redirectUrl = '/';
+    
+    if (roleCheckError) {
+      console.error('❌ Error checking user role:', roleCheckError);
+      console.log('💡 Fallback to auth page for role selection');
+      redirectUrl = '/auth';
+    } else if (userProfile?.role) {
+      // User has role, redirect to appropriate dashboard
+      redirectUrl = `/dashboard/${userProfile.role}`;
+      console.log('✅ User has role, redirecting to dashboard:', redirectUrl);
+    } else {
+      // User needs role selection
+      redirectUrl = '/auth';
+      console.log('🔄 User has no role, redirecting to auth page for role selection');
+    }
+    
+    console.log('🔄 Final redirect to:', redirectUrl);
+    console.log('🔗 Redirect URL:', new URL(redirectUrl, req.url).toString());
+    return NextResponse.redirect(new URL(redirectUrl, req.url));
     
   } catch (error) {
     console.error('Unexpected error in auth callback:', error);

@@ -22,7 +22,7 @@ export default async function SupporterDashboard() {
     .single()
 
   if (profile?.role !== 'supporter') {
-    redirect('/dashboard')
+    redirect('/auth?redirect=/dashboard/supporter')
   }
 
   // Fetch supporter metrics

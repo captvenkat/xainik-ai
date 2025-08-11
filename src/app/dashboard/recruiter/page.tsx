@@ -23,7 +23,7 @@ export default async function RecruiterDashboard() {
     .single()
 
   if (profile?.role !== 'recruiter') {
-    redirect('/dashboard')
+    redirect('/auth?redirect=/dashboard/recruiter')
   }
 
   // Fetch recruiter metrics, analytics, and saved filters

@@ -17,42 +17,73 @@ export default function AuthPage() {
   useEffect(() => {
     const checkUser = async () => {
       try {
+        console.log('🔍 Checking user authentication status...');
         const { data: { user } } = await supabase.auth.getUser();
+        
         if (user) {
+          console.log('✅ User authenticated:', user.email);
+          
           // Check if user has a role
-          const { data: profile } = await supabase
+          console.log('🔍 Checking user role...');
+          const { data: profile, error: profileError } = await supabase
             .from('users')
             .select('role')
             .eq('id', user.id)
             .single();
           
+          if (profileError) {
+            console.error('❌ Error fetching user profile:', profileError);
+            setShowRoleSelection(true);
+            return;
+          }
+          
+          console.log('📋 User profile:', profile);
+          
           if (profile?.role) {
+            console.log('✅ User has role, redirecting to dashboard:', profile.role);
             // User has role, redirect to dashboard
             router.push(`/dashboard/${profile.role}`);
           } else {
+            console.log('🔄 User needs role selection');
             // User needs role selection
             setShowRoleSelection(true);
           }
+        } else {
+          console.log('❌ No authenticated user found');
         }
       } catch (err) {
-        console.error('Auth check error:', err);
+        console.error('❌ Auth check error:', err);
       }
     };
 
     checkUser();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: string, session: any) => {
+      console.log('🔄 Auth state change:', event, session?.user?.email);
+      
       if (event === 'SIGNED_IN' && session?.user) {
+        console.log('✅ User signed in, checking role...');
+        
         // Check if user has a role
-        const { data: profile } = await supabase
+        const { data: profile, error: profileError } = await supabase
           .from('users')
           .select('role')
           .eq('id', session.user.id)
           .single();
         
+        if (profileError) {
+          console.error('❌ Error fetching profile on auth state change:', profileError);
+          setShowRoleSelection(true);
+          return;
+        }
+        
+        console.log('📋 Profile on auth state change:', profile);
+        
         if (profile?.role) {
+          console.log('✅ User has role, redirecting to dashboard:', profile.role);
           router.push(`/dashboard/${profile.role}`);
         } else {
+          console.log('🔄 User needs role selection on auth state change');
           setShowRoleSelection(true);
         }
       }
