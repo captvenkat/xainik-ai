@@ -1,5 +1,5 @@
 import { cookies } from 'next/headers';
-import { createServerClient } from '@supabase/ssr';
+import { createClient } from '@supabase/supabase-js';
 
 export async function createSupabaseServer() {
   try {
@@ -9,51 +9,24 @@ export async function createSupabaseServer() {
       throw new Error('Missing Supabase environment variables');
     }
 
-    console.log('[SUPABASE] Creating server client with URL:', process.env.NEXT_PUBLIC_SUPABASE_URL.substring(0, 30) + '...');
+    console.log('[SUPABASE] Creating server client with stable supabase-js...');
 
-    return createServerClient(
+    // Use the stable supabase-js client instead of @supabase/ssr
+    const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
       {
-        cookies: {
-          get(name: string) {
-            try {
-              const value = cookieStore.get(name)?.value;
-              console.log(`[SUPABASE] Cookie get ${name}:`, value ? 'present' : 'missing');
-              return value;
-            } catch (error) {
-              console.error('[SUPABASE] Cookie get error:', error);
-              return undefined;
-            }
-          },
-          set(name: string, value: string, options: any) {
-            try {
-              console.log(`[SUPABASE] Cookie set ${name}:`, value.substring(0, 20) + '...');
-              cookieStore.set({
-                name,
-                value,
-                ...options,
-              });
-            } catch (error) {
-              console.error('[SUPABASE] Cookie set error:', error);
-            }
-          },
-          remove(name: string, options: any) {
-            try {
-              console.log(`[SUPABASE] Cookie remove ${name}`);
-              cookieStore.set({
-                name,
-                value: '',
-                ...options,
-                maxAge: 0,
-              });
-            } catch (error) {
-              console.error('[SUPABASE] Cookie remove error:', error);
-            }
-          },
-        },
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+          detectSessionInUrl: false
+        }
       }
     );
+
+    console.log('[SUPABASE] Stable client created successfully');
+    return supabase;
+    
   } catch (error) {
     console.error('[SUPABASE] Server client creation error:', error);
     throw error;

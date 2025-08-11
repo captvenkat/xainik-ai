@@ -52,7 +52,7 @@ export async function GET(req: Request) {
     console.log('[AUTH] Code length:', code.length);
     console.log('[AUTH] Code preview:', code.substring(0, 10) + '...');
     
-    // Use the simplest possible approach - just exchangeCodeForSession
+    // Use the stable exchangeCodeForSession method
     try {
       const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
       
