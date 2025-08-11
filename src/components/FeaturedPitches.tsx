@@ -24,21 +24,24 @@ export default function FeaturedPitches() {
           .select(`
             id,
             title,
-            summary,
+            pitch_text,
             skills,
-            city,
+            location,
             job_type,
             availability,
-            likes,
+            likes_count,
             veteran_id,
-            veteran:profiles!pitches_veteran_id_fkey (
+            veteran:users!pitches_veteran_id_fkey (
               id,
-              full_name,
+              name,
+              email,
+              phone
+            ),
+            veteran_profile:veterans!veteran_id (
               rank,
               service_branch,
               years_experience,
-              photo_url,
-              is_community_verified
+              location_current
             )
           `)
           .eq('is_active', true)
