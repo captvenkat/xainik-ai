@@ -29,7 +29,7 @@ export async function signInWithGoogle(returnTo: string = '/') {
   const { data, error } = await createSupabaseBrowser().auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: `${site}/auth/callback`,
+      redirectTo: `${site}/auth/callback`, // This will now go to the page, not the API route
       queryParams: {
         access_type: 'offline',
         prompt: 'consent',
