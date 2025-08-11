@@ -74,6 +74,15 @@ export default function AuthCallbackPage() {
           expiresAt: data.session.expires_at
         });
 
+        // Verify the session is properly set
+        const { data: { session: verifySession } } = await supabase.auth.getSession();
+        if (!verifySession) {
+          console.error('[AUTH-CALLBACK] Session verification failed');
+          setError('Session verification failed');
+          setStatus('error');
+          return;
+        }
+
         setStatus('success');
         
         // Get the stored redirect path
@@ -82,7 +91,12 @@ export default function AuthCallbackPage() {
         
         console.log('[AUTH-CALLBACK] Redirecting to:', redirectPath);
         
-        // Small delay to show success message
+        // Clear any hash fragments from the URL
+        if (typeof window !== 'undefined') {
+          window.history.replaceState(null, '', window.location.pathname);
+        }
+        
+        // Small delay to show success message, then redirect
         setTimeout(() => {
           router.push(redirectPath);
         }, 1000);

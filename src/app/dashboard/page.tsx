@@ -19,7 +19,7 @@ export default async function DashboardRedirect() {
 
   if (!profile?.role) {
     // User has no role, redirect to role selection
-    redirect('/auth')
+    redirect('/role-selection')
   }
 
   // Redirect to role-specific dashboard

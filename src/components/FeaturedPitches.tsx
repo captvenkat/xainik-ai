@@ -6,6 +6,9 @@ import PitchCard from './PitchCard'
 import type { PitchCardData } from '@/types/domain'
 import { toPitchCardData, type RawPitchRow } from '@/lib/mappers/pitches'
 
+// Create supabase instance once outside component
+const supabase = createSupabaseBrowser()
+
 export default function FeaturedPitches() {
   const [pitches, setPitches] = useState<PitchCardData[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -17,7 +20,7 @@ export default function FeaturedPitches() {
         const sevenDaysAgo = new Date()
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
         
-        const { data, error } = await createSupabaseBrowser()
+        const { data, error } = await supabase
           .from('pitches')
           .select(`
             id,
