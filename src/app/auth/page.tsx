@@ -24,7 +24,7 @@ function AuthPageContent() {
         setUser(user)
         // Check if user has a role
         const { data: profile } = await supabase
-          .from('profiles')
+          .from('users')
           .select('role')
           .eq('id', user.id)
           .single()
@@ -46,7 +46,7 @@ function AuthPageContent() {
         setUser(session.user)
         // Check if user has a role
         const { data: profile } = await supabase
-          .from('profiles')
+          .from('users')
           .select('role')
           .eq('id', session.user.id)
           .single()
@@ -70,7 +70,7 @@ function AuthPageContent() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback?next=${encodeURIComponent(redirectTo)}`,
+          redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(redirectTo)}`,
           queryParams: { access_type: 'offline', prompt: 'consent' }
         }
       })
@@ -90,7 +90,7 @@ function AuthPageContent() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'linkedin',
         options: {
-          redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback?next=${encodeURIComponent(redirectTo)}`,
+          redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(redirectTo)}`,
           queryParams: { access_type: 'offline', prompt: 'consent' }
         }
       })
@@ -113,7 +113,7 @@ function AuthPageContent() {
 
     try {
       const { error } = await supabase
-        .from('profiles')
+        .from('users')
         .update({ role: selectedRole })
         .eq('id', user.id)
 

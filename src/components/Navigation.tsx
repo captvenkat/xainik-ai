@@ -31,7 +31,7 @@ export default function Navigation() {
       if (user) {
         const { data: profile } = await supabase
           .from('users')
-          .select('role, full_name')
+          .select('role, name')
           .eq('id', user.id)
           .single()
         setProfile(profile)
@@ -47,7 +47,7 @@ export default function Navigation() {
       if (session?.user) {
         supabase
           .from('users')
-          .select('role, full_name')
+          .select('role, name')
           .eq('id', session.user.id)
           .single()
           .then(({ data }) => setProfile(data))
