@@ -8,6 +8,7 @@ import { Shield, CheckCircle, AlertCircle } from 'lucide-react';
 
 export default function AuthPage() {
   const [isLoading, setIsLoading] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [showRoleSelection, setShowRoleSelection] = useState(false);
   const [selectedRole, setSelectedRole] = useState('');
   const [error, setError] = useState('');
@@ -15,10 +16,17 @@ export default function AuthPage() {
   const router = useRouter();
 
   useEffect(() => {
+    let isMounted = true;
+    
     const checkUser = async () => {
       try {
         console.log('🔍 Checking user authentication status...');
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        
+        if (authError) {
+          console.error('❌ Auth error:', authError.message);
+          return;
+        }
         
         if (user) {
           console.log('✅ User authenticated:', user.email);
@@ -33,7 +41,7 @@ export default function AuthPage() {
           
           if (profileError) {
             console.error('❌ Error fetching user profile:', profileError);
-            setShowRoleSelection(true);
+            if (isMounted) setShowRoleSelection(true);
             return;
           }
           
@@ -41,12 +49,10 @@ export default function AuthPage() {
           
           if (profile?.role) {
             console.log('✅ User has role, redirecting to dashboard:', profile.role);
-            // User has role, redirect to dashboard
-            router.push(`/dashboard/${profile.role}`);
+            if (isMounted) router.push(`/dashboard/${profile.role}`);
           } else {
             console.log('🔄 User needs role selection');
-            // User needs role selection
-            setShowRoleSelection(true);
+            if (isMounted) setShowRoleSelection(true);
           }
         } else {
           console.log('❌ No authenticated user found');
@@ -56,12 +62,24 @@ export default function AuthPage() {
       }
     };
 
-    checkUser();
+    // Wait a bit for session to be established
+    const timer = setTimeout(() => {
+      if (isMounted) {
+        checkUser();
+        setIsCheckingAuth(false);
+      }
+    }, 500);
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: string, session: any) => {
       console.log('🔄 Auth state change:', event, session?.user?.email);
       
-      if (event === 'SIGNED_IN' && session?.user) {
+      if (event === 'INITIAL_SESSION' && session?.user) {
+        console.log('✅ Initial session established, checking role...');
+        if (isMounted) {
+          checkUser();
+          setIsCheckingAuth(false);
+        }
+      } else if (event === 'SIGNED_IN' && session?.user) {
         console.log('✅ User signed in, checking role...');
         
         // Check if user has a role
@@ -73,7 +91,7 @@ export default function AuthPage() {
         
         if (profileError) {
           console.error('❌ Error fetching profile on auth state change:', profileError);
-          setShowRoleSelection(true);
+          if (isMounted) setShowRoleSelection(true);
           return;
         }
         
@@ -81,15 +99,22 @@ export default function AuthPage() {
         
         if (profile?.role) {
           console.log('✅ User has role, redirecting to dashboard:', profile.role);
-          router.push(`/dashboard/${profile.role}`);
+          if (isMounted) router.push(`/dashboard/${profile.role}`);
         } else {
           console.log('🔄 User needs role selection on auth state change');
-          setShowRoleSelection(true);
+          if (isMounted) setShowRoleSelection(true);
         }
+      } else if (event === 'SIGNED_OUT') {
+        console.log('🔄 User signed out');
+        if (isMounted) setShowRoleSelection(false);
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted = false;
+      clearTimeout(timer);
+      subscription.unsubscribe();
+    };
   }, [router]);
 
   const handleGoogleSignIn = async () => {
@@ -155,6 +180,27 @@ export default function AuthPage() {
       setIsLoading(false);
     }
   };
+
+  // Show loading state while checking authentication
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full space-y-8 text-center">
+          <div className="flex justify-center">
+            <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center animate-spin">
+              <Shield className="h-6 w-6 text-white" />
+            </div>
+          </div>
+          <h2 className="text-xl font-semibold text-gray-900">
+            Checking authentication...
+          </h2>
+          <p className="text-sm text-gray-600">
+            Please wait while we verify your session
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (showRoleSelection) {
     return (
