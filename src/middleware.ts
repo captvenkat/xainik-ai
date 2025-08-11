@@ -5,47 +5,6 @@ import { createHash } from 'crypto'
 
 const PROTECTED = ['/dashboard', '/pitch/new', '/shortlist'];
 
-// Role-based route protection
-const roleRoutes = {
-  '/dashboard/veteran': ['veteran'],
-  '/dashboard/recruiter': ['recruiter'],
-  '/dashboard/admin': ['admin'],
-  '/dashboard/supporter': ['supporter'],
-  '/admin': ['admin'],
-  '/pitch/new': ['veteran'],
-  '/endorse': ['supporter'],
-  '/supporter': ['supporter']
-}
-
-// Public routes that don't require authentication
-const PUBLIC_PATHS = [
-  '/',
-  '/browse',
-  '/pricing',
-  '/donations',
-  '/support',
-  '/about',
-  '/contact',
-  '/support-the-mission',
-  '/terms',
-  '/privacy',
-  '/auth',
-  '/api/razorpay/webhook',
-  '/api/cron/expire'
-]
-
-// Public prefixes that don't require authentication
-const PUBLIC_PREFIXES = [
-  '/pitch/',
-  '/r/',
-  '/api/'
-]
-
-function isPublic(path: string) {
-  if (PUBLIC_PATHS.includes(path)) return true;
-  return PUBLIC_PREFIXES.some(p => path.startsWith(p));
-}
-
 function hashIP(ipAddress: string): string {
   const salt = process.env.IP_HASH_SALT || 'default-salt-change-in-production'
   return createHash('sha256')
@@ -76,7 +35,7 @@ function getClientIP(req: NextRequest): string {
 }
 
 export async function middleware(req: NextRequest) {
-  let res = NextResponse.next()
+  const res = NextResponse.next()
   const url = req.nextUrl;
   
   // Avoid hash token leakage: if URL contains #access_token, strip it

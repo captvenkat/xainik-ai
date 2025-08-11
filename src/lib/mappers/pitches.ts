@@ -24,7 +24,7 @@ export function toPitchCardData(r: RawPitchRow): PitchCardData {
     title: r.title ?? '',
     pitch: r.pitch_text ?? '',
     skills: r.skills ?? [],
-    city: r.location ? r.location.split(',')[0].trim() : null, // Extract city from "City, Country"
+    city: r.location ? r.location.split(',')[0]?.trim() || null : null, // Extract city from "City, Country"
     job_type: (r.job_type ?? 'Full-Time') as PitchCardData['job_type'],
     availability: (r.availability ?? 'Immediate') as PitchCardData['availability'],
     likes: r.likes_count ?? 0,
