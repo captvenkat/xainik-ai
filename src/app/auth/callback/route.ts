@@ -6,6 +6,12 @@ export async function GET(req: Request) {
   const code = url.searchParams.get('code');
   const error = url.searchParams.get('error');
   
+  console.log('[AUTH] Callback received:', { 
+    code: code ? 'present' : 'missing', 
+    error, 
+    url: req.url 
+  });
+  
   // Check for OAuth errors first
   if (error) {
     console.error('[AUTH] OAuth error:', error);
@@ -18,12 +24,15 @@ export async function GET(req: Request) {
   }
 
   try {
+    console.log('[AUTH] Creating Supabase server client...');
     const supabase = await createSupabaseServer();
+    
+    console.log('[AUTH] Exchanging code for session...');
     const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
     
     if (exchangeError) {
-      console.error('[AUTH] exchangeCodeForSession error', exchangeError);
-      return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/auth?error=exchange_failed`);
+      console.error('[AUTH] exchangeCodeForSession error:', exchangeError);
+      return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/auth?error=exchange_failed&details=${encodeURIComponent(exchangeError.message)}`);
     }
 
     if (!data.session) {
@@ -31,10 +40,18 @@ export async function GET(req: Request) {
       return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/auth?error=no_session`);
     }
 
+    console.log('[AUTH] Session created successfully, redirecting to dashboard');
     // Success - redirect to dashboard (the redirect path will be handled by the client)
     return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/dashboard/veteran`);
   } catch (e) {
-    console.error('[AUTH] callback crash', e);
-    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/auth?error=callback_crash`);
+    console.error('[AUTH] Callback crash:', e);
+    
+    // Try to get more specific error information
+    let errorMessage = 'callback_crash';
+    if (e instanceof Error) {
+      errorMessage = `callback_crash: ${e.message}`;
+    }
+    
+    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/auth?error=${encodeURIComponent(errorMessage)}`);
   }
 }
