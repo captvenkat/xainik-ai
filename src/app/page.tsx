@@ -28,12 +28,12 @@ export default function HomePage() {
             </div>
 
             <h1 className="heading-hero mb-6">
-              The Fastest Hiring Platform
-              <span className="block text-gradient-primary">for Veterans</span>
+              Ultra-Fast Hiring Platform
+              <span className="block text-gradient-primary">for Military Veterans</span>
             </h1>
 
             <h2 className="text-2xl lg:text-3xl font-semibold text-gray-700 max-w-4xl mx-auto leading-relaxed mb-6">
-              Xainik is an AI-First, Resume-Free, Community-Supported, Ultra-Fast Hiring Platform for military veterans.
+              AI‑First · Resume‑Free · Community‑Supported
             </h2>
 
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed mb-10">
