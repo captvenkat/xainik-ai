@@ -20,7 +20,10 @@ export function createSupabaseBrowser() {
         persistSession: true,
         autoRefreshToken: true,
         detectSessionInUrl: true,
-        flowType: 'pkce'
+        flowType: 'pkce',
+        debug: process.env.NODE_ENV === 'development',
+        storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+        storageKey: 'supabase-auth-token'
       },
       realtime: {
         params: {
