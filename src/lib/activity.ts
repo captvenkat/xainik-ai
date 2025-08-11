@@ -45,9 +45,9 @@ export async function getRecentActivity(limit: number = 10): Promise<Array<{
   display_text: string
 }>> {
   // Use the proper browser client from supabaseBrowser
-  const { supabase } = await import('@/lib/supabaseBrowser')
+  const { createSupabaseBrowser } = await import('@/lib/supabaseBrowser')
   
-  const { data, error } = await supabase
+  const { data, error } = await createSupabaseBrowser()
     .from('activity_recent')
     .select('*')
     .limit(limit)

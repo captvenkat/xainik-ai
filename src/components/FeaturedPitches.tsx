@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabaseBrowser'
+import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 import PitchCard from './PitchCard'
 import type { PitchCardData } from '@/types/domain'
 import { toPitchCardData, type RawPitchRow } from '@/lib/mappers/pitches'
@@ -17,7 +17,7 @@ export default function FeaturedPitches() {
         const sevenDaysAgo = new Date()
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
         
-        const { data, error } = await supabase
+        const { data, error } = await createSupabaseBrowser()
           .from('pitches')
           .select(`
             id,
