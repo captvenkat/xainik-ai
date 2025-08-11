@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabaseBrowser';
 import { updateUserRole } from '@/lib/actions/updateUserRole';
 import { Shield, CheckCircle, AlertCircle } from 'lucide-react';
 
-export default function AuthPage() {
+function AuthPageContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [showRoleSelection, setShowRoleSelection] = useState(false);
@@ -469,5 +469,30 @@ export default function AuthPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Wrap the component in Suspense to handle useSearchParams
+export default function AuthPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full space-y-8 text-center">
+          <div className="flex justify-center">
+            <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center animate-spin">
+              <Shield className="h-6 w-6 text-white" />
+            </div>
+          </div>
+          <h2 className="text-xl font-semibold text-gray-900">
+            Loading...
+          </h2>
+          <p className="text-sm text-gray-600">
+            Please wait while we prepare the authentication page
+          </p>
+        </div>
+      </div>
+    }>
+      <AuthPageContent />
+    </Suspense>
   );
 }
