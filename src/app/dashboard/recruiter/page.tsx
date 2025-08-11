@@ -1,10 +1,11 @@
 import { getServerSupabase } from '@/lib/supabaseClient'
 import { redirect } from 'next/navigation'
-import { Briefcase, Users, Phone, Mail, FileText, TrendingUp, Eye, Calendar, Plus } from 'lucide-react'
-import { getRecruiterMetrics } from '@/lib/metrics'
+import { Briefcase, Users, Phone, Mail, FileText, TrendingUp, Eye, Calendar, Plus, Download, Filter, BarChart3, Save } from 'lucide-react'
+import { getRecruiterMetrics, getRecruiterAnalytics } from '@/lib/metrics'
 import BarChart from '@/components/charts/BarChart'
 import PieChart from '@/components/charts/PieChart'
 import LineChart from '@/components/charts/LineChart'
+import SavedFiltersClient from '@/components/SavedFiltersClient'
 
 export default async function RecruiterDashboard() {
   const supabase = getServerSupabase()
@@ -25,8 +26,25 @@ export default async function RecruiterDashboard() {
     redirect('/dashboard')
   }
 
-  // Fetch recruiter metrics
-  const metrics = await getRecruiterMetrics(user.id)
+  // Fetch recruiter metrics, analytics, and saved filters
+  const [metrics, analytics, savedFilters] = await Promise.all([
+    getRecruiterMetrics(user.id),
+    getRecruiterAnalytics(user.id),
+    // Fetch saved filters
+    (async () => {
+      const { data: filters, error } = await supabase
+        .from('recruiter_saved_filters')
+        .select('id, name, filters, created_at')
+        .eq('recruiter_id', user.id)
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error('Error fetching saved filters:', error);
+        return [];
+      }
+      return filters || [];
+    })()
+  ])
 
   // Calculate summary stats
   const totalShortlisted = metrics.shortlisted.length
@@ -45,6 +63,8 @@ export default async function RecruiterDashboard() {
     { label: 'Approved', value: metrics.resumeRequests.filter(r => r.status === 'approved').length, color: '#10B981' },
     { label: 'Declined', value: metrics.resumeRequests.filter(r => r.status === 'declined').length, color: '#EF4444' }
   ]
+
+
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -99,7 +119,7 @@ export default async function RecruiterDashboard() {
           <div className="bg-white rounded-lg shadow-sm p-6">
             <div className="flex items-center">
               <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                <Eye className="w-5 h-5 text-purple-600" />
+                <TrendingUp className="w-5 h-5 text-purple-600" />
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Notes</p>
@@ -109,14 +129,17 @@ export default async function RecruiterDashboard() {
           </div>
         </div>
 
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+        {/* Saved Filters & CSV Download */}
+        <SavedFiltersClient initialFilters={savedFilters} />
+
+        {/* Quick Actions & Reports */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <a
             href="/browse"
             className="flex items-center gap-3 p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow"
           >
             <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-              <Plus className="w-5 h-5 text-blue-600" />
+              <Eye className="w-5 h-5 text-blue-600" />
             </div>
             <div>
               <div className="font-medium text-gray-900">Browse Veterans</div>
@@ -133,26 +156,84 @@ export default async function RecruiterDashboard() {
             </div>
             <div>
               <div className="font-medium text-gray-900">View Shortlist</div>
-              <div className="text-sm text-gray-600">Manage saved candidates</div>
+              <div className="text-sm text-gray-600">Manage candidates</div>
+            </div>
+          </a>
+
+          <a
+            href="/api/admin/export/pitches.csv"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow"
+          >
+            <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+              <Download className="w-5 h-5 text-purple-600" />
+            </div>
+            <div>
+              <div className="font-medium text-gray-900">Export Pitches</div>
+              <div className="text-sm text-gray-600">Download CSV</div>
+            </div>
+          </a>
+
+          <a
+            href="/api/admin/export/activity.csv"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow"
+          >
+            <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+              <BarChart3 className="w-5 h-5 text-orange-600" />
+            </div>
+            <div>
+              <div className="font-medium text-gray-900">Activity Report</div>
+              <div className="text-sm text-gray-600">Download CSV</div>
             </div>
           </a>
         </div>
 
-        {/* Charts */}
+        {/* Performance Trends */}
+        {analytics.activityTrend && analytics.activityTrend.length > 0 && (
+          <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold text-gray-900">Activity Trends (Last 30 Days)</h2>
+              <div className="flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-blue-600" />
+                <span className="text-sm text-gray-600">Daily Activity</span>
+              </div>
+            </div>
+            <LineChart
+              data={analytics.activityTrend.map(item => ({
+                label: item.label,
+                value: item.value
+              }))}
+              height={300}
+              color="#3B82F6"
+            />
+          </div>
+        )}
+
+        {/* Dashboard Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           {/* Contact Type Distribution */}
-          <PieChart
-            title="Contact Type (Last 30 Days)"
-            data={contactTypeData}
-            size={200}
-          />
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Contact Type Distribution</h3>
+            <PieChart
+              data={contactTypeData}
+              size={300}
+            />
+          </div>
 
           {/* Resume Request Status */}
-          <BarChart
-            title="Resume Request Status"
-            data={resumeRequestStatusData}
-            height={250}
-          />
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Resume Request Status</h3>
+            <BarChart
+              data={resumeRequestStatusData.map(item => ({
+                label: item.label,
+                value: item.value
+              }))}
+              height={300}
+            />
+          </div>
         </div>
 
         {/* Recent Activity */}
@@ -169,11 +250,11 @@ export default async function RecruiterDashboard() {
                       <p className="text-sm text-gray-600">{contact.pitch_title}</p>
                     </div>
                     <div className="flex items-center gap-2">
-                      {contact.type === 'call' ? (
-                        <Phone className="w-4 h-4 text-green-600" />
-                      ) : (
-                        <Mail className="w-4 h-4 text-blue-600" />
-                      )}
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        contact.type === 'call' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
+                      }`}>
+                        {contact.type}
+                      </span>
                       <span className="text-sm text-gray-500">
                         {new Date(contact.created_at).toLocaleDateString()}
                       </span>
@@ -192,15 +273,14 @@ export default async function RecruiterDashboard() {
             {metrics.notes.length > 0 ? (
               <div className="space-y-4">
                 {metrics.notes.slice(0, 5).map((note) => (
-                  <div key={note.id} className="border-l-4 border-purple-500 pl-4">
+                  <div key={note.id} className="border-l-4 border-blue-500 pl-4">
                     <div className="flex items-center justify-between mb-1">
                       <span className="font-medium text-gray-900">{note.veteran_name}</span>
                       <span className="text-sm text-gray-500">
                         {new Date(note.created_at).toLocaleDateString()}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-600 mb-1">{note.pitch_title}</p>
-                    <p className="text-sm text-gray-700">{note.text}</p>
+                    <p className="text-sm text-gray-600">{note.text}</p>
                   </div>
                 ))}
               </div>
@@ -220,7 +300,7 @@ export default async function RecruiterDashboard() {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Veteran
+                    Candidate
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Pitch Title
@@ -246,47 +326,44 @@ export default async function RecruiterDashboard() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">{candidate.title}</div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-6 py-4">
                         <div className="flex flex-wrap gap-1">
-                          {candidate.skills.slice(0, 2).map((skill, index) => (
-                            <span key={index} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          {candidate.skills.slice(0, 3).map((skill, index) => (
+                            <span
+                              key={index}
+                              className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                            >
                               {skill}
                             </span>
                           ))}
-                          {candidate.skills.length > 2 && (
+                          {candidate.skills.length > 3 && (
                             <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                              +{candidate.skills.length - 2}
+                              +{candidate.skills.length - 3}
                             </span>
                           )}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex gap-2">
-                          {candidate.phone && (
-                            <a
-                              href={`tel:${candidate.phone}`}
-                              className="text-blue-600 hover:text-blue-900"
-                            >
-                              <Phone className="w-4 h-4" />
-                            </a>
-                          )}
-                          {candidate.email && (
-                            <a
-                              href={`mailto:${candidate.email}`}
-                              className="text-blue-600 hover:text-blue-900"
-                            >
-                              <Mail className="w-4 h-4" />
-                            </a>
-                          )}
+                        <div className="text-sm text-gray-900">
+                          <div>{candidate.phone}</div>
+                          <div className="text-gray-500">{candidate.email}</div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <a
-                          href={`/pitch/${candidate.id}`}
-                          className="text-blue-600 hover:text-blue-900 font-medium"
-                        >
-                          View Pitch
-                        </a>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div className="flex items-center gap-2">
+                          <a
+                            href={`tel:${candidate.phone}`}
+                            className="text-green-600 hover:text-green-900"
+                          >
+                            <Phone className="w-4 h-4" />
+                          </a>
+                          <a
+                            href={`mailto:${candidate.email}`}
+                            className="text-blue-600 hover:text-blue-900"
+                          >
+                            <Mail className="w-4 h-4" />
+                          </a>
+                        </div>
                       </td>
                     </tr>
                   ))

@@ -3,6 +3,7 @@ import { getServerSupabase } from './supabaseClient'
 import { many } from '@/lib/db'
 import { createAdminClient } from './supabaseAdmin'
 import { logActivity } from './activity'
+import { revalidateMetricsForVeteran } from './metrics-cache'
 
 export interface ReferralEvent {
   referral_id: string
@@ -64,6 +65,21 @@ export async function createOrGetReferral(supporterId: string, pitchId: string):
     share_link: shareLink
   })
 
+  // Cache refresh - invalidate metrics for the veteran
+  try {
+    const { data: pitch } = await supabase
+      .from('pitches')
+      .select('veteran_id')
+      .eq('id', pitchId)
+      .single();
+    
+    if (pitch?.veteran_id) {
+      await revalidateMetricsForVeteran(pitch.veteran_id);
+    }
+  } catch (error) {
+    console.warn('Failed to invalidate metrics cache for referral:', error);
+  }
+
   return data.share_link
 }
 
@@ -98,6 +114,29 @@ export async function trackReferralEvent(event: ReferralEvent): Promise<void> {
       country: event.country,
       ip_hash: event.ip_hash
     })
+
+  // Cache refresh - invalidate metrics for the veteran
+  try {
+    const { data: referral } = await supabase
+      .from('referrals')
+      .select('pitch_id')
+      .eq('id', event.referral_id)
+      .single();
+    
+    if (referral?.pitch_id) {
+      const { data: pitch } = await supabase
+        .from('pitches')
+        .select('veteran_id')
+        .eq('id', referral.pitch_id)
+        .single();
+      
+      if (pitch?.veteran_id) {
+        await revalidateMetricsForVeteran(pitch.veteran_id);
+      }
+    }
+  } catch (error) {
+    console.warn('Failed to invalidate metrics cache for referral event:', error);
+  }
 
   if (error) {
     console.error('Error tracking referral event:', error)

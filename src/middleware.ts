@@ -9,6 +9,7 @@ const roleRoutes = {
   '/dashboard/recruiter': ['recruiter'],
   '/dashboard/admin': ['admin'],
   '/dashboard/supporter': ['supporter'],
+  '/admin': ['admin'],
   '/pitch/new': ['veteran'],
   '/endorse': ['supporter'],
   '/supporter': ['supporter']
