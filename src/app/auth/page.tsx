@@ -20,33 +20,24 @@ export default function AuthPage() {
     
     const checkUser = async () => {
       try {
-        console.log('🔍 Checking user authentication status...');
-        
         // First check if we have a session
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
-          console.error('❌ Session error:', sessionError.message);
           if (isMounted) setIsCheckingAuth(false);
           return;
         }
         
         if (!session) {
-          console.log('❌ No session found');
           if (isMounted) setIsCheckingAuth(false);
           return;
         }
-        
-        console.log('✅ Session found, checking user...');
         
         // Now check the user from the session
         const user = session.user;
         
         if (user) {
-          console.log('✅ User authenticated:', user.email);
-          
           // Check if user has a role
-          console.log('🔍 Checking user role...');
           const { data: profile, error: profileError } = await supabase
             .from('users')
             .select('role')
@@ -54,7 +45,6 @@ export default function AuthPage() {
             .single();
           
           if (profileError) {
-            console.error('❌ Error fetching user profile:', profileError);
             if (isMounted) {
               setShowRoleSelection(true);
               setIsCheckingAuth(false);
@@ -62,24 +52,18 @@ export default function AuthPage() {
             return;
           }
           
-          console.log('📋 User profile:', profile);
-          
           if (profile?.role) {
-            console.log('✅ User has role, redirecting to dashboard:', profile.role);
             if (isMounted) router.push(`/dashboard/${profile.role}`);
           } else {
-            console.log('🔄 User needs role selection');
             if (isMounted) {
               setShowRoleSelection(true);
               setIsCheckingAuth(false);
             }
           }
         } else {
-          console.log('❌ No user in session');
           if (isMounted) setIsCheckingAuth(false);
         }
       } catch (err) {
-        console.error('❌ Auth check error:', err);
         if (isMounted) setIsCheckingAuth(false);
       }
     };
@@ -93,7 +77,6 @@ export default function AuthPage() {
         try {
           const { data: { session } } = await supabase.auth.getSession();
           if (session?.user) {
-            console.log('✅ Session ready after', attempts + 1, 'attempts');
             await checkUser();
             return;
           }
@@ -103,7 +86,6 @@ export default function AuthPage() {
             await new Promise(resolve => setTimeout(resolve, 200));
           }
         } catch (err) {
-          console.log('⚠️ Session check attempt', attempts + 1, 'failed:', err.message);
           attempts++;
           if (attempts < maxAttempts) {
             await new Promise(resolve => setTimeout(resolve, 200));
@@ -112,7 +94,6 @@ export default function AuthPage() {
       }
       
       if (isMounted) {
-        console.log('⏰ Max session check attempts reached, stopping');
         setIsCheckingAuth(false);
       }
     };
@@ -127,23 +108,17 @@ export default function AuthPage() {
     // Fallback: if still checking after 3 seconds, stop and show sign-in
     const fallbackTimer = setTimeout(() => {
       if (isMounted && isCheckingAuth) {
-        console.log('⏰ Fallback: stopping auth check, showing sign-in options');
         setIsCheckingAuth(false);
       }
     }, 3000);
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: string, session: any) => {
-      console.log('🔄 Auth state change:', event, session?.user?.email);
-      
       if (event === 'INITIAL_SESSION') {
-        console.log('✅ Initial session event received');
         if (session?.user) {
-          console.log('✅ Initial session has user, checking role...');
           if (isMounted) {
             checkUser();
           }
         } else {
-          console.log('🔄 Initial session but no user yet, waiting...');
           // Wait a bit more for session to fully establish
           setTimeout(() => {
             if (isMounted) {
@@ -152,8 +127,6 @@ export default function AuthPage() {
           }, 500);
         }
       } else if (event === 'SIGNED_IN' && session?.user) {
-        console.log('✅ User signed in, checking role...');
-        
         // Check if user has a role
         const { data: profile, error: profileError } = await supabase
           .from('users')
@@ -162,7 +135,6 @@ export default function AuthPage() {
           .single();
         
         if (profileError) {
-          console.error('❌ Error fetching profile on auth state change:', profileError);
           if (isMounted) {
             setShowRoleSelection(true);
             setIsCheckingAuth(false);
@@ -170,26 +142,20 @@ export default function AuthPage() {
           return;
         }
         
-        console.log('📋 Profile on auth state change:', profile);
-        
         if (profile?.role) {
-          console.log('✅ User has role, redirecting to dashboard:', profile.role);
           if (isMounted) router.push(`/dashboard/${profile.role}`);
         } else {
-          console.log('🔄 User needs role selection on auth state change');
           if (isMounted) {
             setShowRoleSelection(true);
             setIsCheckingAuth(false);
           }
         }
       } else if (event === 'SIGNED_OUT') {
-        console.log('🔄 User signed out');
         if (isMounted) {
           setShowRoleSelection(false);
           setIsCheckingAuth(false);
         }
       } else if (event === 'TOKEN_REFRESHED') {
-        console.log('🔄 Token refreshed, checking session...');
         if (isMounted) {
           checkUser();
         }
