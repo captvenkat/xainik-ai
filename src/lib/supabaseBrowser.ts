@@ -31,21 +31,27 @@ export async function signInWithGoogle(returnTo: string = '/') {
   // Ensure we have the correct site URL
   const site = process.env.NEXT_PUBLIC_SITE_URL || 'https://xainik.com';
   
-  // Construct the redirect URL without query parameters to avoid state issues
-  const redirectTo = `${site}/auth/callback`;
-  
   // Store the return path in sessionStorage for later retrieval
   if (typeof window !== 'undefined') {
     sessionStorage.setItem('auth_redirect', returnTo);
   }
 
+  // Generate a unique state parameter for OAuth security
+  const state = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+  
+  // Store the state in sessionStorage to verify it on callback
+  if (typeof window !== 'undefined') {
+    sessionStorage.setItem('oauth_state', state);
+  }
+
   const { data, error } = await createSupabaseBrowser().auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo,
+      redirectTo: `${site}/auth/callback`,
       queryParams: {
         access_type: 'offline',
         prompt: 'consent',
+        state: state, // Include the state parameter
       },
     },
   });
