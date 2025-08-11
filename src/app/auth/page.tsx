@@ -30,8 +30,6 @@ function AuthPageContent() {
 
   async function handleGoogle() {
     try {
-      // Clear any previous error state
-      sessionStorage.removeItem('oauth_state');
       await signInWithGoogle(redirect);
     } catch (error) {
       console.error('Google sign-in failed:', error);
@@ -46,6 +44,8 @@ function AuthPageContent() {
     switch (error) {
       case 'state_mismatch':
         return 'Authentication session expired. Please try again.';
+      case 'invalid_state':
+        return 'Invalid authentication state. Please try again.';
       case 'flow_state_not_found':
         return 'Authentication session expired. Please try again.';
       case 'server_error':

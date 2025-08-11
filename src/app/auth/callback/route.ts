@@ -7,14 +7,12 @@ export async function GET(req: Request) {
   const error = url.searchParams.get('error');
   const errorCode = url.searchParams.get('error_code');
   const errorDescription = url.searchParams.get('error_description');
-  const state = url.searchParams.get('state');
   
   console.log('[AUTH] Callback received:', { 
     code: code ? 'present' : 'missing', 
     error, 
     errorCode,
     errorDescription,
-    state: state ? 'present' : 'missing',
     url: req.url 
   });
   
@@ -25,6 +23,10 @@ export async function GET(req: Request) {
     // Handle specific OAuth errors
     if (errorCode === 'flow_state_not_found') {
       return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/auth?error=state_mismatch&message=${encodeURIComponent('Authentication session expired. Please try again.')}`);
+    }
+    
+    if (errorCode === 'bad_oauth_state') {
+      return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/auth?error=invalid_state&message=${encodeURIComponent('Invalid authentication state. Please try again.')}`);
     }
     
     return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/auth?error=${error}&code=${errorCode || ''}&description=${encodeURIComponent(errorDescription || '')}`);

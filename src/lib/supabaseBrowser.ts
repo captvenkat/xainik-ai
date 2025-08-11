@@ -26,7 +26,7 @@ export function createSupabaseBrowser() {
   return supabase;
 }
 
-// Helper: start OAuth with proper state handling
+// Helper: start OAuth with proper redirect handling
 export async function signInWithGoogle(returnTo: string = '/') {
   // Ensure we have the correct site URL
   const site = process.env.NEXT_PUBLIC_SITE_URL || 'https://xainik.com';
@@ -36,14 +36,6 @@ export async function signInWithGoogle(returnTo: string = '/') {
     sessionStorage.setItem('auth_redirect', returnTo);
   }
 
-  // Generate a unique state parameter for OAuth security
-  const state = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-  
-  // Store the state in sessionStorage to verify it on callback
-  if (typeof window !== 'undefined') {
-    sessionStorage.setItem('oauth_state', state);
-  }
-
   const { data, error } = await createSupabaseBrowser().auth.signInWithOAuth({
     provider: 'google',
     options: {
@@ -51,7 +43,6 @@ export async function signInWithGoogle(returnTo: string = '/') {
       queryParams: {
         access_type: 'offline',
         prompt: 'consent',
-        state: state, // Include the state parameter
       },
     },
   });
