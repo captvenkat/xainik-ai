@@ -32,6 +32,10 @@ export default function HomePage() {
               <span className="block text-gradient-primary">for Veterans</span>
             </h1>
 
+            <h2 className="text-2xl lg:text-3xl font-semibold text-gray-700 max-w-4xl mx-auto leading-relaxed mb-6">
+              Xainik is an AI-First, Resume-Free, Community-Supported, Ultra-Fast Hiring Platform for military veterans.
+            </h2>
+
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed mb-10">
               Post a pitch, get calls. Browse verified veterans with direct contact details.
             </p>
