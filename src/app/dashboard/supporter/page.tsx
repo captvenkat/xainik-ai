@@ -1,4 +1,4 @@
-import { getServerSupabase } from '@/lib/supabaseClient'
+import { createSupabaseServerOnly } from '@/lib/supabaseServerOnly'
 import { redirect } from 'next/navigation'
 import { Heart, Share2, TrendingUp, Eye, Phone, Mail, Award, Users, BarChart3 } from 'lucide-react'
 import { getSupporterMetrics } from '@/lib/metrics'
@@ -7,7 +7,7 @@ import PieChart from '@/components/charts/PieChart'
 import LineChart from '@/components/charts/LineChart'
 
 export default async function SupporterDashboard() {
-  const supabase = getServerSupabase()
+  const supabase = createSupabaseServerOnly()
   
   // Check authentication and role
   const { data: { user }, error: authError } = await supabase.auth.getUser()

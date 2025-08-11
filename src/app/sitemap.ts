@@ -1,4 +1,4 @@
-import { getServerSupabase } from '@/lib/supabaseClient'
+import { createSupabaseServerOnly } from '@/lib/supabaseServerOnly'
 
 export default async function sitemap() {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://xainik.com'
@@ -56,7 +56,7 @@ export default async function sitemap() {
   ]
 
   // Get active pitches
-  const supabase = getServerSupabase()
+  const supabase = createSupabaseServerOnly()
   const { data: pitches } = await supabase
     .from('pitches')
     .select('id, updated_at')

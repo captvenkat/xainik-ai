@@ -1,6 +1,6 @@
 'use server'
 
-import { getServerSupabase } from '@/lib/supabaseClient'
+import { createSupabaseServerOnly } from '@/lib/supabaseServerOnly'
 import { getVeteranAnalytics, getRecruiterAnalytics } from '@/lib/metrics'
 import { revalidatePath } from 'next/cache'
 

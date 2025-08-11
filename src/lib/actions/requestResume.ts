@@ -1,6 +1,6 @@
 'use server'
 
-import { getServerSupabase } from '@/lib/supabaseClient'
+import { createSupabaseServerOnly } from '@/lib/supabaseServerOnly'
 import { Resend } from 'resend'
 import { generateToken } from '@/lib/tokens'
 import { mustOne } from '@/lib/db'
@@ -10,7 +10,7 @@ import { notifyResumeRequestReceived, notifyResumeRequestResponse } from '@/lib/
 const resend = new Resend(process.env.RESEND_API_KEY)
 
 export async function requestResume(pitchId: string, recruiterMessage?: string) {
-  const supabase = getServerSupabase()
+  const supabase = createSupabaseServerOnly()
   
   // Get current user (must be recruiter)
   const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -153,7 +153,7 @@ export async function requestResume(pitchId: string, recruiterMessage?: string) 
 }
 
 export async function approveResumeRequest(requestId: string, token: string) {
-  const supabase = getServerSupabase()
+  const supabase = createSupabaseServerOnly()
   
   // Verify token and get request details
   // ... token verification logic ...
@@ -186,7 +186,7 @@ export async function approveResumeRequest(requestId: string, token: string) {
 }
 
 export async function declineResumeRequest(requestId: string, token: string) {
-  const supabase = getServerSupabase()
+  const supabase = createSupabaseServerOnly()
   
   // Verify token and get request details
   // ... token verification logic ...

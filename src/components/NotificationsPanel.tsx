@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Bell, Check, Trash2, Filter, Search } from 'lucide-react'
-import { getBrowserSupabase } from '@/lib/supabaseClient'
+import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 
 interface Notification {
   id: string
@@ -26,7 +26,7 @@ export default function NotificationsPanel() {
 
   async function fetchNotifications() {
     try {
-      const supabase = getBrowserSupabase()
+      const supabase = createSupabaseBrowser()
       
       // Get user
       const { data: { user } } = await supabase.auth.getUser()
@@ -52,7 +52,7 @@ export default function NotificationsPanel() {
 
   async function markAsRead(notificationId: string) {
     try {
-      const supabase = getBrowserSupabase()
+      const supabase = createSupabaseBrowser()
       
       await supabase
         .from('notifications')
@@ -74,7 +74,7 @@ export default function NotificationsPanel() {
 
   async function markAllAsRead() {
     try {
-      const supabase = getBrowserSupabase()
+      const supabase = createSupabaseBrowser()
       
       // Get user
       const { data: { user } } = await supabase.auth.getUser()
@@ -97,7 +97,7 @@ export default function NotificationsPanel() {
 
   async function deleteNotification(notificationId: string) {
     try {
-      const supabase = getBrowserSupabase()
+      const supabase = createSupabaseBrowser()
       
       await supabase
         .from('notifications')

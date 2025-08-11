@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { getBrowserSupabase } from '@/lib/supabaseClient'
+import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 import Link from 'next/link'
 
 interface RoleAwareLinkProps {
@@ -24,7 +24,7 @@ export default function RoleAwareLink({
   const [profile, setProfile] = useState<{ role: string } | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
-  const supabase = getBrowserSupabase()
+  const supabase = createSupabaseBrowser()
 
   useEffect(() => {
     const getUser = async () => {

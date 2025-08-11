@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { getBrowserSupabase } from '@/lib/supabaseClient'
+import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 import AIPitchHelper from '@/components/AIPitchHelper'
 import { Shield, CheckCircle, AlertCircle } from 'lucide-react'
 
@@ -53,7 +53,7 @@ export default function NewPitchPage() {
   }, [])
 
   const checkUserRole = async () => {
-    const supabase = getBrowserSupabase()
+    const supabase = createSupabaseBrowser()
     const { data: { user } } = await supabase.auth.getUser()
     
     if (!user) {

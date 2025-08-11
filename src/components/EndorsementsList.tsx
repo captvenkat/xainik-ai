@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from 'react'
-import { getBrowserSupabase } from '@/lib/supabaseClient'
+import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 import { createEndorsement } from '@/lib/actions/endorsements'
 import { logActivity } from '@/lib/activity'
 import { Star, MessageCircle, CheckCircle, AlertCircle } from 'lucide-react'
@@ -36,7 +36,7 @@ export default function EndorsementsList({
   const [success, setSuccess] = useState(false)
   const [hasEndorsed, setHasEndorsed] = useState(false)
 
-  const supabase = getBrowserSupabase()
+  const supabase = createSupabaseBrowser()
 
   useEffect(() => {
     const checkExistingEndorsement = async () => {

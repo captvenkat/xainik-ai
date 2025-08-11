@@ -1,4 +1,4 @@
-import { getServerSupabase } from '@/lib/supabaseClient'
+import { createSupabaseServerOnly } from '@/lib/supabaseServerOnly'
 import { redirect } from 'next/navigation'
 import { FileText, Download, Eye } from 'lucide-react'
 
@@ -8,7 +8,7 @@ export default async function BillingUATPage() {
     redirect('/')
   }
 
-  const supabase = getServerSupabase()
+  const supabase = createSupabaseServerOnly()
 
   // Fetch last 10 invoices
   const { data: invoices } = await supabase

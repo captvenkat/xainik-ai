@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSupabase } from '@/lib/supabaseClient'
+import { createSupabaseServerOnly } from '@/lib/supabaseServerOnly'
 
 export async function GET(request: NextRequest) {
   // Only allow in development with DEV_TEST_ROUTES=true
@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const supabase = getServerSupabase()
+    const supabase = createSupabaseServerOnly()
     
     // Get current user
     const { data: { user }, error: authError } = await supabase.auth.getUser()

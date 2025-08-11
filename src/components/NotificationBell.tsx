@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { Bell, Check, X } from 'lucide-react'
-import { getBrowserSupabase } from '@/lib/supabaseClient'
+import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 import NotificationsPanel from './NotificationsPanel'
 
 interface Notification {
@@ -24,7 +24,7 @@ export default function NotificationBell() {
     fetchNotifications()
     
     // Set up real-time subscription
-    const supabase = getBrowserSupabase()
+    const supabase = createSupabaseBrowser()
     const channel = supabase
       .channel('notifications')
       .on('postgres_changes', {
@@ -57,7 +57,7 @@ export default function NotificationBell() {
 
   async function fetchNotifications() {
     try {
-      const supabase = getBrowserSupabase()
+      const supabase = createSupabaseBrowser()
       
       // Get user
       const { data: { user } } = await supabase.auth.getUser()
@@ -85,7 +85,7 @@ export default function NotificationBell() {
 
   async function markAsRead(notificationId: string) {
     try {
-      const supabase = getBrowserSupabase()
+      const supabase = createSupabaseBrowser()
       
       await supabase
         .from('notifications')
@@ -108,7 +108,7 @@ export default function NotificationBell() {
 
   async function markAllAsRead() {
     try {
-      const supabase = getBrowserSupabase()
+      const supabase = createSupabaseBrowser()
       
       // Get user
       const { data: { user } } = await supabase.auth.getUser()

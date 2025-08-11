@@ -1,4 +1,4 @@
-import { getServerSupabase } from '../supabaseClient'
+import { createSupabaseServerOnly } from '../supabaseServerOnly'
 import { logActivity } from '../activity'
 import { first } from '@/lib/db'
 import { notifyEndorsementReceived, notifyVerifiedBadge } from '@/lib/notify'
@@ -25,7 +25,7 @@ export async function createEndorsement(
   endorserId: string, 
   text?: string
 ): Promise<Endorsement> {
-  const supabase = getServerSupabase()
+  const supabase = createSupabaseServerOnly()
   
   // Validate text length
   if (text && text.length > 150) {
@@ -112,7 +112,7 @@ export async function createEndorsement(
 
 // Get endorsements for a veteran
 export async function getVeteranEndorsements(veteranId: string): Promise<EndorsementWithUser[]> {
-  const supabase = getServerSupabase()
+  const supabase = createSupabaseServerOnly()
   
   const { data, error } = await supabase
     .from('endorsements')
@@ -137,7 +137,7 @@ export async function getVeteranEndorsements(veteranId: string): Promise<Endorse
 
 // Get endorsement count for community verification
 export async function getEndorsementCount(veteranId: string): Promise<number> {
-  const supabase = getServerSupabase()
+  const supabase = createSupabaseServerOnly()
   
   const { count, error } = await supabase
     .from('endorsements')
@@ -156,7 +156,7 @@ export async function isCommunityVerified(veteranId: string): Promise<boolean> {
 
 // Get endorsements made by a user
 export async function getUserEndorsements(userId: string): Promise<EndorsementWithUser[]> {
-  const supabase = getServerSupabase()
+  const supabase = createSupabaseServerOnly()
   
   const { data, error } = await supabase
     .from('endorsements')

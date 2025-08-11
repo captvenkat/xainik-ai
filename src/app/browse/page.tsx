@@ -1,5 +1,5 @@
 import { Suspense } from 'react'
-import { getServerSupabase } from '@/lib/supabaseClient'
+import { createSupabaseServerOnly } from '@/lib/supabaseServerOnly'
 import Filters from '@/components/Filters'
 import PitchCard from '@/components/PitchCard'
 import { buildSearchQuery } from '@/lib/search'
@@ -49,7 +49,7 @@ export async function generateMetadata({ searchParams }: BrowsePageProps): Promi
 
 export default async function BrowsePage({ searchParams }: BrowsePageProps) {
   const params = await searchParams
-  const supabase = getServerSupabase()
+  const supabase = createSupabaseServerOnly()
   const page = parseInt(params.page || '1')
   const pageSize = 12
   const offset = (page - 1) * pageSize

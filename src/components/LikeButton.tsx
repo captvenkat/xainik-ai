@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react'
 import { Heart } from 'lucide-react'
 import { likePitch, unlikePitch } from '@/lib/actions/likePitch'
-import { createClient } from '@/lib/supabaseClient'
+
 
 interface LikeButtonProps {
   pitchId: string

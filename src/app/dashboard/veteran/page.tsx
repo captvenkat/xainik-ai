@@ -1,4 +1,4 @@
-import { getServerSupabase } from '@/lib/supabaseClient'
+import { createSupabaseServerOnly } from '@/lib/supabaseServerOnly'
 import { redirect } from 'next/navigation'
 import { Shield, Calendar, Users, Eye, Phone, Mail, FileText, Share2, RefreshCw, TrendingUp, Award, Clock, AlertTriangle, Target, Lightbulb } from 'lucide-react'
 import { getVeteranMetrics, getVeteranAnalytics, getTrendlineAllPitches, getCohortsBySource, getAvgTimeToFirstContact } from '@/lib/metrics'
@@ -12,7 +12,7 @@ import RefreshButton from '@/components/RefreshButton'
 import PitchImprovementTips from '@/components/PitchImprovementTips'
 
 export default async function VeteranDashboard() {
-  const supabase = getServerSupabase()
+  const supabase = createSupabaseServerOnly()
   
   // Check authentication and role
   const { data: { user }, error: authError } = await supabase.auth.getUser()

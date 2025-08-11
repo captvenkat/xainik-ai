@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { getBrowserSupabase } from '@/lib/supabaseClient'
+import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 import { 
   Shield,
   Menu,
@@ -21,7 +21,7 @@ export default function Navigation() {
   const [profile, setProfile] = useState<{ role: string; full_name: string } | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
-  const supabase = getBrowserSupabase()
+  const supabase = createSupabaseBrowser()
 
   useEffect(() => {
     const getUser = async () => {

@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSupabase } from '@/lib/supabaseClient'
+import { createSupabaseServerOnly } from '@/lib/supabaseServerOnly'
 import { generatePitch, generateFallbackPitch } from '@/lib/openai'
 import { rateLimits } from '@/middleware/rateLimit'
 
 export async function POST(request: NextRequest) {
   try {
     // Get current user
-    const supabase = getServerSupabase()
+    const supabase = createSupabaseServerOnly()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     
     if (authError || !user) {

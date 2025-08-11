@@ -1,4 +1,4 @@
-import { getServerSupabase } from '@/lib/supabaseClient'
+import { createSupabaseServerOnly } from '@/lib/supabaseServerOnly'
 
 export interface DonationStats {
   total: number
@@ -8,7 +8,7 @@ export interface DonationStats {
 }
 
 export async function getDonationStats(): Promise<DonationStats> {
-  const supabase = getServerSupabase()
+  const supabase = createSupabaseServerOnly()
   
   const today = new Date()
   today.setHours(0, 0, 0, 0)
@@ -63,7 +63,7 @@ export async function getDonationStats(): Promise<DonationStats> {
 }
 
 export async function getRecentDonations(limit: number = 20) {
-  const supabase = getServerSupabase()
+  const supabase = createSupabaseServerOnly()
   
   const { data: donations } = await supabase
     .from('donations')
@@ -92,7 +92,7 @@ export async function createDonation(data: {
   message?: string
   anonymous?: boolean
 }) {
-  const supabase = getServerSupabase()
+  const supabase = createSupabaseServerOnly()
   
   const { data: donation, error } = await supabase
     .from('donations')
@@ -115,7 +115,7 @@ export async function createDonation(data: {
 }
 
 export async function updateDonationStatus(donationId: string, status: 'completed' | 'failed') {
-  const supabase = getServerSupabase()
+  const supabase = createSupabaseServerOnly()
   
   const { error } = await supabase
     .from('donations')

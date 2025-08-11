@@ -1,4 +1,4 @@
-import { getServerSupabase } from '@/lib/supabaseClient'
+import { createSupabaseServerOnly } from '@/lib/supabaseServerOnly'
 import ContactButtons from '@/components/ContactButtons'
 import EndorsementsList from '@/components/EndorsementsList'
 import LikeButton from '@/components/LikeButton'
@@ -12,7 +12,7 @@ import { redirect } from 'next/navigation'
 export const revalidate = 30
 
 async function fetchPitch(id: string) {
-  const supabase = getServerSupabase()
+  const supabase = createSupabaseServerOnly()
   const { data, error } = await supabase
     .from('pitches')
     .select(`
@@ -46,7 +46,7 @@ async function fetchPitch(id: string) {
 
 async function fetchUser() {
   const cookieStore = await cookies()
-  const supabase = getServerSupabase()
+  const supabase = createSupabaseServerOnly()
   
   const { data: { user }, error } = await supabase.auth.getUser()
   

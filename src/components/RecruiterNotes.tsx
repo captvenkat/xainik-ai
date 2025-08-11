@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from 'react'
-import { getBrowserSupabase } from '@/lib/supabaseClient'
+import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 import { logActivity } from '@/lib/activity'
 import { FileText, Save, AlertCircle, CheckCircle } from 'lucide-react'
 
@@ -20,7 +20,7 @@ export default function RecruiterNotes({ pitchId, veteranName, initialNote = '' 
   const [userId, setUserId] = useState<string | null>(null)
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-  const supabase = getBrowserSupabase()
+  const supabase = createSupabaseBrowser()
 
   useEffect(() => {
     const checkUser = async () => {

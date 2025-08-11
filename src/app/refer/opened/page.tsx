@@ -2,7 +2,7 @@
 
 import { useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { getBrowserSupabase } from '@/lib/supabaseClient'
+import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 import { CheckCircle, ThumbsUp, ThumbsDown, MessageSquare } from 'lucide-react'
 import Link from 'next/link'
 
@@ -11,7 +11,7 @@ function ReferralOpenedPageContent() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const searchParams = useSearchParams()
-  const supabase = getBrowserSupabase()
+  const supabase = createSupabaseBrowser()
 
   const referralId = searchParams.get('ref')
   const pitchId = searchParams.get('pitch')

@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSupabase } from '@/lib/supabaseClient'
+import { createSupabaseServerOnly } from '@/lib/supabaseServerOnly'
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = getServerSupabase()
+    const supabase = createSupabaseServerOnly()
     
     // Check admin access
     const { data: { user }, error: authError } = await supabase.auth.getUser()

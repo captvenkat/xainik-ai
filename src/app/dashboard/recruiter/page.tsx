@@ -1,4 +1,4 @@
-import { getServerSupabase } from '@/lib/supabaseClient'
+import { createSupabaseServerOnly } from '@/lib/supabaseServerOnly'
 import { redirect } from 'next/navigation'
 import { Briefcase, Users, Phone, Mail, FileText, TrendingUp, Eye, Calendar, Plus, Download, Filter, BarChart3, Save } from 'lucide-react'
 import { getRecruiterMetrics, getRecruiterAnalytics } from '@/lib/metrics'
@@ -8,7 +8,7 @@ import LineChart from '@/components/charts/LineChart'
 import SavedFiltersClient from '@/components/SavedFiltersClient'
 
 export default async function RecruiterDashboard() {
-  const supabase = getServerSupabase()
+  const supabase = createSupabaseServerOnly()
   
   // Check authentication and role
   const { data: { user }, error: authError } = await supabase.auth.getUser()

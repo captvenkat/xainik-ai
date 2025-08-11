@@ -1,11 +1,11 @@
-import { getServerSupabase } from '@/lib/supabaseClient'
+import { createSupabaseServerOnly } from '@/lib/supabaseServerOnly'
 import { redirect } from 'next/navigation'
 import { FileText, Save, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 
 export default async function EditPitchPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const supabase = getServerSupabase()
+  const supabase = createSupabaseServerOnly()
   
   // Check authentication and role
   const { data: { user }, error: authError } = await supabase.auth.getUser()

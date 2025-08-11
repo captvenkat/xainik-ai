@@ -1,4 +1,4 @@
-import { getServerSupabase } from '@/lib/supabaseClient'
+import { createSupabaseServerOnly } from './supabaseServerOnly'
 import { createHash } from 'crypto'
 
 const IP_SALT = process.env.IP_HASH_SALT || 'default-salt-change-in-production'
@@ -12,7 +12,7 @@ export interface ReferralEventData {
 }
 
 export async function recordEvent(data: ReferralEventData): Promise<void> {
-  const supabase = getServerSupabase()
+  const supabase = createSupabaseServerOnly()
   
   // Hash IP address if provided
   const ipHash = data.ipAddress ? hashIP(data.ipAddress) : null
@@ -81,7 +81,7 @@ function detectPlatform(userAgent?: string): string {
 
 // Enhanced analytics functions
 export async function getReferralFunnel(referralIds: string[], days: number = 30) {
-  const supabase = getServerSupabase()
+  const supabase = createSupabaseServerOnly()
   
   const startDate = new Date()
   startDate.setDate(startDate.getDate() - days)
@@ -103,7 +103,7 @@ export async function getReferralFunnel(referralIds: string[], days: number = 30
 }
 
 export async function getPlatformBreakdown(referralIds: string[], days: number = 30) {
-  const supabase = getServerSupabase()
+  const supabase = createSupabaseServerOnly()
   
   const startDate = new Date()
   startDate.setDate(startDate.getDate() - days)
@@ -145,7 +145,7 @@ export async function getPlatformBreakdown(referralIds: string[], days: number =
 }
 
 export async function getTopReferrers(userId: string, days: number = 30) {
-  const supabase = getServerSupabase()
+  const supabase = createSupabaseServerOnly()
   
   const startDate = new Date()
   startDate.setDate(startDate.getDate() - days)

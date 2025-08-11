@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Phone, Mail } from 'lucide-react'
-import { getBrowserSupabase } from '@/lib/supabaseClient'
+import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 import { logActivity } from '@/lib/activity'
 import { recordEvent } from '@/lib/referralEvents'
 
@@ -28,7 +28,7 @@ export default function ContactButtons({
 
   useEffect(() => {
     const checkUserRole = async () => {
-      const supabase = getBrowserSupabase()
+      const supabase = createSupabaseBrowser()
       const { data: { user } } = await supabase.auth.getUser()
       
       if (user) {

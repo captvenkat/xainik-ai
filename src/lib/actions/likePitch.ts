@@ -1,10 +1,10 @@
 "use server"
 
-import { getServerSupabase } from '../supabaseClient'
+import { createSupabaseServerOnly } from '../supabaseServerOnly'
 import { logActivity } from '../activity'
 
 export async function likePitch(pitchId: string, userId: string): Promise<{ success: boolean; likesCount: number }> {
-  const supabase = getServerSupabase()
+  const supabase = createSupabaseServerOnly()
   
   try {
     // Get pitch details for activity logging
@@ -59,7 +59,7 @@ export async function likePitch(pitchId: string, userId: string): Promise<{ succ
 }
 
 export async function unlikePitch(pitchId: string, userId: string): Promise<{ success: boolean; likesCount: number }> {
-  const supabase = getServerSupabase()
+  const supabase = createSupabaseServerOnly()
   
   try {
     // Get current likes count
