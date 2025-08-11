@@ -8,6 +8,9 @@ function AuthPageContent() {
   const router = useRouter();
   const redirect = params.get('redirect') || '/dashboard/veteran';
   const error = params.get('error');
+  const errorCode = params.get('code');
+  const errorDescription = params.get('description');
+  const message = params.get('message');
 
   useEffect(() => {
     // Clean up accidental hash fragments (implicit grant leftovers)
@@ -27,12 +30,40 @@ function AuthPageContent() {
 
   async function handleGoogle() {
     try {
+      // Clear any previous error state
+      sessionStorage.removeItem('oauth_state');
       await signInWithGoogle(redirect);
     } catch (error) {
       console.error('Google sign-in failed:', error);
       // Handle error appropriately
     }
   }
+
+  // Function to get user-friendly error message
+  const getErrorMessage = () => {
+    if (message) return message;
+    
+    switch (error) {
+      case 'state_mismatch':
+        return 'Authentication session expired. Please try again.';
+      case 'flow_state_not_found':
+        return 'Authentication session expired. Please try again.';
+      case 'server_error':
+        return 'Server error occurred. Please try again.';
+      case 'missing_code':
+        return 'Authentication code missing. Please try again.';
+      case 'exchange_failed':
+        return 'Session creation failed. Please try again.';
+      case 'no_session':
+        return 'Session not created. Please try again.';
+      case 'callback_crash':
+        return 'Authentication error. Please try again.';
+      default:
+        if (errorDescription) return errorDescription;
+        if (error) return `Authentication error: ${error}`;
+        return 'An unexpected error occurred. Please try again.';
+    }
+  };
 
   return (
     <main className="max-w-md mx-auto py-16">
@@ -41,14 +72,13 @@ function AuthPageContent() {
       {error && (
         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
           <p className="text-red-700 text-sm">
-            {error === 'no_state' && 'Authentication failed. Please try again.'}
-            {error === 'missing_code' && 'Authentication code missing. Please try again.'}
-            {error === 'exchange_failed' && 'Session creation failed. Please try again.'}
-            {error === 'no_session' && 'Session not created. Please try again.'}
-            {error === 'callback_crash' && 'Authentication error. Please try again.'}
-            {!['no_state', 'missing_code', 'exchange_failed', 'no_session', 'callback_crash'].includes(error) && 
-              `Authentication error: ${error}`}
+            {getErrorMessage()}
           </p>
+          {errorCode && (
+            <p className="text-red-600 text-xs mt-2">
+              Error Code: {errorCode}
+            </p>
+          )}
         </div>
       )}
       

@@ -5,17 +5,29 @@ export async function GET(req: Request) {
   const url = new URL(req.url);
   const code = url.searchParams.get('code');
   const error = url.searchParams.get('error');
+  const errorCode = url.searchParams.get('error_code');
+  const errorDescription = url.searchParams.get('error_description');
+  const state = url.searchParams.get('state');
   
   console.log('[AUTH] Callback received:', { 
     code: code ? 'present' : 'missing', 
     error, 
+    errorCode,
+    errorDescription,
+    state: state ? 'present' : 'missing',
     url: req.url 
   });
   
   // Check for OAuth errors first
   if (error) {
-    console.error('[AUTH] OAuth error:', error);
-    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/auth?error=${error}`);
+    console.error('[AUTH] OAuth error:', { error, errorCode, errorDescription });
+    
+    // Handle specific OAuth errors
+    if (errorCode === 'flow_state_not_found') {
+      return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/auth?error=state_mismatch&message=${encodeURIComponent('Authentication session expired. Please try again.')}`);
+    }
+    
+    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/auth?error=${error}&code=${errorCode || ''}&description=${encodeURIComponent(errorDescription || '')}`);
   }
 
   if (!code) {
