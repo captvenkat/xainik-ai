@@ -2,8 +2,7 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vites
 import { 
   getCachedTrendline, 
   getCachedCohorts, 
-  getCachedAvgTime,
-  revalidateMetricsForVeteran 
+  getCachedAvgTime
 } from '@/lib/metrics-cache'
 import { 
   seedVeteranWithPitch, 
@@ -25,6 +24,19 @@ vi.mock('next/cache', () => ({
   }),
   revalidateTag: vi.fn()
 }))
+
+// Helper function to revalidate metrics via API
+async function revalidateMetricsForVeteran(veteranId: string) {
+  try {
+    await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/revalidate-metrics`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ veteranId }),
+    });
+  } catch (error) {
+    console.warn('Failed to revalidate metrics in test:', error);
+  }
+}
 
 describe('Cache Invalidation Tests', () => {
   let veteranId: string

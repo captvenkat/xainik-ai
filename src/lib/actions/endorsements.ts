@@ -2,7 +2,7 @@ import { getServerSupabase } from '../supabaseClient'
 import { logActivity } from '../activity'
 import { first } from '@/lib/db'
 import { notifyEndorsementReceived, notifyVerifiedBadge } from '@/lib/notify'
-import { revalidateMetricsForVeteran } from '../metrics-cache'
+
 
 export interface Endorsement {
   id: string
@@ -98,7 +98,11 @@ export async function createEndorsement(
 
   // Invalidate metrics cache for the veteran
   try {
-    await revalidateMetricsForVeteran(veteranId);
+    await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/revalidate-metrics`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ veteranId }),
+    });
   } catch (error) {
     console.warn('Failed to invalidate metrics cache for endorsement:', error);
   }

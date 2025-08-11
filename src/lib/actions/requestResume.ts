@@ -5,7 +5,7 @@ import { Resend } from 'resend'
 import { generateToken } from '@/lib/tokens'
 import { mustOne } from '@/lib/db'
 import { notifyResumeRequestReceived, notifyResumeRequestResponse } from '@/lib/notify'
-import { revalidateMetricsForVeteran } from '@/lib/metrics-cache'
+
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -102,7 +102,11 @@ export async function requestResume(pitchId: string, recruiterMessage?: string) 
   try {
     const veteranId = pitch.profiles?.[0]?.id;
     if (veteranId) {
-      await revalidateMetricsForVeteran(veteranId);
+      await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/revalidate-metrics`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ veteranId }),
+      });
     }
   } catch (error) {
     console.warn('Failed to invalidate metrics cache for resume request:', error);

@@ -3,7 +3,7 @@ import { getServerSupabase } from './supabaseClient'
 import { many } from '@/lib/db'
 import { createAdminClient } from './supabaseAdmin'
 import { logActivity } from './activity'
-import { revalidateMetricsForVeteran } from './metrics-cache'
+
 
 export interface ReferralEvent {
   referral_id: string
@@ -74,7 +74,11 @@ export async function createOrGetReferral(supporterId: string, pitchId: string):
       .single();
     
     if (pitch?.veteran_id) {
-      await revalidateMetricsForVeteran(pitch.veteran_id);
+      await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/revalidate-metrics`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ veteranId: pitch.veteran_id }),
+      });
     }
   } catch (error) {
     console.warn('Failed to invalidate metrics cache for referral:', error);
@@ -131,7 +135,11 @@ export async function trackReferralEvent(event: ReferralEvent): Promise<void> {
         .single();
       
       if (pitch?.veteran_id) {
-        await revalidateMetricsForVeteran(pitch.veteran_id);
+        await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/revalidate-metrics`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ veteranId: pitch.veteran_id }),
+        });
       }
     }
   } catch (error) {
