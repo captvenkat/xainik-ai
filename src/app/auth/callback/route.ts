@@ -52,73 +52,78 @@ export async function GET(req: Request) {
     console.log('[AUTH] Code length:', code.length);
     console.log('[AUTH] Code preview:', code.substring(0, 10) + '...');
     
-    // For PKCE, we need to pass the code verifier
-    // Since this is server-side, we'll try without it first, then with a fallback
-    let exchangeResult;
+    // Try the direct token exchange approach first
     try {
-      // First attempt: try with the code directly
-      exchangeResult = await supabase.auth.exchangeCodeForSession(code);
-    } catch (pkceError) {
-      console.log('[AUTH] First attempt failed, trying alternative approach...');
-      // If that fails, try using the auth API directly
+      console.log('[AUTH] Attempting direct token exchange...');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/token?grant_type=authorization_code&code=${code}&redirect_uri=${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        },
+      });
+      
+      console.log('[AUTH] Token exchange response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('[AUTH] Token exchange failed:', response.status, errorText);
+        throw new Error(`Token exchange failed: ${response.status} ${response.statusText}`);
+      }
+      
+      const tokenData = await response.json();
+      console.log('[AUTH] Direct token exchange successful, tokens received');
+      
+      // Set the session manually
+      const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
+        access_token: tokenData.access_token,
+        refresh_token: tokenData.refresh_token,
+      });
+      
+      if (sessionError) {
+        console.error('[AUTH] Session creation failed:', sessionError);
+        throw sessionError;
+      }
+      
+      console.log('[AUTH] Session created successfully:', {
+        userId: sessionData.session?.user.id,
+        expiresAt: sessionData.session?.expires_at
+      });
+      
+      console.log('[AUTH] Redirecting to dashboard');
+      return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/dashboard/veteran`);
+      
+    } catch (directError) {
+      console.error('[AUTH] Direct token exchange failed, trying exchangeCodeForSession...');
+      
+      // Fallback to the standard method
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/token?grant_type=authorization_code&code=${code}&redirect_uri=${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-          },
+        const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+        
+        if (exchangeError) {
+          console.error('[AUTH] exchangeCodeForSession error:', exchangeError);
+          throw exchangeError;
+        }
+
+        if (!data.session) {
+          console.error('[AUTH] No session created');
+          throw new Error('No session created');
+        }
+
+        console.log('[AUTH] Session created successfully via exchangeCodeForSession:', {
+          userId: data.session.user.id,
+          expiresAt: data.session.expires_at
         });
         
-        if (!response.ok) {
-          throw new Error(`Token exchange failed: ${response.status} ${response.statusText}`);
-        }
+        console.log('[AUTH] Redirecting to dashboard');
+        return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/dashboard/veteran`);
         
-        const tokenData = await response.json();
-        console.log('[AUTH] Direct token exchange successful');
-        
-        // Set the session manually
-        const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
-          access_token: tokenData.access_token,
-          refresh_token: tokenData.refresh_token,
-        });
-        
-        if (sessionError) {
-          throw sessionError;
-        }
-        
-        exchangeResult = { data: sessionData, error: null };
-      } catch (directError) {
-        console.error('[AUTH] Direct token exchange also failed:', directError);
-        throw pkceError; // Throw the original error
+      } catch (fallbackError) {
+        console.error('[AUTH] Both methods failed:', { directError, fallbackError });
+        throw directError; // Throw the original error
       }
     }
     
-    const { data, error: exchangeError } = exchangeResult;
-    
-    if (exchangeError) {
-      console.error('[AUTH] exchangeCodeForSession error:', exchangeError);
-      console.error('[AUTH] Error details:', {
-        message: exchangeError.message,
-        status: exchangeError.status,
-        name: exchangeError.name
-      });
-      return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/auth?error=exchange_failed&details=${encodeURIComponent(exchangeError.message)}`);
-    }
-
-    if (!data.session) {
-      console.error('[AUTH] No session created');
-      return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/auth?error=no_session`);
-    }
-
-    console.log('[AUTH] Session created successfully:', {
-      userId: data.session.user.id,
-      expiresAt: data.session.expires_at
-    });
-    console.log('[AUTH] Redirecting to dashboard');
-    
-    // Success - redirect to dashboard (the redirect path will be handled by the client)
-    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/dashboard/veteran`);
   } catch (e) {
     console.error('[AUTH] Callback crash:', e);
     console.error('[AUTH] Error stack:', e instanceof Error ? e.stack : 'No stack trace');
