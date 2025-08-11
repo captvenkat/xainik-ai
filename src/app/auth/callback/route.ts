@@ -9,11 +9,31 @@ export async function GET(req: Request) {
     const errorCode = url.searchParams.get('error_code');
     const errorDescription = url.searchParams.get('error_description');
     
+    // Check for hash fragment tokens (implicit grant fallback)
+    const hash = req.url.split('#')[1];
+    let accessToken = null;
+    let refreshToken = null;
+    
+    if (hash) {
+      console.log('[AUTH] Hash fragment detected, parsing tokens...');
+      const params = new URLSearchParams(hash);
+      accessToken = params.get('access_token');
+      refreshToken = params.get('refresh_token');
+      
+      if (accessToken) {
+        console.log('[AUTH] Access token found in hash fragment');
+        console.log('[AUTH] Token length:', accessToken.length);
+        console.log('[AUTH] Token preview:', accessToken.substring(0, 20) + '...');
+      }
+    }
+    
     console.log('[AUTH] Callback received:', { 
       code: code ? 'present' : 'missing', 
       error, 
       errorCode,
       errorDescription,
+      hasHash: !!hash,
+      hasAccessToken: !!accessToken,
       url: req.url 
     });
     
@@ -33,8 +53,46 @@ export async function GET(req: Request) {
       return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/auth?error=${error}&code=${errorCode || ''}&description=${encodeURIComponent(errorDescription || '')}`);
     }
 
+    // If we have an access token from hash fragment, use it directly
+    if (accessToken && refreshToken) {
+      console.log('[AUTH] Using tokens from hash fragment...');
+      
+      try {
+        const supabase = await createSupabaseServer();
+        
+        // Set the session with the tokens we received
+        const { data, error: sessionError } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
+        
+        if (sessionError) {
+          console.error('[AUTH] Session creation failed:', sessionError);
+          return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/auth?error=session_creation_failed&details=${encodeURIComponent(sessionError.message)}`);
+        }
+        
+        if (!data.session) {
+          console.error('[AUTH] No session created from tokens');
+          return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/auth?error=no_session_from_tokens`);
+        }
+        
+        console.log('[AUTH] Session created successfully from tokens:', {
+          userId: data.session.user.id,
+          expiresAt: data.session.expires_at
+        });
+        
+        console.log('[AUTH] Redirecting to dashboard (token flow)');
+        return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/dashboard/veteran`);
+        
+      } catch (tokenError) {
+        console.error('[AUTH] Token-based session creation failed:', tokenError);
+        return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/auth?error=token_session_failed&details=${encodeURIComponent(tokenError instanceof Error ? tokenError.message : 'Unknown error')}`);
+      }
+    }
+
+    // Standard authorization code flow
     if (!code) {
-      console.error('[AUTH] No code parameter received');
+      console.error('[AUTH] No code parameter received and no tokens in hash');
       return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/auth?error=missing_code`);
     }
 
@@ -76,7 +134,7 @@ export async function GET(req: Request) {
         expiresAt: data.session.expires_at
       });
       
-      console.log('[AUTH] Redirecting to dashboard');
+      console.log('[AUTH] Redirecting to dashboard (code flow)');
       return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/dashboard/veteran`);
       
     } catch (exchangeError) {
