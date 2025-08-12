@@ -66,6 +66,43 @@ export default function AuthCallbackPage() {
           return;
         }
 
+        // Create user record in the users table if it doesn't exist
+        try {
+          const { data: existingUser, error: userCheckError } = await supabase
+            .from('users')
+            .select('id')
+            .eq('id', verifySession.user.id)
+            .single();
+
+          if (userCheckError && userCheckError.code === 'PGRST116') {
+            // User doesn't exist in the users table, create them
+            const { error: createError } = await supabase
+              .from('users')
+              .insert({
+                id: verifySession.user.id,
+                email: verifySession.user.email || '',
+                name: verifySession.user.user_metadata?.full_name || 
+                       verifySession.user.user_metadata?.name || 
+                       verifySession.user.email?.split('@')[0] || 'User',
+                role: 'veteran' // Default role
+              });
+
+            if (createError) {
+              console.warn('Failed to create user record:', createError);
+              // Don't fail the auth process if user creation fails
+            } else {
+              console.log('User record created successfully');
+            }
+          } else if (userCheckError) {
+            console.warn('Error checking user record:', userCheckError);
+          } else {
+            console.log('User record already exists');
+          }
+        } catch (userError) {
+          console.warn('User creation check failed:', userError);
+          // Don't fail the auth process if user creation fails
+        }
+
         setStatus('success');
         
         // Get the stored redirect path

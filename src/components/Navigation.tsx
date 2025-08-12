@@ -25,34 +25,126 @@ export default function Navigation() {
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
 
+  // Function to create user record if it doesn't exist
+  const createUserRecord = async (user: any) => {
+    try {
+      const { error: createError } = await supabase
+        .from('users')
+        .insert({
+          id: user.id,
+          email: user.email || '',
+          name: user.user_metadata?.full_name || 
+                 user.user_metadata?.name || 
+                 user.email?.split('@')[0] || 'User',
+          role: 'veteran' // Default role
+        })
+
+      if (createError) {
+        console.warn('Failed to create user record:', createError)
+        return false
+      } else {
+        console.log('User record created successfully')
+        return true
+      }
+    } catch (error) {
+      console.warn('User creation error:', error)
+      return false
+    }
+  }
+
   useEffect(() => {
     const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      setUser(user)
-      
-      if (user) {
-        const { data: profile } = await supabase
-          .from('users')
-          .select('role, name')
-          .eq('id', user.id)
-          .single()
-        setProfile(profile ? { role: profile.role as string, full_name: profile.name as string } : null)
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        setUser(user)
+        
+        if (user) {
+          // Try to get user profile with error handling
+          try {
+            const { data: profile, error } = await supabase
+              .from('users')
+              .select('role, name')
+              .eq('id', user.id)
+              .single()
+            
+            if (error) {
+              console.warn('Failed to fetch user profile:', error)
+              
+              // If user doesn't exist in the users table, create them
+              if (error.code === 'PGRST116') {
+                console.log('User not found in database, creating record...')
+                const created = await createUserRecord(user)
+                if (created) {
+                  // Try to fetch the profile again
+                  const { data: newProfile } = await supabase
+                    .from('users')
+                    .select('role, name')
+                    .eq('id', user.id)
+                    .single()
+                  
+                  setProfile(newProfile ? { role: newProfile.role as string, full_name: newProfile.name as string } : null)
+                } else {
+                  // Set default profile if creation fails
+                  setProfile({ role: 'veteran', full_name: user.email || 'User' })
+                }
+              } else {
+                // Set default profile for other errors
+                setProfile({ role: 'veteran', full_name: user.email || 'User' })
+              }
+            } else {
+              setProfile(profile ? { role: profile.role as string, full_name: profile.name as string } : null)
+            }
+          } catch (profileError) {
+            console.warn('Profile fetch error:', profileError)
+            setProfile({ role: 'veteran', full_name: user.email || 'User' })
+          }
+        }
+      } catch (error) {
+        console.error('Auth error:', error)
+      } finally {
+        setIsLoading(false)
       }
-      
-      setIsLoading(false)
     }
 
     getUser()
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event: string, session: any) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: string, session: any) => {
       setUser(session?.user ?? null)
       if (session?.user) {
-        supabase
-          .from('users')
-          .select('role, name')
-          .eq('id', session.user.id)
-          .single()
-          .then(({ data }: { data: any }) => setProfile(data ? { role: data.role, full_name: data.name } : null))
+        try {
+          const { data, error } = await supabase
+            .from('users')
+            .select('role, name')
+            .eq('id', session.user.id)
+            .single()
+          
+          if (error) {
+            console.warn('Profile fetch error in auth change:', error)
+            
+            // If user doesn't exist, create them
+            if (error.code === 'PGRST116') {
+              const created = await createUserRecord(session.user)
+              if (created) {
+                const { data: newProfile } = await supabase
+                  .from('users')
+                  .select('role, name')
+                  .eq('id', session.user.id)
+                  .single()
+                
+                setProfile(newProfile ? { role: newProfile.role, full_name: newProfile.name } : null)
+              } else {
+                setProfile({ role: 'veteran', full_name: session.user.email || 'User' })
+              }
+            } else {
+              setProfile({ role: 'veteran', full_name: session.user.email || 'User' })
+            }
+          } else {
+            setProfile(data ? { role: data.role, full_name: data.name } : null)
+          }
+        } catch (profileError) {
+          console.warn('Profile fetch error in auth change:', profileError)
+          setProfile({ role: 'veteran', full_name: session.user.email || 'User' })
+        }
       } else {
         setProfile(null)
       }
