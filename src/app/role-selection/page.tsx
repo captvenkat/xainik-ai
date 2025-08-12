@@ -1,7 +1,8 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { updateUserRole } from '@/lib/actions/updateUserRole';
+import { updateUserRole } from '@/lib/actions/auth-server';
+import { getCurrentUser } from '@/lib/auth-client';
 import { Shield, Briefcase, Heart, Check } from 'lucide-react';
 
 const roles = [
@@ -50,7 +51,20 @@ export default function RoleSelectionPage() {
   const [selectedRole, setSelectedRole] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>('');
+  const [user, setUser] = useState<any>(null);
   const router = useRouter();
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const currentUser = await getCurrentUser();
+        setUser(currentUser);
+      } catch (err) {
+        console.error('Failed to fetch user:', err);
+      }
+    };
+    fetchUser();
+  }, []);
 
   const handleRoleSelection = async () => {
     if (!selectedRole) {
@@ -63,7 +77,7 @@ export default function RoleSelectionPage() {
 
     try {
       // Use the server action to update the user role
-      await updateUserRole(selectedRole as 'veteran' | 'recruiter' | 'supporter');
+      await updateUserRole(user?.id || '', selectedRole as 'veteran' | 'recruiter' | 'supporter');
 
       // Redirect to the appropriate dashboard
       router.push(`/dashboard/${selectedRole}`);

@@ -4,6 +4,7 @@ export async function GET() {
   try {
     
     // Test 1: Environment variables
+    return NextResponse.json({
       hasUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
       hasKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
       hasSiteUrl: !!process.env.NEXT_PUBLIC_SITE_URL,

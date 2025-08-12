@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { createSupabaseServerOnly } from '@/lib/supabaseServerOnly';
 
 export async function GET() {
-  const supabase = createSupabaseServerOnly();
+  const supabase = await createSupabaseServerOnly();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: 'no-session' }, { status: 401 });
 
@@ -20,7 +20,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const supabase = createSupabaseServerOnly();
+  const supabase = await createSupabaseServerOnly();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: 'no-session' }, { status: 401 });
 

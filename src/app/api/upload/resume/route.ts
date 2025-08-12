@@ -5,7 +5,7 @@ import { uploadResume } from '@/lib/storage'
 export async function POST(request: NextRequest) {
   try {
     // Get current user
-    const supabase = createSupabaseServerOnly()
+    const supabase = await createSupabaseServerOnly()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     
     if (authError || !user) {
@@ -39,11 +39,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Upload to storage
-    const storagePath = await uploadResume(user.id, file, file.name)
+    const result = await uploadResume(file, user.id)
 
     return NextResponse.json({ 
       success: true, 
-      storagePath,
+      storagePath: result.url,
       fileName: file.name,
       fileSize: file.size
     })

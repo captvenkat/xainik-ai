@@ -1,101 +1,116 @@
-"use server"
+'use server'
 
-import { createSupabaseServerOnly } from '../supabaseServerOnly'
-import { logActivity } from '../activity'
+import { createActionClient } from '@/lib/supabase-server'
+import { logUserActivity } from '@/lib/actions/activity-server'
+import { revalidatePath } from 'next/cache'
 
-export async function likePitch(pitchId: string, userId: string): Promise<{ success: boolean; likesCount: number }> {
-  const supabase = createSupabaseServerOnly()
-  
+export async function likePitch(pitchId: string, userId: string) {
   try {
-    // Get pitch details for activity logging
-    const { data: pitch } = await supabase
-      .from('pitches')
-      .select('user_id') // Changed from veteran_id
-      .eq('id', pitchId)
-      .single()
-
-    if (!pitch) {
-      throw new Error('Pitch not found')
-    }
-
-    // Increment likes count
-    const { data: updatedPitch, error: updateError } = await supabase
+    const supabaseAction = await createActionClient()
+    
+    // Check if user has already liked this pitch
+    // Since pitch_likes table doesn't exist, we'll use a different approach
+    // We'll track likes through activity logs and update the likes_count in pitches table
+    
+    // Update the pitch likes count
+    const { data: pitch, error: updateError } = await supabaseAction
       .from('pitches')
       .update({ 
-        likes_count: pitch.likes_count + 1 
+        likes_count: supabaseAction.rpc('increment_likes_count', { pitch_id: pitchId })
       })
       .eq('id', pitchId)
-      .select('likes_count')
+      .select()
       .single()
 
     if (updateError) {
-      throw new Error('Failed to update pitch likes')
+      console.error('Error updating pitch likes:', updateError)
+      throw new Error('Failed to like pitch')
     }
 
-    // Log activity
-    await logActivity('like_added', {
-      pitch_id: pitchId,
-      pitch_title: pitch.title,
-      veteran_name: pitch.users?.[0]?.name || 'Unknown',
-      user_id: userId
+    // Log the like activity
+    await logActivity({
+      user_id: userId,
+      activity_type: 'pitch_liked',
+      activity_data: { pitch_id: pitchId }
     })
 
-    return {
-      success: true,
-      likesCount: updatedPitch.likes_count
-    }
-
+    revalidatePath('/browse')
+    revalidatePath(`/pitch/${pitchId}`)
+    
+    return { success: true, data: pitch }
   } catch (error) {
-    throw new Error('Failed to like pitch')
+    console.error('Error in likePitch:', error)
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
   }
 }
 
-export async function unlikePitch(pitchId: string, userId: string): Promise<{ success: boolean; likesCount: number }> {
-  const supabase = createSupabaseServerOnly()
-  
+export async function unlikePitch(pitchId: string, userId: string) {
   try {
-    // Get current likes count
-    const { data: pitch, error: pitchError } = await supabase
-      .from('pitches')
-      .select('likes_count')
-      .eq('id', pitchId)
-      .single()
-
-    if (pitchError || !pitch) {
-      throw new Error('Pitch not found')
-    }
-
-    // Decrement likes count (ensure it doesn't go below 0)
-    const newLikesCount = Math.max(0, pitch.likes_count - 1)
+    const supabaseAction = await createActionClient()
     
-    const { data: updatedPitch, error: updateError } = await supabase
+    // Update the pitch likes count
+    const { data: pitch, error: updateError } = await supabaseAction
       .from('pitches')
       .update({ 
-        likes_count: newLikesCount 
+        likes_count: supabaseAction.rpc('decrement_likes_count', { pitch_id: pitchId })
       })
       .eq('id', pitchId)
-      .select('likes_count')
+      .select()
       .single()
 
     if (updateError) {
-      throw new Error('Failed to update pitch likes')
+      console.error('Error updating pitch likes:', updateError)
+      throw new Error('Failed to unlike pitch')
     }
 
-    return {
-      success: true,
-      likesCount: updatedPitch.likes_count
-    }
+    // Log the unlike activity
+    await logActivity({
+      user_id: userId,
+      activity_type: 'pitch_unliked',
+      activity_data: { pitch_id: pitchId }
+    })
 
+    revalidatePath('/browse')
+    revalidatePath(`/pitch/${pitchId}`)
+    
+    return { success: true, data: pitch }
   } catch (error) {
-    throw new Error('Failed to unlike pitch')
+    console.error('Error in unlikePitch:', error)
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
   }
 }
 
-// Check if user has liked a pitch (for UI state)
-export async function hasUserLikedPitch(pitchId: string, userId: string): Promise<boolean> {
-  // Note: This is a simplified implementation
-  // In a real app, you might want a separate likes table to track individual user likes
-  // For now, we'll return false as we're only tracking total count
-  
-  return false
+export async function checkIfLiked(pitchId: string, userId: string): Promise<boolean> {
+  try {
+    const supabaseAction = await createActionClient()
+    
+    // Check if user has liked this pitch by looking at activity logs
+    const { data: activity } = await supabaseAction
+      .from('user_activity_log')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('activity_type', 'pitch_liked')
+      .eq('activity_data->pitch_id', pitchId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+
+    if (!activity || activity.length === 0) {
+      return false
+    }
+
+    // Check if there's a more recent unlike activity
+    const { data: unlikeActivity } = await supabaseAction
+      .from('user_activity_log')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('activity_type', 'pitch_unliked')
+      .eq('activity_data->pitch_id', pitchId)
+      .gt('created_at', activity[0].created_at)
+      .limit(1)
+
+    return unlikeActivity.length === 0
+  } catch (error) {
+    console.error('Error checking if pitch is liked:', error)
+    return false
+  }
 }

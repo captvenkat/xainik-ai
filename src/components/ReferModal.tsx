@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Share2, Copy, ExternalLink, MessageCircle, Linkedin, Mail } from 'lucide-react'
 import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
-import { createOrGetReferral, trackReferralEvent } from '@/lib/referrals'
+import { createOrGetReferral, trackReferralEvent } from '@/lib/actions/referrals-server'
 
 interface ReferModalProps {
   pitchId: string
@@ -35,7 +35,7 @@ export default function ReferModal({
         .eq('id', userId)
         .single()
       
-      setUserRole(profile?.role || null)
+      setUserRole((profile?.role as string) || null)
     }
 
     checkUserRole()

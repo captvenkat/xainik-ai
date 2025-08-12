@@ -9,6 +9,7 @@ export async function GET(req: Request) {
     const errorCode = url.searchParams.get('error_code');
     const errorDescription = url.searchParams.get('error_description');
     
+    return NextResponse.json({
       code: code ? 'present' : 'missing', 
       error, 
       errorCode,
@@ -33,7 +34,7 @@ export async function GET(req: Request) {
     
     // Add some headers to see if they help
     response.headers.set('X-Callback-Status', 'success');
-    response.headers.set('X-Code-Length', code.length.toString());
+    response.headers.set('X-Code-Length', (code?.length || 0).toString());
     
     return response;
     

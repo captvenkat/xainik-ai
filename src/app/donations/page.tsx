@@ -1,5 +1,5 @@
 import { Suspense } from 'react'
-import { getDonationStats, getRecentDonations } from '@/lib/donations'
+import { getDonationStats, getAllDonations } from '@/lib/actions/donations-server'
 import { Heart, TrendingUp, Calendar, Award, Users } from 'lucide-react'
 import DonationForm from '@/components/DonationForm'
 import { Metadata } from 'next'
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 export default async function DonationsPage() {
   const [stats, recentDonations] = await Promise.all([
     getDonationStats(),
-    getRecentDonations(20)
+    getAllDonations()
   ])
 
   return (
@@ -44,7 +44,7 @@ export default async function DonationsPage() {
             <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4">
               <Heart className="w-6 h-6 text-blue-600" />
             </div>
-            <div className="text-3xl font-bold text-blue-900">₹{stats.total.toLocaleString()}</div>
+            <div className="text-3xl font-bold text-blue-900">₹{(stats.total_amount / 100).toLocaleString()}</div>
             <div className="text-sm text-blue-700">Total Raised</div>
           </div>
 
@@ -52,7 +52,7 @@ export default async function DonationsPage() {
             <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-4">
               <TrendingUp className="w-6 h-6 text-green-600" />
             </div>
-            <div className="text-3xl font-bold text-green-900">₹{stats.today.toLocaleString()}</div>
+            <div className="text-3xl font-bold text-green-900">₹{stats.total_donations}</div>
             <div className="text-sm text-green-700">Today</div>
           </div>
 
@@ -60,7 +60,7 @@ export default async function DonationsPage() {
             <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-4">
               <Calendar className="w-6 h-6 text-purple-600" />
             </div>
-            <div className="text-3xl font-bold text-purple-900">₹{stats.last.toLocaleString()}</div>
+            <div className="text-3xl font-bold text-purple-900">₹{stats.total_donors}</div>
             <div className="text-sm text-purple-700">Last Donation</div>
           </div>
 
@@ -68,7 +68,7 @@ export default async function DonationsPage() {
             <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mx-auto mb-4">
               <Award className="w-6 h-6 text-orange-600" />
             </div>
-            <div className="text-3xl font-bold text-orange-900">₹{stats.highest.toLocaleString()}</div>
+            <div className="text-3xl font-bold text-orange-900">₹{(stats.average_donation / 100).toLocaleString()}</div>
             <div className="text-sm text-orange-700">Highest</div>
           </div>
         </div>
@@ -93,18 +93,16 @@ export default async function DonationsPage() {
             ) : (
               <div className="space-y-4">
                 {recentDonations.map((donation) => (
-                  <div key={donation.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div key={donation.id as string} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                     <div>
-                      <div className="font-medium text-gray-900">{donation.donor_name}</div>
-                      {donation.message && (
-                        <div className="text-sm text-gray-600 mt-1">"{donation.message}"</div>
-                      )}
+                      <div className="font-medium text-gray-900">{donation.is_anonymous ? 'Anonymous' : 'Supporter'}</div>
+                      <div className="text-sm text-gray-600 mt-1">Donation received</div>
                       <div className="text-xs text-gray-500 mt-1">
-                        {new Date(donation.created_at).toLocaleDateString()}
+                        {new Date(donation.created_at as string).toLocaleDateString()}
                       </div>
                     </div>
                     <div className="text-lg font-bold text-green-600">
-                      ₹{donation.amount.toLocaleString()}
+                      ₹{(donation.amount_cents / 100).toLocaleString()}
                     </div>
                   </div>
                 ))}

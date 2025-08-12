@@ -32,23 +32,37 @@ export default function DonationSnapshot() {
       try {
         const supabase = createSupabaseBrowser()
         const { data, error } = await supabase
-          .from('donations_aggregates')
+          .from('donations')
           .select('*')
-          .single()
+          .order('created_at', { ascending: false })
+          .limit(100)
 
         if (error) {
           // Don't throw, just use default stats
           setStats(defaultStats)
           setHasError(true)
         } else {
-          // Ensure all values are safe numbers/strings
+          // Calculate stats from donations data
+          const totalDonations = data?.length || 0
+          const totalAmount = data?.reduce((sum: number, donation: any) => sum + (donation.amount_cents || 0), 0) || 0
+          const today = new Date().toDateString()
+          const todayDonations = data?.filter((donation: any) => 
+            new Date(donation.created_at).toDateString() === today
+          ) || []
+          const todayCount = todayDonations.length
+          const todayAmount = todayDonations.reduce((sum: number, donation: any) => sum + (donation.amount_cents || 0), 0)
+          const highestDonation = data?.reduce((max: number, donation: any) => 
+            Math.max(max, donation.amount_cents || 0), 0
+          ) || 0
+          const lastDonationAt = data?.[0]?.created_at || null
+
           setStats({
-            total_donations: data?.total_donations || 0,
-            total_amount: data?.total_amount || 0,
-            today_count: data?.today_count || 0,
-            today_amount: data?.today_amount || 0,
-            highest_donation: data?.highest_donation || 0,
-            last_donation_at: data?.last_donation_at || null
+            total_donations: totalDonations,
+            total_amount: totalAmount,
+            today_count: todayCount,
+            today_amount: todayAmount,
+            highest_donation: highestDonation,
+            last_donation_at: lastDonationAt
           })
           setHasError(false)
         }

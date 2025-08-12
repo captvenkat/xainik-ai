@@ -7,12 +7,13 @@ export default async function SupporterReferPage() {
   const supabase = createSupabaseServerOnly()
   
   // Check authentication and role
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  const supabaseClient = await supabase
+  const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
   if (authError || !user) {
     redirect('/auth?redirectTo=/supporter/refer')
   }
 
-  const { data: profile } = await supabase
+  const { data: profile } = await supabaseClient
     .from('users')
     .select('role')
     .eq('id', user.id)
@@ -23,20 +24,18 @@ export default async function SupporterReferPage() {
   }
 
   // Fetch active pitches that can be referred
-  const { data: activePitches } = await supabase
+  const { data: activePitches } = await supabaseClient
     .from('pitches')
     .select(`
       id,
       title,
       pitch_text,
       skills,
-      location,
-      veteran:users!pitches_veteran_id_fkey(
+      experience_years,
+      user:users(
         name
       )
     `)
-    .eq('is_active', true)
-    .gt('plan_expires_at', new Date().toISOString())
     .order('created_at', { ascending: false })
     .limit(20)
 
@@ -97,14 +96,14 @@ export default async function SupporterReferPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
           {activePitches && activePitches.length > 0 ? (
             activePitches.map((pitch) => (
-              <div key={pitch.id} className="bg-white rounded-xl shadow-lg p-6">
+              <div key={pitch.id as string} className="bg-white rounded-xl shadow-lg p-6">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                      {pitch.title}
+                      {pitch.title as string}
                     </h3>
                     <p className="text-sm text-gray-600 mb-3">
-                      {pitch.pitch_text?.substring(0, 120)}...
+                      {(pitch.pitch_text as string)?.substring(0, 120)}...
                     </p>
                   </div>
                 </div>
@@ -113,22 +112,22 @@ export default async function SupporterReferPage() {
                   <div className="flex items-center gap-2">
                     <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
                       <span className="text-sm font-medium text-gray-600">
-                        {pitch.veteran?.[0]?.name?.charAt(0) || '?'}
+                        {(pitch.user as any)?.name?.charAt(0) || '?'}
                       </span>
                     </div>
                     <div>
-                      <div className="font-medium text-gray-900">
-                        {pitch.veteran?.[0]?.name || 'Unknown'}
+                                                                    <div className="font-medium text-gray-900">
+                        {(pitch.user as any)?.name || 'Unknown'}
                       </div>
                       <div className="text-sm text-gray-600">
-                        {pitch.location}
+                        {(pitch.experience_years || 0)} years experience
                       </div>
                     </div>
                   </div>
 
-                  {pitch.skills && pitch.skills.length > 0 && (
+                  {(pitch.skills as string[]) && (pitch.skills as string[]).length > 0 && (
                     <div className="flex flex-wrap gap-1">
-                      {pitch.skills.slice(0, 3).map((skill: string, index: number) => (
+                      {(pitch.skills as string[]).slice(0, 3).map((skill: string, index: number) => (
                         <span
                           key={index}
                           className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
@@ -136,9 +135,9 @@ export default async function SupporterReferPage() {
                           {skill}
                         </span>
                       ))}
-                      {pitch.skills.length > 3 && (
+                      {(pitch.skills as string[]).length > 3 && (
                         <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
-                          +{pitch.skills.length - 3} more
+                          +{(pitch.skills as string[]).length - 3} more
                         </span>
                       )}
                     </div>

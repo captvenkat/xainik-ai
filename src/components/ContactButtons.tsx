@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react'
 import { Phone, Mail } from 'lucide-react'
 import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
-import { logActivity } from '@/lib/activity'
-import { recordEvent } from '@/lib/referralEvents'
+import { logUserActivity } from '@/lib/actions/activity-server'
+import { recordEvent } from '@/lib/actions/referral-events-server'
 
 interface ContactButtonsProps {
   phone?: string | undefined
@@ -38,7 +38,7 @@ export default function ContactButtons({
           .eq('id', user.id)
           .single()
         
-        setUserRole(profile?.role || null)
+        setUserRole(profile?.role as string || null)
       }
       setIsLoading(false)
     }
@@ -62,11 +62,17 @@ export default function ContactButtons({
     }
     
     try {
-      await logActivity('recruiter_called', { 
-        phone,
-        veteran_name: veteranName,
-        pitch_title: pitchTitle
-      })
+      // Skip activity logging for anonymous users
+      // await logUserActivity({
+      //   user_id: null, // Anonymous activity
+      //   activity_type: 'contact_made',
+      //   metadata: {
+      //     phone,
+      //     veteran_name: veteranName,
+      //     pitch_title: pitchTitle,
+      //     contact_type: 'call'
+      //   }
+      // })
     } catch (error) {
       // Don't break the UI if logging fails
     }
@@ -90,11 +96,17 @@ export default function ContactButtons({
     }
     
     try {
-      await logActivity('recruiter_emailed', { 
-        email,
-        veteran_name: veteranName,
-        pitch_title: pitchTitle
-      })
+      // Skip activity logging for anonymous users
+      // await logUserActivity({
+      //   user_id: null, // Anonymous activity
+      //   activity_type: 'contact_made',
+      //   metadata: {
+      //     email,
+      //     veteran_name: veteranName,
+      //     pitch_title: pitchTitle,
+      //     contact_type: 'email'
+      //   }
+      // })
     } catch (error) {
       // Don't break the UI if logging fails
     }

@@ -1,572 +1,836 @@
-export interface Database {
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
+
+export type Database = {
+  // Allows to automatically instanciate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "13.0.4"
+  }
   public: {
     Tables: {
-      users: {
+      donations: {
         Row: {
-          id: string
-          email: string
-          name: string
-          phone: string | null
-          role: string
-          avatar_url: string | null
+          amount_cents: number
           created_at: string
-          updated_at: string
+          currency: string
+          id: string
+          is_anonymous: boolean
+          razorpay_payment_id: string | null
+          user_id: string | null
         }
         Insert: {
-          id?: string
-          email: string
-          name: string
-          phone?: string | null
-          role: string
-          avatar_url?: string | null
+          amount_cents: number
           created_at?: string
-          updated_at?: string
+          currency?: string
+          id?: string
+          is_anonymous?: boolean
+          razorpay_payment_id?: string | null
+          user_id?: string | null
         }
         Update: {
-          id?: string
-          email?: string
-          name?: string
-          phone?: string | null
-          role?: string
-          avatar_url?: string | null
+          amount_cents?: number
           created_at?: string
-          updated_at?: string
+          currency?: string
+          id?: string
+          is_anonymous?: boolean
+          razorpay_payment_id?: string | null
+          user_id?: string | null
         }
+        Relationships: []
       }
-      user_profiles: {
+      email_logs: {
         Row: {
+          content: string | null
+          created_at: string | null
+          email_type: string
           id: string
-          user_id: string
-          profile_type: string
-          profile_data: Json
-          is_active: boolean
-          created_at: string
-          updated_at: string
+          recipient_email: string
+          sent_at: string | null
+          status: string | null
+          subject: string | null
+          user_id: string | null
         }
         Insert: {
+          content?: string | null
+          created_at?: string | null
+          email_type: string
           id?: string
-          user_id: string
-          profile_type: string
-          profile_data?: Json
-          is_active?: boolean
-          created_at?: string
-          updated_at?: string
+          recipient_email: string
+          sent_at?: string | null
+          status?: string | null
+          subject?: string | null
+          user_id?: string | null
         }
         Update: {
+          content?: string | null
+          created_at?: string | null
+          email_type?: string
           id?: string
-          user_id?: string
-          profile_type?: string
-          profile_data?: Json
-          is_active?: boolean
-          created_at?: string
-          updated_at?: string
+          recipient_email?: string
+          sent_at?: string | null
+          status?: string | null
+          subject?: string | null
+          user_id?: string | null
         }
-      }
-      pitches: {
-        Row: {
-          id: string
-          user_id: string
-          title: string
-          pitch_text: string
-          skills: string[]
-          job_type: string
-          location: string
-          availability: string
-          experience_years: number | null
-          photo_url: string | null
-          phone: string | null
-          linkedin_url: string | null
-          resume_url: string | null
-          resume_share_enabled: boolean
-          plan_tier: string | null
-          plan_expires_at: string | null
-          is_active: boolean
-          likes_count: number
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          title: string
-          pitch_text: string
-          skills?: string[]
-          job_type: string
-          location: string
-          availability: string
-          experience_years?: number | null
-          photo_url?: string | null
-          phone?: string | null
-          linkedin_url?: string | null
-          resume_url?: string | null
-          resume_share_enabled?: boolean
-          plan_tier?: string | null
-          plan_expires_at?: string | null
-          is_active?: boolean
-          likes_count?: number
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          title?: string
-          pitch_text?: string
-          skills?: string[]
-          job_type?: string
-          location?: string
-          availability?: string
-          experience_years?: number | null
-          photo_url?: string | null
-          phone?: string | null
-          linkedin_url?: string | null
-          resume_url?: string | null
-          resume_share_enabled?: boolean
-          plan_tier?: string | null
-          plan_expires_at?: string | null
-          is_active?: boolean
-          likes_count?: number
-          created_at?: string
-          updated_at?: string
-        }
+        Relationships: [
+          {
+            foreignKeyName: "email_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       endorsements: {
         Row: {
-          id: string
-          user_id: string
+          created_at: string
           endorser_user_id: string | null
+          id: string
           text: string
-          created_at: string
+          user_id: string
         }
         Insert: {
-          id?: string
-          user_id: string
-          endorser_user_id?: string | null
-          text: string
           created_at?: string
+          endorser_user_id?: string | null
+          id?: string
+          text: string
+          user_id: string
         }
         Update: {
-          id?: string
-          user_id?: string
+          created_at?: string
           endorser_user_id?: string | null
+          id?: string
           text?: string
-          created_at?: string
-        }
-      }
-      referrals: {
-        Row: {
-          id: string
-          pitch_id: string
-          user_id: string
-          share_link: string
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          pitch_id: string
-          user_id: string
-          share_link: string
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          pitch_id?: string
           user_id?: string
-          share_link?: string
-          created_at?: string
         }
+        Relationships: []
       }
-      referral_events: {
+      invoices: {
         Row: {
-          id: string
-          referral_id: string
-          event_type: string
-          platform: string | null
-          user_agent: string | null
-          country: string | null
-          ip_hash: string | null
-          feedback: string | null
-          feedback_comment: string | null
-          feedback_at: string | null
-          debounce_key: string | null
-          occurred_at: string
-        }
-        Insert: {
-          id?: string
-          referral_id: string
-          event_type: string
-          platform?: string | null
-          user_agent?: string | null
-          country?: string | null
-          ip_hash?: string | null
-          feedback?: string | null
-          feedback_comment?: string | null
-          feedback_at?: string | null
-          debounce_key?: string | null
-          occurred_at?: string
-        }
-        Update: {
-          id?: string
-          referral_id?: string
-          event_type?: string
-          platform?: string | null
-          user_agent?: string | null
-          country?: string | null
-          ip_hash?: string | null
-          feedback?: string | null
-          feedback_comment?: string | null
-          feedback_at?: string | null
-          debounce_key?: string | null
-          occurred_at?: string
-        }
-      }
-      resume_requests: {
-        Row: {
-          id: string
-          pitch_id: string | null
-          user_id: string
-          recruiter_user_id: string
-          job_role: string | null
-          status: string
-          responded_at: string | null
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          pitch_id?: string | null
-          user_id: string
-          recruiter_user_id: string
-          job_role?: string | null
-          status?: string
-          responded_at?: string | null
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          pitch_id?: string | null
-          user_id?: string
-          recruiter_user_id?: string
-          job_role?: string | null
-          status?: string
-          responded_at?: string | null
-          created_at?: string
-        }
-      }
-      notifications: {
-        Row: {
-          id: string
-          user_id: string
-          type: string
-          payload_json: Json | null
-          channel: string
-          status: string
-          created_at: string
-          sent_at: string | null
-          read_at: string | null
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          type: string
-          payload_json?: Json | null
-          channel?: string
-          status?: string
-          created_at?: string
-          sent_at?: string | null
-          read_at?: string | null
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          type?: string
-          payload_json?: Json | null
-          channel?: string
-          status?: string
-          created_at?: string
-          sent_at?: string | null
-          read_at?: string | null
-        }
-      }
-      notification_prefs: {
-        Row: {
-          user_id: string
-          email_enabled: boolean
-          in_app_enabled: boolean
-          referral_notifications: boolean
-          pitch_notifications: boolean
-          endorsement_notifications: boolean
-          resume_request_notifications: boolean
-          plan_notifications: boolean
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          user_id: string
-          email_enabled?: boolean
-          in_app_enabled?: boolean
-          referral_notifications?: boolean
-          pitch_notifications?: boolean
-          endorsement_notifications?: boolean
-          resume_request_notifications?: boolean
-          plan_notifications?: boolean
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          user_id?: string
-          email_enabled?: boolean
-          in_app_enabled?: boolean
-          referral_notifications?: boolean
-          pitch_notifications?: boolean
-          endorsement_notifications?: boolean
-          resume_request_notifications?: boolean
-          plan_notifications?: boolean
-          created_at?: string
-          updated_at?: string
-        }
-      }
-      shared_pitches: {
-        Row: {
-          user_id: string | null
-          pitch_id: string | null
-          share_link: string
-          click_count: number
-          created_at: string
-        }
-        Insert: {
-          user_id?: string | null
-          pitch_id?: string | null
-          share_link: string
-          click_count?: number
-          created_at?: string
-        }
-        Update: {
-          user_id?: string | null
-          pitch_id?: string | null
-          share_link?: string
-          click_count?: number
-          created_at?: string
-        }
-      }
-      donations: {
-        Row: {
-          id: string
-          user_id: string | null
+          amount: number | null
           amount_cents: number
-          currency: string
-          is_anonymous: boolean
+          created_at: string | null
+          currency: string | null
+          due_date: string | null
+          id: string
+          invoice_number: string
+          metadata: Json | null
+          notes: string | null
+          number: string | null
+          paid_at: string | null
+          payment_method: string | null
+          plan_id: string | null
+          plan_tier: string | null
           razorpay_payment_id: string | null
-          created_at: string
+          status: string | null
+          subscription_id: string | null
+          tax_amount_cents: number | null
+          total_amount_cents: number
+          updated_at: string | null
+          user_id: string
         }
         Insert: {
-          id?: string
-          user_id?: string | null
+          amount?: number | null
           amount_cents: number
-          currency?: string
-          is_anonymous?: boolean
+          created_at?: string | null
+          currency?: string | null
+          due_date?: string | null
+          id?: string
+          invoice_number: string
+          metadata?: Json | null
+          notes?: string | null
+          number?: string | null
+          paid_at?: string | null
+          payment_method?: string | null
+          plan_id?: string | null
+          plan_tier?: string | null
           razorpay_payment_id?: string | null
-          created_at?: string
+          status?: string | null
+          subscription_id?: string | null
+          tax_amount_cents?: number | null
+          total_amount_cents: number
+          updated_at?: string | null
+          user_id: string
         }
         Update: {
-          id?: string
-          user_id?: string | null
+          amount?: number | null
           amount_cents?: number
-          currency?: string
-          is_anonymous?: boolean
+          created_at?: string | null
+          currency?: string | null
+          due_date?: string | null
+          id?: string
+          invoice_number?: string
+          metadata?: Json | null
+          notes?: string | null
+          number?: string | null
+          paid_at?: string | null
+          payment_method?: string | null
+          plan_id?: string | null
+          plan_tier?: string | null
           razorpay_payment_id?: string | null
-          created_at?: string
+          status?: string | null
+          subscription_id?: string | null
+          tax_amount_cents?: number | null
+          total_amount_cents?: number
+          updated_at?: string | null
+          user_id?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "service_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "user_subscriptions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
-      recruiter_notes: {
+      migration_audit: {
         Row: {
+          created_at: string | null
           id: string
-          user_id: string
-          pitch_id: string
-          note_text: string
-          created_at: string
-          updated_at: string
+          migration_name: string
+          status: string
         }
         Insert: {
+          created_at?: string | null
           id?: string
-          user_id: string
-          pitch_id: string
-          note_text: string
-          created_at?: string
-          updated_at?: string
+          migration_name: string
+          status: string
         }
         Update: {
+          created_at?: string | null
           id?: string
-          user_id?: string
-          pitch_id?: string
-          note_text?: string
-          created_at?: string
-          updated_at?: string
+          migration_name?: string
+          status?: string
         }
+        Relationships: []
       }
-      recruiter_saved_filters: {
+      numbering_state: {
         Row: {
+          created_at: string | null
+          current_number: number
           id: string
-          user_id: string
-          name: string
-          filters: Json
-          created_at: string
+          prefix: string
+          type: string
+          updated_at: string | null
         }
         Insert: {
+          created_at?: string | null
+          current_number: number
           id?: string
-          user_id: string
-          name: string
-          filters: Json
-          created_at?: string
+          prefix: string
+          type: string
+          updated_at?: string | null
         }
         Update: {
+          created_at?: string | null
+          current_number?: number
           id?: string
-          user_id?: string
-          name?: string
-          filters?: Json
-          created_at?: string
+          prefix?: string
+          type?: string
+          updated_at?: string | null
         }
+        Relationships: []
+      }
+      payment_events: {
+        Row: {
+          amount_cents: number
+          created_at: string | null
+          event_type: string
+          id: string
+          metadata: Json | null
+          razorpay_payment_id: string | null
+          user_id: string
+        }
+        Insert: {
+          amount_cents: number
+          created_at?: string | null
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          razorpay_payment_id?: string | null
+          user_id: string
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string | null
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          razorpay_payment_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       payment_events_archive: {
         Row: {
-          id: string
-          user_id: string | null
-          event_id: string
-          payment_id: string | null
-          order_id: string | null
+          amount_cents: number
+          archived_at: string | null
+          created_at: string | null
           event_type: string
-          event_data: Json
-          created_at: string
-          archived_at: string
+          id: string
+          metadata: Json | null
+          original_id: string
+          razorpay_payment_id: string | null
+          user_id: string
         }
         Insert: {
-          id?: string
-          user_id?: string | null
-          event_id: string
-          payment_id?: string | null
-          order_id?: string | null
+          amount_cents: number
+          archived_at?: string | null
+          created_at?: string | null
           event_type: string
-          event_data: Json
-          created_at: string
-          archived_at?: string
+          id?: string
+          metadata?: Json | null
+          original_id: string
+          razorpay_payment_id?: string | null
+          user_id: string
         }
         Update: {
-          id?: string
-          user_id?: string | null
-          event_id?: string
-          payment_id?: string | null
-          order_id?: string | null
+          amount_cents?: number
+          archived_at?: string | null
+          created_at?: string | null
           event_type?: string
-          event_data?: Json
-          created_at?: string
-          archived_at?: string
+          id?: string
+          metadata?: Json | null
+          original_id?: string
+          razorpay_payment_id?: string | null
+          user_id?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "payment_events_archive_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pitches: {
+        Row: {
+          created_at: string | null
+          experience_years: number | null
+          id: string
+          linkedin_url: string | null
+          pitch_text: string
+          resume_url: string | null
+          skills: string[] | null
+          title: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          experience_years?: number | null
+          id?: string
+          linkedin_url?: string | null
+          pitch_text: string
+          resume_url?: string | null
+          skills?: string[] | null
+          title: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          experience_years?: number | null
+          id?: string
+          linkedin_url?: string | null
+          pitch_text?: string
+          resume_url?: string | null
+          skills?: string[] | null
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pitches_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      receipts: {
+        Row: {
+          amount_cents: number
+          created_at: string | null
+          currency: string | null
+          id: string
+          metadata: Json | null
+          receipt_number: string
+          status: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          amount_cents: number
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          metadata?: Json | null
+          receipt_number: string
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          metadata?: Json | null
+          receipt_number?: string
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "receipts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recruiter_notes: {
+        Row: {
+          created_at: string | null
+          id: string
+          note_text: string
+          pitch_id: string
+          recruiter_user_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          note_text: string
+          pitch_id: string
+          recruiter_user_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          note_text?: string
+          pitch_id?: string
+          recruiter_user_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recruiter_notes_pitch_id_fkey"
+            columns: ["pitch_id"]
+            isOneToOne: false
+            referencedRelation: "pitches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recruiter_notes_recruiter_user_id_fkey"
+            columns: ["recruiter_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referrals: {
+        Row: {
+          created_at: string | null
+          id: string
+          pitch_id: string
+          share_link: string | null
+          supporter_user_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          pitch_id: string
+          share_link?: string | null
+          supporter_user_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          pitch_id?: string
+          share_link?: string | null
+          supporter_user_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referrals_pitch_id_fkey"
+            columns: ["pitch_id"]
+            isOneToOne: false
+            referencedRelation: "pitches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referrals_supporter_user_id_fkey"
+            columns: ["supporter_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referral_events: {
+        Row: {
+          created_at: string | null
+          event_type: string
+          id: string
+          metadata: Json | null
+          platform: string | null
+          referral_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          platform?: string | null
+          referral_id: string
+        }
+        Update: {
+          created_at?: string | null
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          platform?: string | null
+          referral_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_events_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "referrals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      resume_requests: {
+        Row: {
+          created_at: string | null
+          id: string
+          job_role: string | null
+          pitch_id: string
+          recruiter_user_id: string
+          responded_at: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          job_role?: string | null
+          pitch_id: string
+          recruiter_user_id: string
+          responded_at?: string | null
+          status: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          job_role?: string | null
+          pitch_id?: string
+          recruiter_user_id?: string
+          responded_at?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "resume_requests_pitch_id_fkey"
+            columns: ["pitch_id"]
+            isOneToOne: false
+            referencedRelation: "pitches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "resume_requests_recruiter_user_id_fkey"
+            columns: ["recruiter_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "resume_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_plans: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          price_cents: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          price_cents: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          price_cents?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      shared_pitches: {
+        Row: {
+          created_at: string | null
+          id: string
+          pitch_id: string
+          share_token: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          pitch_id: string
+          share_token: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          pitch_id?: string
+          share_token?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shared_pitches_pitch_id_fkey"
+            columns: ["pitch_id"]
+            isOneToOne: false
+            referencedRelation: "pitches"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_activity_log: {
         Row: {
-          id: string
-          user_id: string | null
           activity_type: string
-          activity_data: Json
-          ip_address: unknown | null
-          user_agent: string | null
-          created_at: string
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          user_id: string
         }
         Insert: {
-          id?: string
-          user_id?: string | null
           activity_type: string
-          activity_data?: Json
-          ip_address?: unknown | null
-          user_agent?: string | null
-          created_at?: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          user_id: string
         }
         Update: {
-          id?: string
-          user_id?: string | null
           activity_type?: string
-          activity_data?: Json
-          ip_address?: unknown | null
-          user_agent?: string | null
-          created_at?: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          user_id?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "user_activity_log_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_permissions: {
         Row: {
+          created_at: string | null
           id: string
+          permission: string
           user_id: string
-          permission_type: string
-          permission_data: Json
-          granted_at: string
-          granted_by: string | null
-          expires_at: string | null
-          is_active: boolean
         }
         Insert: {
+          created_at?: string | null
           id?: string
+          permission: string
           user_id: string
-          permission_type: string
-          permission_data?: Json
-          granted_at?: string
-          granted_by?: string | null
-          expires_at?: string | null
-          is_active?: boolean
         }
         Update: {
+          created_at?: string | null
           id?: string
+          permission?: string
           user_id?: string
-          permission_type?: string
-          permission_data?: Json
-          granted_at?: string
-          granted_by?: string | null
-          expires_at?: string | null
-          is_active?: boolean
         }
+        Relationships: [
+          {
+            foreignKeyName: "user_permissions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_profiles: {
+        Row: {
+          created_at: string | null
+          id: string
+          profile_data: Json | null
+          profile_type: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          profile_data?: Json | null
+          profile_type: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          profile_data?: Json | null
+          profile_type?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_profiles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_subscriptions: {
+        Row: {
+          created_at: string | null
+          id: string
+          plan_expires_at: string | null
+          plan_id: string
+          status: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          plan_expires_at?: string | null
+          plan_id: string
+          status: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          plan_expires_at?: string | null
+          plan_id?: string
+          status?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "service_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_subscriptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      users: {
+        Row: {
+          created_at: string | null
+          email: string
+          id: string
+          name: string | null
+          role: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          id?: string
+          name?: string | null
+          role?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          id?: string
+          name?: string | null
+          role?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
     }
     Views: {
-      donations_aggregates: {
-        Row: {
-          total_cents: number | null
-          today_cents: number | null
-          last_cents: number | null
-          max_cents: number | null
-        }
-        Insert: {
-          total_cents?: number | null
-          today_cents?: number | null
-          last_cents?: number | null
-          max_cents?: number | null
-        }
-        Update: {
-          total_cents?: number | null
-          today_cents?: number | null
-          last_cents?: number | null
-          max_cents?: number | null
-        }
-      }
-      activity_recent: {
-        Row: {
-          event_type: string | null
-          occurred_at: string | null
-          event_title: string | null
-          user_name: string | null
-          user_role: string | null
-        }
-        Insert: {
-          event_type?: string | null
-          occurred_at?: string | null
-          event_title?: string | null
-          user_name?: string | null
-          user_role?: string | null
-        }
-        Update: {
-          event_type?: string | null
-          occurred_at?: string | null
-          event_title?: string | null
-          user_name?: string | null
-          user_role?: string | null
-        }
-      }
+      [_ in never]: never
     }
     Functions: {
       [_ in never]: never
@@ -574,7 +838,8 @@ export interface Database {
     Enums: {
       [_ in never]: never
     }
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
 }
-
-export type DB = Database;

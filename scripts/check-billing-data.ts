@@ -6,13 +6,13 @@ async function checkBillingData() {
   
   const adminClient = createAdminClient()
 
-  // Check payment events
+  // Check payment events archive
   try {
-    const { data: paymentEvents, error } = await adminClient.from('payment_events').select('*').order('created_at', { ascending: false }).limit(5)
+    const { data: paymentEvents, error } = await adminClient.from('payment_events_archive').select('*').order('created_at', { ascending: false }).limit(5)
     if (error) {
-      console.log(`❌ Payment Events Error: ${error.message}`)
+      console.log(`❌ Payment Events Archive Error: ${error.message}`)
     } else {
-      console.log(`📋 Payment Events: ${paymentEvents?.length || 0} found`)
+      console.log(`📋 Payment Events Archive: ${paymentEvents?.length || 0} found`)
       if (paymentEvents && paymentEvents.length > 0) {
         console.log('   Latest payment events:')
         paymentEvents.forEach((event, index) => {
@@ -21,79 +21,43 @@ async function checkBillingData() {
       }
     }
   } catch (error) {
-    console.log(`❌ Payment Events Error: ${error}`)
+    console.log(`❌ Payment Events Archive Error: ${error}`)
   }
 
-  // Check invoices
+  // Check donations
   try {
-    const { data: invoices, error } = await adminClient.from('invoices').select('*').order('created_at', { ascending: false }).limit(5)
+    const { data: donations, error } = await adminClient.from('donations').select('*').order('created_at', { ascending: false }).limit(5)
     if (error) {
-      console.log(`❌ Invoices Error: ${error.message}`)
+      console.log(`❌ Donations Error: ${error.message}`)
     } else {
-      console.log(`📄 Invoices: ${invoices?.length || 0} found`)
-      if (invoices && invoices.length > 0) {
-        console.log('   Latest invoices:')
-        invoices.forEach((invoice, index) => {
-          console.log(`   ${index + 1}. ${invoice.invoice_number} - ${invoice.amount} - ${invoice.created_at}`)
+      console.log(`💰 Donations: ${donations?.length || 0} found`)
+      if (donations && donations.length > 0) {
+        console.log('   Latest donations:')
+        donations.forEach((donation, index) => {
+          console.log(`   ${index + 1}. ${donation.amount_cents} ${donation.currency} - ${donation.created_at}`)
         })
       }
     }
   } catch (error) {
-    console.log(`❌ Invoices Error: ${error}`)
+    console.log(`❌ Donations Error: ${error}`)
   }
 
-  // Check receipts
+  // Check user activity log
   try {
-    const { data: receipts, error } = await adminClient.from('receipts').select('*').order('created_at', { ascending: false }).limit(5)
+    const { data: activityLogs, error } = await adminClient.from('user_activity_log').select('*').order('created_at', { ascending: false }).limit(5)
     if (error) {
-      console.log(`❌ Receipts Error: ${error.message}`)
+      console.log(`❌ User Activity Logs Error: ${error.message}`)
     } else {
-      console.log(`🧾 Receipts: ${receipts?.length || 0} found`)
-      if (receipts && receipts.length > 0) {
-        console.log('   Latest receipts:')
-        receipts.forEach((receipt, index) => {
-          console.log(`   ${index + 1}. ${receipt.receipt_number} - ${receipt.amount} - ${receipt.created_at}`)
-        })
-      }
-    }
-  } catch (error) {
-    console.log(`❌ Receipts Error: ${error}`)
-  }
-
-  // Check email logs
-  try {
-    const { data: emailLogs, error } = await adminClient.from('email_logs').select('*').order('created_at', { ascending: false }).limit(5)
-    if (error) {
-      console.log(`❌ Email Logs Error: ${error.message}`)
-    } else {
-      console.log(`📧 Email Logs: ${emailLogs?.length || 0} found`)
-      if (emailLogs && emailLogs.length > 0) {
-        console.log('   Latest email logs:')
-        emailLogs.forEach((log, index) => {
-          console.log(`   ${index + 1}. ${log.email_to} - ${log.subject} - ${log.status} - ${log.created_at}`)
-        })
-      }
-    }
-  } catch (error) {
-    console.log(`❌ Email Logs Error: ${error}`)
-  }
-
-  // Check activity log
-  try {
-    const { data: activityLogs, error } = await adminClient.from('activity_log').select('*').order('created_at', { ascending: false }).limit(5)
-    if (error) {
-      console.log(`❌ Activity Logs Error: ${error.message}`)
-    } else {
-      console.log(`📝 Activity Logs: ${activityLogs?.length || 0} found`)
+      console.log(`📝 User Activity Logs: ${activityLogs?.length || 0} found`)
       if (activityLogs && activityLogs.length > 0) {
         console.log('   Latest activity logs:')
         activityLogs.forEach((log, index) => {
-          console.log(`   ${index + 1}. ${log.event} - ${JSON.stringify(log.meta)} - ${log.created_at}`)
+          console.log(`   ${index + 1}. ${log.activity_type} - ${JSON.stringify(log.activity_data)} - ${log.created_at}`)
         })
       }
     }
   } catch (error) {
-    console.log(`❌ Activity Logs Error: ${error}`)
+    console.log(`❌ User Activity Logs Error: ${error}`)
   }
 
   console.log('\n🏁 Billing data check completed!')

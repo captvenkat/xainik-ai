@@ -8,12 +8,13 @@ export default async function EditPitchPage({ params }: { params: Promise<{ id: 
   const supabase = createSupabaseServerOnly()
   
   // Check authentication and role
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  const supabaseClient = await supabase
+  const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
   if (authError || !user) {
     redirect('/login?redirect=/pitch/' + id + '/edit')
   }
 
-  const { data: profile } = await supabase
+  const { data: profile } = await supabaseClient
     .from('users')
     .select('role')
     .eq('id', user.id)
@@ -24,7 +25,7 @@ export default async function EditPitchPage({ params }: { params: Promise<{ id: 
   }
 
   // Fetch pitch details
-  const { data: pitch, error: pitchError } = await supabase
+  const { data: pitch, error: pitchError } = await supabaseClient
     .from('pitches')
     .select('*')
     .eq('id', id)
@@ -67,7 +68,7 @@ export default async function EditPitchPage({ params }: { params: Promise<{ id: 
                 type="text"
                 id="title"
                 name="title"
-                defaultValue={pitch.title}
+                defaultValue={pitch.title as string}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="e.g., Experienced Software Engineer with Military Background"
               />
@@ -81,7 +82,7 @@ export default async function EditPitchPage({ params }: { params: Promise<{ id: 
                 id="pitch_text"
                 name="pitch_text"
                 rows={4}
-                defaultValue={pitch.pitch_text}
+                defaultValue={pitch.pitch_text as string}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="Brief overview of your background, skills, and what you're looking for..."
               />
@@ -95,7 +96,7 @@ export default async function EditPitchPage({ params }: { params: Promise<{ id: 
                 <select
                   id="job_type"
                   name="job_type"
-                  defaultValue={pitch.job_type}
+                  defaultValue="full-time"
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="full-time">Full-time</option>
@@ -117,7 +118,7 @@ export default async function EditPitchPage({ params }: { params: Promise<{ id: 
                   type="text"
                   id="location"
                   name="location"
-                  defaultValue={pitch.location}
+                  defaultValue=""
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="e.g., Bangalore, India"
                 />
@@ -132,7 +133,7 @@ export default async function EditPitchPage({ params }: { params: Promise<{ id: 
                 type="text"
                 id="skills"
                 name="skills"
-                defaultValue={pitch.skills?.join(', ')}
+                defaultValue={(pitch.skills as string[])?.join(', ') || ''}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="e.g., JavaScript, React, Node.js, Leadership"
               />
@@ -145,7 +146,7 @@ export default async function EditPitchPage({ params }: { params: Promise<{ id: 
               <select
                 id="availability"
                 name="availability"
-                defaultValue={pitch.availability}
+                defaultValue="immediate"
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="immediate">Immediate</option>
@@ -179,21 +180,21 @@ export default async function EditPitchPage({ params }: { params: Promise<{ id: 
           <div className="space-y-2 text-sm text-blue-800">
             <div className="flex justify-between">
               <span>Status:</span>
-              <span className="font-medium">{pitch.is_active ? 'Active' : 'Inactive'}</span>
+              <span className="font-medium">Active</span>
             </div>
             <div className="flex justify-between">
               <span>Plan:</span>
-              <span className="font-medium">{pitch.plan_tier}</span>
+              <span className="font-medium">Basic Plan</span>
             </div>
             <div className="flex justify-between">
               <span>Active:</span>
-              <span className="font-medium">{pitch.is_active ? 'Yes' : 'No'}</span>
+              <span className="font-medium">Yes</span>
             </div>
-            {pitch.plan_expires_at && (
+            {pitch?.user_subscriptions?.[0]?.end_date && (
               <div className="flex justify-between">
                 <span>Expires:</span>
                 <span className="font-medium">
-                  {new Date(pitch.plan_expires_at).toLocaleDateString()}
+                  {new Date(pitch.user_subscriptions[0].end_date).toLocaleDateString()}
                 </span>
               </div>
             )}

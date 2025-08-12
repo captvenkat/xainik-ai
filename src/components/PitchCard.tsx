@@ -21,27 +21,22 @@ export default function PitchCard({ data, variant = 'default' }: Props) {
   const {
     id,
     title,
-    pitch,
+    pitch_text,
     skills = [],
-    city,
+    location,
     job_type,
     availability,
-    likes,
-    veteran
+    likes_count,
+    user
   } = data
 
-  const veteranName = veteran?.full_name || 'Veteran'
-  const veteranRank = veteran?.rank
-  const veteranBranch = veteran?.service_branch
-  const veteranYears = veteran?.years_experience
-
-  // Check if veteran has community verification
-  const isCommunityVerified = veteran?.is_community_verified || false
+  const veteranName = user?.name || 'Veteran'
+  const veteranRole = user?.role
 
   // Truncate pitch text to ~150 characters
-  const truncatedPitch = pitch?.length > 150 
-    ? pitch.substring(0, 150) + '...' 
-    : pitch
+  const truncatedPitch = pitch_text?.length > 150 
+    ? pitch_text.substring(0, 150) + '...' 
+    : pitch_text
 
   return (
     <div data-test="pitch-card" className="group bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
@@ -55,15 +50,14 @@ export default function PitchCard({ data, variant = 'default' }: Props) {
             <div>
               <div className="font-bold text-gray-900">{veteranName}</div>
               <div className="text-sm text-gray-600 font-medium">
-                {veteranRank && `${veteranRank} • `}{veteranBranch}
-                {veteranYears && ` • ${veteranYears} years`}
+                {veteranRole}
               </div>
             </div>
           </div>
-          {isCommunityVerified && (
+          {veteranRole === 'veteran' && (
             <div className="flex items-center gap-1 text-green-600 bg-green-50 px-2 py-1 rounded-full">
               <Award className="h-3 w-3" />
-              <span className="text-xs font-medium">🛡️ Verified</span>
+              <span className="text-xs font-medium">🛡️ Veteran</span>
             </div>
           )}
         </div>
@@ -87,7 +81,7 @@ export default function PitchCard({ data, variant = 'default' }: Props) {
         <div className="flex items-center gap-4 text-xs text-gray-500 mb-4">
           <div className="flex items-center gap-1">
             <MapPin className="h-4 w-4" />
-            <span className="font-medium">{city || 'Location not specified'}</span>
+            <span className="font-medium">{location || 'Location not specified'}</span>
           </div>
           <div className="flex items-center gap-1">
             <Clock className="h-4 w-4" />
@@ -106,12 +100,12 @@ export default function PitchCard({ data, variant = 'default' }: Props) {
         <div className="flex items-center gap-4 text-xs text-gray-500 mb-4 p-3 bg-gray-50 rounded-lg">
           <div className="flex items-center gap-1">
             <Heart className="h-3 w-3" />
-            <span className="font-medium">{likes} likes</span>
+            <span className="font-medium">{likes_count} likes</span>
           </div>
           <LikeButton 
             pitchId={id} 
-            initialCount={likes}
-            userId={veteran.id} // Use veteran.id instead of user_id
+            initialCount={likes_count}
+            userId={user?.id} // Use user.id instead of veteran.id
           />
         </div>
 

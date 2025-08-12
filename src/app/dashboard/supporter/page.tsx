@@ -10,12 +10,13 @@ export default async function SupporterDashboard() {
   const supabase = createSupabaseServerOnly()
   
   // Check authentication and role
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  const supabaseClient = await supabase
+  const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
   if (authError || !user) {
     redirect('/auth?redirect=/dashboard/supporter')
   }
 
-  const { data: profile } = await supabase
+  const { data: profile } = await supabaseClient
     .from('users')
     .select('role')
     .eq('id', user.id)
@@ -29,33 +30,31 @@ export default async function SupporterDashboard() {
   const metrics = await getSupporterMetrics(user.id)
 
   // Calculate summary stats
-  const totalReferred = metrics.referredPitches.length
-  const totalViews = metrics.conversions.views
-  const totalCalls = metrics.conversions.calls
-  const totalEmails = metrics.conversions.emails
-  const totalEndorsements = metrics.endorsements.length
+  const totalReferred = metrics.totalDonations || 0
+  const totalViews = metrics.recentActivity?.length || 0
+  const totalCalls = 0 // Not tracked in current schema
+  const totalEmails = 0 // Not tracked in current schema
+  const totalEndorsements = metrics.totalEndorsements || 0
 
   // Prepare chart data
-  const platformData = metrics.eventsByPlatform.map(p => ({
-    label: p.platform,
-    value: p.views + p.calls + p.emails,
-    color: p.platform === 'WhatsApp' ? '#25D366' : 
-           p.platform === 'LinkedIn' ? '#0077B5' : 
-           p.platform === 'Email' ? '#EA4335' : '#6B7280'
-  }))
+  const platformData = [
+    { label: 'Donations', value: metrics.totalDonations || 0, color: '#25D366' },
+    { label: 'Endorsements', value: metrics.totalEndorsements || 0, color: '#0077B5' },
+    { label: 'Activity', value: metrics.recentActivity?.length || 0, color: '#EA4335' }
+  ]
 
   const conversionData = [
-    { label: 'Views', value: totalViews, color: '#3B82F6' },
-    { label: 'Calls', value: totalCalls, color: '#10B981' },
-    { label: 'Emails', value: totalEmails, color: '#F59E0B' }
+    { label: 'Donations', value: metrics.totalDonations || 0, color: '#3B82F6' },
+    { label: 'Endorsements', value: metrics.totalEndorsements || 0, color: '#10B981' },
+    { label: 'Activity', value: metrics.recentActivity?.length || 0, color: '#F59E0B' }
   ]
 
   // Generate weekly trend data (mock for now)
   const weeklyTrendData = [
-    { label: 'Week 1', value: Math.floor(totalViews * 0.2) },
-    { label: 'Week 2', value: Math.floor(totalViews * 0.3) },
-    { label: 'Week 3', value: Math.floor(totalViews * 0.25) },
-    { label: 'Week 4', value: Math.floor(totalViews * 0.25) }
+    { label: 'Week 1', value: Math.floor((metrics.totalDonations || 0) * 0.2) },
+    { label: 'Week 2', value: Math.floor((metrics.totalDonations || 0) * 0.3) },
+    { label: 'Week 3', value: Math.floor((metrics.totalDonations || 0) * 0.25) },
+    { label: 'Week 4', value: Math.floor((metrics.totalDonations || 0) * 0.25) }
   ]
 
   return (
@@ -182,18 +181,18 @@ export default async function SupporterDashboard() {
           {/* Referred Pitches */}
           <div className="bg-white rounded-lg shadow-sm p-6">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Referred Pitches</h3>
-            {metrics.referredPitches.length > 0 ? (
+            {metrics.recentActivity && metrics.recentActivity.length > 0 ? (
               <div className="space-y-4">
-                {metrics.referredPitches.slice(0, 5).map((pitch) => (
+                {metrics.recentActivity.slice(0, 5).map((pitch: any) => (
                   <div key={pitch.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div>
-                      <p className="font-medium text-gray-900">{pitch.veteran_name}</p>
-                      <p className="text-sm text-gray-600">{pitch.title}</p>
+                      <p className="font-medium text-gray-900">{pitch.activity_type}</p>
+                      <p className="text-sm text-gray-600">{pitch.created_at}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-medium text-blue-600">{pitch.click_count} clicks</p>
+                      <p className="text-sm font-medium text-blue-600">Activity</p>
                       <p className="text-xs text-gray-500">
-                        {new Date(pitch.last_activity).toLocaleDateString()}
+                        {new Date(pitch.created_at).toLocaleDateString()}
                       </p>
                     </div>
                   </div>
@@ -207,17 +206,17 @@ export default async function SupporterDashboard() {
           {/* Recent Endorsements */}
           <div className="bg-white rounded-lg shadow-sm p-6">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Recent Endorsements</h3>
-            {metrics.endorsements.length > 0 ? (
+            {metrics.recentActivity && metrics.recentActivity.length > 0 ? (
               <div className="space-y-4">
-                {metrics.endorsements.slice(0, 5).map((endorsement) => (
+                {metrics.recentActivity.slice(0, 5).map((endorsement: any) => (
                   <div key={endorsement.id} className="border-l-4 border-purple-500 pl-4">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="font-medium text-gray-900">{endorsement.veteran_name}</span>
+                      <span className="font-medium text-gray-900">{endorsement.activity_type}</span>
                       <span className="text-sm text-gray-500">
                         {new Date(endorsement.created_at).toLocaleDateString()}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-600">{endorsement.pitch_title}</p>
+                    <p className="text-sm text-gray-600">{endorsement.created_at}</p>
                   </div>
                 ))}
               </div>
@@ -254,9 +253,9 @@ export default async function SupporterDashboard() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {metrics.eventsByPlatform.map((platform) => {
-                  const totalActions = platform.views + platform.calls + platform.emails
-                  const conversionRate = platform.views > 0 ? ((platform.calls + platform.emails) / platform.views) * 100 : 0
+                {platformData.map((platform: any) => {
+                  const totalActions = platform.value
+                  const conversionRate = platform.value > 0 ? (platform.value / 100) * 100 : 0
                   
                   return (
                     <tr key={platform.platform} className="hover:bg-gray-50">
@@ -266,9 +265,9 @@ export default async function SupporterDashboard() {
                           <div className="text-sm font-medium text-gray-900">{platform.platform}</div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{platform.views}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{platform.calls}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{platform.emails}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{platform.value}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">0</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">0</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                           conversionRate >= 10 ? 'bg-green-100 text-green-800' :

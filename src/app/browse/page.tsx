@@ -2,7 +2,7 @@ import { Suspense } from 'react'
 import { createSupabaseServerOnly } from '@/lib/supabaseServerOnly'
 import Filters from '@/components/Filters'
 import PitchCard from '@/components/PitchCard'
-import { buildSearchQuery } from '@/lib/search'
+import { buildSearchQuery, searchPitches } from '@/lib/search'
 import { toPitchCardData } from '@/lib/mappers/pitches'
 import { Shield, Search, Loader2 } from 'lucide-react'
 import { Metadata } from 'next'
@@ -55,15 +55,23 @@ export default async function BrowsePage({ searchParams }: BrowsePageProps) {
   const offset = (page - 1) * pageSize
 
   // Build query from search params
-  const { query, totalQuery } = buildSearchQuery(params, pageSize, offset)
+  const searchQuery = buildSearchQuery({
+    skills: params.skills ? [params.skills] : undefined,
+    experience_years: params.branch ? parseInt(params.branch) : undefined,
+    location: params.city,
+    job_type: params.jobType
+  })
 
   // Fetch pitches and total count
-  const [pitchesResult, totalResult] = await Promise.all([
-    query,
-    totalQuery
-  ])
+  const pitchesResult = await searchPitches(params.q || '', {
+    skills: params.skills ? [params.skills] : undefined,
+    experience_years: params.branch ? parseInt(params.branch) : undefined,
+    location: params.city,
+    job_type: params.jobType
+  }, pageSize)
+  const totalResult = { count: pitchesResult.length }
 
-  const pitches = (pitchesResult.data || []).map(toPitchCardData)
+  const pitches = (pitchesResult || []).map((pitch: any) => toPitchCardData(pitch))
   const totalCount = totalResult.count || 0
   const totalPages = Math.ceil(totalCount / pageSize)
 

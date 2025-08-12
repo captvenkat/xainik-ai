@@ -1,42 +1,71 @@
-import { cookies } from 'next/headers';
-import { createClient } from '@supabase/supabase-js';
-
-// Singleton pattern for server client
-let supabaseServerInstance: ReturnType<typeof createClient> | null = null;
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
+import { Database } from '@/types/live-schema'
 
 export async function createSupabaseServer() {
-  try {
-    if (!supabaseServerInstance) {
-      const cookieStore = await cookies();
-      
-      if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-        throw new Error('Missing Supabase environment variables');
-      }
+  const cookieStore = await cookies()
 
-
-      // Use the stable supabase-js client instead of @supabase/ssr
-      supabaseServerInstance = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-        {
-          auth: {
-            autoRefreshToken: false,
-            persistSession: false,
-            detectSessionInUrl: false
-          },
-          global: {
-            headers: {
-              'X-Client-Info': 'xainik-server'
-            }
+  return createServerClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value
+        },
+        set(name: string, value: string, options: any) {
+          try {
+            cookieStore.set(name, value, options)
+          } catch {
+            // The `set` method was called from a Server Component.
+            // This can be ignored if you have middleware refreshing
+            // user sessions.
           }
-        }
-      );
-
+        },
+        remove(name: string, options: any) {
+          try {
+            cookieStore.set(name, '', { ...options, maxAge: 0 })
+          } catch {
+            // The `delete` method was called from a Server Component.
+            // This can be ignored if you have middleware refreshing
+            // user sessions.
+          }
+        },
+      },
     }
-    
-    return supabaseServerInstance;
+  )
+}
 
-  } catch (error) {
-    throw error;
-  }
+export async function createSupabaseServerOnly() {
+  const cookieStore = await cookies()
+
+  return createServerClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value
+        },
+        set(name: string, value: string, options: any) {
+          try {
+            cookieStore.set(name, value, options)
+          } catch {
+            // The `set` method was called from a Server Component.
+            // This can be ignored if you have middleware refreshing
+            // user sessions.
+          }
+        },
+        remove(name: string, options: any) {
+          try {
+            cookieStore.set(name, '', { ...options, maxAge: 0 })
+          } catch {
+            // The `delete` method was called from a Server Component.
+            // This can be ignored if you have middleware refreshing
+            // user sessions.
+          }
+        },
+      },
+    }
+  )
 }

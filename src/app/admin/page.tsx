@@ -1,662 +1,301 @@
-import { createSupabaseServerOnly } from '@/lib/supabaseServerOnly'
-import { redirect } from 'next/navigation'
-import { 
-  Users, 
-  FileText, 
-  Heart, 
-  TrendingUp, 
-  Activity,
-  Shield,
-  AlertTriangle,
-  Download,
-  Eye,
-  Calendar
-} from 'lucide-react'
-import Link from 'next/link'
-import type { Database } from '@/types/supabase'
+// =====================================================
+// PROFESSIONAL ADMIN DASHBOARD
+// Xainik Platform - Professional Rewrite
+// =====================================================
 
-type User = Database['public']['Tables']['users']['Row']
-type Pitch = Database['public']['Tables']['pitches']['Row']
-type Endorsement = Database['public']['Tables']['endorsements']['Row']
-type Receipt = Database['public']['Tables']['receipts']['Row']
-type ResumeRequest = Database['public']['Tables']['resume_requests']['Row']
-type ActivityLog = Database['public']['Tables']['activity_log']['Row']
+'use client';
 
-// Server component for Users tab
-async function UsersTab() {
-  const supabase = createSupabaseServerOnly()
-  
-  const { data: users } = await supabase
-    .from('users')
-    .select('id, email, role, created_at')
-    .order('created_at', { ascending: false })
-    .limit(50)
+import { useState, useEffect } from 'react';
+import { createBrowserClient } from '@supabase/ssr';
+import {
+  User,
+  Pitch,
+  Endorsement,
+  Donation,
+  UserActivityLog,
+  Invoice,
+  Receipt,
+  ServicePlan
+} from '@/types/domain';
+import {
+  USER_ROLES,
+  PITCH_STATUSES,
+  INVOICE_STATUSES,
+  NOTIFICATION_STATUSES
+} from '@/types/domain';
 
-  return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-medium">Users ({users?.length || 0})</h3>
-        <Link 
-          href="/api/admin/export/users.csv"
-          className="flex items-center gap-2 text-blue-600 hover:text-blue-700 transition-colors"
-        >
-          <Download className="h-4 w-4" />
-          Export CSV
-        </Link>
-      </div>
-      
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User ID</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joined</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {users?.map((user: Pick<User, 'id' | 'email' | 'role' | 'created_at'>, index: number) => (
-                <tr key={`user-${index}-${user?.id || 'unknown'}`} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">
-                      {typeof user?.id === 'string' ? user.id.substring(0, 8) + '...' : 'N/A'}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{user?.email || 'N/A'}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      user?.role === 'admin' ? 'bg-red-100 text-red-800' :
-                      user?.role === 'veteran' ? 'bg-blue-100 text-blue-800' :
-                      user?.role === 'recruiter' ? 'bg-green-100 text-green-800' :
-                      'bg-purple-100 text-purple-800'
-                    }`}>
-                      {user?.role || 'Unknown'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  )
+const supabase = createBrowserClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
+
+// =====================================================
+// DASHBOARD STATISTICS COMPONENT
+// =====================================================
+
+interface DashboardStats {
+  totalUsers: number;
+  totalPitches: number;
+  totalEndorsements: number;
+  totalDonations: number;
+  totalRevenue: number;
+  activeSubscriptions: number;
 }
 
-// Server component for Pitches tab
-async function PitchesTab() {
-  const supabase = createSupabaseServerOnly()
-  
-  const { data: pitches } = await supabase
-    .from('pitches')
-    .select('id, title, plan_tier, created_at')
-    .order('created_at', { ascending: false })
-    .limit(50)
-
+function DashboardStats({ stats }: { stats: DashboardStats }) {
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-medium">Pitches ({pitches?.length || 0})</h3>
-        <Link 
-          href="/api/admin/export/pitches.csv"
-          className="flex items-center gap-2 text-blue-600 hover:text-blue-700 transition-colors"
-        >
-          <Download className="h-4 w-4" />
-          Export CSV
-        </Link>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+      <div className="bg-white p-6 rounded-lg shadow">
+        <h3 className="text-lg font-semibold text-gray-900">Total Users</h3>
+        <p className="text-3xl font-bold text-blue-600">{stats.totalUsers}</p>
       </div>
-      
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pitch ID</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Plan Tier</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {pitches?.map((pitch: Pick<Pitch, 'id' | 'title' | 'plan_tier' | 'created_at'>, index: number) => (
-                <tr key={`pitch-${index}-${pitch?.id || 'unknown'}`} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">
-                      {typeof pitch?.id === 'string' ? pitch.id.substring(0, 8) + '...' : 'N/A'}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{pitch?.title || 'N/A'}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      pitch?.plan_tier ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                    }`}>
-                      {pitch?.plan_tier || 'Free'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {pitch?.created_at ? new Date(pitch.created_at).toLocaleDateString() : 'N/A'}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      <div className="bg-white p-6 rounded-lg shadow">
+        <h3 className="text-lg font-semibold text-gray-900">Total Pitches</h3>
+        <p className="text-3xl font-bold text-green-600">{stats.totalPitches}</p>
+      </div>
+      <div className="bg-white p-6 rounded-lg shadow">
+        <h3 className="text-lg font-semibold text-gray-900">Total Endorsements</h3>
+        <p className="text-3xl font-bold text-purple-600">{stats.totalEndorsements}</p>
+      </div>
+      <div className="bg-white p-6 rounded-lg shadow">
+        <h3 className="text-lg font-semibold text-gray-900">Total Donations</h3>
+        <p className="text-3xl font-bold text-orange-600">{stats.totalDonations}</p>
+      </div>
+      <div className="bg-white p-6 rounded-lg shadow">
+        <h3 className="text-lg font-semibold text-gray-900">Total Revenue</h3>
+        <p className="text-3xl font-bold text-green-600">₹{stats.totalRevenue}</p>
+      </div>
+      <div className="bg-white p-6 rounded-lg shadow">
+        <h3 className="text-lg font-semibold text-gray-900">Active Subscriptions</h3>
+        <p className="text-3xl font-bold text-indigo-600">{stats.activeSubscriptions}</p>
       </div>
     </div>
-  )
+  );
 }
 
-// Server component for Endorsements tab
-async function EndorsementsTab() {
-  const supabase = createSupabaseServerOnly()
-  
-  const { data: endorsements } = await supabase
-    .from('endorsements')
-    .select('id, text, created_at')
-    .order('created_at', { ascending: false })
-    .limit(50)
+// =====================================================
+// DATA TABLE COMPONENT
+// =====================================================
 
-  return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-medium">Endorsements ({endorsements?.length || 0})</h3>
-        <Link 
-          href="/api/admin/export/endorsements.csv"
-          className="flex items-center gap-2 text-blue-600 hover:text-blue-700 transition-colors"
-        >
-          <Download className="h-4 w-4" />
-          Export CSV
-        </Link>
-      </div>
-      
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Endorsement ID</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Text</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {endorsements?.map((endorsement: Pick<Endorsement, 'id' | 'text' | 'created_at'>, index: number) => (
-                <tr key={`endorsement-${index}-${endorsement?.id || 'unknown'}`} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">
-                      {typeof endorsement?.id === 'string' ? endorsement.id.substring(0, 8) + '...' : 'N/A'}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900 max-w-xs truncate">
-                      {endorsement?.text || 'N/A'}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {endorsement?.created_at ? new Date(endorsement.created_at).toLocaleDateString() : 'N/A'}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  )
+interface DataTableProps<T> {
+  data: T[];
+  columns: {
+    key: keyof T;
+    label: string;
+    render?: (value: any, item: T) => React.ReactNode;
+  }[];
+  title: string;
 }
 
-// Server component for Donations tab
-async function DonationsTab() {
-  const supabase = createSupabaseServerOnly()
-  
-  const { data: donations } = await supabase
-    .from('receipts')
-    .select('id, amount_paise, donor_name, donor_email, anonymous, created_at')
-    .order('created_at', { ascending: false })
-    .limit(50)
-
+function DataTable<T>({ data, columns, title }: DataTableProps<T>) {
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-medium">Donations ({donations?.length || 0})</h3>
-        <Link 
-          href="/api/admin/export/donations.csv"
-          className="flex items-center gap-2 text-blue-600 hover:text-blue-700 transition-colors"
-        >
-          <Download className="h-4 w-4" />
-          Export CSV
-        </Link>
+    <div className="bg-white rounded-lg shadow mb-8">
+      <div className="px-6 py-4 border-b border-gray-200">
+        <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
       </div>
-      
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Donor</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Anonymous</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {donations?.map((donation: Pick<Receipt, 'id' | 'amount_paise' | 'donor_name' | 'donor_email' | 'anonymous' | 'created_at'>, index: number) => (
-                <tr key={`donation-${index}-${donation?.id || 'unknown'}`} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div>
-                      <div className="text-sm font-medium text-gray-900">
-                        {donation?.anonymous ? 'Anonymous' : donation?.donor_name || 'N/A'}
-                      </div>
-                      {!donation?.anonymous && (
-                        <div className="text-sm text-gray-500">{donation?.donor_email || 'N/A'}</div>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
-                    ₹{donation?.amount_paise ? (donation.amount_paise / 100).toFixed(2) : 'N/A'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      donation?.anonymous ? 'bg-gray-100 text-gray-800' : 'bg-green-100 text-green-800'
-                    }`}>
-                      {donation?.anonymous ? 'Yes' : 'No'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {donation?.created_at ? new Date(donation.created_at).toLocaleDateString() : 'N/A'}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// Server component for Resume Requests tab
-async function ResumeRequestsTab() {
-  const supabase = createSupabaseServerOnly()
-  
-  const { data: requests } = await supabase
-    .from('resume_requests')
-    .select('id, recruiter_id, pitch_id, status, created_at')
-    .order('created_at', { ascending: false })
-    .limit(50)
-
-  return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-medium">Resume Requests ({requests?.length || 0})</h3>
-        <Link 
-          href="/api/admin/export/resume-requests.csv"
-          className="flex items-center gap-2 text-blue-600 hover:text-blue-700 transition-colors"
-        >
-          <Download className="h-4 w-4" />
-          Export CSV
-        </Link>
-      </div>
-      
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Request ID</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Recruiter ID</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pitch ID</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {requests?.map((request: Pick<ResumeRequest, 'id' | 'recruiter_id' | 'pitch_id' | 'status' | 'created_at'>, index: number) => (
-                <tr key={`request-${index}-${request?.id || 'unknown'}`} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">
-                      {typeof request?.id === 'string' ? request.id.substring(0, 8) + '...' : 'N/A'}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
-                      {typeof request?.recruiter_id === 'string' ? request.recruiter_id.substring(0, 8) + '...' : 'N/A'}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
-                      {typeof request?.pitch_id === 'string' ? request.pitch_id.substring(0, 8) + '...' : 'N/A'}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      request?.status === 'approved' ? 'bg-green-100 text-green-800' :
-                      request?.status === 'declined' ? 'bg-red-100 text-red-800' :
-                      'bg-yellow-100 text-yellow-800'
-                    }`}>
-                      {request?.status || 'Unknown'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {request?.created_at ? new Date(request.created_at).toLocaleDateString() : 'N/A'}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// Server component for Activity tab
-async function ActivityTab() {
-  const supabase = createSupabaseServerOnly()
-  
-  const { data: activities } = await supabase
-    .from('activity_log')
-    .select('id, event_type, event_data, created_at')
-    .order('created_at', { ascending: false })
-    .limit(50)
-
-  const getActivityDescription = (event: { event_type: string; event_data: unknown }) => {
-    try {
-      if (typeof event.event_data === 'object' && event.event_data !== null) {
-        const data = event.event_data as Record<string, unknown>
-        if (data.description) return String(data.description)
-        if (data.message) return String(data.message)
-        if (data.text) return String(data.text)
-      }
-      return event.event_type
-    } catch {
-      return event.event_type
-    }
-  }
-
-  return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-medium">Activity Log ({activities?.length || 0})</h3>
-        <Link 
-          href="/api/admin/export/activity.csv"
-          className="flex items-center gap-2 text-blue-600 hover:text-blue-700 transition-colors"
-        >
-          <Download className="h-4 w-4" />
-          Export CSV
-        </Link>
-      </div>
-      
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Activity ID</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event Type</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {activities?.map((activity: Pick<ActivityLog, 'id' | 'event_type' | 'event_data' | 'created_at'>, index: number) => (
-                <tr key={`activity-${index}-${activity?.id || 'unknown'}`} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">
-                      {typeof activity?.id === 'string' ? activity.id.substring(0, 8) + '...' : 'N/A'}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{activity?.event_type || 'N/A'}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900 max-w-xs truncate">
-                      {getActivityDescription(activity)}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {activity?.created_at ? new Date(activity.created_at).toLocaleDateString() : 'N/A'}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// Server component for Suspicious Activity tab
-async function SuspiciousActivityTab() {
-  const supabase = createSupabaseServerOnly()
-  
-  // Get recent activity to analyze for suspicious patterns
-  const { data: recentActivity } = await supabase
-    .from('activity_log')
-    .select('event_type, created_at')
-    .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()) // Last 24 hours
-    .order('created_at', { ascending: false })
-
-  // Analyze activity patterns
-  const eventsInWindow = recentActivity || []
-  const eventCounts = eventsInWindow.reduce((acc, event) => {
-    acc[event.event_type] = (acc[event.event_type] || 0) + 1
-    return acc
-  }, {} as Record<string, number>)
-
-  // Define suspicious patterns
-  const suspiciousPatterns = [
-    {
-      name: 'High Login Attempts',
-      description: 'Multiple login attempts in short time',
-      severity: 'medium',
-      count: eventCounts['auth.login'] || 0,
-      threshold: 10
-    },
-    {
-      name: 'Multiple Failed Payments',
-      description: 'Multiple failed payment attempts',
-      severity: 'high',
-      count: eventCounts['payment.failed'] || 0,
-      threshold: 5
-    },
-    {
-      name: 'Bulk Data Access',
-      description: 'Multiple data export requests',
-      severity: 'medium',
-      count: eventCounts['data.export'] || 0,
-      threshold: 20
-    }
-  ]
-
-  const flags = suspiciousPatterns.filter(pattern => pattern.count > pattern.threshold)
-
-  return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-medium">Suspicious Activity Monitoring</h3>
-        <div className="flex items-center gap-2">
-          <Calendar className="h-4 w-4 text-gray-500" />
-          <span className="text-sm text-gray-500">Last 24 hours</span>
-        </div>
-      </div>
-
-      {/* Activity Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white p-4 rounded-lg shadow">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Total Events</p>
-              <p className="text-2xl font-bold text-gray-900">{eventsInWindow.length}</p>
-            </div>
-            <Activity className="h-8 w-8 text-blue-500" />
-          </div>
-        </div>
-        
-        <div className="bg-white p-4 rounded-lg shadow">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Event Types</p>
-              <p className="text-2xl font-bold text-gray-900">{Object.keys(eventCounts).length}</p>
-            </div>
-            <TrendingUp className="h-8 w-8 text-green-500" />
-          </div>
-        </div>
-        
-        <div className="bg-white p-4 rounded-lg shadow">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Flags Raised</p>
-              <p className="text-2xl font-bold text-red-600">{flags.length}</p>
-            </div>
-            <AlertTriangle className="h-8 w-8 text-red-500" />
-          </div>
-        </div>
-      </div>
-
-      {/* Event Type Breakdown */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h4 className="text-lg font-medium text-gray-900 mb-4">Event Type Breakdown</h4>
-        <div className="space-y-3">
-          {Object.entries(eventCounts).map(([eventType, count]) => (
-            <div key={eventType} className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-700">{eventType}</span>
-              <span className="text-sm text-gray-500">{count} events</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Suspicious Activity Flags */}
-      {flags.length > 0 ? (
-        <div className="bg-white rounded-lg shadow p-6">
-          <h4 className="text-lg font-medium text-red-900 mb-4">⚠️ Suspicious Activity Detected</h4>
-          <div className="space-y-4">
-            {flags.map((flag, index) => (
-              <div key={index} className="border-l-4 border-red-500 pl-4 py-2">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h5 className="font-medium text-red-900">{flag.name}</h5>
-                    <p className="text-sm text-red-700">{flag.description}</p>
-                    <p className="text-xs text-red-600">
-                      {flag.count} events (threshold: {flag.threshold})
-                    </p>
-                  </div>
-                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                    flag.severity === 'high' ? 'bg-red-100 text-red-800' :
-                    flag.severity === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                    'bg-blue-100 text-blue-800'
-                  }`}>
-                    {flag.severity}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      ) : (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-          <div className="flex items-center">
-            <Shield className="h-6 w-6 text-green-600 mr-2" />
-            <div>
-              <h4 className="text-lg font-medium text-green-900">All Clear</h4>
-              <p className="text-green-700">No suspicious activity detected in the last 24 hours.</p>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
-
-export default async function AdminPage({
-  searchParams
-}: {
-  searchParams: Promise<{ tab?: string }>
-}) {
-  const supabase = createSupabaseServerOnly()
-  
-  // Check if user is authenticated and has admin role
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
-  
-  if (authError || !user) {
-    redirect('/auth')
-  }
-
-  // Check if user has admin role
-  const { data: profile } = await supabase
-    .from('users')
-    .select('role')
-    .eq('id', user.id)
-    .single()
-
-  if (!profile || profile.role !== 'admin') {
-    redirect('/dashboard')
-  }
-
-  const resolvedSearchParams = await searchParams
-  const activeTab = resolvedSearchParams.tab || 'users'
-
-  const tabs = [
-    { id: 'users', label: 'Users', icon: Users, component: UsersTab },
-    { id: 'pitches', label: 'Pitches', icon: FileText, component: PitchesTab },
-    { id: 'endorsements', label: 'Endorsements', icon: Heart, component: EndorsementsTab },
-    { id: 'donations', label: 'Donations', icon: TrendingUp, component: DonationsTab },
-    { id: 'resume-requests', label: 'Resume Requests', icon: FileText, component: ResumeRequestsTab },
-    { id: 'activity', label: 'Activity Log', icon: Activity, component: ActivityTab },
-    { id: 'suspicious', label: 'Suspicious Activity', icon: Shield, component: SuspiciousActivityTab }
-  ]
-
-  const ActiveComponent = tabs.find(tab => tab.id === activeTab)?.component || UsersTab
-
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-          <p className="mt-2 text-gray-600">Monitor and manage platform activity</p>
-        </div>
-
-        {/* Tab Navigation */}
-        <div className="mb-8">
-          <nav className="flex space-x-8 border-b border-gray-200">
-            {tabs.map((tab) => {
-              const Icon = tab.icon
-              return (
-                <Link
-                  key={tab.id}
-                  href={`/admin?tab=${tab.id}`}
-                  className={`flex items-center gap-2 py-2 px-1 border-b-2 font-medium text-sm ${
-                    activeTab === tab.id
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              {columns.map((column) => (
+                <th
+                  key={String(column.key)}
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                 >
-                  <Icon className="h-4 w-4" />
-                  {tab.label}
-                </Link>
-              )
-            })}
-          </nav>
-        </div>
-
-        {/* Tab Content */}
-        <div className="bg-white rounded-lg shadow">
-          <div className="p-6">
-            <ActiveComponent />
-          </div>
-        </div>
+                  {column.label}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {data.map((item, index) => (
+              <tr key={index}>
+                {columns.map((column) => (
+                  <td key={String(column.key)} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {column.render
+                      ? column.render(item[column.key], item)
+                      : String(item[column.key] || '')}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
-  )
+  );
+}
+
+// =====================================================
+// MAIN ADMIN DASHBOARD COMPONENT
+// =====================================================
+
+export default function AdminDashboard() {
+  const [stats, setStats] = useState<DashboardStats>({
+    totalUsers: 0,
+    totalPitches: 0,
+    totalEndorsements: 0,
+    totalDonations: 0,
+    totalRevenue: 0,
+    activeSubscriptions: 0
+  });
+  const [users, setUsers] = useState<User[]>([]);
+  const [pitches, setPitches] = useState<Pitch[]>([]);
+  const [donations, setDonations] = useState<Donation[]>([]);
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Fetch dashboard statistics
+      const [
+        { count: userCount },
+        { count: pitchCount },
+        { count: endorsementCount },
+        { count: donationCount },
+        { count: subscriptionCount }
+      ] = await Promise.all([
+        supabase.from('users').select('*', { count: 'exact', head: true }),
+        supabase.from('pitches').select('*', { count: 'exact', head: true }),
+        supabase.from('endorsements').select('*', { count: 'exact', head: true }),
+        supabase.from('donations').select('*', { count: 'exact', head: true }),
+        supabase.from('user_subscriptions').select('*', { count: 'exact', head: true })
+      ]);
+
+      // Calculate total revenue from donations
+      const { data: donationData } = await supabase
+        .from('donations')
+        .select('amount_cents, currency');
+
+      const totalRevenue = donationData?.reduce((sum, donation) => {
+        if (donation.currency === 'INR') {
+          return sum + (donation.amount_cents / 100);
+        }
+        return sum;
+      }, 0) || 0;
+
+      setStats({
+        totalUsers: userCount || 0,
+        totalPitches: pitchCount || 0,
+        totalEndorsements: endorsementCount || 0,
+        totalDonations: donationCount || 0,
+        totalRevenue: Math.round(totalRevenue),
+        activeSubscriptions: subscriptionCount || 0
+      });
+
+      // Fetch recent data
+      const [
+        { data: recentUsers },
+        { data: recentPitches },
+        { data: recentDonations },
+        { data: recentInvoices }
+      ] = await Promise.all([
+        supabase.from('users').select('*').order('created_at', { ascending: false }).limit(10),
+        supabase.from('pitches').select('*').order('created_at', { ascending: false }).limit(10),
+        supabase.from('donations').select('*').order('created_at', { ascending: false }).limit(10),
+        supabase.from('invoices').select('*').order('created_at', { ascending: false }).limit(10)
+      ]);
+
+      setUsers(recentUsers || []);
+      setPitches(recentPitches || []);
+      setDonations(recentDonations || []);
+      setInvoices(recentInvoices || []);
+
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+      setError('Failed to load dashboard data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-600 text-xl mb-4">Error</div>
+          <p className="text-gray-600">{error}</p>
+          <button
+            onClick={fetchDashboardData}
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-100">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-8">Admin Dashboard</h1>
+        
+        <DashboardStats stats={stats} />
+        
+        <DataTable
+          data={users.slice(0, 10)}
+          columns={[
+            { key: 'id', label: 'ID' },
+            { key: 'email', label: 'Email' },
+            { key: 'role', label: 'Role' },
+            { key: 'created_at', label: 'Created', render: (value) => new Date(value).toLocaleDateString() }
+          ]}
+          title="Recent Users"
+        />
+        
+        <DataTable
+          data={pitches.slice(0, 10)}
+          columns={[
+            { key: 'id', label: 'ID' },
+            { key: 'title', label: 'Title' },
+            { key: 'user_id', label: 'User ID' },
+            { key: 'created_at', label: 'Created', render: (value) => new Date(value).toLocaleDateString() }
+          ]}
+          title="Recent Pitches"
+        />
+        
+        <DataTable
+          data={donations.slice(0, 10)}
+          columns={[
+            { key: 'id', label: 'ID' },
+            { key: 'amount_cents', label: 'Amount', render: (value) => `₹${value / 100}` },
+            { key: 'currency', label: 'Currency' },
+            { key: 'created_at', label: 'Created', render: (value) => new Date(value).toLocaleDateString() }
+          ]}
+          title="Recent Donations"
+        />
+        
+        <DataTable
+          data={invoices.slice(0, 10)}
+          columns={[
+            { key: 'id', label: 'ID' },
+            { key: 'amount_cents', label: 'Amount', render: (value) => `₹${value / 100}` },
+            { key: 'status', label: 'Status' },
+            { key: 'created_at', label: 'Created', render: (value) => new Date(value).toLocaleDateString() }
+          ]}
+          title="Recent Invoices"
+        />
+      </div>
+    </div>
+  );
 }

@@ -26,10 +26,11 @@ export default async function PricingPage() {
   let userId: string | null = null
   
   try {
-    const { data: { user } } = await supabase.auth.getUser()
+    const supabaseClient = await supabase
+    const { data: { user } } = await supabaseClient.auth.getUser()
     if (user) {
       userId = user.id
-      const { data: existingPitches } = await supabase
+      const { data: existingPitches } = await supabaseClient
         .from('pitches')
         .select('plan_tier')
         .eq('user_id', user.id)

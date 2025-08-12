@@ -3,10 +3,10 @@ import { createSupabaseServerOnly } from '@/lib/supabaseServerOnly'
 import { toCSV } from '@/lib/csv'
 
 export async function GET() {
-  const supabase = createSupabaseServerOnly()
+  const supabase = await createSupabaseServerOnly()
   const { data: rows } = await supabase
     .from('pitches')
-    .select('id, title, is_active, plan_tier, plan_expires_at, veteran_id, created_at')
+    .select('id, title, user_id, created_at')
     .order('created_at', { ascending: false })
     .limit(5000)
 

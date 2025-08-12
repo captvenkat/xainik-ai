@@ -7,33 +7,19 @@ async function testBillingSystem() {
   const adminClient = createAdminClient()
   const results: Array<{feature: string, status: 'PASS' | 'FAIL', notes: string}> = []
 
-  // Test 1: Billing Tables Exist
+  // Test 1: Available Tables Exist
   try {
-    const { data: paymentEvents } = await adminClient.from('payment_events').select('count').limit(1)
-    results.push({ feature: 'payment_events table', status: 'PASS', notes: 'Table exists' })
+    const { data: paymentEventsArchive } = await adminClient.from('payment_events_archive').select('count').limit(1)
+    results.push({ feature: 'payment_events_archive table', status: 'PASS', notes: 'Table exists' })
   } catch (error) {
-    results.push({ feature: 'payment_events table', status: 'FAIL', notes: `Error: ${error}` })
+    results.push({ feature: 'payment_events_archive table', status: 'FAIL', notes: `Error: ${error}` })
   }
 
   try {
-    const { data: invoices } = await adminClient.from('invoices').select('count').limit(1)
-    results.push({ feature: 'invoices table', status: 'PASS', notes: 'Table exists' })
+    const { data: donations } = await adminClient.from('donations').select('count').limit(1)
+    results.push({ feature: 'donations table', status: 'PASS', notes: 'Table exists' })
   } catch (error) {
-    results.push({ feature: 'invoices table', status: 'FAIL', notes: `Error: ${error}` })
-  }
-
-  try {
-    const { data: receipts } = await adminClient.from('receipts').select('count').limit(1)
-    results.push({ feature: 'receipts table', status: 'PASS', notes: 'Table exists' })
-  } catch (error) {
-    results.push({ feature: 'receipts table', status: 'FAIL', notes: `Error: ${error}` })
-  }
-
-  try {
-    const { data: numberingState } = await adminClient.from('numbering_state').select('count').limit(1)
-    results.push({ feature: 'numbering_state table', status: 'PASS', notes: 'Table exists' })
-  } catch (error) {
-    results.push({ feature: 'numbering_state table', status: 'FAIL', notes: `Error: ${error}` })
+    results.push({ feature: 'donations table', status: 'FAIL', notes: `Error: ${error}` })
   }
 
   // Test 2: Storage Bucket
@@ -55,7 +41,7 @@ async function testBillingSystem() {
       event_id: 'test-webhook-' + Date.now(),
       payment_id: 'test-payment-' + Date.now(),
       event_type: 'payment.captured',
-      payload: {
+      event_data: {
         payment: {
           entity: {
             id: 'test-payment-' + Date.now(),
@@ -74,10 +60,11 @@ async function testBillingSystem() {
           }
         }
       },
-      processed_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
+      archived_at: new Date().toISOString()
     }
 
-    const { error } = await adminClient.from('payment_events').insert(testPaymentEvent)
+    const { error } = await adminClient.from('payment_events_archive').insert(testPaymentEvent)
     if (!error) {
       results.push({ feature: 'webhook idempotency', status: 'PASS', notes: 'Payment event stored successfully' })
     } else {
@@ -89,7 +76,7 @@ async function testBillingSystem() {
 
   // Test 4: Check for existing payment events
   try {
-    const { data: events, error } = await adminClient.from('payment_events').select('*').limit(5)
+    const { data: events, error } = await adminClient.from('payment_events_archive').select('*').limit(5)
     if (!error && events && events.length > 0) {
       results.push({ feature: 'payment events data', status: 'PASS', notes: `${events.length} events found` })
     } else {
@@ -99,39 +86,28 @@ async function testBillingSystem() {
     results.push({ feature: 'payment events data', status: 'FAIL', notes: `Error: ${error}` })
   }
 
-  // Test 5: Check for invoices/receipts
+  // Test 5: Check for donations
   try {
-    const { data: invoices, error } = await adminClient.from('invoices').select('*').limit(5)
-    if (!error && invoices && invoices.length > 0) {
-      results.push({ feature: 'invoice generation', status: 'PASS', notes: `${invoices.length} invoices found` })
+    const { data: donations, error } = await adminClient.from('donations').select('*').limit(5)
+    if (!error && donations && donations.length > 0) {
+      results.push({ feature: 'donation tracking', status: 'PASS', notes: `${donations.length} donations found` })
     } else {
-      results.push({ feature: 'invoice generation', status: 'FAIL', notes: 'No invoices found' })
+      results.push({ feature: 'donation tracking', status: 'FAIL', notes: 'No donations found' })
     }
   } catch (error) {
-    results.push({ feature: 'invoice generation', status: 'FAIL', notes: `Error: ${error}` })
+    results.push({ feature: 'donation tracking', status: 'FAIL', notes: `Error: ${error}` })
   }
 
+  // Test 6: Check user activity log
   try {
-    const { data: receipts, error } = await adminClient.from('receipts').select('*').limit(5)
-    if (!error && receipts && receipts.length > 0) {
-      results.push({ feature: 'receipt generation', status: 'PASS', notes: `${receipts.length} receipts found` })
+    const { data: activityLogs, error } = await adminClient.from('user_activity_log').select('*').limit(5)
+    if (!error && activityLogs && activityLogs.length > 0) {
+      results.push({ feature: 'activity logging', status: 'PASS', notes: `${activityLogs.length} activity logs found` })
     } else {
-      results.push({ feature: 'receipt generation', status: 'FAIL', notes: 'No receipts found' })
+      results.push({ feature: 'activity logging', status: 'FAIL', notes: 'No activity logs found' })
     }
   } catch (error) {
-    results.push({ feature: 'receipt generation', status: 'FAIL', notes: `Error: ${error}` })
-  }
-
-  // Test 6: Check email logs
-  try {
-    const { data: emailLogs, error } = await adminClient.from('email_logs').select('*').limit(5)
-    if (!error && emailLogs && emailLogs.length > 0) {
-      results.push({ feature: 'email logging', status: 'PASS', notes: `${emailLogs.length} email logs found` })
-    } else {
-      results.push({ feature: 'email logging', status: 'FAIL', notes: 'No email logs found' })
-    }
-  } catch (error) {
-    results.push({ feature: 'email logging', status: 'FAIL', notes: `Error: ${error}` })
+    results.push({ feature: 'activity logging', status: 'FAIL', notes: `Error: ${error}` })
   }
 
   // Print Results

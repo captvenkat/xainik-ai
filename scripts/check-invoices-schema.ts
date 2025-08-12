@@ -21,19 +21,9 @@ async function checkInvoicesSchema() {
       storage_key: 'test/invoice.pdf'
     }
 
-    console.log('📋 Attempting to insert test invoice to check schema...')
-    const { error } = await adminClient.from('invoices').insert(testInvoice)
-    
-    if (error) {
-      console.log('❌ Insert failed - this shows us the schema requirements:')
-      console.log('Error:', error.message)
-      console.log('Code:', error.code)
-      console.log('Details:', error.details)
-    } else {
-      console.log('✅ Test insert succeeded')
-      // Clean up the test record
-      await adminClient.from('invoices').delete().eq('number', 'TEST/2025-2026/0001')
-    }
+    console.log('📋 NOTE: invoices table does not exist in current schema')
+    console.log('   This script is disabled until billing system is fully implemented')
+    console.log('   Current schema only has: donations, payment_events_archive, etc.')
 
   } catch (error) {
     console.log('❌ Error checking invoices schema:', error)

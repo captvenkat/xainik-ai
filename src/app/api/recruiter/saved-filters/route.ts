@@ -4,7 +4,7 @@ import { createSupabaseServerOnly } from '@/lib/supabaseServerOnly';
 // GET: Retrieve saved filters for the authenticated recruiter
 export async function GET() {
   try {
-    const supabase = createSupabaseServerOnly();
+    const supabase = await createSupabaseServerOnly();
     
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -27,7 +27,7 @@ export async function GET() {
     const { data: filters, error } = await supabase
       .from('recruiter_saved_filters')
       .select('id, name, filters, created_at')
-      .eq('recruiter_id', user.id)
+      .eq('user_id', user.id)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -43,7 +43,7 @@ export async function GET() {
 // POST: Save new filter for the authenticated recruiter
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createSupabaseServerOnly();
+    const supabase = await createSupabaseServerOnly();
     
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
     const { data, error } = await supabase
       .from('recruiter_saved_filters')
       .insert({
-        recruiter_id: user.id,
+        user_id: user.id,
         name,
         filters
       })

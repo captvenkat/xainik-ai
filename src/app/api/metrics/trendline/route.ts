@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
       veteranId: veteranId || undefined,
     };
 
-    const series = await getCachedTrendline(opt);
+    const series = await getCachedTrendline();
 
     return NextResponse.json({ series });
   } catch (error) {

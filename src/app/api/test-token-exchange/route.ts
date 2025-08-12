@@ -7,6 +7,7 @@ export async function GET() {
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
     
+    return NextResponse.json({
       hasUrl: !!supabaseUrl,
       hasKey: !!supabaseKey,
       hasSiteUrl: !!siteUrl,
@@ -26,8 +27,13 @@ export async function GET() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'apikey': supabaseKey,
+        'apikey': supabaseKey || '',
       },
+      body: JSON.stringify({
+        grant_type: 'password',
+        username: 'test@example.com',
+        password: 'testpassword'
+      })
     });
     
     

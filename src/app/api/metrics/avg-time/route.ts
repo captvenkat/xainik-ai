@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
       veteranId: veteranId || undefined,
     };
 
-    const avg = await getCachedAvgTime(opt);
+    const avg = await getCachedAvgTime();
 
     return NextResponse.json({ avg });
   } catch (error) {

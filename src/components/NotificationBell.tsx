@@ -73,7 +73,7 @@ export default function NotificationBell() {
         .limit(10)
 
       if (notificationsData) {
-        setNotifications(notificationsData)
+        setNotifications(notificationsData as any)
         setUnreadCount(notificationsData.filter((n: any) => !n.read_at).length)
       }
     } catch (error) {
