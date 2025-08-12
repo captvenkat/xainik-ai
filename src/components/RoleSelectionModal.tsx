@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 import { Shield, Users, Building, Heart } from 'lucide-react'
 
@@ -41,7 +41,12 @@ const roles = [
 export default function RoleSelectionModal({ isOpen, onClose, onRoleSelected, userEmail }: RoleSelectionModalProps) {
   const [selectedRole, setSelectedRole] = useState<string>('')
   const [isLoading, setIsLoading] = useState(false)
+  const [isClient, setIsClient] = useState(false)
   const supabase = createSupabaseBrowser()
+
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
 
   const handleRoleSelect = async (role: string) => {
     setSelectedRole(role)
@@ -83,7 +88,8 @@ export default function RoleSelectionModal({ isOpen, onClose, onRoleSelected, us
     }
   }
 
-  if (!isOpen) return null
+  // Don't render anything on the server side
+  if (!isClient || !isOpen) return null
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
