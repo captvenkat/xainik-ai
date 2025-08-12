@@ -242,7 +242,7 @@ export default async function AdminDashboard() {
                   <div key={pitch.id as string} className="flex items-center justify-between">
                     <div>
                       <p className="font-medium text-gray-900">{pitch.title as string}</p>
-                      <p className="text-sm text-gray-500">by {pitch.user?.name || 'Unknown'}</p>
+                      <p className="text-sm text-gray-500">by {(pitch as any).user?.name || 'Unknown'}</p>
                     </div>
                     <span className="text-xs text-gray-400">
                       {new Date(pitch.created_at as string).toLocaleDateString()}

@@ -3,7 +3,7 @@
 // =====================================================
 
 import { createClient } from '@supabase/supabase-js';
-import { Database } from '../types/supabase';
+import { Database } from '../types/live-schema';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -16,9 +16,11 @@ async function debugWebhook() {
 
     // Test webhook event data - matching the actual schema
     const testEvent = {
+      user_id: null, // No user associated for test
       event_id: 'test_webhook_' + Date.now(),
       event_type: 'payment.captured',
       payment_id: 'pay_test_' + Date.now(),
+      order_id: null,
       event_data: {
         test: true,
         timestamp: new Date().toISOString(),
@@ -27,7 +29,8 @@ async function debugWebhook() {
         status: 'captured',
         payment_method: 'card'
       },
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
+      archived_at: new Date().toISOString()
     };
 
     console.log('📝 Inserting test webhook event...');

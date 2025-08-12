@@ -64,7 +64,7 @@ export async function getReferralEvents(referralId: string): Promise<ReferralEve
       return []
     }
 
-    return data || []
+    return (data as any) || []
   } catch (error) {
     console.error('Failed to fetch referral events:', error)
     return []

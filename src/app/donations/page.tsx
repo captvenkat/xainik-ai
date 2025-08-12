@@ -44,7 +44,7 @@ export default async function DonationsPage() {
             <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4">
               <Heart className="w-6 h-6 text-blue-600" />
             </div>
-            <div className="text-3xl font-bold text-blue-900">₹{(stats.total_amount / 100).toLocaleString()}</div>
+            <div className="text-3xl font-bold text-blue-900">₹{(stats.totalAmount / 100).toLocaleString()}</div>
             <div className="text-sm text-blue-700">Total Raised</div>
           </div>
 
@@ -52,7 +52,7 @@ export default async function DonationsPage() {
             <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-4">
               <TrendingUp className="w-6 h-6 text-green-600" />
             </div>
-            <div className="text-3xl font-bold text-green-900">₹{stats.total_donations}</div>
+            <div className="text-3xl font-bold text-green-900">{stats.totalDonations}</div>
             <div className="text-sm text-green-700">Today</div>
           </div>
 
@@ -60,7 +60,7 @@ export default async function DonationsPage() {
             <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-4">
               <Calendar className="w-6 h-6 text-purple-600" />
             </div>
-            <div className="text-3xl font-bold text-purple-900">₹{stats.total_donors}</div>
+            <div className="text-3xl font-bold text-purple-900">{stats.totalDonations}</div>
             <div className="text-sm text-purple-700">Last Donation</div>
           </div>
 
@@ -68,7 +68,7 @@ export default async function DonationsPage() {
             <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mx-auto mb-4">
               <Award className="w-6 h-6 text-orange-600" />
             </div>
-            <div className="text-3xl font-bold text-orange-900">₹{(stats.average_donation / 100).toLocaleString()}</div>
+            <div className="text-3xl font-bold text-orange-900">₹{(stats.totalAmount / 100).toLocaleString()}</div>
             <div className="text-sm text-orange-700">Highest</div>
           </div>
         </div>

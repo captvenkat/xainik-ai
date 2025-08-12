@@ -21,6 +21,9 @@ export default function LiveActivityTicker() {
         const recentActivities = await getRecentActivity(10)
         setActivities(recentActivities.map((activity: any) => ({
           id: activity.id,
+          event: activity.activity_type,
+          meta: activity.activity_data || {},
+          created_at: activity.created_at,
           display_text: `${activity.activity_type} - ${new Date(activity.created_at).toLocaleDateString()}`
         })))
       } catch (error) {

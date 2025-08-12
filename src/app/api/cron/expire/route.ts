@@ -79,7 +79,10 @@ export async function POST(request: NextRequest) {
       })
       
       // Send notification to veteran about expired subscription
-      await notifySubscriptionExpired(subscription.user_id)
+      await notifySubscriptionExpired(subscription.user_id, {
+        subscription_id: subscription.id,
+        end_date: subscription.end_date
+      })
     }
 
     return NextResponse.json({

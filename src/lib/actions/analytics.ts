@@ -6,7 +6,7 @@ export interface AnalyticsData {
   totalConversions: number
   conversionRate: number
   recentActivity: any[]
-  performanceInsights?: any[]
+  performanceInsights?: any
   comparativeMetrics?: any[]
 }
 

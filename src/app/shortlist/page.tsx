@@ -23,9 +23,9 @@ export default async function ShortlistPage() {
     redirect('/dashboard')
   }
 
-  // Fetch shortlisted pitches
+  // Fetch shortlisted pitches (using shared_pitches table)
   const { data: shortlisted } = await supabaseClient
-    .from('shortlist')
+    .from('shared_pitches')
     .select(`
       id,
       created_at,
@@ -41,7 +41,7 @@ export default async function ShortlistPage() {
         )
       )
     `)
-    .eq('recruiter_user_id', user.id)
+    .eq('user_id', user.id)
     .order('created_at', { ascending: false })
 
   return (

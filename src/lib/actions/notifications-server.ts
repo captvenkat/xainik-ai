@@ -46,7 +46,7 @@ export async function getNotificationsByUserId(userId: string): Promise<Notifica
     throw new Error(`Failed to get notifications: ${error.message}`)
   }
   
-  return notifications || []
+  return (notifications as any) || []
 }
 
 export async function markNotificationAsRead(notificationId: string, userId: string): Promise<void> {
@@ -54,7 +54,7 @@ export async function markNotificationAsRead(notificationId: string, userId: str
   
   const { error } = await supabase
     .from('notifications')
-    .update({ read: true })
+    .update({ read_at: new Date().toISOString() })
     .eq('id', notificationId)
     .eq('user_id', userId)
   
@@ -67,10 +67,12 @@ export async function notifySubscriptionExpiry(userId: string, subscriptionData:
   await createNotification({
     user_id: userId,
     type: 'subscription_expiry_warning',
-    title: 'Subscription Expiring Soon',
-    message: 'Your subscription will expire in 3 days. Renew to maintain access to premium features.',
-    data: subscriptionData,
-    read: false
+    payload_json: {
+      title: 'Subscription Expiring Soon',
+      message: 'Your subscription will expire in 3 days. Renew to maintain access to premium features.',
+      data: subscriptionData
+    },
+    status: 'pending'
   })
 }
 
@@ -78,9 +80,11 @@ export async function notifySubscriptionExpired(userId: string, subscriptionData
   await createNotification({
     user_id: userId,
     type: 'subscription_expired',
-    title: 'Subscription Expired',
-    message: 'Your subscription has expired. Renew to restore access to premium features.',
-    data: subscriptionData,
-    read: false
+    payload_json: {
+      title: 'Subscription Expired',
+      message: 'Your subscription has expired. Renew to restore access to premium features.',
+      data: subscriptionData
+    },
+    status: 'pending'
   })
 }

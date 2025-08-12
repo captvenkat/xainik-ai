@@ -5,8 +5,8 @@ import { AnalyticsMetrics } from '@/lib/metrics'
 import { Target, TrendingUp, Award, Lightbulb, Calendar, CheckCircle, AlertTriangle, ArrowRight } from 'lucide-react'
 
 interface PerformanceInsightsProps {
-  insights: AnalyticsMetrics['performanceInsights']
-  comparativeMetrics?: AnalyticsMetrics['comparativeMetrics']
+  insights: any
+  comparativeMetrics?: any
 }
 
 export default function PerformanceInsights({ insights, comparativeMetrics }: PerformanceInsightsProps) {
@@ -78,7 +78,7 @@ export default function PerformanceInsights({ insights, comparativeMetrics }: Pe
               <h4 className="text-lg font-medium text-gray-900">Next 30 Days</h4>
             </div>
             <div className="space-y-3">
-              {insights.goals.next30Days.map((goal, index) => (
+              {insights.goals?.next30Days?.map((goal: any, index: number) => (
                 <div key={index} className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
                   <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 flex-shrink-0"></div>
                   <div className="flex-1">
@@ -97,7 +97,7 @@ export default function PerformanceInsights({ insights, comparativeMetrics }: Pe
               <h4 className="text-lg font-medium text-gray-900">Next 90 Days</h4>
             </div>
             <div className="space-y-3">
-              {insights.goals.next90Days.map((goal, index) => (
+              {insights.goals?.next90Days?.map((goal: any, index: number) => (
                 <div key={index} className="flex items-start gap-3 p-3 bg-green-50 rounded-lg">
                   <div className="w-2 h-2 bg-green-600 rounded-full mt-2 flex-shrink-0"></div>
                   <div className="flex-1">
@@ -218,7 +218,7 @@ export default function PerformanceInsights({ insights, comparativeMetrics }: Pe
       {/* Suggestions Tab */}
       {activeTab === 'suggestions' && (
         <div className="space-y-4">
-          {insights.suggestions.map((suggestion, index) => (
+          {insights.suggestions?.map((suggestion: any, index: number) => (
             <div key={index} className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg">
               <Lightbulb className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
               <div className="flex-1">
@@ -231,13 +231,13 @@ export default function PerformanceInsights({ insights, comparativeMetrics }: Pe
           <div className="mt-6 p-4 bg-blue-50 rounded-lg">
             <h5 className="font-medium text-blue-900 mb-3">Recommended Actions</h5>
             <div className="space-y-2">
-              {insights.lowViews && (
+              {insights.lowViews?.length > 0 && (
                 <div className="flex items-center gap-2 text-sm text-blue-800">
                   <CheckCircle className="w-4 h-4" />
                   Increase pitch sharing frequency
                 </div>
               )}
-              {insights.lowConversions && (
+              {insights.lowConversions?.length > 0 && (
                 <div className="flex items-center gap-2 text-sm text-blue-800">
                   <CheckCircle className="w-4 h-4" />
                   Optimize pitch call-to-action

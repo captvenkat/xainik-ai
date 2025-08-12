@@ -15,43 +15,8 @@ type UserProfile = Database['public']['Tables']['user_profiles']['Row'];
 // AUTHENTICATION FUNCTIONS - ENTERPRISE FEATURES
 // =====================================================
 
-export async function signInWithGoogle(): Promise<{ error?: string }> {
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`
-    }
-  });
-  
-  return error ? { error: error.message } : {};
-}
-
-export async function signOut(): Promise<{ error?: string }> {
-  const { error } = await supabase.auth.signOut();
-  return error ? { error: error.message } : {};
-}
-
-export async function getCurrentUser(): Promise<User | null> {
-  const { data: { user }, error } = await supabase.auth.getUser();
-  
-  if (error || !user) {
-    return null;
-  }
-  
-  // Get user from our users table
-  const supabaseAction = await createActionClient();
-  const { data: dbUser, error: dbError } = await supabaseAction
-    .from('users')
-    .select('*')
-    .eq('id', user.id)
-    .single();
-  
-  if (dbError || !dbUser) {
-    return null;
-  }
-  
-  return dbUser;
-}
+// Note: These functions are now handled by auth-client.ts for client-side auth
+// Server-side auth functions are in auth-server.ts
 
 export async function getUserWithProfiles(userId: string): Promise<{
   user: User;
@@ -137,7 +102,12 @@ export async function updateUserProfile(
 // =====================================================
 
 export async function hasRole(userId: string, role: string): Promise<boolean> {
-  const user = await getCurrentUser();
+  const supabaseAction = await createActionClient();
+  const { data: user } = await supabaseAction
+    .from('users')
+    .select('role')
+    .eq('id', userId)
+    .single();
   return user?.role === role;
 }
 
@@ -161,21 +131,7 @@ export async function isAdmin(userId: string): Promise<boolean> {
 // SESSION MANAGEMENT - ENTERPRISE FEATURES
 // =====================================================
 
-export async function getSession(): Promise<any> {
-  const { data: { session }, error } = await supabase.auth.getSession();
-  
-  if (error) {
-    console.error('Session error:', error);
-    return null;
-  }
-  
-  return session;
-}
-
-export async function refreshSession(): Promise<{ error?: string }> {
-  const { error } = await supabase.auth.refreshSession();
-  return error ? { error: error.message } : {};
-}
+// Note: Session management is now handled by auth-client.ts
 
 // =====================================================
 // USER MANAGEMENT - ENTERPRISE FEATURES

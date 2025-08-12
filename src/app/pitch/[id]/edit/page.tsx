@@ -190,14 +190,7 @@ export default async function EditPitchPage({ params }: { params: Promise<{ id: 
               <span>Active:</span>
               <span className="font-medium">Yes</span>
             </div>
-            {pitch?.user_subscriptions?.[0]?.end_date && (
-              <div className="flex justify-between">
-                <span>Expires:</span>
-                <span className="font-medium">
-                  {new Date(pitch.user_subscriptions[0].end_date).toLocaleDateString()}
-                </span>
-              </div>
-            )}
+            {/* Subscription expiry info removed - not available in current schema */}
           </div>
         </div>
       </div>

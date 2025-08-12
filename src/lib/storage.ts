@@ -1,4 +1,4 @@
-import { createActionClient } from '@/lib/db'
+import { createActionClient } from '@/lib/supabase-server'
 
 export interface StorageFile {
   id: string
