@@ -38,7 +38,7 @@ export default function LikeButton({ pitchId, initialCount, userId }: LikeButton
           : await likePitch(pitchId, userId)
         
         if (res.success) {
-          setCount(res.likesCount)
+          // Keep the optimistic update
         } else {
           // Rollback on error
           setLiked(prevLiked)

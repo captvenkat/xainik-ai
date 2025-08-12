@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
       veteranId: veteranId || undefined,
     };
 
-    const rows = await getCachedCohorts(opt);
+    const rows = await getCachedCohorts();
 
     return NextResponse.json({ rows });
   } catch (error) {

@@ -1,75 +1,51 @@
-import { first } from '@/lib/db'
-import type { PitchCardData } from '@/types/domain'
+import type { Database } from '@/types/live-schema'
 
-export type RawPitchRow = {
-  id: string;
-  title: string | null;
-  pitch_text: string | null;
-  skills: string[] | null;
-  location: string | null;
-  job_type: string | null;
-  availability: string | null;
-  likes_count: number | null;
-  user_id: string;
-  user?: any; // array or object depending on relationship
-  user_profile?: any; // array or object depending on relationship
-};
-
-export interface PitchWithVeteran {
-  id: string;
-  title: string;
-  pitch_text: string;
-  skills: string[];
-  job_type: string;
-  location: string;
-  availability: string;
-  experience_years: number | null;
-  photo_url: string | null;
-  phone: string | null;
-  linkedin_url: string | null;
-  resume_url: string | null;
-  resume_share_enabled: boolean;
-  plan_tier: string | null;
-  plan_expires_at: string | null;
-  is_active: boolean;
-  likes_count: number;
-  created_at: string;
-  updated_at: string;
-  user_id: string; // Changed from veteran_id
-  user: {
-    name: string;
-    role: string;
-  };
+export type RawPitchRow = Database['public']['Tables']['pitches']['Row'] & {
+  user?: Database['public']['Tables']['users']['Row']
+  endorsements?: Database['public']['Tables']['endorsements']['Row'][]
+  user_subscriptions?: Database['public']['Tables']['user_subscriptions']['Row'][]
 }
 
-export function toPitchCardData(r: RawPitchRow): PitchCardData {
-  const v = Array.isArray(r.user) ? first(r.user) : r.user ?? null;
-  const vp = v?.users ? (Array.isArray(v.users) ? first(v.users) : v.users) : null;
+export interface PitchCardData {
+  id: string
+  title: string
+  pitch_text: string
+  skills: string[]
+  experience_years: number | null
+  linkedin_url: string | null
+  resume_url: string | null
+  created_at: string
+  user: {
+    id: string
+    name: string | null
+    email: string
+  } | null
+  endorsements_count: number
+  is_subscription_active: boolean
+}
 
+export function toPitchCardData(pitch: RawPitchRow): PitchCardData {
   return {
-    id: v.id,
-    title: v.title,
-    pitch_text: v.pitch_text,
-    skills: v.skills,
-    job_type: v.job_type,
-    location: v.location,
-    availability: v.availability,
-    experience_years: v.experience_years,
-    photo_url: v.photo_url,
-    phone: v.phone,
-    linkedin_url: v.linkedin_url,
-    resume_url: v.resume_url,
-    resume_share_enabled: v.resume_share_enabled,
-    plan_tier: v.plan_tier,
-    plan_expires_at: v.plan_expires_at,
-    is_active: v.is_active,
-    likes_count: v.likes_count,
-    created_at: v.created_at,
-    updated_at: v.updated_at,
-    user_id: (v?.id ?? r.user_id) as string, // Changed from veteran_id
-    user: {
-      name: r.user?.name || 'Unknown',
-      role: r.user?.role || 'veteran'
-    }
-  };
+    id: pitch.id,
+    title: pitch.title,
+    pitch_text: pitch.pitch_text,
+    skills: pitch.skills || [],
+    experience_years: pitch.experience_years,
+    linkedin_url: pitch.linkedin_url,
+    resume_url: pitch.resume_url,
+    created_at: pitch.created_at || new Date().toISOString(),
+    user: pitch.user ? {
+      id: pitch.user.id,
+      name: pitch.user.name,
+      email: pitch.user.email
+    } : null,
+    endorsements_count: pitch.endorsements?.length || 0,
+    is_subscription_active: pitch.user_subscriptions?.some(sub => 
+      sub.status === 'active' && new Date(sub.end_date) > new Date()
+    ) || false
+  }
+}
+
+export function toPitchCardDataArray(pitches: RawPitchRow[]): PitchCardData[] {
+  return pitches.map(toPitchCardData)
 }

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { RefreshCw } from 'lucide-react'
-import { refreshAnalytics } from '@/lib/actions/analytics'
+import { refreshAnalytics } from '@/lib/actions/analytics-server'
 
 interface RefreshButtonProps {
   userId: string

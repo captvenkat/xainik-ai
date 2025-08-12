@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { createResumeRequest } from '@/lib/actions/resumeRequests'
-import { logActivity } from '@/lib/activity'
+import { logUserActivity } from '@/lib/actions/activity-server'
 
 interface RequestResumeButtonProps {
   pitchId: string
@@ -36,14 +36,23 @@ export default function RequestResumeButton({
         recruiter_user_id: recruiterId, // Changed from recruiter_id
         job_role: jobRole
       }
-      await createResumeRequest(requestData)
+      await createResumeRequest(
+        requestData.recruiter_user_id,
+        requestData.user_id,
+        requestData.pitch_id,
+        requestData.job_role
+      )
       
       // Log activity
-      await logActivity('resume_request_sent', {
-        recruiter_id: recruiterId,
-        veteran_id: veteranId,
-        pitch_id: pitchId,
-        job_role: jobRole
+      await logUserActivity({
+        user_id: recruiterId,
+        activity_type: 'resume_request_sent',
+        activity_data: {
+          recruiter_id: recruiterId,
+          veteran_id: veteranId,
+          pitch_id: pitchId,
+          job_role: jobRole
+        }
       })
 
       setMessage('Resume request sent successfully! The veteran will be notified.')

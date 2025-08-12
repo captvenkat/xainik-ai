@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { createDonation } from '@/lib/donations'
-import { logActivity } from '@/lib/activity'
+import { createDonation } from '@/lib/actions/donations-server'
+import { logActivity } from '@/lib/actions/analytics-server'
 import { Heart, Loader2 } from 'lucide-react'
 
 const SUGGESTED_AMOUNTS = [100, 250, 500, 1000, 2500]
@@ -35,11 +35,10 @@ export default function DonationForm() {
 
       // Create donation record
       const donation = await createDonation({
-        amount,
-        donor_name: formData.donor_name,
-        email: formData.email,
-        message: formData.message,
-        anonymous: formData.anonymous
+        amount_cents: amount * 100,
+        currency: 'INR',
+        is_anonymous: formData.anonymous,
+        user_id: null // Anonymous donation
       })
 
       // Create Razorpay order
@@ -90,9 +89,13 @@ export default function DonationForm() {
 
               if (verifyResponse.ok) {
                 // Log activity
-                await logActivity('donation_received', {
-                  amount,
-                  name: formData.anonymous ? 'Anonymous' : formData.donor_name
+                await logActivity({
+                  user_id: 'anonymous', // Anonymous donation
+                  activity_type: 'donation_received',
+                  activity_data: {
+                    amount_cents: amount * 100,
+                    name: formData.anonymous ? 'Anonymous' : formData.donor_name
+                  }
                 })
 
                 // Show success message

@@ -2,7 +2,7 @@ import { createSupabaseServerOnly } from '@/lib/supabaseServerOnly'
 import { redirect } from 'next/navigation'
 
 export default async function DashboardRedirect() {
-  const supabase = createSupabaseServerOnly()
+  const supabase = await createSupabaseServerOnly()
   
   // Check authentication
   const { data: { user }, error: authError } = await supabase.auth.getUser()

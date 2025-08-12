@@ -39,7 +39,7 @@ export default function RoleAwareLink({
           .select('role')
           .eq('id', user.id)
           .single()
-        setProfile(profile)
+        setProfile(profile ? { role: profile.role as string } : null)
       }
       
       setIsLoading(false)

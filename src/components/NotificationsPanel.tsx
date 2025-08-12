@@ -41,7 +41,7 @@ export default function NotificationsPanel() {
         .limit(50)
 
       if (notificationsData) {
-        setNotifications(notificationsData)
+        setNotifications(notificationsData as any)
       }
     } catch (error) {
     } finally {

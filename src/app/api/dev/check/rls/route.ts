@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const supabase = createSupabaseServerOnly()
+    const supabase = await createSupabaseServerOnly()
     
     // Get current user
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -18,35 +18,22 @@ export async function GET(request: NextRequest) {
 
     const results: any = {}
 
-    // Test 1: Try to access invoices from different user
-    const { data: otherInvoices, error: invoiceError } = await supabase
-      .from('invoices')
-      .select('id, number')
+    // Test 1: Try to access donations from different user
+    const { data: otherDonations, error: donationError } = await supabase
+      .from('donations')
+      .select('id, amount_cents')
       .neq('user_id', user.id)
       .limit(1)
 
-    results.invoiceAccess = {
-      success: !invoiceError,
-      error: invoiceError?.message,
-      count: otherInvoices?.length || 0
+    results.donationAccess = {
+      success: !donationError,
+      error: donationError?.message,
+      count: otherDonations?.length || 0
     }
 
-    // Test 2: Try to access receipts from different email
-    const { data: otherReceipts, error: receiptError } = await supabase
-      .from('receipts')
-      .select('id, number')
-      .neq('donor_email', user.email)
-      .limit(1)
-
-    results.receiptAccess = {
-      success: !receiptError,
-      error: receiptError?.message,
-      count: otherReceipts?.length || 0
-    }
-
-    // Test 3: Try to access payment events (admin only)
+    // Test 2: Try to access payment events archive (admin only)
     const { data: paymentEvents, error: eventError } = await supabase
-      .from('payment_events')
+      .from('payment_events_archive')
       .select('id, event_id')
       .limit(1)
 
@@ -56,32 +43,20 @@ export async function GET(request: NextRequest) {
       count: paymentEvents?.length || 0
     }
 
-    // Test 4: Try to access email logs (admin only)
-    const { data: emailLogs, error: emailError } = await supabase
-      .from('email_logs')
-      .select('id, document_type')
+    // Test 3: Try to access user activity log (admin only)
+    const { data: activityLogs, error: activityError } = await supabase
+      .from('user_activity_log')
+      .select('id, activity_type')
       .limit(1)
 
-    results.emailLogAccess = {
-      success: !emailError,
-      error: emailError?.message,
-      count: emailLogs?.length || 0
-    }
-
-    // Test 5: Try to access numbering state (admin only)
-    const { data: numberingState, error: numberingError } = await supabase
-      .from('numbering_state')
-      .select('id, fy')
-      .limit(1)
-
-    results.numberingAccess = {
-      success: !numberingError,
-      error: numberingError?.message,
-      count: numberingState?.length || 0
+    results.activityLogAccess = {
+      success: !activityError,
+      error: activityError?.message,
+      count: activityLogs?.length || 0
     }
 
     // Summary
-    const expectedFailures = ['paymentEventAccess', 'emailLogAccess', 'numberingAccess']
+    const expectedFailures = ['paymentEventAccess', 'activityLogAccess']
     const actualFailures = Object.entries(results)
       .filter(([key, value]) => expectedFailures.includes(key) && (value as any).success)
       .map(([key]) => key)

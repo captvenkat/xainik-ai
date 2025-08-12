@@ -1,203 +1,224 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { createAdminClient } from '@/lib/supabaseAdmin'
-import { logActivity } from '@/lib/activity'
-import { generateServiceInvoice } from '@/lib/billing/invoices'
-import { generateDonationReceipt } from '@/lib/billing/receipts'
-import type { RazorpayWebhookPayload, ServicePaymentNotes, DonationPaymentNotes } from '@/types/razorpay'
-import * as Sentry from '@sentry/nextjs'
-import crypto from 'crypto'
+// =====================================================
+// PROFESSIONAL RAZORPAY WEBHOOK HANDLER
+// Xainik Platform - Professional Rewrite
+// =====================================================
 
-export async function POST(request: NextRequest) {
-  let payload: RazorpayWebhookPayload | null = null;
-  
+import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
+import { headers } from 'next/headers';
+import crypto from 'crypto';
+import { Database } from '@/types/live-schema';
+
+// =====================================================
+// SUPABASE CLIENT
+// =====================================================
+
+const supabaseAdmin = createClient<Database>(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
+// =====================================================
+// WEBHOOK SECURITY VALIDATION
+// =====================================================
+
+/**
+ * Verify webhook signature for security
+ */
+function verifyWebhookSignature(payload: string, signature: string): boolean {
   try {
-    // Verify webhook signature
-    const body = await request.text()
-    const signature = request.headers.get('x-razorpay-signature')
-    
-    if (!signature) {
-      Sentry.captureMessage('Webhook missing signature', 'warning');
-      return NextResponse.json({ error: 'Missing signature' }, { status: 400 })
+    const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
+    if (!webhookSecret) {
+      console.error('RAZORPAY_WEBHOOK_SECRET not configured');
+      return false;
     }
 
-    // Verify HMAC signature
     const expectedSignature = crypto
-      .createHmac('sha256', process.env.RAZORPAY_WEBHOOK_SECRET!)
-      .update(body)
-      .digest('hex')
-
-    if (signature !== expectedSignature) {
-      Sentry.captureMessage('Webhook invalid signature', 'error');
-      return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
-    }
-
-    payload = JSON.parse(body) as RazorpayWebhookPayload
+      .createHmac('sha256', webhookSecret)
+      .update(payload)
+      .digest('hex');
     
-    // Only process payment.captured events
-    if (payload.event !== 'payment.captured') {
-      Sentry.addBreadcrumb({
-        category: 'webhook',
-        message: `Ignoring event: ${payload.event}`,
-        level: 'info'
-      });
-      return NextResponse.json({ message: 'Event ignored - not payment.captured' })
-    }
+    return crypto.timingSafeEqual(
+      Buffer.from(expectedSignature, 'hex'),
+      Buffer.from(signature, 'hex')
+    );
+  } catch (error) {
+    console.error('Webhook signature verification failed:', error);
+    return false;
+  }
+}
 
-    // Extract payment data
-    const p = payload.payload.payment.entity
-    const eventId = payload.id
-    const paymentId = p.id
-    const orderId = p.order_id
-    const notes = p.notes || {}
-    const amount = p.amount
-    const currency = p.currency
-    const status = p.status
+// =====================================================
+// WEBHOOK EVENT PROCESSING
+// =====================================================
 
-    Sentry.addBreadcrumb({
-      category: 'payment',
-      message: `Processing payment: ${paymentId}`,
-      data: { eventId, paymentId, amount, currency, status }
-    });
+async function processWebhookEvent(event: any): Promise<void> {
+  try {
+    console.log('Processing webhook event:', event.event, event.id);
 
-    const supabaseAdmin = createAdminClient()
-
-    // 1) Idempotent insert to payment_events
-    let paymentEvent: { id: string } | null = null
-    const { data: insertResult, error: insertError } = await supabaseAdmin
-      .from('payment_events')
+    // Store webhook event in database
+    const { error: insertError } = await supabaseAdmin
+      .from('payment_events_archive')
       .insert({
-        event_id: eventId,
-        payment_id: paymentId,
-        order_id: orderId,
-        amount,
-        currency,
-        status,
-        notes,
-        processed_at: new Date().toISOString()
+        event_type: event.event,
+        event_data: event.payload,
+        event_id: event.id,
+        payment_id: event.payload?.payment?.entity?.id || null,
+        user_id: 'system', // Use system user for webhook events
+        created_at: new Date().toISOString()
       })
-      .select('id')
-      .single()
 
     if (insertError) {
-      // If duplicate (unique constraint on event_id), treat as processed
-      if (!String(insertError?.message || '').includes('duplicate key')) {
-        Sentry.captureException(insertError, {
-          tags: { component: 'payment_events_insert' },
-          extra: { eventId, paymentId }
-        });
-        throw insertError
-      }
-      // For duplicate, fetch the existing record
-      Sentry.addBreadcrumb({
-        category: 'idempotency',
-        message: `Duplicate event detected: ${eventId}`,
-        level: 'info'
-      });
-      const { data: existingEvent } = await supabaseAdmin
-        .from('payment_events')
-        .select('id')
-        .eq('event_id', eventId)
-        .single()
-      if (existingEvent) {
-        paymentEvent = existingEvent
-      }
-    } else {
-      paymentEvent = insertResult
+      console.error('Failed to record webhook event:', insertError);
+      throw new Error('Failed to record webhook event');
     }
 
-    // 2) Branch on notes.type, generate docs, log activity
-    if (notes.type === 'service') {
-      const serviceNotes = notes as unknown as ServicePaymentNotes;
-      Sentry.addBreadcrumb({
-        category: 'billing',
-        message: 'Generating service invoice',
-        data: { planTier: notes.planTier, amount }
-      });
-
-      if (!paymentEvent) {
-        throw new Error('Payment event not found');
-      }
-      
-      const invoiceParams: any = {
-        userId: serviceNotes.userId,
-        paymentEventId: paymentEvent.id,
-        amount: amount,
-        planTier: serviceNotes.planTier,
-        planMeta: {
-          plan_name: serviceNotes.planName,
-          duration_days: Number(serviceNotes.planDays)
-        },
-        buyerName: serviceNotes.buyerName,
-        buyerEmail: serviceNotes.buyerEmail
-      };
-      
-      if (serviceNotes.buyerPhone) {
-        invoiceParams.buyerPhone = serviceNotes.buyerPhone;
-      }
-      
-      await generateServiceInvoice(invoiceParams);
-
-      await logActivity('plan_activated', {
-        veteran_name: serviceNotes.buyerName,
-        amount: (amount/100).toFixed(0),
-        pitch_title: serviceNotes.planName
-      });
-
-      Sentry.addBreadcrumb({
-        category: 'activity',
-        message: 'Plan activation logged',
-        level: 'info'
-      });
-
-    } else if (notes.type === 'donation') {
-      const donationNotes = notes as unknown as DonationPaymentNotes;
-      Sentry.addBreadcrumb({
-        category: 'billing',
-        message: 'Generating donation receipt',
-        data: { amount, isAnonymous: notes.anonymous === 'true' }
-      });
-
-      const receiptParams: any = {
-        paymentEventId: paymentEvent!.id,
-        amount: amount,
-        donorName: donationNotes.donorName,
-        isAnonymous: donationNotes.anonymous === 'true'
-      };
-      
-      if (donationNotes.donorEmail) {
-        receiptParams.donorEmail = donationNotes.donorEmail;
-      }
-      
-      if (donationNotes.donorPhone) {
-        receiptParams.donorPhone = donationNotes.donorPhone;
-      }
-      
-      await generateDonationReceipt(receiptParams);
-
-      await logActivity('donation_received', {
-        supporter_name: donationNotes.donorName,
-        amount: (amount/100).toFixed(0)
-      });
-
-      Sentry.addBreadcrumb({
-        category: 'activity',
-        message: 'Donation received logged',
-        level: 'info'
-      });
+    // Handle specific event types
+    switch (event.event) {
+      case 'payment.captured':
+        await handlePaymentCaptured(event.payload);
+        break;
+      case 'subscription.activated':
+        await handleSubscriptionActivated(event.payload);
+        break;
+      case 'subscription.charged':
+        await handleSubscriptionCharged(event.payload);
+        break;
+      default:
+        console.log('Unhandled event type:', event.event);
     }
-
-    return NextResponse.json({ ok: true });
 
   } catch (error) {
-    Sentry.captureException(error, {
-      tags: { component: 'razorpay_webhook' },
-      extra: { 
-        eventId: payload?.id,
-        paymentId: payload?.payload?.payment?.entity?.id 
-      }
-    });
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('Error processing webhook event:', error);
+    throw error;
   }
+}
+
+async function handlePaymentCaptured(payload: any): Promise<void> {
+  console.log('Handling payment captured:', payload.payment?.id);
+  
+  // Record donation if this is a donation payment
+  if (payload.payment?.notes?.type === 'donation') {
+    const { error } = await supabaseAdmin
+      .from('donations')
+      .insert({
+        razorpay_payment_id: payload.payment.id,
+        amount_cents: payload.payment.amount,
+        currency: payload.payment.currency,
+        user_id: null, // Anonymous donation
+        is_anonymous: payload.payment.notes?.anonymous === 'true',
+        created_at: new Date().toISOString()
+      });
+
+    if (error) {
+      console.error('Failed to record donation:', error);
+      throw new Error('Failed to record donation');
+    }
+  }
+}
+
+async function handleSubscriptionActivated(payload: any): Promise<void> {
+  console.log('Handling subscription activated:', payload.subscription?.id);
+  // TODO: Implement subscription activation logic
+}
+
+async function handleSubscriptionCharged(payload: any): Promise<void> {
+  console.log('Handling subscription charged:', payload.subscription?.id);
+  // TODO: Implement subscription charging logic
+}
+
+// =====================================================
+// WEBHOOK HANDLER
+// =====================================================
+
+export async function POST(request: NextRequest): Promise<NextResponse> {
+  try {
+    // 1. Get request headers and body
+    const headersList = await headers();
+    const signature = headersList.get('x-razorpay-signature');
+    const body = await request.text();
+
+    // 2. Validate webhook signature
+    if (!signature || !verifyWebhookSignature(body, signature)) {
+      console.error('Invalid webhook signature');
+      return NextResponse.json(
+        { error: 'Invalid signature' },
+        { status: 401 }
+      );
+    }
+
+    // 3. Parse webhook payload
+    let webhookData: any;
+    try {
+      webhookData = JSON.parse(body);
+    } catch (error) {
+      console.error('Invalid JSON payload:', error);
+      return NextResponse.json(
+        { error: 'Invalid JSON payload' },
+        { status: 400 }
+      );
+    }
+
+    // 4. Validate webhook data structure
+    if (!webhookData.id || !webhookData.event || !webhookData.payload) {
+      console.error('Invalid webhook data structure:', webhookData);
+      return NextResponse.json(
+        { error: 'Invalid webhook data structure' },
+        { status: 400 }
+      );
+    }
+
+    // 5. Process webhook event
+    await processWebhookEvent(webhookData);
+
+    // 6. Return success response
+    return NextResponse.json(
+      { 
+        success: true, 
+        message: 'Webhook processed successfully',
+        event_id: webhookData.id,
+        event_type: webhookData.event
+      },
+      { status: 200 }
+    );
+
+  } catch (error) {
+    console.error('Webhook processing error:', error);
+
+    return NextResponse.json(
+      { 
+        error: 'Internal server error',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      },
+      { status: 500 }
+    );
+  }
+}
+
+// =====================================================
+// CORS AND HEALTH CHECK HANDLERS
+// =====================================================
+
+export async function OPTIONS(): Promise<NextResponse> {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, x-razorpay-signature',
+    },
+  });
+}
+
+export async function GET(): Promise<NextResponse> {
+  return NextResponse.json(
+    { 
+      status: 'healthy',
+      message: 'Razorpay webhook endpoint is operational',
+      timestamp: new Date().toISOString()
+    },
+    { status: 200 }
+  );
 }
 
 

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
-import { logActivity } from '@/lib/activity'
+import { logUserActivity } from '@/lib/actions/activity-server'
 import { FileText, Save, AlertCircle, CheckCircle } from 'lucide-react'
 
 interface RecruiterNotesProps {
@@ -53,8 +53,8 @@ export default function RecruiterNotes({ pitchId, veteranName, initialNote = '' 
         .single()
 
       if (!error && data) {
-        setNote(data.note_text || '')
-        setLastSaved(new Date(data.updated_at))
+        setNote((data.note_text as string) || '')
+        setLastSaved(new Date(data.updated_at as string))
       }
     } catch (error) {
     }

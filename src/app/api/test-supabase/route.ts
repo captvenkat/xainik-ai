@@ -3,11 +3,6 @@ import { createSupabaseServer } from '@/lib/supabaseServer';
 
 export async function GET() {
   try {
-      hasUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
-      hasKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-      url: process.env.NEXT_PUBLIC_SUPABASE_URL?.substring(0, 20) + '...',
-    });
-
     const supabase = await createSupabaseServer();
     
     const { data, error } = await supabase.from('users').select('count').limit(1);
@@ -15,22 +10,25 @@ export async function GET() {
     if (error) {
       return NextResponse.json({ 
         success: false, 
-        error: error.message,
-        code: error.code 
+        error: error?.message || 'Unknown error',
+        code: error?.code || 'UNKNOWN'
       }, { status: 500 });
     }
 
     return NextResponse.json({ 
       success: true, 
       message: 'Supabase connection working',
-      data: data 
+      data: data,
+      hasUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+      hasKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      url: process.env.NEXT_PUBLIC_SUPABASE_URL?.substring(0, 20) + '...',
     });
 
-  } catch (error) {
+  } catch (error: any) {
     return NextResponse.json({ 
       success: false, 
-      error: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : undefined
+      error: error?.message || 'Unknown error',
+      code: error?.code || 'UNKNOWN'
     }, { status: 500 });
   }
 }

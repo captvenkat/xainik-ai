@@ -36,7 +36,7 @@ export default function Navigation() {
           .select('role, name')
           .eq('id', user.id)
           .single()
-        setProfile(profile ? { role: profile.role, full_name: profile.name } : null)
+        setProfile(profile ? { role: profile.role as string, full_name: profile.name as string } : null)
       }
       
       setIsLoading(false)

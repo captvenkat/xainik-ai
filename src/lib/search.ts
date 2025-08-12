@@ -1,118 +1,121 @@
-import { SupabaseClient } from '@supabase/supabase-js'
-import { createSupabaseServerOnly } from './supabaseServerOnly'
+import { createActionClient } from '@/lib/supabase-server'
 
-interface SearchParams {
-  q?: string
-  skills?: string
-  city?: string
-  availability?: string
-  jobType?: string
-  branch?: string
+export interface SearchFilters {
+  skills?: string[] | undefined
+  experience_years?: number | undefined
+  location?: string | undefined
+  job_type?: string | undefined
 }
 
-export function buildSearchQuery(
-  searchParams: SearchParams,
-  pageSize: number,
-  offset: number
-) {
-  const supabase = createSupabaseServerOnly()
-  
-  // Base query for active pitches with explicit columns
-  let query = supabase
-    .from('pitches')
-    .select(`
-      id,
-      title,
-      pitch_text,
-      skills,
-      location,
-      job_type,
-      availability,
-      likes_count,
-      veteran_id,
-      veteran:users!pitches_veteran_id_fkey (
-        id,
-        name,
-        email,
-        phone,
-        veterans!veterans_user_id_fkey (
-          rank,
-          service_branch,
-          years_experience,
-          location_current
-        )
-      )
-    `)
-    .eq('is_active', true)
-    .gt('plan_expires_at', new Date().toISOString())
-    .order('created_at', { ascending: false })
+export async function searchPitches(
+  query: string,
+  filters?: SearchFilters,
+  limit: number = 20
+): Promise<any[]> {
+  try {
+    const supabaseAction = await createActionClient()
 
-  // Count query for pagination
-  let totalQuery = supabase
-    .from('pitches')
-    .select('*', { count: 'exact', head: true })
-    .eq('is_active', true)
-    .gt('plan_expires_at', new Date().toISOString())
+    let queryBuilder = supabaseAction
+      .from('pitches')
+      .select(`
+        *,
+        user:users (id, name, email),
+        endorsements (*),
+        user_subscriptions!user_subscriptions_user_id_fkey (status, end_date)
+      `)
+      .or(`title.ilike.%${query}%,pitch_text.ilike.%${query}%`)
 
-  // Apply search filters
-  if (searchParams.q) {
-    const searchTerm = searchParams.q.trim()
-    query = query.or(`title.ilike.%${searchTerm}%,pitch_text.ilike.%${searchTerm}%,veteran.name.ilike.%${searchTerm}%`)
-    totalQuery = totalQuery.or(`title.ilike.%${searchTerm}%,pitch_text.ilike.%${searchTerm}%`)
-  }
-
-  if (searchParams.skills) {
-    const skills = searchParams.skills.split(',').map(s => s.trim()).filter(Boolean)
-    if (skills.length > 0) {
-      query = query.overlaps('skills', skills)
-      totalQuery = totalQuery.overlaps('skills', skills)
+    // Apply filters
+    if (filters?.skills && filters.skills.length > 0) {
+      queryBuilder = queryBuilder.overlaps('skills', filters.skills)
     }
-  }
 
-  if (searchParams.city) {
-    const city = searchParams.city.trim()
-    query = query.ilike('location', `%${city}%`)
-    totalQuery = totalQuery.ilike('location', `%${city}%`)
-  }
-
-  if (searchParams.availability) {
-    const availability = searchParams.availability.trim()
-    query = query.eq('availability', availability)
-    totalQuery = totalQuery.eq('availability', availability)
-  }
-
-  if (searchParams.jobType) {
-    const jobType = searchParams.jobType.trim()
-    query = query.eq('job_type', jobType)
-    totalQuery = totalQuery.eq('job_type', jobType)
-  }
-
-  if (searchParams.branch) {
-    const branches = searchParams.branch.split(',').map(b => b.trim()).filter(Boolean)
-    if (branches.length > 0) {
-      query = query.in('veteran_profile.service_branch', branches)
-      totalQuery = totalQuery.in('veteran_profile.service_branch', branches)
+    if (filters?.experience_years) {
+      queryBuilder = queryBuilder.gte('experience_years', filters.experience_years)
     }
+
+    // Filter to only show pitches from users with active subscriptions
+    const { data: pitches, error } = await queryBuilder
+      .order('created_at', { ascending: false })
+      .limit(limit)
+
+    if (error) {
+      console.error('Search failed:', error)
+      return []
+    }
+
+    // Filter to only show pitches from users with active subscriptions
+    const activePitches = (pitches || []).filter(pitch => {
+      const subscription = pitch.user_subscriptions?.[0]
+      return subscription && 
+                           subscription.status === 'active' &&
+              new Date(subscription.end_date) > new Date()
+    })
+
+    return activePitches
+  } catch (error) {
+    console.error('Search failed:', error)
+    return []
   }
-
-  // Apply pagination
-  query = query.range(offset, offset + pageSize - 1)
-
-  return { query, totalQuery }
 }
 
-export function createSearchUrl(params: SearchParams, page: number = 1): string {
-  const searchParams = new URLSearchParams()
+export function buildSearchQuery(filters: SearchFilters): string {
+  const conditions: string[] = []
   
-  Object.entries(params).forEach(([key, value]) => {
-    if (value && value.trim()) {
-      searchParams.set(key, value.trim())
-    }
-  })
-  
-  if (page > 1) {
-    searchParams.set('page', page.toString())
+  if (filters.skills && filters.skills.length > 0) {
+    conditions.push(`skills.ov.{${filters.skills.join(',')}}`)
   }
   
-  return `/browse?${searchParams.toString()}`
+  if (filters.experience_years) {
+    conditions.push(`experience_years.gte.${filters.experience_years}`)
+  }
+  
+  if (filters.location) {
+    conditions.push(`location.ilike.%${filters.location}%`)
+  }
+  
+  if (filters.job_type) {
+    conditions.push(`job_type.eq.${filters.job_type}`)
+  }
+  
+  return conditions.join(',')
+}
+
+export async function getSearchSuggestions(query: string): Promise<string[]> {
+  try {
+    const supabaseAction = await createActionClient()
+
+    const { data, error } = await supabaseAction
+      .from('pitches')
+      .select('title, skills')
+      .or(`title.ilike.%${query}%`)
+      .limit(10)
+
+    if (error) {
+      console.error('Failed to get search suggestions:', error)
+      return []
+    }
+
+    const suggestions: string[] = []
+    
+    // Add titles
+    data?.forEach(pitch => {
+      if (pitch.title) {
+        suggestions.push(pitch.title)
+      }
+    })
+
+    // Add skills
+    data?.forEach(pitch => {
+      if (pitch.skills) {
+        suggestions.push(...pitch.skills)
+      }
+    })
+
+    // Remove duplicates and limit
+    return [...new Set(suggestions)].slice(0, 10)
+  } catch (error) {
+    console.error('Failed to get search suggestions:', error)
+    return []
+  }
 }

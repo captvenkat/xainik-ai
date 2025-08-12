@@ -15,13 +15,14 @@ export default async function VeteranDashboard() {
   const supabase = createSupabaseServerOnly()
   
   // Check authentication
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  const supabaseClient = await supabase
+  const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
   if (authError || !user) {
     redirect('/auth?redirect=/dashboard/veteran')
   }
 
   // Get user profile to check role
-  const { data: profile } = await supabase
+  const { data: profile } = await supabaseClient
     .from('users')
     .select('role')
     .eq('id', user.id)
@@ -47,22 +48,27 @@ export default async function VeteranDashboard() {
 
   if (isVeteran) {
     // Fetch veteran metrics and analytics (using cached analytics)
-    [metrics, analytics] = await Promise.all([
+    const [metricsResult, analyticsResult] = await Promise.all([
       getVeteranMetrics(user.id),
       getCachedVeteranAnalytics(user.id)
     ])
+    metrics = metricsResult
+    analytics = analyticsResult
 
     // Fetch additional data for new components
-    [trendlineData, cohortData, avgTimeData] = await Promise.all([
-      getTrendlineAllPitches({ window: 30 }),
-      getCohortsBySource({ window: 30 }),
-      getAvgTimeToFirstContact({ window: 30 })
+    const [trendlineDataResult, cohortDataResult, avgTimeDataResult] = await Promise.all([
+      getTrendlineAllPitches(),
+      getCohortsBySource(),
+      getAvgTimeToFirstContact()
     ])
+    trendlineData = trendlineDataResult
+    cohortData = cohortDataResult
+    avgTimeData = avgTimeDataResult
 
     // Fetch invoices
-    const { data: invoicesData } = await supabase
+    const { data: invoicesData } = await supabaseClient
       .from('invoices')
-      .select('id, number, amount, plan_tier, plan_meta, created_at')
+      .select('id, invoice_number, amount_cents, created_at')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .limit(5)
@@ -70,8 +76,8 @@ export default async function VeteranDashboard() {
     invoices = invoicesData
 
     // Calculate days until expiry
-    daysUntilExpiry = metrics?.pitch?.plan_expires_at 
-      ? Math.ceil((new Date(metrics.pitch.plan_expires_at).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
+            daysUntilExpiry = metrics?.pitch?.end_date
+          ? Math.ceil((new Date(metrics.pitch.end_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
       : null
   }
 
@@ -110,7 +116,7 @@ export default async function VeteranDashboard() {
                 </h3>
                 <div className="mt-2 text-sm text-yellow-700">
                   <p>
-                    You're currently viewing the Veteran Dashboard as a {profile?.role}. 
+                    You're currently viewing the Veteran Dashboard as a {profile?.role as string}. 
                     To access full functionality, you can change your role in your profile settings.
                   </p>
                 </div>
@@ -147,13 +153,9 @@ export default async function VeteranDashboard() {
                 <Calendar className="w-5 h-5 text-gray-400" />
                 <div>
                   <p className="text-sm text-gray-600">Expires in</p>
-                  {daysUntilExpiry !== null ? (
-                    <p className={`text-lg font-semibold ${daysUntilExpiry <= 7 ? 'text-red-600' : daysUntilExpiry <= 30 ? 'text-yellow-600' : 'text-green-600'}`}>
-                      {daysUntilExpiry} days
-                    </p>
-                  ) : (
-                    <p className="text-lg font-semibold text-gray-600">No expiry</p>
-                  )}
+                  <p className={`text-lg font-semibold ${(daysUntilExpiry || 0) <= 7 ? 'text-red-600' : (daysUntilExpiry || 0) <= 30 ? 'text-yellow-600' : 'text-green-600'}`}>
+                    {daysUntilExpiry || 0} days
+                  </p>
                 </div>
               </div>
               
@@ -161,7 +163,7 @@ export default async function VeteranDashboard() {
                 <Eye className="w-5 h-5 text-gray-400" />
                 <div>
                   <p className="text-sm text-gray-600">Total Views</p>
-                  <p className="text-lg font-semibold text-gray-900">{metrics.pitch.views || 0}</p>
+                  <p className="text-lg font-semibold text-gray-900">{(metrics.pitch as any)?.views || 0}</p>
                 </div>
               </div>
             </div>
@@ -210,12 +212,12 @@ export default async function VeteranDashboard() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
               <div>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">Endorsements</h3>
-                <p className="text-sm text-gray-600">Total: {metrics.endorsements.total}</p>
-                <p className="text-sm text-gray-600">Recent: {metrics.endorsements.recent.length}</p>
+                <p className="text-sm text-gray-600">Total: {metrics?.endorsements?.total || 0}</p>
+                <p className="text-sm text-gray-600">Recent: {metrics?.endorsements?.recent?.length || 0}</p>
               </div>
               <div>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">Resume Requests</h3>
-                <p className="text-sm text-gray-600">Total: {metrics.resumeRequests.length}</p>
+                <p className="text-sm text-gray-600">Total: {metrics?.resumeRequests?.length || 0}</p>
               </div>
               <div>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">Invoices</h3>
@@ -223,12 +225,12 @@ export default async function VeteranDashboard() {
               </div>
               <div>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">Pitch Views</h3>
-                <p className="text-sm text-gray-600">Total: {metrics.pitch?.views || 0}</p>
+                <p className="text-sm text-gray-600">Total: {(metrics?.pitch as any)?.views || 0}</p>
               </div>
             </div>
 
             {/* Performance Insights & Goal Prompts */}
-            {analytics.performanceInsights && (
+            {analytics?.performanceInsights && (
               <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 mb-8">
                 <div className="flex items-center gap-2 mb-4">
                   <Target className="w-6 h-6 text-blue-600" />
@@ -243,7 +245,7 @@ export default async function VeteranDashboard() {
                       Smart Suggestions
                     </h3>
                     <div className="space-y-2">
-                      {analytics.performanceInsights.suggestions.map((suggestion: string, index: number) => (
+                      {(analytics?.performanceInsights?.suggestions || []).map((suggestion: any, index: number) => (
                         <div key={index} className="flex items-start gap-2">
                           <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
                           <p className="text-sm text-gray-700">{suggestion}</p>
@@ -259,19 +261,19 @@ export default async function VeteranDashboard() {
                       Goal Setting
                     </h3>
                     <div className="space-y-3">
-                      {analytics.performanceInsights.lowViews && (
+                      {analytics?.performanceInsights?.lowViews && (
                         <div className="bg-white rounded-lg p-3 border-l-4 border-blue-500">
                           <p className="text-sm font-medium text-gray-900">Increase Visibility</p>
                           <p className="text-xs text-gray-600">Target: 50+ views this month</p>
                         </div>
                       )}
-                      {analytics.performanceInsights.lowConversions && (
+                      {analytics?.performanceInsights?.lowConversions && (
                         <div className="bg-white rounded-lg p-3 border-l-4 border-green-500">
                           <p className="text-sm font-medium text-gray-900">Improve Conversion</p>
                           <p className="text-xs text-gray-600">Target: 10%+ conversion rate</p>
                         </div>
                       )}
-                      {!analytics.performanceInsights.lowViews && !analytics.performanceInsights.lowConversions && (
+                      {!analytics?.performanceInsights?.lowViews && !analytics?.performanceInsights?.lowConversions && (
                         <div className="bg-white rounded-lg p-3 border-l-4 border-purple-500">
                           <p className="text-sm font-medium text-gray-900">Maintain Momentum</p>
                           <p className="text-xs text-gray-600">Keep engaging your network</p>
@@ -286,7 +288,7 @@ export default async function VeteranDashboard() {
             {/* Quick Actions */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
               <a
-                href={metrics.pitch?.id ? `/pitch/${metrics.pitch.id}/edit` : '/pitch/new'}
+                href={metrics?.pitch?.id ? `/pitch/${metrics.pitch.id}/edit` : '/pitch/new'}
                 className="flex items-center gap-3 p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow"
               >
                 <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -345,9 +347,9 @@ export default async function VeteranDashboard() {
                 <h3 className="font-semibold mb-2">Improve your pitch</h3>
                 {(() => {
                   // derive simple conversion from trend
-                  const views = trendlineData.find(s => s.label === 'pitch_viewed')?.points.reduce((a, p) => a + p.value, 0) ?? 0;
-                  const calls = trendlineData.find(s => s.label === 'recruiter_called')?.points.reduce((a, p) => a + p.value, 0) ?? 0;
-                  const emails = trendlineData.find(s => s.label === 'recruiter_emailed')?.points.reduce((a, p) => a + p.value, 0) ?? 0;
+                  const views = trendlineData?.find((s: any) => s.label === 'pitch_viewed')?.points.reduce((a: any, p: any) => a + p.value, 0) ?? 0;
+                  const calls = trendlineData?.find((s: any) => s.label === 'recruiter_called')?.points.reduce((a: any, p: any) => a + p.value, 0) ?? 0;
+                  const emails = trendlineData?.find((s: any) => s.label === 'recruiter_emailed')?.points.reduce((a: any, p: any) => a + p.value, 0) ?? 0;
                   const conv = views ? calls / views : 0;
                   
                   return (
@@ -364,7 +366,7 @@ export default async function VeteranDashboard() {
                       {calls > 0 && emails === 0 && (
                         <p className="mt-2 text-sm">Tip: Add a clear email CTA in your pitch for off-hours outreach.</p>
                       )}
-                      <p className="mt-2 text-xs text-gray-600">Avg time to first contact (last 30d): {avgTimeData.hours} hrs</p>
+                      <p className="mt-2 text-xs text-gray-600">Avg time to first contact (last 30d): {avgTimeData?.hours || 0} hrs</p>
                     </>
                   );
                 })()}
@@ -373,17 +375,17 @@ export default async function VeteranDashboard() {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
                 {/* Performance Insights */}
                 <PerformanceInsights 
-                  insights={analytics.performanceInsights}
-                  comparativeMetrics={analytics.comparativeMetrics}
+                  insights={analytics?.performanceInsights || []}
+                  comparativeMetrics={analytics?.comparativeMetrics || []}
                 />
                 
                 {/* Trendline Chart */}
-                <TrendlineChart series={trendlineData} />
+                <TrendlineChart series={trendlineData || []} />
               </div>
               
               {/* Cohort Analysis */}
               <div className="mb-8">
-                <CohortTable rows={cohortData} />
+                <CohortTable rows={cohortData || []} />
               </div>
             </div>
 
@@ -392,9 +394,9 @@ export default async function VeteranDashboard() {
               {/* Recent Endorsements */}
               <div className="bg-white rounded-lg shadow-sm p-6">
                 <h3 className="text-lg font-medium text-gray-900 mb-4">Recent Endorsements</h3>
-                {metrics.endorsements.recent.length > 0 ? (
+                {(metrics?.endorsements?.recent?.length || 0) > 0 ? (
                   <div className="space-y-4">
-                    {metrics.endorsements.recent.map((endorsement) => (
+                    {metrics?.endorsements?.recent?.map((endorsement: any) => (
                       <div key={endorsement.id} className="border-l-4 border-blue-500 pl-4">
                         <div className="flex items-center justify-between mb-1">
                           <span className="font-medium text-gray-900">{endorsement.endorser_name}</span>
@@ -414,9 +416,9 @@ export default async function VeteranDashboard() {
               {/* Resume Requests */}
               <div className="bg-white rounded-lg shadow-sm p-6">
                 <h3 className="text-lg font-medium text-gray-900 mb-4">Resume Requests</h3>
-                {metrics.resumeRequests.length > 0 ? (
+                {(metrics?.resumeRequests?.length || 0) > 0 ? (
                   <div className="space-y-4">
-                    {metrics.resumeRequests.slice(0, 5).map((request) => (
+                    {metrics?.resumeRequests?.slice(0, 5).map((request: any) => (
                       <div key={request.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                         <div>
                           <p className="font-medium text-gray-900">{request.recruiter_name}</p>
@@ -467,18 +469,18 @@ export default async function VeteranDashboard() {
                   <tbody className="bg-white divide-y divide-gray-200">
                     {invoices && invoices.length > 0 ? (
                       invoices.map((invoice) => (
-                        <tr key={invoice.id} className="hover:bg-gray-50">
+                        <tr key={invoice.id as string} className="hover:bg-gray-50">
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {invoice.number}
+                            {invoice.invoice_number}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {new Date(invoice.created_at).toLocaleDateString('en-IN')}
+                            {new Date(invoice.created_at as string).toLocaleDateString('en-IN')}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {invoice.plan_tier}
+                            Basic Plan
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            ₹{(invoice.amount / 100).toFixed(2)}
+                            ₹{((invoice.amount_cents) / 100).toFixed(2)}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             <a

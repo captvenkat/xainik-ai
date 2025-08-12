@@ -3,18 +3,18 @@ import { createSupabaseServerOnly } from '@/lib/supabaseServerOnly'
 import { toCSV } from '@/lib/csv'
 
 export async function GET() {
-  const supabase = createSupabaseServerOnly()
+  const supabase = await createSupabaseServerOnly()
   const { data: rows } = await supabase
-    .from('activity_log')
-    .select('id, event_type, event_data, created_at')
+    .from('user_activity_log')
+    .select('id, activity_type, metadata, created_at')
     .order('created_at', { ascending: false })
     .limit(2000)
 
-  const flat = (rows || []).map(r => ({
+  const flat = (rows || []).map((r: any) => ({
     id: r.id,
-    event_type: r.event_type,
+    activity_type: r.activity_type,
     created_at: r.created_at,
-    event_data: r.event_data ? JSON.stringify(r.event_data) : ''
+    metadata: r.metadata ? JSON.stringify(r.metadata) : ''
   }))
 
   const csv = toCSV(flat)

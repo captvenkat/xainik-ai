@@ -3,7 +3,7 @@ import { createSupabaseServerOnly } from '@/lib/supabaseServerOnly'
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createSupabaseServerOnly()
+    const supabase = await createSupabaseServerOnly()
     
     // Check admin access
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     // Get users data
     const { data: users, error } = await supabase
       .from('users')
-      .select('id, full_name, email, role, phone, created_at')
+      .select('id, name, email, role, created_at')
       .order('created_at', { ascending: false })
 
     if (error) {
@@ -34,25 +34,23 @@ export async function GET(request: NextRequest) {
     // Generate CSV
     const csvHeaders = [
       'ID',
-      'Full Name',
+      'Name',
       'Email',
       'Role',
-      'Phone',
       'Created At'
     ]
 
-    const csvRows = users?.map(user => [
+    const csvData = users.map((user: any) => [
       user.id,
-      user.full_name || '',
+      user.name || '',
       user.email,
-      user.role,
-      user.phone || '',
-      new Date(user.created_at).toISOString()
+      user.role || '',
+      new Date(user.created_at as string).toISOString()
     ]) || []
 
     const csvContent = [
       csvHeaders.join(','),
-      ...csvRows.map(row => row.map(field => `"${field}"`).join(','))
+      ...csvData.map(row => row.map(field => `"${field}"`).join(','))
     ].join('\n')
 
     return new NextResponse(csvContent, {

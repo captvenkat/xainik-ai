@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { getRecentActivity } from '@/lib/activity'
+import { getRecentActivity } from '@/lib/actions/activity-server'
 
 interface ActivityEvent {
   id: string
@@ -19,7 +19,10 @@ export default function LiveActivityTicker() {
     const fetchActivities = async () => {
       try {
         const recentActivities = await getRecentActivity(10)
-        setActivities(recentActivities)
+        setActivities(recentActivities.map((activity: any) => ({
+          id: activity.id,
+          display_text: `${activity.activity_type} - ${new Date(activity.created_at).toLocaleDateString()}`
+        })))
       } catch (error) {
       } finally {
         setIsLoading(false)

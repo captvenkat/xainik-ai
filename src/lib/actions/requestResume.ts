@@ -1,214 +1,184 @@
 'use server'
 
-import { createSupabaseServerOnly } from '@/lib/supabaseServerOnly'
-import { Resend } from 'resend'
-import { generateToken } from '@/lib/tokens'
-import { mustOne } from '@/lib/db'
-import { notifyResumeRequestReceived, notifyResumeRequestResponse } from '@/lib/notify'
+import { createActionClient } from '@/lib/supabase-server'
+import { revalidatePath } from 'next/cache'
 
+export interface CreateResumeRequestData {
+  pitch_id: string
+  recruiter_user_id: string
+  user_id: string
+  job_role?: string | null
+}
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-
-export async function requestResume(pitchId: string, recruiterMessage?: string) {
-  const supabase = createSupabaseServerOnly()
-  
-  // Get current user (must be recruiter)
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
-  if (authError || !user) {
-    throw new Error('Authentication required')
-  }
-
-  // Verify user is a recruiter and get profile
-  const { data: profile } = await supabase
-    .from('users')
-    .select('role, name')
-    .eq('id', user.id)
-    .single()
-
-  if (profile?.role !== 'recruiter') {
-    throw new Error('Only recruiters can request resumes')
-  }
-
-  // Get pitch and veteran details
-  const { data, error } = await supabase
-    .from('pitches')
-    .select(`
-      id,
-      title,
-      profiles!inner(
-        id,
-        full_name,
-        email,
-        phone,
-        resume_url,
-        resume_share_enabled
-      )
-    `)
-    .eq('id', pitchId)
-    .eq('status', 'active')
-
-  if (error) throw error
-  if (!data || data.length === 0) {
-    throw new Error('Pitch not found or not active')
-  }
-  
-  const pitch = data[0]!
-
-  // Create resume request record
-  const { data: request, error: requestError } = await supabase
-    .from('resume_requests')
-    .insert({
-      pitch_id: pitchId,
-      recruiter_id: user.id,
-      veteran_id: pitch.profiles?.[0]?.id || '',
-      message: recruiterMessage || null,
-      status: 'pending'
-    })
-    .select()
-    .single()
-
-  if (requestError) {
-    throw new Error('Failed to create resume request')
-  }
-
-  // Send notification to veteran
+export async function createResumeRequest(data: CreateResumeRequestData) {
   try {
-    const notificationPayload: {
-      recruiter_name: string
-      company_name: string
-      job_title: string
-      message?: string
-    } = {
-      recruiter_name: profile?.name || 'A recruiter',
-      company_name: 'Company', // TODO: Get from recruiter profile
-      job_title: pitch.title
-    }
+    const supabase = await createActionClient()
     
-    if (recruiterMessage) {
-      notificationPayload.message = recruiterMessage
+    const { data: resumeRequest, error } = await supabase
+      .from('resume_requests')
+      .insert({
+        pitch_id: data.pitch_id,
+        recruiter_user_id: data.recruiter_user_id,
+        user_id: data.user_id,
+        job_role: data.job_role || null,
+        status: 'pending'
+      })
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error creating resume request:', error)
+      throw new Error('Failed to create resume request')
     }
 
-    await notifyResumeRequestReceived(
-      pitch.profiles?.[0]?.id || '',
-      user.id,
-      notificationPayload
-    )
-  } catch (notificationError) {
-    // Don't fail the request if notification fails
-  }
+    // Log activity
+    await logResumeRequestActivity('resume_request_created', {
+      resume_request_id: resumeRequest.id,
+      pitch_id: data.pitch_id,
+      recruiter_user_id: data.recruiter_user_id,
+      user_id: data.user_id
+    })
 
-  // Invalidate metrics cache for the veteran
-  try {
-    const veteranId = pitch.profiles?.[0]?.id;
-    if (veteranId) {
-      await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/revalidate-metrics`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ veteranId }),
-      });
-    }
+    revalidatePath('/dashboard/recruiter')
+    revalidatePath('/dashboard/veteran')
+    
+    return { success: true, data: resumeRequest }
   } catch (error) {
+    console.error('Error in createResumeRequest:', error)
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
   }
-
-  // Send email to veteran using React Email template
-  try {
-    const { render } = await import('@react-email/components')
-    const ResumeRequestEmail = (await import('@/emails/resume_request_to_veteran')).default
-    
-    // Generate HMAC tokens for approve/decline links
-    const approveToken = generateToken({
-      requestId: request.id,
-      veteranId: pitch.profiles?.[0]?.id || '',
-      purpose: 'resume_approve'
-    })
-    
-    const declineToken = generateToken({
-      requestId: request.id,
-      veteranId: pitch.profiles?.[0]?.id || '',
-      purpose: 'resume_decline'
-    })
-
-    const emailHtml = await render(ResumeRequestEmail({
-      veteranName: pitch.profiles?.[0]?.full_name || 'Unknown',
-      pitchTitle: pitch.title,
-      recruiterMessage: recruiterMessage || '',
-      approveUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/api/resume/approve/${request.id}?token=${approveToken}`,
-      declineUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/api/resume/decline/${request.id}?token=${declineToken}`
-    }))
-
-    await resend.emails.send({
-      from: 'Xainik <noreply@xainik.com>',
-      to: pitch.profiles?.[0]?.email || '',
-      subject: `Resume Request: ${pitch.title}`,
-      html: emailHtml
-    })
-  } catch (emailError) {
-    // Don't fail the request if email fails
-  }
-
-  return { success: true, requestId: request.id }
 }
 
-export async function approveResumeRequest(requestId: string, token: string) {
-  const supabase = createSupabaseServerOnly()
-  
-  // Verify token and get request details
-  // ... token verification logic ...
-  
-  // Update request status
-  const { data: request, error } = await supabase
-    .from('resume_requests')
-    .update({ status: 'approved' })
-    .eq('id', requestId)
-    .select('*, pitches(title), profiles!resume_requests_veteran_id_fkey(full_name)')
-    .single()
-
-  if (error) throw error
-
-  // Send notification to recruiter
+export async function approveResumeRequest(requestId: string, veteranUserId: string) {
   try {
-    await notifyResumeRequestResponse(
-      request.recruiter_id,
-      request.veteran_id,
-      true,
-      {
-        veteran_name: request.profiles?.[0]?.full_name || 'Unknown'
-      }
-    )
-  } catch (notificationError) {
-  }
+    const supabase = await createActionClient()
+    
+    const { data: resumeRequest, error } = await supabase
+      .from('resume_requests')
+      .update({
+        status: 'approved',
+        responded_at: new Date().toISOString()
+      })
+      .eq('id', requestId)
+      .eq('user_id', veteranUserId)
+      .select()
+      .single()
 
-  return { success: true }
+    if (error) {
+      console.error('Error approving resume request:', error)
+      throw new Error('Failed to approve resume request')
+    }
+
+    // Log activity
+    await logResumeRequestActivity('resume_request_approved', {
+      resume_request_id: requestId,
+      pitch_id: resumeRequest.pitch_id,
+      recruiter_user_id: resumeRequest.recruiter_user_id,
+      user_id: veteranUserId
+    })
+
+    revalidatePath('/dashboard/recruiter')
+    revalidatePath('/dashboard/veteran')
+    
+    return { success: true, data: resumeRequest }
+  } catch (error) {
+    console.error('Error in approveResumeRequest:', error)
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
+  }
 }
 
-export async function declineResumeRequest(requestId: string, token: string) {
-  const supabase = createSupabaseServerOnly()
-  
-  // Verify token and get request details
-  // ... token verification logic ...
-  
-  // Update request status
-  const { data: request, error } = await supabase
-    .from('resume_requests')
-    .update({ status: 'declined' })
-    .eq('id', requestId)
-    .select('*, pitches(title), profiles!resume_requests_veteran_id_fkey(full_name)')
-    .single()
-
-  if (error) throw error
-
-  // Send notification to recruiter
+export async function declineResumeRequest(requestId: string, veteranUserId: string) {
   try {
-    await notifyResumeRequestResponse(
-      request.recruiter_id,
-      request.veteran_id,
-      false,
-      {
-        veteran_name: request.profiles?.[0]?.full_name || 'Unknown'
-      }
-    )
-  } catch (notificationError) {
-  }
+    const supabase = await createActionClient()
+    
+    const { data: resumeRequest, error } = await supabase
+      .from('resume_requests')
+      .update({
+        status: 'declined',
+        responded_at: new Date().toISOString()
+      })
+      .eq('id', requestId)
+      .eq('user_id', veteranUserId)
+      .select()
+      .single()
 
-  return { success: true }
+    if (error) {
+      console.error('Error declining resume request:', error)
+      throw new Error('Failed to decline resume request')
+    }
+
+    // Log activity
+    await logResumeRequestActivity('resume_request_declined', {
+      resume_request_id: requestId,
+      pitch_id: resumeRequest.pitch_id,
+      recruiter_user_id: resumeRequest.recruiter_user_id,
+      user_id: veteranUserId
+    })
+
+    revalidatePath('/dashboard/recruiter')
+    revalidatePath('/dashboard/veteran')
+    
+    return { success: true, data: resumeRequest }
+  } catch (error) {
+    console.error('Error in declineResumeRequest:', error)
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
+  }
+}
+
+export async function getResumeRequests(userId: string, role: string) {
+  try {
+    const supabase = await createActionClient()
+    
+    let query = supabase
+      .from('resume_requests')
+      .select(`
+        *,
+        pitches (
+          id,
+          title,
+          pitch_text,
+          user_id
+        ),
+        users!resume_requests_recruiter_user_id_fkey (
+          id,
+          name,
+          email
+        )
+      `)
+
+    if (role === 'recruiter') {
+      query = query.eq('recruiter_user_id', userId)
+    } else if (role === 'veteran') {
+      query = query.eq('user_id', userId)
+    }
+
+    const { data: resumeRequests, error } = await query
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.error('Error fetching resume requests:', error)
+      throw new Error('Failed to fetch resume requests')
+    }
+
+    return { success: true, data: resumeRequests }
+  } catch (error) {
+    console.error('Error in getResumeRequests:', error)
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
+  }
+}
+
+async function logResumeRequestActivity(activityType: string, metadata: any) {
+  try {
+    const supabase = await createActionClient()
+    
+    await supabase
+      .from('user_activity_log')
+      .insert({
+        activity_type: activityType,
+        activity_data: metadata,
+        user_id: metadata.user_id
+      })
+  } catch (error) {
+    console.error('Error logging resume request activity:', error)
+  }
 }

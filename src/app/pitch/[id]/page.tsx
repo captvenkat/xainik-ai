@@ -13,48 +13,63 @@ export const revalidate = 30
 
 async function fetchPitch(id: string) {
   const supabase = createSupabaseServerOnly()
-  const { data, error } = await supabase
+  
+  // First get the pitch
+  const supabaseClient = await supabase
+  const { data: pitch, error: pitchError } = await supabaseClient
     .from('pitches')
-    .select(`
-      *,
-      veteran:users!pitches_veteran_id_fkey(
-        id,
-        name,
-        email,
-        phone,
-        veterans!veterans_user_id_fkey(
-          rank,
-          service_branch,
-          years_experience,
-          location_current,
-          locations_preferred
-        )
-      )
-    `)
+    .select('*')
     .eq('id', id)
     .eq('is_active', true)
-    .gt('plan_expires_at', new Date().toISOString())
+    .gt('end_date', new Date().toISOString())
     .single()
 
-  if (error) {
+  if (pitchError || !pitch) {
     return null
   }
-  
-  return data
+
+  // Then get the veteran data
+  const { data: veteran, error: veteranError } = await supabaseClient
+    .from('users')
+    .select('id, name, email')
+    .eq('id', pitch.user_id as string)
+    .single()
+
+  // Get veteran profile
+  const { data: veteranProfile } = await supabaseClient
+    .from('user_profiles')
+    .select('profile_data')
+    .eq('user_id', pitch.user_id as string)
+    .eq('profile_type', 'veteran')
+    .single()
+
+  return {
+    ...pitch,
+    id: pitch.id,
+    veteran,
+    veteran_profile: veteranProfile,
+    user_id: pitch.user_id,
+    title: pitch.title,
+    pitch_text: pitch.pitch_text,
+    skills: pitch.skills,
+    created_at: pitch.created_at,
+    updated_at: pitch.updated_at
+  }
 }
 
 async function fetchUser() {
   const cookieStore = await cookies()
   const supabase = createSupabaseServerOnly()
   
-  const { data: { user }, error } = await supabase.auth.getUser()
+  const supabaseClient = await supabase
+  const { data: { user }, error } = await supabaseClient.auth.getUser()
   
   if (error || !user) {
     return null
   }
 
   // Get user profile
-  const { data: userProfile } = await supabase
+  const { data: userProfile } = await supabaseClient
     .from('users')
     .select('id, name, email, role')
     .eq('id', user.id)
@@ -84,8 +99,8 @@ export default async function PitchDetailPage({
 
   // Fetch endorsements and community verification status
   const [endorsements, isVerified] = await Promise.all([
-    getVeteranEndorsements(pitch.veteran_id),
-    isCommunityVerified(pitch.veteran_id)
+    getVeteranEndorsements(pitch.user_id as string),
+    isCommunityVerified(pitch.user_id as string)
   ])
 
   // Log referral event if referral ID is present
@@ -107,10 +122,11 @@ export default async function PitchDetailPage({
     }
   }
 
-  const veteranName = pitch.veteran?.name || 'Veteran'
-  const veteranRank = pitch.veteran_profile?.rank
-  const veteranBranch = pitch.veteran_profile?.service_branch
-  const veteranYears = pitch.veteran_profile?.years_experience
+  const veteranName = (pitch.veteran?.name as string) || 'Veteran'
+  const veteranProfileData = pitch.veteran_profile?.profile_data as any
+  const veteranRank = veteranProfileData?.rank || ''
+  const veteranBranch = veteranProfileData?.service_branch || ''
+  const veteranYears = veteranProfileData?.years_experience || ''
 
   return (
     <div className="min-h-screen bg-white">
@@ -118,7 +134,7 @@ export default async function PitchDetailPage({
         {/* Header */}
         <div className="mb-6">
           <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-3xl font-bold text-gray-900">{pitch.title}</h1>
+            <h1 className="text-3xl font-bold text-gray-900">{pitch.title as string}</h1>
             {isVerified && (
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                 🛡️ Community Verified
@@ -137,57 +153,62 @@ export default async function PitchDetailPage({
         <div className="card-premium p-6 mb-8">
           <div className="grid md:grid-cols-5 gap-6">
             <div className="md:col-span-3">
-              <p className="text-gray-700 leading-relaxed mb-4">{pitch.pitch_text}</p>
+              <p className="text-gray-700 leading-relaxed mb-4">{pitch.pitch_text as string}</p>
               <div className="flex flex-wrap gap-2 mb-4">
-                {pitch.skills.map((skill: string, i: number) => (
+                {(pitch.skills as string[]).map((skill: string, i: number) => (
                   <span key={i} className="px-3 py-1 bg-gradient-to-r from-blue-50 to-purple-50 text-blue-700 text-xs rounded-full border border-blue-200 font-medium">
                     {skill}
                   </span>
                 ))}
               </div>
               <div className="grid grid-cols-2 gap-3 text-sm text-gray-600">
-                <div><span className="font-medium text-gray-800">Job Type:</span> {pitch.job_type}</div>
-                <div><span className="font-medium text-gray-800">Availability:</span> {pitch.availability}</div>
-                <div><span className="font-medium text-gray-800">Location:</span> {pitch.location}</div>
+                <div><span className="font-medium text-gray-800">Experience:</span> {pitch.experience_years} years</div>
+                <div><span className="font-medium text-gray-800">LinkedIn:</span> {pitch.linkedin_url ? 'Available' : 'Not provided'}</div>
+                <div><span className="font-medium text-gray-800">Resume:</span> {pitch.resume_url ? 'Available' : 'Not provided'}</div>
                 <div><span className="font-medium text-gray-800">Service:</span> {veteranBranch || 'Military'}</div>
               </div>
             </div>
             <div className="md:col-span-2 space-y-4">
-              {/* Photo */}
-              {pitch.photo_url && (
-                <img src={pitch.photo_url} alt={veteranName} className="w-full h-56 object-cover rounded-xl" />
-              )}
+              {/* Photo placeholder - no photo_url in live schema */}
+              <div className="w-full h-56 bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl flex items-center justify-center">
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <span className="text-2xl text-blue-600">{veteranName.charAt(0)}</span>
+                  </div>
+                  <p className="text-sm text-gray-600">Profile Photo</p>
+                </div>
+              </div>
               
               {/* Contact buttons */}
               <ContactButtons 
-                phone={pitch.phone} 
-                email={pitch.veteran?.email} 
+                phone={undefined} 
+                email={pitch.veteran?.email as string} 
                 referralId={ref}
-                pitchId={pitch.id}
+                pitchId={pitch.id as string}
                 veteranName={veteranName}
-                pitchTitle={pitch.title}
+                pitchTitle={pitch.title as string}
               />
               
               {/* Action buttons */}
               <div className="grid grid-cols-1 gap-3">
                 <LikeButton 
-                  pitchId={pitch.id} 
-                  initialCount={pitch.likes_count || 0}
-                  userId={user?.id}
+                  pitchId={pitch.id as string} 
+                  initialCount={0}
+                  userId={user?.id as string}
                 />
                 <ReferButton 
-                  pitchId={pitch.id} 
-                  pitchTitle={pitch.title} 
+                  pitchId={pitch.id as string} 
+                  pitchTitle={pitch.title as string} 
                   veteranName={veteranName}
-                  userId={user?.id}
+                  userId={user?.id as string}
                 />
                 {user?.role === 'recruiter' && (
                   <RequestResumeButton
-                    pitchId={pitch.id}
-                    veteranId={pitch.veteran_id}
-                    recruiterId={user.id}
+                    pitchId={pitch.id as string}
+                    veteranId={pitch.user_id as string}
+                    recruiterId={user.id as string}
                     veteranName={veteranName}
-                    pitchTitle={pitch.title}
+                    pitchTitle={pitch.title as string}
                   />
                 )}
               </div>
@@ -207,9 +228,9 @@ export default async function PitchDetailPage({
           </div>
           <EndorsementsList 
             endorsements={endorsements} 
-            pitchId={pitch.id}
-            userId={user?.id}
-            userRole={user?.role}
+            pitchId={pitch.id as string}
+            userId={user?.id as string}
+            userRole={user?.role as string}
           />
         </div>
 

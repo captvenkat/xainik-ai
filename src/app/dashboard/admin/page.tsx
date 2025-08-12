@@ -13,7 +13,7 @@ import {
 import Link from 'next/link'
 
 export default async function AdminDashboard() {
-  const supabase = createSupabaseServerOnly()
+  const supabase = await createSupabaseServerOnly()
   
   // Check admin access
   const { data: { user } } = await supabase.auth.getUser()
@@ -22,7 +22,7 @@ export default async function AdminDashboard() {
   }
 
   const { data: profile } = await supabase
-    .from('profiles')
+    .from('users')
     .select('role')
     .eq('id', user.id)
     .single()
@@ -40,32 +40,32 @@ export default async function AdminDashboard() {
     { count: resumeRequests },
     { count: suspiciousFlags }
   ] = await Promise.all([
-    supabase.from('profiles').select('*', { count: 'exact', head: true }),
+    supabase.from('users').select('*', { count: 'exact', head: true }),
     supabase.from('pitches').select('*', { count: 'exact', head: true }),
     supabase.from('endorsements').select('*', { count: 'exact', head: true }),
     supabase.from('donations').select('*', { count: 'exact', head: true }),
     supabase.from('resume_requests').select('*', { count: 'exact', head: true }),
-    supabase.from('activity_log').select('*', { count: 'exact', head: true }).eq('event', 'suspicious_activity')
+    supabase.from('user_activity_log').select('*', { count: 'exact', head: true }).eq('activity_type', 'suspicious_activity')
   ])
 
   // Fetch recent activity
   const { data: recentActivity } = await supabase
-    .from('activity_log')
+    .from('user_activity_log')
     .select('*')
     .order('created_at', { ascending: false })
     .limit(10)
 
   // Fetch recent users
   const { data: recentUsers } = await supabase
-    .from('profiles')
-    .select('id, full_name, email, role, created_at')
+    .from('users')
+    .select('id, name, email, role, created_at')
     .order('created_at', { ascending: false })
     .limit(5)
 
   // Fetch recent pitches
   const { data: recentPitches } = await supabase
     .from('pitches')
-    .select('id, title, profiles!inner(full_name), created_at')
+    .select('id, title, user:users(name), created_at')
     .order('created_at', { ascending: false })
     .limit(5)
 
@@ -145,12 +145,12 @@ export default async function AdminDashboard() {
               <div className="p-6">
                 <div className="space-y-4">
                   {recentActivity?.map((activity) => (
-                    <div key={activity.id} className="flex items-start gap-3">
+                    <div key={activity.id as string} className="flex items-start gap-3">
                       <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
                       <div className="flex-1">
-                        <p className="text-sm text-gray-900">{activity.description}</p>
+                        <p className="text-sm text-gray-900">{activity.activity_type}</p>
                         <p className="text-xs text-gray-500">
-                          {new Date(activity.created_at).toLocaleDateString()}
+                          {new Date(activity.created_at as string).toLocaleDateString()}
                         </p>
                       </div>
                     </div>
@@ -217,13 +217,13 @@ export default async function AdminDashboard() {
             <div className="p-6">
               <div className="space-y-4">
                 {recentUsers?.map((user) => (
-                  <div key={user.id} className="flex items-center justify-between">
+                  <div key={user.id as string} className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium text-gray-900">{user.full_name || 'Anonymous'}</p>
-                      <p className="text-sm text-gray-500">{user.email}</p>
+                      <p className="font-medium text-gray-900">{user.name || 'Anonymous'}</p>
+                      <p className="text-sm text-gray-500">{user.email as string}</p>
                     </div>
-                    <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
-                      {user.role}
+                    <span className="text-xs text-gray-400">
+                      {new Date(user.created_at as string).toLocaleDateString()}
                     </span>
                   </div>
                 ))}
@@ -239,17 +239,14 @@ export default async function AdminDashboard() {
             <div className="p-6">
               <div className="space-y-4">
                 {recentPitches?.map((pitch) => (
-                  <div key={pitch.id} className="flex items-center justify-between">
+                  <div key={pitch.id as string} className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium text-gray-900">{pitch.title}</p>
-                      <p className="text-sm text-gray-500">by {pitch.profiles?.[0]?.full_name || 'Unknown'}</p>
+                      <p className="font-medium text-gray-900">{pitch.title as string}</p>
+                      <p className="text-sm text-gray-500">by {pitch.user?.name || 'Unknown'}</p>
                     </div>
-                    <Link 
-                      href={`/pitch/${pitch.id}`}
-                      className="text-blue-600 hover:text-blue-700 text-sm"
-                    >
-                      View →
-                    </Link>
+                    <span className="text-xs text-gray-400">
+                      {new Date(pitch.created_at as string).toLocaleDateString()}
+                    </span>
                   </div>
                 ))}
               </div>

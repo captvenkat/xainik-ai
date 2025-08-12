@@ -7,7 +7,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const supabase = createSupabaseServerOnly();
+    const supabase = await createSupabaseServerOnly();
     
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser();

@@ -46,7 +46,7 @@ export default function FeaturedPitches() {
             )
           `)
           .eq('is_active', true)
-          .gt('plan_expires_at', new Date().toISOString())
+          .gt('end_date', new Date().toISOString())
           .gte('created_at', sevenDaysAgo.toISOString())
           .order('likes_count', { ascending: false })
           .limit(4);

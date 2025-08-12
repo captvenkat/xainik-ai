@@ -14,60 +14,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid API key' }, { status: 401 })
     }
 
-    const supabase = createSupabaseServerOnly()
-
-    // Calculate cutoff date (180 days ago)
-    const cutoffDate = new Date()
-    cutoffDate.setDate(cutoffDate.getDate() - 180)
-
-
-    // Get old payment events
-    const { data: oldEvents, error: fetchError } = await supabase
-      .from('payment_events')
-      .select('*')
-      .lt('created_at', cutoffDate.toISOString())
-
-    if (fetchError) {
-      throw new Error(`Failed to fetch old events: ${fetchError.message}`)
-    }
-
-    if (!oldEvents || oldEvents.length === 0) {
-      return NextResponse.json({ 
-        message: 'No events to archive',
-        archived: 0
-      })
-    }
-
-
-    // Insert into archive table
-    const eventsToArchive = oldEvents.map(event => ({
-      ...event,
-      archived_at: new Date().toISOString()
-    }))
-
-    const { error: archiveError } = await supabase
-      .from('payment_events_archive')
-      .insert(eventsToArchive)
-
-    if (archiveError) {
-      throw new Error(`Failed to archive events: ${archiveError.message}`)
-    }
-
-    // Delete from original table
-    const { error: deleteError } = await supabase
-      .from('payment_events')
-      .delete()
-      .lt('created_at', cutoffDate.toISOString())
-
-    if (deleteError) {
-      throw new Error(`Failed to delete old events: ${deleteError.message}`)
-    }
-
-
-    return NextResponse.json({
-      message: 'Payment events archived successfully',
-      archived: oldEvents.length,
-      cutoffDate: cutoffDate.toISOString()
+    // NOTE: payment_events table doesn't exist in current schema
+    // This cron job is disabled until billing system is fully implemented
+    return NextResponse.json({ 
+      message: 'Archive cron job disabled - payment_events table not found',
+      archived: 0,
+      note: 'Enable when billing system is implemented'
     })
 
   } catch (error) {

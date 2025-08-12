@@ -1,153 +1,308 @@
-/**
- * Domain types for UI components aligned with database schema
- */
+// =====================================================
+// PROFESSIONAL DOMAIN TYPES
+// Xainik Platform - Professional Rewrite
+// =====================================================
+
+import { Database } from './supabase';
+
+// Extract table types from Supabase schema
+export type Tables = Database['public']['Tables'];
+export type Views = Database['public']['Views'];
+
+// =====================================================
+// CORE ENTITY TYPES
+// =====================================================
+
+export type User = Tables['users']['Row'];
+export type UserInsert = Tables['users']['Insert'];
+export type UserUpdate = Tables['users']['Update'];
+
+export type UserProfile = Tables['user_profiles']['Row'];
+export type UserProfileInsert = Tables['user_profiles']['Insert'];
+export type UserProfileUpdate = Tables['user_profiles']['Update'];
+
+export type Pitch = Tables['pitches']['Row'];
+export type PitchInsert = Tables['pitches']['Insert'];
+export type PitchUpdate = Tables['pitches']['Update'];
+
+export type Endorsement = Tables['endorsements']['Row'];
+export type EndorsementInsert = Tables['endorsements']['Insert'];
+export type EndorsementUpdate = Tables['endorsements']['Update'];
+
+export type Referral = Tables['referrals']['Row'];
+export type ReferralInsert = Tables['referrals']['Insert'];
+export type ReferralUpdate = Tables['referrals']['Update'];
+
+export type ResumeRequest = Tables['resume_requests']['Row'];
+export type ResumeRequestInsert = Tables['resume_requests']['Insert'];
+export type ResumeRequestUpdate = Tables['resume_requests']['Update'];
+
+// =====================================================
+// BILLING SYSTEM TYPES
+// =====================================================
+
+export type ServicePlan = Tables['service_plans']['Row'];
+export type ServicePlanInsert = Tables['service_plans']['Insert'];
+export type ServicePlanUpdate = Tables['service_plans']['Update'];
+
+export type UserSubscription = Tables['user_subscriptions']['Row'];
+export type UserSubscriptionInsert = Tables['user_subscriptions']['Insert'];
+export type UserSubscriptionUpdate = Tables['user_subscriptions']['Update'];
+
+export type Invoice = Tables['invoices']['Row'];
+export type InvoiceInsert = Tables['invoices']['Insert'];
+export type InvoiceUpdate = Tables['invoices']['Update'];
+
+export type Receipt = Tables['receipts']['Row'];
+export type ReceiptInsert = Tables['receipts']['Insert'];
+export type ReceiptUpdate = Tables['receipts']['Update'];
+
+export type PaymentEvent = Tables['payment_events']['Row'];
+export type PaymentEventInsert = Tables['payment_events']['Insert'];
+export type PaymentEventUpdate = Tables['payment_events']['Update'];
+
+export type Donation = Tables['donations']['Row'];
+export type DonationInsert = Tables['donations']['Insert'];
+export type DonationUpdate = Tables['donations']['Update'];
+
+// =====================================================
+// NOTIFICATION SYSTEM TYPES
+// =====================================================
+
+// =====================================================
+// RECRUITER FEATURE TYPES
+// =====================================================
+
+export type RecruiterNote = Tables['recruiter_notes']['Row'];
+export type RecruiterNoteInsert = Tables['recruiter_notes']['Insert'];
+export type RecruiterNoteUpdate = Tables['recruiter_notes']['Update'];
+
+// =====================================================
+// ACTIVITY LOGGING TYPES
+// =====================================================
+
+export type UserActivityLog = Tables['user_activity_log']['Row'];
+export type UserActivityLogInsert = Tables['user_activity_log']['Insert'];
+export type UserActivityLogUpdate = Tables['user_activity_log']['Update'];
+
+// =====================================================
+// SYSTEM TYPES
+// =====================================================
+
+export type MigrationAudit = Tables['migration_audit']['Row'];
+export type UserPermission = Tables['user_permissions']['Row'];
+
+// =====================================================
+// ENUM TYPES
+// =====================================================
+
+export type UserRole = 'veteran' | 'recruiter' | 'supporter' | 'admin';
+export type PitchStatus = 'active' | 'inactive' | 'draft';
+export type ResumeRequestStatus = 'pending' | 'approved' | 'declined' | 'expired';
+export type InvoiceStatus = 'draft' | 'sent' | 'paid' | 'overdue' | 'cancelled';
+export type SubscriptionStatus = 'active' | 'expired' | 'cancelled' | 'suspended';
+export type NotificationStatus = 'unread' | 'read' | 'archived';
+export type NotificationChannel = 'email' | 'in_app' | 'both';
+
+// =====================================================
+// COMPOSITE TYPES
+// =====================================================
+
+export interface UserWithProfile extends User {
+  profiles: UserProfile[];
+}
+
+export interface PitchWithUser extends Pitch {
+  user: User;
+  endorsements: Endorsement[];
+  referrals: Referral[];
+}
+
+export interface PitchWithDetails extends PitchWithUser {
+  endorsements_count: number;
+  views_count: number;
+  likes_count: number;
+}
 
 export interface PitchCardData {
   id: string;
   title: string;
   pitch_text: string;
   skills: string[];
-  job_type: string;
-  location: string;
-  availability: string;
   experience_years: number | null;
-  photo_url: string | null;
-  phone: string | null;
   linkedin_url: string | null;
   resume_url: string | null;
-  resume_share_enabled: boolean;
-  plan_tier: string | null;
-  plan_expires_at: string | null;
-  is_active: boolean;
-  likes_count: number;
   created_at: string;
-  updated_at: string;
-  user_id: string; // Changed from veteran_id
   user: {
-    name: string;
-    role: string;
+    id: string;
+    name: string | null;
+    email: string;
+  } | null;
+  endorsements_count: number;
+  is_subscription_active: boolean;
+}
+
+export interface EndorsementWithUser extends Endorsement {
+  endorser: User;
+}
+
+export interface ResumeRequestWithDetails extends ResumeRequest {
+  user: User;
+  recruiter: User;
+  pitch?: Pitch;
+}
+
+export interface InvoiceWithDetails extends Invoice {
+  user: User;
+  plan?: ServicePlan;
+  subscription?: UserSubscription;
+}
+
+export interface ReceiptWithDetails extends Receipt {
+  user: User;
+  invoice?: Invoice;
+}
+
+// =====================================================
+// API RESPONSE TYPES
+// =====================================================
+
+export interface ApiResponse<T = any> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  message?: string;
+}
+
+export interface PaginatedResponse<T> extends ApiResponse<T[]> {
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
   };
 }
 
-export interface PitchDetailData extends PitchCardData {
-  created_at: string
-  updated_at: string
-  plan_tier?: string | null
-  linkedin_url?: string | null
-  resume_url?: string | null
-  resume_share_enabled: boolean
-  phone?: string | null
-  endorsement_count?: number | null
+// =====================================================
+// FILTER AND QUERY TYPES
+// =====================================================
+
+export interface PitchFilters {
+  skills?: string[];
+  location?: string;
+  job_type?: string;
+  experience_years?: number;
+  availability?: string;
+  plan_tier?: string;
+  is_active?: boolean;
 }
 
-export interface EndorsementItem {
-  id: string;
-  user_id: string; // Changed from veteran_id
-  endorser_user_id: string | null; // Changed from endorser_id
-  text: string;
-  created_at: string;
-  endorser?: {
-    name: string;
-    role: string;
-  };
+export interface UserFilters {
+  role?: UserRole;
+  is_active?: boolean;
+  email_verified?: boolean;
+  created_after?: Date;
+  created_before?: Date;
 }
 
-export interface ResumeRequest {
-  id: string;
-  pitch_id: string | null;
-  user_id: string; // Changed from veteran_id
-  recruiter_user_id: string; // Changed from recruiter_id
-  job_role: string | null;
-  status: 'PENDING' | 'APPROVED' | 'DECLINED';
-  responded_at: string | null;
-  created_at: string;
-  pitch?: {
-    title: string;
-    user: {
-      name: string;
-      role: string;
-    };
-  };
-  recruiter?: {
-    name: string;
-    role: string;
-  };
+export interface BillingFilters {
+  status?: InvoiceStatus;
+  user_id?: string;
+  plan_id?: string;
+  amount_min?: number;
+  amount_max?: number;
+  created_after?: Date;
+  created_before?: Date;
 }
 
-export interface ReferralEventItem {
-  id: string
-  referral_id: string
-  event_type: string
-  platform: string
-  occurred_at: string
-  feedback?: string | null
-  feedback_comment?: string | null
-  feedback_at?: string | null
-  debounce_key?: string | null
+// =====================================================
+// FORM TYPES
+// =====================================================
+
+export interface PitchFormData {
+  title: string;
+  pitch_text: string;
+  skills: string[];
+  job_type: string;
+  location: string;
+  experience_years: number;
+  availability: string;
+  linkedin_url?: string;
+  phone?: string;
+  photo_url?: string;
+  resume_url?: string;
+  resume_share_enabled: boolean;
 }
 
-export interface DonationKPI {
-  total_amount: number
-  total_count: number
-  anonymous_count: number
-  recent_donations: Array<{
-    id: string
-    amount: number
-    donor_name: string | null
-    anonymous: boolean
-    created_at: string
-  }>
+export interface UserProfileFormData {
+  name: string;
+  phone?: string;
+  avatar_url?: string;
+  profile_data: Record<string, any>;
 }
 
-export interface InvoiceDoc {
-  id: string
-  number: string
-  user_id: string
-  payment_event_id: string
-  amount_paise: number
-  plan_name: string
-  plan_days: number
-  buyer_name: string
-  buyer_email: string
-  buyer_phone?: string | null
-  storage_key: string
-  created_at: string
+export interface DonationFormData {
+  amount_cents: number;
+  currency: string;
+  is_anonymous: boolean;
+  donor_name?: string;
+  donor_email?: string;
+  donor_phone?: string;
+  message?: string;
 }
 
-export interface ReceiptDoc {
-  id: string
-  number: string
-  payment_event_id: string
-  user_id?: string | null
-  amount_paise: number
-  donor_name: string
-  donor_email: string
-  donor_phone?: string | null
-  anonymous: boolean
-  storage_key: string
-  created_at: string
-}
+// =====================================================
+// UTILITY TYPES
+// =====================================================
 
-export interface ActivityItem {
-  id: string
-  user_id?: string | null
-  event_type: string
-  event_data: Record<string, unknown>
-  created_at: string
-  display_text?: string
-}
+export type DeepPartial<T> = {
+  [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
+};
 
-export interface UserProfile {
-  id: string;
-  email: string;
-  name: string; // Changed from full_name
-  phone: string | null;
-  role: 'veteran' | 'recruiter' | 'supporter' | 'admin';
-  avatar_url: string | null;
-  created_at: string;
-  updated_at: string;
-  profile?: {
-    profile_type: string;
-    profile_data: Record<string, any>;
-  };
-}
+export type RequireFields<T, K extends keyof T> = T & Required<Pick<T, K>>;
+
+export type OptionalFields<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
+
+// =====================================================
+// CONSTANTS
+// =====================================================
+
+export const USER_ROLES: Record<UserRole, string> = {
+  veteran: 'Veteran',
+  recruiter: 'Recruiter',
+  supporter: 'Supporter',
+  admin: 'Administrator'
+};
+
+export const PITCH_STATUSES: Record<PitchStatus, string> = {
+  active: 'Active',
+  inactive: 'Inactive',
+  draft: 'Draft'
+};
+
+export const RESUME_REQUEST_STATUSES: Record<ResumeRequestStatus, string> = {
+  pending: 'Pending',
+  approved: 'Approved',
+  declined: 'Declined',
+  expired: 'Expired'
+};
+
+export const INVOICE_STATUSES: Record<InvoiceStatus, string> = {
+  draft: 'Draft',
+  sent: 'Sent',
+  paid: 'Paid',
+  overdue: 'Overdue',
+  cancelled: 'Cancelled'
+};
+
+export const NOTIFICATION_STATUSES: Record<NotificationStatus, string> = {
+  unread: 'Unread',
+  read: 'Read',
+  archived: 'Archived'
+};
+
+export const NOTIFICATION_CHANNELS: Record<NotificationChannel, string> = {
+  email: 'Email',
+  in_app: 'In-App',
+  both: 'Both'
+};

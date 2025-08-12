@@ -3,7 +3,7 @@ import { createSupabaseServerOnly } from '@/lib/supabaseServerOnly';
 
 export async function GET() {
   try {
-    const supabase = createSupabaseServerOnly();
+    const supabase = await createSupabaseServerOnly();
     
     // Test basic connection
     const { data: { user }, error: authError } = await supabase.auth.getUser();

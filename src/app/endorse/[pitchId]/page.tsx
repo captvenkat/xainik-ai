@@ -34,7 +34,7 @@ export default function EndorsePage() {
             pitch,
             profiles!inner(full_name, avatar_url)
           `)
-          .eq('id', pitchId)
+          .eq('id', pitchId as string)
           .eq('is_active', true)
           .single()
 
@@ -72,10 +72,11 @@ export default function EndorsePage() {
       const { error } = await supabase
         .from('endorsements')
         .insert({
-          pitch_id: pitchId,
+          user_id: pitch?.user_id || '',
+          endorser_user_id: null, // Anonymous endorsement
+          text: formData.message,
           endorser_name: formData.name || 'Anonymous',
           endorser_email: formData.email || null,
-          message: formData.message,
           is_anonymous: !formData.name
         })
 

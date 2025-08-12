@@ -17,36 +17,9 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Get invoice details
-    const { data: invoice, error: invoiceError } = await supabase
-      .from('invoices')
-      .select('*')
-      .eq('id', id)
-      .single()
-
-    if (invoiceError || !invoice) {
-      return NextResponse.json({ error: 'Invoice not found' }, { status: 404 })
-    }
-
-    // Check if user can access this invoice (owner or admin)
-    const { data: userProfile } = await supabase
-      .from('users')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-
-    const canAccess = invoice.user_id === user.id || userProfile?.role === 'admin'
-    
-    if (!canAccess) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-    }
-
-    // Generate signed URL
-    const bucket = process.env.BILLING_PDF_BUCKET || 'docs'
-    const downloadUrl = await getSignedUrl(bucket, invoice.storage_key)
-
-    // Redirect to signed URL
-    return NextResponse.redirect(downloadUrl)
+    // NOTE: invoices table doesn't exist in current schema
+    // This route is disabled until billing system is fully implemented
+    return NextResponse.json({ error: 'Invoice documents disabled - table not found' }, { status: 503 })
 
   } catch (error) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

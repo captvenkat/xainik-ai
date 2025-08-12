@@ -58,7 +58,7 @@ function AuthPageContent() {
 
   async function handleGoogle() {
     try {
-      await signInWithGoogle(redirect);
+      await signInWithGoogle();
     } catch (error) {
       // Handle error appropriately
     }

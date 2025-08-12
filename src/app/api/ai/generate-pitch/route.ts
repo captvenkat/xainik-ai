@@ -6,7 +6,7 @@ import { rateLimits } from '@/middleware/rateLimit'
 export async function POST(request: NextRequest) {
   try {
     // Get current user
-    const supabase = createSupabaseServerOnly()
+    const supabase = await createSupabaseServerOnly()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     
     if (authError || !user) {
