@@ -7,13 +7,40 @@ import {
   Users,
   ArrowRight,
   ChevronRight,
-  Sparkles
+  Sparkles,
+  LogOut
 } from 'lucide-react'
 import LiveActivityTicker from '@/components/LiveActivityTicker'
 import DonationSnapshot from '@/components/DonationSnapshot'
 import FeaturedPitches from '@/components/FeaturedPitches'
+import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 
 export default function HomePage() {
+  const [user, setUser] = useState<any>(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const supabase = createSupabaseBrowser()
+        const { data: { user } } = await supabase.auth.getUser()
+        setUser(user)
+      } catch (error) {
+        console.error('Auth check error:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    checkAuth()
+  }, [])
+
+  const handleSignOut = async () => {
+    const supabase = createSupabaseBrowser()
+    await supabase.auth.signOut()
+    window.location.reload()
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
 
@@ -40,7 +67,7 @@ export default function HomePage() {
               Post a pitch, get calls. Browse verified veterans with direct contact details.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
               <Link href="/pitch/new" className="btn-primary text-lg inline-flex items-center gap-2">
                 Post My Pitch
                 <ArrowRight className="h-5 w-5" />
@@ -53,6 +80,46 @@ export default function HomePage() {
                 Refer a Pitch
                 <ChevronRight className="h-5 w-5" />
               </Link>
+            </div>
+
+            {/* Auth Section */}
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-200/50 max-w-md mx-auto">
+              <div className="text-center">
+                {!isLoading && user ? (
+                  <>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3">Welcome back!</h3>
+                    <p className="text-gray-600 mb-4">You are signed in as {user.email}</p>
+                    <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                      <Link href="/dashboard/veteran" className="btn-primary inline-flex items-center gap-2">
+                        Go to Dashboard
+                        <ArrowRight className="h-4 w-4" />
+                      </Link>
+                      <button 
+                        onClick={handleSignOut}
+                        className="btn-secondary inline-flex items-center gap-2"
+                      >
+                        Sign Out
+                        <LogOut className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3">Already have an account?</h3>
+                    <p className="text-gray-600 mb-4">Sign in to access your dashboard and manage your pitch</p>
+                    <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                      <Link href="/auth" className="btn-primary inline-flex items-center gap-2">
+                        Sign In
+                        <ArrowRight className="h-4 w-4" />
+                      </Link>
+                      <Link href="/auth" className="btn-secondary inline-flex items-center gap-2">
+                        Get Started
+                        <ChevronRight className="h-4 w-4" />
+                      </Link>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </div>
