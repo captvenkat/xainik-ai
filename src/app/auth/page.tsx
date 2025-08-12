@@ -13,15 +13,21 @@ function AuthPageContent() {
   const message = params.get('message');
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   useEffect(() => {
     // Check if user is already authenticated
     const checkAuth = async () => {
       try {
+        console.log('Checking authentication...');
         const supabase = createSupabaseBrowser();
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
-        if (session) {
+        if (sessionError) {
+          console.error('Session check error:', sessionError);
+          setAuthError(sessionError.message);
+        } else if (session) {
+          console.log('User is authenticated:', session.user.email);
           setIsAuthenticated(true);
           // If authenticated and no error, redirect to stored path or default
           if (!error) {
@@ -30,9 +36,14 @@ function AuthPageContent() {
             router.push(storedRedirect);
             return;
           }
+        } else {
+          console.log('No active session found');
         }
       } catch (err) {
+        console.error('Auth check error:', err);
+        setAuthError(err instanceof Error ? err.message : 'Authentication check failed');
       } finally {
+        console.log('Setting isCheckingAuth to false');
         setIsCheckingAuth(false);
       }
     };
@@ -58,15 +69,18 @@ function AuthPageContent() {
 
   async function handleGoogle() {
     try {
+      console.log('Initiating Google sign-in...');
       await signInWithGoogle();
     } catch (error) {
-      // Handle error appropriately
+      console.error('Google sign-in error:', error);
+      setAuthError(error instanceof Error ? error.message : 'Google sign-in failed');
     }
   }
 
   // Function to get user-friendly error message
   const getErrorMessage = () => {
     if (message) return message;
+    if (authError) return authError;
     
     switch (error) {
       case 'state_mismatch':
@@ -137,7 +151,7 @@ function AuthPageContent() {
         </div>
 
         {/* Error Display */}
-        {error && (
+        {(error || authError) && (
           <div className="bg-red-50 border border-red-200 rounded-md p-4">
             <div className="flex">
               <div className="flex-shrink-0">
