@@ -1,7 +1,6 @@
 'use server'
 
 import { createActionClient } from '@/lib/supabase-server'
-import { nanoid } from 'nanoid'
 import { Database } from '@/types/live-schema'
 
 type Referral = Database['public']['Tables']['referrals']['Row']
@@ -13,24 +12,23 @@ export async function createOrGetReferral(supporterUserId: string, pitchId: stri
   // Check if referral already exists
   const { data: existingReferral } = await supabase
     .from('referrals')
-    .select('code')
-    .eq('supporter_user_id', supporterUserId)
+    .select('share_link')
+    .eq('user_id', supporterUserId)
     .eq('pitch_id', pitchId)
     .single()
   
   if (existingReferral) {
-    return `${process.env.NEXT_PUBLIC_SITE_URL}/refer/opened?code=${existingReferral.code}`
+    return existingReferral.share_link
   }
   
   // Create new referral
-  const code = nanoid(8)
+  const shareLink = `${process.env.NEXT_PUBLIC_SITE_URL}/refer/opened?pitch=${pitchId}&user=${supporterUserId}`
   const { data: referral, error } = await supabase
     .from('referrals')
     .insert({
-      supporter_user_id: supporterUserId,
+      user_id: supporterUserId,
       pitch_id: pitchId,
-      code,
-      status: 'active'
+      share_link: shareLink
     })
     .select()
     .single()
@@ -39,7 +37,7 @@ export async function createOrGetReferral(supporterUserId: string, pitchId: stri
     throw new Error(`Failed to create referral: ${error.message}`)
   }
   
-  return `${process.env.NEXT_PUBLIC_SITE_URL}/refer/opened?code=${code}`
+  return shareLink
 }
 
 export async function trackReferralEvent(eventData: {
@@ -69,15 +67,24 @@ export async function trackReferralEvent(eventData: {
 export async function getReferralByCode(code: string): Promise<Referral | null> {
   const supabase = await createActionClient()
   
+  // Parse the code to extract pitch_id and user_id
+  const urlParams = new URLSearchParams(code.split('?')[1])
+  const pitchId = urlParams.get('pitch')
+  const userId = urlParams.get('user')
+  
+  if (!pitchId || !userId) {
+    return null
+  }
+  
   const { data, error } = await supabase
     .from('referrals')
     .select(`
       *,
       pitch:pitches (id, title, pitch_text, user_id),
-      supporter:users!referrals_supporter_user_id_fkey (id, name, email)
+      supporter:users!referrals_user_id_fkey (id, name, email)
     `)
-    .eq('code', code)
-    .eq('status', 'active')
+    .eq('pitch_id', pitchId)
+    .eq('user_id', userId)
     .single()
   
   if (error && error.code !== 'PGRST116') {

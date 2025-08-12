@@ -8,7 +8,7 @@ if (!url || !serviceRole) {
   console.error('Missing Supabase environment variables')
   console.error('Please check your .env.local file contains:')
   console.error('NEXT_PUBLIC_SUPABASE_URL=...')
-  console.error('SUPABASE_SERVICE_ROLE_KEY=...')
+  console.error('SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here')
   process.exit(1)
 }
 
