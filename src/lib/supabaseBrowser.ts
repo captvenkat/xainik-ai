@@ -21,11 +21,17 @@ if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
 }
 
 // =====================================================
-// BROWSER CLIENT INSTANCE
+// SINGLETON BROWSER CLIENT INSTANCE
 // =====================================================
 
+let supabaseBrowserInstance: ReturnType<typeof createClient<Database>> | null = null;
+
 export const createSupabaseBrowser = () => {
-  return createClient<Database>(
+  if (supabaseBrowserInstance) {
+    return supabaseBrowserInstance;
+  }
+
+  supabaseBrowserInstance = createClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
@@ -39,6 +45,8 @@ export const createSupabaseBrowser = () => {
       }
     }
   );
+
+  return supabaseBrowserInstance;
 };
 
 // =====================================================
@@ -51,12 +59,15 @@ export async function signInWithGoogle() {
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`
+      redirectTo: `${window.location.origin}/auth/callback`,
+      queryParams: { access_type: 'offline', prompt: 'consent' }
     }
   });
-  
-  return { error: error?.message };
-}
+
+  if (error) {
+    throw error;
+  }
+};
 
 export async function signOut() {
   const supabase = createSupabaseBrowser();

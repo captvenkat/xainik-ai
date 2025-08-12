@@ -2,7 +2,7 @@
 import { useEffect } from 'react';
 import { createSupabaseBrowser } from '@/lib/supabaseBrowser';
 
-// Create supabase instance once outside component
+// Use the singleton client
 const supabase = createSupabaseBrowser();
 
 export default function AuthSessionWatcher() {
