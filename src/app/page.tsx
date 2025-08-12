@@ -85,40 +85,25 @@ export default function HomePage() {
             {/* Auth Section */}
             <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-200/50 max-w-md mx-auto">
               <div className="text-center">
-                {!isLoading && user ? (
-                  <>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-3">Welcome back!</h3>
-                    <p className="text-gray-600 mb-4">You are signed in as {user.email}</p>
-                    <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                      <Link href="/dashboard/veteran" className="btn-primary inline-flex items-center gap-2">
-                        Go to Dashboard
-                        <ArrowRight className="h-4 w-4" />
-                      </Link>
-                      <button 
-                        onClick={handleSignOut}
-                        className="btn-secondary inline-flex items-center gap-2"
-                      >
-                        Sign Out
-                        <LogOut className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-3">Already have an account?</h3>
-                    <p className="text-gray-600 mb-4">Sign in to access your dashboard and manage your pitch</p>
-                    <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                      <Link href="/auth" className="btn-primary inline-flex items-center gap-2">
-                        Sign In
-                        <ArrowRight className="h-4 w-4" />
-                      </Link>
-                      <Link href="/auth" className="btn-secondary inline-flex items-center gap-2">
-                        Get Started
-                        <ChevronRight className="h-4 w-4" />
-                      </Link>
-                    </div>
-                  </>
-                )}
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">Authentication</h3>
+                <p className="text-gray-600 mb-4">Manage your account and access your dashboard</p>
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  <Link href="/auth" className="btn-primary inline-flex items-center gap-2">
+                    Sign In
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                  <Link href="/auth" className="btn-secondary inline-flex items-center gap-2">
+                    Get Started
+                    <ChevronRight className="h-4 w-4" />
+                  </Link>
+                  <button 
+                    onClick={handleSignOut}
+                    className="btn-secondary inline-flex items-center gap-2 border-red-200 hover:border-red-300 hover:bg-red-50"
+                  >
+                    Sign Out
+                    <LogOut className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
             </div>
           </div>

@@ -1,12 +1,19 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowRight, ChevronRight } from 'lucide-react'
+import { ArrowRight, ChevronRight, LogOut } from 'lucide-react'
+import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 
 export default function SignInTest() {
+  const handleSignOut = async () => {
+    const supabase = createSupabaseBrowser()
+    await supabase.auth.signOut()
+    window.location.reload()
+  }
+
   return (
     <div className="fixed top-20 right-4 bg-white p-4 rounded-lg shadow-lg border border-gray-200 z-50">
-      <h3 className="font-semibold text-gray-900 mb-2">Sign In Test</h3>
+      <h3 className="font-semibold text-gray-900 mb-2">Auth Test</h3>
       <div className="space-y-2">
         <Link href="/auth" className="block text-blue-600 hover:text-blue-800 text-sm">
           Sign In
@@ -14,6 +21,12 @@ export default function SignInTest() {
         <Link href="/auth" className="block text-green-600 hover:text-green-800 text-sm">
           Get Started
         </Link>
+        <button 
+          onClick={handleSignOut}
+          className="block w-full text-left text-red-600 hover:text-red-800 text-sm"
+        >
+          Sign Out
+        </button>
       </div>
     </div>
   )
