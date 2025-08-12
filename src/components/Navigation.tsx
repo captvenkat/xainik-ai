@@ -28,6 +28,13 @@ export default function Navigation() {
   useEffect(() => {
     const getUser = async () => {
       console.log('Navigation: Starting auth check...')
+      
+      // Add a timeout to prevent infinite loading
+      const timeoutId = setTimeout(() => {
+        console.log('Navigation: Auth check timeout, setting loading to false')
+        setIsLoading(false)
+      }, 5000) // 5 second timeout
+      
       try {
         const { data: { user }, error } = await supabase.auth.getUser()
         console.log('Navigation: Auth result:', { user: user?.email, error })
@@ -61,6 +68,7 @@ export default function Navigation() {
       } catch (error) {
         console.error('Auth error:', error)
       } finally {
+        clearTimeout(timeoutId)
         console.log('Navigation: Setting isLoading to false')
         setIsLoading(false)
       }
@@ -153,13 +161,20 @@ export default function Navigation() {
 
           {/* Auth Section */}
           <div className="flex items-center space-x-4">
-            {/* Temporary: Force show sign-in buttons for testing */}
-            <Link href="/auth" className="text-gray-700 hover:text-blue-600 transition-colors font-medium border-2 border-red-500 px-2 py-1 rounded">
+            {/* Sign-in buttons */}
+            <Link href="/auth" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
               Sign In
             </Link>
-            <Link href="/auth" className="btn-primary border-2 border-red-500">
+            <Link href="/auth" className="btn-primary">
               Get Started
             </Link>
+            {/* Sign-out button */}
+            <button 
+              onClick={handleSignOut}
+              className="text-gray-700 hover:text-red-600 transition-colors font-medium border border-gray-300 hover:border-red-300 px-3 py-1 rounded"
+            >
+              Sign Out
+            </button>
             
 
           </div>
@@ -224,7 +239,7 @@ export default function Navigation() {
                 Contact
               </Link>
               
-              {/* Temporary: Force show sign-in buttons in mobile menu */}
+              {/* Auth buttons in mobile menu */}
               <div className="border-t border-gray-200 pt-4 mt-4">
                 <Link 
                   href="/auth" 
@@ -240,6 +255,15 @@ export default function Navigation() {
                 >
                   Get Started
                 </Link>
+                <button 
+                  onClick={() => {
+                    handleSignOut()
+                    setIsMenuOpen(false)
+                  }}
+                  className="block w-full text-left text-gray-700 hover:text-red-600 px-4 py-2 rounded-lg hover:bg-red-50 transition-all duration-200 mt-2"
+                >
+                  Sign Out
+                </button>
               </div>
               
 

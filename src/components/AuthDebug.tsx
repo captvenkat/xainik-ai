@@ -18,6 +18,12 @@ export default function AuthDebug() {
 
   useEffect(() => {
     const checkAuth = async () => {
+      // Add a timeout to prevent infinite loading
+      const timeoutId = setTimeout(() => {
+        console.log('AuthDebug: Timeout, setting loading to false')
+        setAuthState(prev => ({ ...prev, isLoading: false }))
+      }, 3000) // 3 second timeout
+      
       try {
         const supabase = createSupabaseBrowser()
         
@@ -27,6 +33,7 @@ export default function AuthDebug() {
         // Get current user
         const { data: { user }, error: userError } = await supabase.auth.getUser()
         
+        clearTimeout(timeoutId)
         setAuthState({
           isLoading: false,
           user: user,
@@ -34,6 +41,7 @@ export default function AuthDebug() {
           error: sessionError?.message || userError?.message || null
         })
       } catch (error) {
+        clearTimeout(timeoutId)
         setAuthState({
           isLoading: false,
           user: null,
