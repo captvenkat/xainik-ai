@@ -1,4 +1,7 @@
 import { createActionClient } from '@/lib/supabase-server'
+import { Database } from '@/types/live-schema'
+
+type Pitch = Database['public']['Tables']['pitches']['Row'];
 
 export interface SearchFilters {
   skills?: string[] | undefined
@@ -8,10 +11,10 @@ export interface SearchFilters {
 }
 
 export async function searchPitches(
-  query: string,
-  filters?: SearchFilters,
-  limit: number = 20
-): Promise<any[]> {
+  query: string, 
+  filters?: SearchFilters, 
+  limit: number = 50
+): Promise<Pitch[]> {
   try {
     const supabaseAction = await createActionClient()
 
@@ -48,8 +51,8 @@ export async function searchPitches(
     const activePitches = (pitches || []).filter(pitch => {
       const subscription = pitch.user_subscriptions?.[0]
       return subscription && 
-                           subscription.status === 'active' &&
-              new Date(subscription.end_date) > new Date()
+             subscription.status === 'active' &&
+             new Date(subscription.end_date) > new Date()
     })
 
     return activePitches

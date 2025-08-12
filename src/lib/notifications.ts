@@ -27,7 +27,7 @@ export async function createNotification(data: {
       .insert({
         user_id: data.user_id,
         activity_type: 'notification_created',
-        metadata: {
+        activity_data: {
           notification_type: data.type,
           title: data.title,
           message: data.message,
@@ -94,15 +94,17 @@ export async function getNotifications(userId: string, limit: number = 10): Prom
     }
 
     // Transform activity log entries to notification format
-    return (data || []).map(entry => ({
-      id: entry.id,
-      user_id: entry.user_id,
-      type: entry.metadata?.notification_type || 'general',
-      title: entry.metadata?.title || 'Notification',
-      message: entry.metadata?.message || '',
-      metadata: entry.metadata,
-      created_at: entry.created_at || new Date().toISOString()
-    }))
+    return (data || [])
+      .filter(entry => entry.user_id !== null) // Filter out entries with null user_id
+      .map(entry => ({
+        id: entry.id,
+        user_id: entry.user_id as string, // Type assertion since we filtered nulls
+        type: (entry.activity_data as any)?.notification_type || 'general',
+        title: (entry.activity_data as any)?.title || 'Notification',
+        message: (entry.activity_data as any)?.message || '',
+        metadata: entry.activity_data as Record<string, any> | undefined,
+        created_at: entry.created_at || new Date().toISOString()
+      }))
   } catch (error) {
     console.error('Failed to fetch notifications:', error)
     return []

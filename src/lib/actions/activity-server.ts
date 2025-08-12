@@ -86,3 +86,31 @@ export async function getUserActivity(userId: string, limit: number = 20): Promi
     return []
   }
 }
+
+export async function logEmail(data: {
+  user_id: string
+  email_type: string
+  email_data?: Record<string, any>
+}): Promise<{ success: boolean; error?: string }> {
+  try {
+    const supabaseAction = await createActionClient()
+    
+    const { error } = await supabaseAction
+      .from('user_activity_log')
+      .insert({
+        user_id: data.user_id,
+        activity_type: `email_${data.email_type}`,
+        activity_data: data.email_data || {}
+      })
+
+    if (error) {
+      console.error('Email logging error:', error)
+      return { success: false, error: error.message }
+    }
+
+    return { success: true }
+  } catch (error) {
+    console.error('Email logging failed:', error)
+    return { success: false, error: 'Failed to log email' }
+  }
+}
