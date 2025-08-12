@@ -2,11 +2,13 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createSupabaseBrowser } from '@/lib/supabaseBrowser';
+import RoleSelectionModal from '@/components/RoleSelectionModal';
 
 export default function AuthCallbackPage() {
   const router = useRouter();
-  const [status, setStatus] = useState<'processing' | 'success' | 'error'>('processing');
+  const [status, setStatus] = useState<'processing' | 'role-selection' | 'success' | 'error'>('processing');
   const [error, setError] = useState<string>('');
+  const [userEmail, setUserEmail] = useState<string>('');
 
   useEffect(() => {
     async function processCallback() {
@@ -66,59 +68,37 @@ export default function AuthCallbackPage() {
           return;
         }
 
-        // Create user record in the users table if it doesn't exist
-        try {
-          const { data: existingUser, error: userCheckError } = await supabase
-            .from('users')
-            .select('id')
-            .eq('id', verifySession.user.id)
-            .single();
+        // Check if user already has a role set
+        const { data: existingUser } = await supabase
+          .from('users')
+          .select('role')
+          .eq('id', verifySession.user.id)
+          .single();
 
-          if (userCheckError && userCheckError.code === 'PGRST116') {
-            // User doesn't exist in the users table, create them
-            const { error: createError } = await supabase
-              .from('users')
-              .insert({
-                id: verifySession.user.id,
-                email: verifySession.user.email || '',
-                name: verifySession.user.user_metadata?.full_name || 
-                       verifySession.user.user_metadata?.name || 
-                       verifySession.user.email?.split('@')[0] || 'User',
-                role: 'veteran' // Default role
-              });
-
-            if (createError) {
-              console.warn('Failed to create user record:', createError);
-              // Don't fail the auth process if user creation fails
-            } else {
-              console.log('User record created successfully');
-            }
-          } else if (userCheckError) {
-            console.warn('Error checking user record:', userCheckError);
-          } else {
-            console.log('User record already exists');
+        if (existingUser?.role) {
+          // User already has a role, proceed to dashboard
+          setStatus('success');
+          const redirectPath = sessionStorage.getItem('auth_redirect') || `/dashboard/${existingUser.role}`;
+          sessionStorage.removeItem('auth_redirect');
+          
+          // Clear any hash fragments from the URL
+          if (typeof window !== 'undefined') {
+            window.history.replaceState(null, '', window.location.pathname);
           }
-        } catch (userError) {
-          console.warn('User creation check failed:', userError);
-          // Don't fail the auth process if user creation fails
+          
+          setTimeout(() => {
+            router.push(redirectPath);
+          }, 1000);
+        } else {
+          // User needs to select a role
+          setUserEmail(verifySession.user.email || '');
+          setStatus('role-selection');
+          
+          // Clear any hash fragments from the URL
+          if (typeof window !== 'undefined') {
+            window.history.replaceState(null, '', window.location.pathname);
+          }
         }
-
-        setStatus('success');
-        
-        // Get the stored redirect path
-        const redirectPath = sessionStorage.getItem('auth_redirect') || '/dashboard/veteran';
-        sessionStorage.removeItem('auth_redirect');
-        
-        
-        // Clear any hash fragments from the URL
-        if (typeof window !== 'undefined') {
-          window.history.replaceState(null, '', window.location.pathname);
-        }
-        
-        // Small delay to show success message, then redirect
-        setTimeout(() => {
-          router.push(redirectPath);
-        }, 1000);
 
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Unknown error occurred');
@@ -129,12 +109,45 @@ export default function AuthCallbackPage() {
     processCallback();
   }, [router]);
 
+  const handleRoleSelected = (role: string) => {
+    setStatus('success');
+    const redirectPath = sessionStorage.getItem('auth_redirect') || `/dashboard/${role}`;
+    sessionStorage.removeItem('auth_redirect');
+    
+    setTimeout(() => {
+      router.push(redirectPath);
+    }, 1000);
+  };
+
+  const handleCloseRoleSelection = () => {
+    // Redirect to a default page if user doesn't want to select role now
+    router.push('/dashboard/veteran');
+  };
+
   if (status === 'processing') {
     return (
       <main className="max-w-md mx-auto py-16 text-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
         <h1 className="text-xl font-semibold mb-2">Processing Authentication...</h1>
         <p className="text-gray-600">Please wait while we complete your sign-in.</p>
+      </main>
+    );
+  }
+
+  if (status === 'role-selection') {
+    return (
+      <main className="max-w-md mx-auto py-16 text-center">
+        <div className="text-blue-500 text-6xl mb-4">🎯</div>
+        <h1 className="text-xl font-semibold mb-2 text-blue-700">Authentication Successful!</h1>
+        <p className="text-blue-600 mb-6">Please select your role to continue...</p>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+        
+        <RoleSelectionModal
+          isOpen={true}
+          onClose={handleCloseRoleSelection}
+          onRoleSelected={handleRoleSelected}
+          userEmail={userEmail}
+        />
       </main>
     );
   }
