@@ -25,33 +25,6 @@ export default function Navigation() {
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
 
-  // Function to create user record if it doesn't exist
-  const createUserRecord = async (user: any) => {
-    try {
-      const { error: createError } = await supabase
-        .from('users')
-        .insert({
-          id: user.id,
-          email: user.email || '',
-          name: user.user_metadata?.full_name || 
-                 user.user_metadata?.name || 
-                 user.email?.split('@')[0] || 'User',
-          role: 'veteran' // Default role
-        })
-
-      if (createError) {
-        console.warn('Failed to create user record:', createError)
-        return false
-      } else {
-        console.log('User record created successfully')
-        return true
-      }
-    } catch (error) {
-      console.warn('User creation error:', error)
-      return false
-    }
-  }
-
   useEffect(() => {
     const getUser = async () => {
       try {
@@ -59,7 +32,7 @@ export default function Navigation() {
         setUser(user)
         
         if (user) {
-          // Try to get user profile with error handling
+          // Try to get user profile
           try {
             const { data: profile, error } = await supabase
               .from('users')
@@ -69,34 +42,14 @@ export default function Navigation() {
             
             if (error) {
               console.warn('Failed to fetch user profile:', error)
-              
-              // If user doesn't exist in the users table, create them
-              if (error.code === 'PGRST116') {
-                console.log('User not found in database, creating record...')
-                const created = await createUserRecord(user)
-                if (created) {
-                  // Try to fetch the profile again
-                  const { data: newProfile } = await supabase
-                    .from('users')
-                    .select('role, name')
-                    .eq('id', user.id)
-                    .single()
-                  
-                  setProfile(newProfile ? { role: newProfile.role as string, full_name: newProfile.name as string } : null)
-                } else {
-                  // Set default profile if creation fails
-                  setProfile({ role: 'veteran', full_name: user.email || 'User' })
-                }
-              } else {
-                // Set default profile for other errors
-                setProfile({ role: 'veteran', full_name: user.email || 'User' })
-              }
+              // Don't set a default profile - let the auth flow handle role selection
+              setProfile(null)
             } else {
               setProfile(profile ? { role: profile.role as string, full_name: profile.name as string } : null)
             }
           } catch (profileError) {
             console.warn('Profile fetch error:', profileError)
-            setProfile({ role: 'veteran', full_name: user.email || 'User' })
+            setProfile(null)
           }
         }
       } catch (error) {
@@ -120,30 +73,13 @@ export default function Navigation() {
           
           if (error) {
             console.warn('Profile fetch error in auth change:', error)
-            
-            // If user doesn't exist, create them
-            if (error.code === 'PGRST116') {
-              const created = await createUserRecord(session.user)
-              if (created) {
-                const { data: newProfile } = await supabase
-                  .from('users')
-                  .select('role, name')
-                  .eq('id', session.user.id)
-                  .single()
-                
-                setProfile(newProfile ? { role: newProfile.role, full_name: newProfile.name } : null)
-              } else {
-                setProfile({ role: 'veteran', full_name: session.user.email || 'User' })
-              }
-            } else {
-              setProfile({ role: 'veteran', full_name: session.user.email || 'User' })
-            }
+            setProfile(null)
           } else {
             setProfile(data ? { role: data.role, full_name: data.name } : null)
           }
         } catch (profileError) {
           console.warn('Profile fetch error in auth change:', profileError)
-          setProfile({ role: 'veteran', full_name: session.user.email || 'User' })
+          setProfile(null)
         }
       } else {
         setProfile(null)
@@ -228,13 +164,23 @@ export default function Navigation() {
                       {/* Dropdown Menu */}
                       <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
                         <div className="py-2">
-                          <Link 
-                            href={getDashboardLink()}
-                            className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
-                          >
-                            <BarChart3 className="h-4 w-4 mr-3" />
-                            {getDashboardLabel()}
-                          </Link>
+                          {profile?.role ? (
+                            <Link 
+                              href={getDashboardLink()}
+                              className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
+                            >
+                              <BarChart3 className="h-4 w-4 mr-3" />
+                              {getDashboardLabel()}
+                            </Link>
+                          ) : (
+                            <Link 
+                              href="/settings/role"
+                              className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
+                            >
+                              <Shield className="h-4 w-4 mr-3" />
+                              Select Role
+                            </Link>
+                          )}
                           <Link 
                             href="/settings/notifications"
                             className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
@@ -242,6 +188,15 @@ export default function Navigation() {
                             <Settings className="h-4 w-4 mr-3" />
                             Notification Settings
                           </Link>
+                          {profile?.role && (
+                            <Link 
+                              href="/settings/role"
+                              className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
+                            >
+                              <Shield className="h-4 w-4 mr-3" />
+                              Change Role
+                            </Link>
+                          )}
                           <button
                             onClick={handleSignOut}
                             className="flex items-center w-full px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
@@ -344,6 +299,16 @@ export default function Navigation() {
                       <BarChart3 className="h-4 w-4 mr-3" />
                       {getDashboardLabel()}
                     </Link>
+                    {!profile?.role && (
+                      <Link 
+                        href="/settings/role"
+                        className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        <Shield className="h-4 w-4 mr-3" />
+                        Select Role
+                      </Link>
+                    )}
                     <Link 
                       href="/settings/notifications"
                       className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
@@ -352,6 +317,16 @@ export default function Navigation() {
                       <Settings className="h-4 w-4 mr-3" />
                       Notification Settings
                     </Link>
+                    {profile?.role && (
+                      <Link 
+                        href="/settings/role"
+                        className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        <Shield className="h-4 w-4 mr-3" />
+                        Change Role
+                      </Link>
+                    )}
                     <button
                       onClick={() => {
                         handleSignOut()
