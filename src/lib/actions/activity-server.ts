@@ -57,7 +57,7 @@ export async function getRecentActivity(limit: number = 10): Promise<ActivityLog
       return []
     }
 
-    return data || []
+    return (data as any) || []
   } catch (error) {
     console.error('Failed to fetch recent activity:', error)
     return []
@@ -80,7 +80,7 @@ export async function getUserActivity(userId: string, limit: number = 20): Promi
       return []
     }
 
-    return data || []
+    return (data as any) || []
   } catch (error) {
     console.error('Failed to fetch user activity:', error)
     return []

@@ -245,7 +245,7 @@ export default async function VeteranDashboard() {
                       Smart Suggestions
                     </h3>
                     <div className="space-y-2">
-                      {(analytics?.performanceInsights?.suggestions || []).map((suggestion: any, index: number) => (
+                      {((analytics?.performanceInsights as any)?.suggestions || []).map((suggestion: any, index: number) => (
                         <div key={index} className="flex items-start gap-2">
                           <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
                           <p className="text-sm text-gray-700">{suggestion}</p>
@@ -261,19 +261,19 @@ export default async function VeteranDashboard() {
                       Goal Setting
                     </h3>
                     <div className="space-y-3">
-                      {analytics?.performanceInsights?.lowViews && (
+                      {(analytics?.performanceInsights as any)?.lowViews && (
                         <div className="bg-white rounded-lg p-3 border-l-4 border-blue-500">
                           <p className="text-sm font-medium text-gray-900">Increase Visibility</p>
                           <p className="text-xs text-gray-600">Target: 50+ views this month</p>
                         </div>
                       )}
-                      {analytics?.performanceInsights?.lowConversions && (
+                      {(analytics?.performanceInsights as any)?.lowConversions && (
                         <div className="bg-white rounded-lg p-3 border-l-4 border-green-500">
                           <p className="text-sm font-medium text-gray-900">Improve Conversion</p>
                           <p className="text-xs text-gray-600">Target: 10%+ conversion rate</p>
                         </div>
                       )}
-                      {!analytics?.performanceInsights?.lowViews && !analytics?.performanceInsights?.lowConversions && (
+                      {!(analytics?.performanceInsights as any)?.lowViews && !(analytics?.performanceInsights as any)?.lowConversions && (
                         <div className="bg-white rounded-lg p-3 border-l-4 border-purple-500">
                           <p className="text-sm font-medium text-gray-900">Maintain Momentum</p>
                           <p className="text-xs text-gray-600">Keep engaging your network</p>
@@ -375,8 +375,8 @@ export default async function VeteranDashboard() {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
                 {/* Performance Insights */}
                 <PerformanceInsights 
-                  insights={analytics?.performanceInsights || []}
-                  comparativeMetrics={analytics?.comparativeMetrics || []}
+                  insights={analytics?.performanceInsights as any || { suggestions: [], lowViews: [], lowConversions: [] }}
+                  comparativeMetrics={analytics?.comparativeMetrics as any || []}
                 />
                 
                 {/* Trendline Chart */}

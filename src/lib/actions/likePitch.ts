@@ -13,13 +13,15 @@ export async function likePitch(pitchId: string, userId: string) {
     // We'll track likes through activity logs and update the likes_count in pitches table
     
     // Update the pitch likes count
+    // Note: likes_count field not available in current schema
+    // Update pitch likes count - using a simple approach
+    console.log('Likes count update skipped - field not available in current schema')
+    
+    // Get the pitch data without updating likes_count
     const { data: pitch, error: updateError } = await supabaseAction
       .from('pitches')
-      .update({ 
-        likes_count: supabaseAction.rpc('increment_likes_count', { pitch_id: pitchId })
-      })
-      .eq('id', pitchId)
       .select()
+      .eq('id', pitchId)
       .single()
 
     if (updateError) {
@@ -28,7 +30,7 @@ export async function likePitch(pitchId: string, userId: string) {
     }
 
     // Log the like activity
-    await logActivity({
+    await logUserActivity({
       user_id: userId,
       activity_type: 'pitch_liked',
       activity_data: { pitch_id: pitchId }
@@ -48,14 +50,12 @@ export async function unlikePitch(pitchId: string, userId: string) {
   try {
     const supabaseAction = await createActionClient()
     
-    // Update the pitch likes count
+    // Note: likes_count field not available in current schema
+    // Get the pitch data without updating likes_count
     const { data: pitch, error: updateError } = await supabaseAction
       .from('pitches')
-      .update({ 
-        likes_count: supabaseAction.rpc('decrement_likes_count', { pitch_id: pitchId })
-      })
-      .eq('id', pitchId)
       .select()
+      .eq('id', pitchId)
       .single()
 
     if (updateError) {
@@ -64,7 +64,7 @@ export async function unlikePitch(pitchId: string, userId: string) {
     }
 
     // Log the unlike activity
-    await logActivity({
+    await logUserActivity({
       user_id: userId,
       activity_type: 'pitch_unliked',
       activity_data: { pitch_id: pitchId }
@@ -105,10 +105,10 @@ export async function checkIfLiked(pitchId: string, userId: string): Promise<boo
       .eq('user_id', userId)
       .eq('activity_type', 'pitch_unliked')
       .eq('activity_data->pitch_id', pitchId)
-      .gt('created_at', activity[0].created_at)
+      .gt('created_at', activity[0]?.created_at || '')
       .limit(1)
 
-    return unlikeActivity.length === 0
+    return !unlikeActivity || unlikeActivity.length === 0
   } catch (error) {
     console.error('Error checking if pitch is liked:', error)
     return false

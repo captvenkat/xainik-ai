@@ -27,7 +27,7 @@ export default function RecruiterNotes({ pitchId, veteranName, initialNote = '' 
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
         const { data: profile } = await supabase
-          .from('profiles')
+          .from('users')
           .select('role')
           .eq('id', user.id)
           .single()
@@ -81,10 +81,13 @@ export default function RecruiterNotes({ pitchId, veteranName, initialNote = '' 
       if (error) throw error
 
       // Log activity
-      await logActivity('pitch_updated', {
-        pitch_id: pitchId,
-        user_id: userId, // Changed from recruiter_id
-        note_length: noteText.length
+      await logUserActivity({
+        user_id: userId,
+        activity_type: 'pitch_updated',
+        activity_data: {
+          pitch_id: pitchId,
+          note_length: noteText.length
+        }
       })
 
       setLastSaved(new Date())

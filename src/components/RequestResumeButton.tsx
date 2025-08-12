@@ -36,12 +36,7 @@ export default function RequestResumeButton({
         recruiter_user_id: recruiterId, // Changed from recruiter_id
         job_role: jobRole
       }
-      await createResumeRequest(
-        requestData.recruiter_user_id,
-        requestData.user_id,
-        requestData.pitch_id,
-        requestData.job_role
-      )
+      await createResumeRequest(requestData)
       
       // Log activity
       await logUserActivity({

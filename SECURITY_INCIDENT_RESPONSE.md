@@ -1,129 +1,141 @@
-# 🚨 SECURITY INCIDENT RESPONSE: Exposed Supabase Service Role Key
+# 🚨 SECURITY INCIDENT RESPONSE: Exposed Supabase Service Role JWT
 
 ## Incident Summary
 - **Date Detected**: August 12th, 2025, 14:26:26 UTC
-- **Detected By**: GitGuardian
-- **Secret Type**: Supabase Service Role JWT
+- **Alert Source**: GitGuardian
 - **Repository**: captvenkat/xainik-ai
+- **Secret Type**: Supabase Service Role JWT
 - **Severity**: CRITICAL
 
 ## Immediate Actions Required
 
-### 1. **ROTATE SUPABASE SERVICE ROLE KEY IMMEDIATELY**
+### 1. 🔐 Revoke Exposed JWT (URGENT - DO FIRST)
 ```bash
-# Go to Supabase Dashboard
-# https://supabase.com/dashboard/project/[YOUR_PROJECT_ID]/settings/api
-# Generate new service role key
-# Update all environment variables
+# Go to Supabase Dashboard → Settings → API
+# Find "service_role" key and click "Regenerate"
+# This immediately invalidates the old key
 ```
 
-### 2. **Update Environment Variables**
-- [ ] Update `SUPABASE_SERVICE_ROLE_KEY` in all deployment environments
-- [ ] Update Vercel environment variables
-- [ ] Update local `.env.local` file
-- [ ] Update any CI/CD environment variables
-
-### 3. **Audit Git History**
-- [ ] Check if the key was committed to git history
-- [ ] If found in history, consider using BFG Repo-Cleaner or git filter-branch
-- [ ] Force push to remove from remote repository
-
-### 4. **Monitor for Unauthorized Access**
-- [ ] Check Supabase logs for suspicious activity
-- [ ] Monitor database access patterns
-- [ ] Review recent API calls and database operations
-
-## Current Status
-- ✅ Environment files properly ignored by `.gitignore`
-- ✅ No environment files currently tracked by git
-- ⚠️ **CRITICAL**: Service role key needs immediate rotation
-
-## Prevention Measures
-
-### 1. **Enhanced .gitignore Protection**
-```gitignore
-# Environment files
-.env*
-!.env.example
-
-# Vercel environment files
-.vercel/.env*
-
-# Any files containing secrets
-*secret*
-*key*
-*token*
-```
-
-### 2. **Pre-commit Hooks**
-Consider implementing pre-commit hooks to scan for secrets:
+### 2. 🔄 Update Environment Variables
 ```bash
-# Install pre-commit
-pip install pre-commit
+# Update .env.local with new service role key
+SUPABASE_SERVICE_ROLE_KEY=your_new_service_role_key_here
 
-# Add to .pre-commit-config.yaml
-repos:
-  - repo: https://github.com/Yelp/detect-secrets
-    rev: v1.4.0
-    hooks:
-      - id: detect-secrets
-        args: ['--baseline', '.secrets.baseline']
+# Update deployment environments (Vercel, etc.)
+# Go to Vercel Dashboard → Project Settings → Environment Variables
 ```
 
-### 3. **GitGuardian Integration**
-- Enable GitGuardian for the repository
-- Set up alerts for secret detection
-- Configure automatic secret rotation
+### 3. 🧹 Clean Git History
+```bash
+# First, commit current changes
+git add .
+git commit -m "Fix TypeScript errors and prepare for security cleanup"
+
+# Install git-filter-repo (recommended over git filter-branch)
+pip install git-filter-repo
+
+# Remove .env.local from entire Git history
+git filter-repo --path .env.local --invert-paths
+
+# Force push to remove from remote
+git push origin --force --all
+git push origin --force --tags
+```
+
+### 4. 🛡️ Prevent Future Exposure
+```bash
+# Ensure .env.local is in .gitignore
+echo ".env.local" >> .gitignore
+echo ".env.*.local" >> .gitignore
+
+# Create .env.example for reference
+cp .env.local .env.example
+# Remove sensitive values from .env.example
+```
+
+## Security Best Practices Going Forward
+
+### Environment Variables
+- ✅ Never commit `.env.local` or any file with secrets
+- ✅ Use `.env.example` for documentation
+- ✅ Use deployment platform environment variables
+- ✅ Rotate keys regularly
+
+### Git Hygiene
+- ✅ Use pre-commit hooks to check for secrets
+- ✅ Use tools like GitGuardian for continuous monitoring
+- ✅ Review commits before pushing
+- ✅ Use `git-secrets` or similar tools
+
+### Supabase Security
+- ✅ Use Row Level Security (RLS) policies
+- ✅ Limit service role key usage to server-side only
+- ✅ Use anon key for client-side operations
+- ✅ Regularly audit database permissions
+
+## Monitoring & Detection
+
+### GitGuardian Integration
+- ✅ Already configured and working
+- ✅ Detected the exposure quickly
+- ✅ Provides real-time alerts
+
+### Additional Tools to Consider
+- [ ] Pre-commit hooks with secret detection
+- [ ] GitHub Advanced Security
+- [ ] Regular security audits
+- [ ] Automated secret rotation
 
 ## Recovery Steps
 
-### 1. **Generate New Service Role Key**
-1. Go to Supabase Dashboard
-2. Navigate to Settings > API
-3. Click "Regenerate" next to service role key
-4. Copy the new key
-
-### 2. **Update All Environments**
+### 1. Verify JWT Revocation
 ```bash
-# Local development
-echo "SUPABASE_SERVICE_ROLE_KEY=new_key_here" >> .env.local
-
-# Vercel deployment
-vercel env add SUPABASE_SERVICE_ROLE_KEY
-
-# Other deployment platforms
-# Update according to platform-specific instructions
+# Test with old key - should fail
+curl -H "apikey: OLD_SERVICE_ROLE_KEY" \
+     -H "Authorization: Bearer OLD_SERVICE_ROLE_KEY" \
+     https://your-project.supabase.co/rest/v1/users
 ```
 
-### 3. **Test Application**
-- [ ] Verify all API endpoints work with new key
-- [ ] Test database operations
-- [ ] Verify admin functionality
-- [ ] Test payment processing
+### 2. Test New Configuration
+```bash
+# Test with new key - should work
+npm run build
+npm run dev
+```
+
+### 3. Update Documentation
+- [ ] Update deployment guides
+- [ ] Update team security policies
+- [ ] Document incident response procedures
 
 ## Post-Incident Actions
 
-### 1. **Security Review**
+### 1. Team Communication
+- [ ] Notify team members about the incident
+- [ ] Review security practices
+- [ ] Schedule security training if needed
+
+### 2. Audit & Review
+- [ ] Review all recent commits for other potential exposures
 - [ ] Audit all environment variables
-- [ ] Review access patterns
-- [ ] Implement additional security measures
+- [ ] Review access logs for suspicious activity
 
-### 2. **Documentation Update**
-- [ ] Update deployment guides
-- [ ] Create security best practices document
-- [ ] Train team on secret management
-
-### 3. **Monitoring Enhancement**
-- [ ] Set up alerts for unusual database activity
-- [ ] Monitor API usage patterns
-- [ ] Implement rate limiting
+### 3. Prevention Measures
+- [ ] Implement automated secret scanning
+- [ ] Set up regular security reviews
+- [ ] Create incident response playbook
 
 ## Contact Information
-- **Security Team**: [Add contact information]
-- **Supabase Support**: https://supabase.com/support
-- **GitGuardian Support**: [Add contact information]
+
+### Supabase Support
+- Dashboard: https://supabase.com/dashboard
+- Documentation: https://supabase.com/docs
+- Community: https://github.com/supabase/supabase/discussions
+
+### GitGuardian Support
+- Dashboard: https://dashboard.gitguardian.com
+- Documentation: https://docs.gitguardian.com
 
 ---
-**Last Updated**: August 12th, 2025
-**Status**: IN PROGRESS
-**Priority**: CRITICAL
+
+**⚠️ IMPORTANT**: Complete the JWT revocation FIRST before any other actions. The exposed key could be used to access your database with full admin privileges.

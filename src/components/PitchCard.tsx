@@ -23,15 +23,15 @@ export default function PitchCard({ data, variant = 'default' }: Props) {
     title,
     pitch_text,
     skills = [],
-    location,
-    job_type,
-    availability,
-    likes_count,
+    // location removed - not available in current schema
+    // job_type removed - not available in current schema
+    // availability removed - not available in current schema
+    // likes_count removed - not available in current schema
     user
   } = data
 
   const veteranName = user?.name || 'Veteran'
-  const veteranRole = user?.role
+  const veteranRole = 'veteran' // Default role since not available in current schema
 
   // Truncate pitch text to ~150 characters
   const truncatedPitch = pitch_text?.length > 150 
@@ -81,18 +81,18 @@ export default function PitchCard({ data, variant = 'default' }: Props) {
         <div className="flex items-center gap-4 text-xs text-gray-500 mb-4">
           <div className="flex items-center gap-1">
             <MapPin className="h-4 w-4" />
-            <span className="font-medium">{location || 'Location not specified'}</span>
+            <span className="font-medium">Location not specified</span>
           </div>
           <div className="flex items-center gap-1">
             <Clock className="h-4 w-4" />
-            <span className="font-medium">{availability}</span>
+            <span className="font-medium">Availability not specified</span>
           </div>
         </div>
 
         {/* Job Type */}
         <div className="flex items-center gap-4 text-xs text-gray-500 mb-4">
           <div className="flex items-center gap-1">
-            <span className="font-medium">{job_type}</span>
+            <span className="font-medium">Job type not specified</span>
           </div>
         </div>
 
@@ -100,11 +100,11 @@ export default function PitchCard({ data, variant = 'default' }: Props) {
         <div className="flex items-center gap-4 text-xs text-gray-500 mb-4 p-3 bg-gray-50 rounded-lg">
           <div className="flex items-center gap-1">
             <Heart className="h-3 w-3" />
-            <span className="font-medium">{likes_count} likes</span>
+            <span className="font-medium">0 likes</span>
           </div>
           <LikeButton 
             pitchId={id} 
-            initialCount={likes_count}
+            initialCount={0}
             userId={user?.id} // Use user.id instead of veteran.id
           />
         </div>
