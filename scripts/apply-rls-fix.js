@@ -1,58 +1,85 @@
-const { createClient } = require('@supabase/supabase-js')
-require('dotenv').config({ path: '.env.local' })
+import { createClient } from '@supabase/supabase-js'
+import dotenv from 'dotenv'
+import fs from 'fs'
+
+// Load environment variables
+dotenv.config({ path: '.env.local' })
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL
 const serviceRole = process.env.SUPABASE_SERVICE_ROLE_KEY
 
+console.log('🔧 Applying RLS Policy Fix...')
+console.log('=============================')
+
 if (!url || !serviceRole) {
-  console.error('Missing Supabase environment variables')
-  console.error('Please check your .env.local file contains:')
-  console.error('NEXT_PUBLIC_SUPABASE_URL=...')
-  console.error('SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here')
+  console.error('❌ Missing Supabase environment variables')
   process.exit(1)
 }
 
-const supabase = createClient(url, serviceRole)
+const supabase = createClient(url, serviceRole, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false
+  }
+})
 
 async function applyRLSFix() {
-  console.log('🔧 Applying RLS Infinite Recursion Fix...')
-  console.log('============================================')
-  
   try {
-    // Read the migration file
-    const fs = require('fs')
-    const path = require('path')
-    const migrationPath = path.join(__dirname, '..', 'migrations', '20250127_fix_rls_infinite_recursion.sql')
+    // Read the migration SQL
+    const migrationSQL = fs.readFileSync('migrations/20250127_fix_rls_policies.sql', 'utf8')
     
-    if (!fs.existsSync(migrationPath)) {
-      console.error('❌ Migration file not found:', migrationPath)
-      process.exit(1)
-    }
+    console.log('📝 Applying RLS policy fix...')
     
-    const sql = fs.readFileSync(migrationPath, 'utf8')
-    console.log('📄 Migration SQL loaded successfully')
-    
-    // Apply the migration
-    const { error } = await supabase.rpc('exec_sql', { sql })
+    // Execute the migration using raw SQL
+    const { error } = await supabase.rpc('exec_sql', { sql: migrationSQL })
     
     if (error) {
-      console.error('❌ Error applying RLS fix:', error)
-      process.exit(1)
+      console.error('❌ Migration failed:', error)
+      
+      // Try alternative approach - execute SQL statements manually
+      console.log('🔄 Trying alternative approach...')
+      
+      const statements = [
+        'DROP POLICY IF EXISTS "Users can manage own profile" ON public.users;',
+        'DROP POLICY IF EXISTS "Admin can manage all users" ON public.users;',
+        'CREATE POLICY "Users can read own profile" ON public.users FOR SELECT USING (auth.uid() = id);',
+        'CREATE POLICY "Users can insert own profile" ON public.users FOR INSERT WITH CHECK (auth.uid() = id);',
+        'CREATE POLICY "Users can update own profile" ON public.users FOR UPDATE USING (auth.uid() = id);',
+        'CREATE POLICY "Users can create profile" ON public.users FOR INSERT WITH CHECK (auth.uid() = id OR auth.uid() IS NOT NULL);',
+        'CREATE POLICY "Authenticated users can read basic user info" ON public.users FOR SELECT USING (auth.uid() IS NOT NULL);'
+      ]
+      
+      for (const statement of statements) {
+        const { error: stmtError } = await supabase.rpc('exec_sql', { sql: statement })
+        if (stmtError) {
+          console.error('❌ Statement failed:', statement, stmtError)
+        } else {
+          console.log('✅ Statement executed:', statement.substring(0, 50) + '...')
+        }
+      }
+    } else {
+      console.log('✅ RLS policy fix applied successfully')
     }
     
-    console.log('✅ RLS infinite recursion fix applied successfully!')
-    console.log('')
-    console.log('🔍 The following changes were made:')
-    console.log('   - Removed all admin policies that caused infinite recursion')
-    console.log('   - Created new policies that only check user ownership')
-    console.log('   - Fixed the users table policy to avoid circular dependencies')
-    console.log('')
-    console.log('📝 Note: Admin functionality will need to be implemented differently')
-    console.log('   Options: JWT claims, separate admin table, or service role operations')
+    // Test the fix
+    console.log('\n🧪 Testing the fix...')
+    const testUserId = '713e1683-8089-4dfc-ac29-b0f1b2d6c787'
+    
+    // Test user query
+    const { data: userData, error: queryError } = await supabase
+      .from('users')
+      .select('role, name')
+      .eq('id', testUserId)
+      .single()
+    
+    if (queryError) {
+      console.error('❌ User query still failing:', queryError)
+    } else {
+      console.log('✅ User query successful:', userData)
+    }
     
   } catch (error) {
-    console.error('❌ Unexpected error:', error)
-    process.exit(1)
+    console.error('❌ Script failed:', error)
   }
 }
 

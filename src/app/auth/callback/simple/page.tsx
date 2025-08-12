@@ -2,38 +2,21 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createSupabaseBrowser } from '@/lib/supabaseBrowser';
-import dynamic from 'next/dynamic';
 
-// Dynamically import the RoleSelectionModal to avoid SSR issues
-const RoleSelectionModal = dynamic(() => import('@/components/RoleSelectionModal'), {
-  ssr: false,
-  loading: () => (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl p-6">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-        <p className="text-gray-600 mt-2">Loading role selection...</p>
-      </div>
-    </div>
-  )
-});
-
-export default function AuthCallbackPage() {
+export default function SimpleAuthCallbackPage() {
   const router = useRouter();
-  const [status, setStatus] = useState<'processing' | 'role-selection' | 'success' | 'error'>('processing');
+  const [status, setStatus] = useState<'processing' | 'success' | 'error'>('processing');
   const [error, setError] = useState<string>('');
-  const [userEmail, setUserEmail] = useState<string>('');
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
 
   useEffect(() => {
     async function processCallback() {
       try {
+        console.log('Processing callback...');
         
         // Check if we have hash fragment tokens
         const hash = window.location.hash.substring(1);
+        console.log('Hash:', hash);
+        
         if (!hash) {
           setError('No authentication data received');
           setStatus('error');
@@ -44,6 +27,10 @@ export default function AuthCallbackPage() {
         const accessToken = params.get('access_token');
         const refreshToken = params.get('refresh_token');
         const error = params.get('error');
+
+        console.log('Access token exists:', !!accessToken);
+        console.log('Refresh token exists:', !!refreshToken);
+        console.log('Error:', error);
 
         if (error) {
           setError(`Authentication error: ${error}`);
@@ -57,16 +44,17 @@ export default function AuthCallbackPage() {
           return;
         }
 
-
         // Create Supabase client and set session
         const supabase = createSupabaseBrowser();
         
+        console.log('Setting session...');
         const { data, error: sessionError } = await supabase.auth.setSession({
           access_token: accessToken,
           refresh_token: refreshToken,
         });
 
         if (sessionError) {
+          console.error('Session error:', sessionError);
           setError(`Session creation failed: ${sessionError.message}`);
           setStatus('error');
           return;
@@ -78,6 +66,8 @@ export default function AuthCallbackPage() {
           return;
         }
 
+        console.log('Session created successfully');
+
         // Verify the session is properly set
         const { data: { session: verifySession } } = await supabase.auth.getSession();
         if (!verifySession) {
@@ -86,39 +76,22 @@ export default function AuthCallbackPage() {
           return;
         }
 
-        // Check if user already has a role set
-        const { data: existingUser } = await supabase
-          .from('users')
-          .select('role')
-          .eq('id', verifySession.user.id)
-          .single();
+        console.log('Session verified, user:', verifySession.user.email);
 
-        if (existingUser?.role) {
-          // User already has a role, proceed to dashboard
-          setStatus('success');
-          const redirectPath = sessionStorage.getItem('auth_redirect') || `/dashboard/${existingUser.role}`;
-          sessionStorage.removeItem('auth_redirect');
-          
-          // Clear any hash fragments from the URL
-          if (typeof window !== 'undefined') {
-            window.history.replaceState(null, '', window.location.pathname);
-          }
-          
-          setTimeout(() => {
-            router.push(redirectPath);
-          }, 1000);
-        } else {
-          // User needs to select a role
-          setUserEmail(verifySession.user.email || '');
-          setStatus('role-selection');
-          
-          // Clear any hash fragments from the URL
-          if (typeof window !== 'undefined') {
-            window.history.replaceState(null, '', window.location.pathname);
-          }
+        // Clear any hash fragments from the URL
+        if (typeof window !== 'undefined') {
+          window.history.replaceState(null, '', window.location.pathname);
         }
 
+        setStatus('success');
+        
+        // Redirect to dashboard
+        setTimeout(() => {
+          router.push('/dashboard/veteran');
+        }, 2000);
+
       } catch (e) {
+        console.error('Callback error:', e);
         setError(e instanceof Error ? e.message : 'Unknown error occurred');
         setStatus('error');
       }
@@ -127,45 +100,12 @@ export default function AuthCallbackPage() {
     processCallback();
   }, [router]);
 
-  const handleRoleSelected = (role: string) => {
-    setStatus('success');
-    const redirectPath = sessionStorage.getItem('auth_redirect') || `/dashboard/${role}`;
-    sessionStorage.removeItem('auth_redirect');
-    
-    setTimeout(() => {
-      router.push(redirectPath);
-    }, 1000);
-  };
-
-  const handleCloseRoleSelection = () => {
-    // Redirect to a default page if user doesn't want to select role now
-    router.push('/dashboard/veteran');
-  };
-
   if (status === 'processing') {
     return (
       <main className="max-w-md mx-auto py-16 text-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
         <h1 className="text-xl font-semibold mb-2">Processing Authentication...</h1>
         <p className="text-gray-600">Please wait while we complete your sign-in.</p>
-      </main>
-    );
-  }
-
-  if (status === 'role-selection' && isClient) {
-    return (
-      <main className="max-w-md mx-auto py-16 text-center">
-        <div className="text-blue-500 text-6xl mb-4">🎯</div>
-        <h1 className="text-xl font-semibold mb-2 text-blue-700">Authentication Successful!</h1>
-        <p className="text-blue-600 mb-6">Please select your role to continue...</p>
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-        
-        <RoleSelectionModal
-          isOpen={true}
-          onClose={handleCloseRoleSelection}
-          onRoleSelected={handleRoleSelected}
-          userEmail={userEmail}
-        />
       </main>
     );
   }

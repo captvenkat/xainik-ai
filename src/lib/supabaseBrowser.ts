@@ -50,16 +50,16 @@ export const createSupabaseBrowser = () => {
 };
 
 // =====================================================
-// AUTHENTICATION FUNCTIONS
+// GOOGLE OAUTH HELPER
 // =====================================================
 
-export async function signInWithGoogle() {
+export const signInWithGoogle = async () => {
   const supabase = createSupabaseBrowser();
   
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: `${window.location.origin}/auth/callback`,
+      redirectTo: `${window.location.origin}/auth/callback/simple`, // Use simple callback for testing
       queryParams: { access_type: 'offline', prompt: 'consent' }
     }
   });
