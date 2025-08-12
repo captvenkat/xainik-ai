@@ -27,11 +27,14 @@ export default function Navigation() {
 
   useEffect(() => {
     const getUser = async () => {
+      console.log('Navigation: Starting auth check...')
       try {
-        const { data: { user } } = await supabase.auth.getUser()
+        const { data: { user }, error } = await supabase.auth.getUser()
+        console.log('Navigation: Auth result:', { user: user?.email, error })
         setUser(user)
         
         if (user) {
+          console.log('User authenticated:', user.email)
           // Try to get user profile
           try {
             const { data: profile, error } = await supabase
@@ -45,16 +48,20 @@ export default function Navigation() {
               // Don't set a default profile - let the auth flow handle role selection
               setProfile(null)
             } else {
+              console.log('Profile fetched:', profile)
               setProfile(profile ? { role: profile.role as string, full_name: profile.name as string } : null)
             }
           } catch (profileError) {
             console.warn('Profile fetch error:', profileError)
             setProfile(null)
           }
+        } else {
+          console.log('No user found')
         }
       } catch (error) {
         console.error('Auth error:', error)
       } finally {
+        console.log('Navigation: Setting isLoading to false')
         setIsLoading(false)
       }
     }
@@ -145,81 +152,16 @@ export default function Navigation() {
           </div>
 
           {/* Auth Section */}
-          <div className="hidden md:flex items-center space-x-4">
-            {!isLoading && (
-              <>
-                {user ? (
-                  <>
-                    {/* Notification Bell */}
-                    <NotificationBell />
-                    
-                    <div className="relative group">
-                      <button className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 transition-colors">
-                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                          <User className="h-4 w-4 text-blue-600" />
-                        </div>
-                        <span className="font-medium">{profile?.full_name || user.email}</span>
-                      </button>
-                      
-                      {/* Dropdown Menu */}
-                      <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
-                        <div className="py-2">
-                          {profile?.role ? (
-                            <Link 
-                              href={getDashboardLink()}
-                              className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
-                            >
-                              <BarChart3 className="h-4 w-4 mr-3" />
-                              {getDashboardLabel()}
-                            </Link>
-                          ) : (
-                            <Link 
-                              href="/settings/role"
-                              className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
-                            >
-                              <Shield className="h-4 w-4 mr-3" />
-                              Select Role
-                            </Link>
-                          )}
-                          <Link 
-                            href="/settings/notifications"
-                            className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
-                          >
-                            <Settings className="h-4 w-4 mr-3" />
-                            Notification Settings
-                          </Link>
-                          {profile?.role && (
-                            <Link 
-                              href="/settings/role"
-                              className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
-                            >
-                              <Shield className="h-4 w-4 mr-3" />
-                              Change Role
-                            </Link>
-                          )}
-                          <button
-                            onClick={handleSignOut}
-                            className="flex items-center w-full px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
-                          >
-                            <LogOut className="h-4 w-4 mr-3" />
-                            Sign Out
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <Link href="/auth" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
-                      Sign In
-                    </Link>
-                    <Link href="/auth" className="btn-primary">
-                      Get Started
-                    </Link>
-                  </>
-                )}
-              </>
-            )}
+          <div className="flex items-center space-x-4">
+            {/* Temporary: Force show sign-in buttons for testing */}
+            <Link href="/auth" className="text-gray-700 hover:text-blue-600 transition-colors font-medium border-2 border-red-500 px-2 py-1 rounded">
+              Sign In
+            </Link>
+            <Link href="/auth" className="btn-primary border-2 border-red-500">
+              Get Started
+            </Link>
+            
+
           </div>
 
           {/* Mobile menu button */}
@@ -282,81 +224,25 @@ export default function Navigation() {
                 Contact
               </Link>
               
-              {user ? (
-                <>
-                  <div className="border-t border-gray-200 pt-4 mt-4">
-                    <div className="flex items-center px-4 py-2">
-                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                        <User className="h-4 w-4 text-blue-600" />
-                      </div>
-                      <span className="ml-3 font-medium text-gray-900">{profile?.full_name || user.email}</span>
-                    </div>
-                    <Link 
-                      href={getDashboardLink()}
-                      className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      <BarChart3 className="h-4 w-4 mr-3" />
-                      {getDashboardLabel()}
-                    </Link>
-                    {!profile?.role && (
-                      <Link 
-                        href="/settings/role"
-                        className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
-                        onClick={() => setIsMenuOpen(false)}
-                      >
-                        <Shield className="h-4 w-4 mr-3" />
-                        Select Role
-                      </Link>
-                    )}
-                    <Link 
-                      href="/settings/notifications"
-                      className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      <Settings className="h-4 w-4 mr-3" />
-                      Notification Settings
-                    </Link>
-                    {profile?.role && (
-                      <Link 
-                        href="/settings/role"
-                        className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
-                        onClick={() => setIsMenuOpen(false)}
-                      >
-                        <Shield className="h-4 w-4 mr-3" />
-                        Change Role
-                      </Link>
-                    )}
-                    <button
-                      onClick={() => {
-                        handleSignOut()
-                        setIsMenuOpen(false)
-                      }}
-                      className="flex items-center w-full px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      <LogOut className="h-4 w-4 mr-3" />
-                      Sign Out
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <div className="border-t border-gray-200 pt-4 mt-4">
-                  <Link 
-                    href="/auth" 
-                    className="block text-gray-700 hover:text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 transition-all duration-200"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Sign In
-                  </Link>
-                  <Link 
-                    href="/auth" 
-                    className="block btn-primary mt-2"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Get Started
-                  </Link>
-                </div>
-              )}
+              {/* Temporary: Force show sign-in buttons in mobile menu */}
+              <div className="border-t border-gray-200 pt-4 mt-4">
+                <Link 
+                  href="/auth" 
+                  className="block text-gray-700 hover:text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 transition-all duration-200"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Sign In
+                </Link>
+                <Link 
+                  href="/auth" 
+                  className="block btn-primary mt-2"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Get Started
+                </Link>
+              </div>
+              
+
             </div>
           </div>
         )}
