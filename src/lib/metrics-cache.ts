@@ -12,9 +12,9 @@ export async function getCachedMetrics(key: string): Promise<any | null> {
 
     const { data, error } = await supabaseAction
       .from('user_activity_log')
-      .select('metadata')
+      .select('activity_data')
       .eq('activity_type', 'metrics_cache')
-      .eq('metadata->key', key)
+      .eq('activity_data->key', key)
       .gt('created_at', new Date(Date.now() - 5 * 60 * 1000).toISOString()) // 5 minutes cache
       .single()
 
@@ -22,7 +22,7 @@ export async function getCachedMetrics(key: string): Promise<any | null> {
       return null
     }
 
-    return data.metadata?.value || null
+    return (data.activity_data as any)?.value || null
   } catch (error) {
     console.error('Failed to get cached metrics:', error)
     return null
@@ -38,7 +38,7 @@ export async function setCachedMetrics(key: string, value: any): Promise<void> {
       .insert({
         user_id: 'system',
         activity_type: 'metrics_cache',
-        metadata: {
+        activity_data: {
           key,
           value,
           expires_at: new Date(Date.now() + 5 * 60 * 1000).toISOString() // 5 minutes cache

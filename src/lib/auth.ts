@@ -147,6 +147,7 @@ export async function createUser(userData: {
   const { data: user, error } = await supabaseAction
     .from('users')
     .insert({
+      id: crypto.randomUUID(),
       email: userData.email,
       name: userData.name || 'Unknown User',
       role: userData.role || 'veteran'

@@ -10,7 +10,12 @@ export interface ReferralEventData {
   referral_id: string
   event_type: string
   platform?: string
-  metadata?: any
+  userAgent?: string
+  country?: string
+  ipHash?: string
+  feedback?: string
+  feedbackComment?: string
+  debounceKey?: string
 }
 
 export async function createOrGetReferral(data: CreateReferralData) {
@@ -36,7 +41,7 @@ export async function createOrGetReferral(data: CreateReferralData) {
       .from('referrals')
       .insert({
         pitch_id: data.pitch_id,
-        supporter_user_id: data.user_id,
+        user_id: data.user_id,
         share_link: shareLink
       })
       .select()
@@ -64,7 +69,12 @@ export async function trackReferralEvent(data: ReferralEventData) {
         referral_id: data.referral_id,
         event_type: data.event_type,
         platform: data.platform,
-        metadata: data.metadata || {}
+        user_agent: data.userAgent,
+        country: data.country,
+        ip_hash: data.ipHash,
+        feedback: data.feedback,
+        feedback_comment: data.feedbackComment,
+        debounce_key: data.debounceKey
       })
       .select()
       .single()
@@ -176,12 +186,9 @@ export async function trackReferralClick(referralId: string, platform?: string) 
     // Track click event
     await trackReferralEvent({
       referral_id: referralId,
-      event_type: 'click',
-      platform: platform || null,
-      metadata: {
-        timestamp: new Date().toISOString(),
-        user_agent: typeof window !== 'undefined' ? window.navigator.userAgent : null
-      }
+      event_type: 'LINK_OPENED',
+      platform: platform || undefined,
+      userAgent: typeof window !== 'undefined' ? window.navigator.userAgent : undefined
     })
 
     return { success: true }
@@ -198,12 +205,9 @@ export async function trackReferralShare(referralId: string, platform: string) {
     // Track share event
     await trackReferralEvent({
       referral_id: referralId,
-      event_type: 'share',
+      event_type: 'SHARE_RESHARED',
       platform,
-      metadata: {
-        timestamp: new Date().toISOString(),
-        platform
-      }
+      userAgent: typeof window !== 'undefined' ? window.navigator.userAgent : undefined
     })
 
     return { success: true }

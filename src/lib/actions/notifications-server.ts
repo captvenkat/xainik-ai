@@ -66,25 +66,27 @@ export async function markNotificationAsRead(notificationId: string, userId: str
 export async function notifySubscriptionExpiry(userId: string, subscriptionData: any): Promise<void> {
   await createNotification({
     user_id: userId,
-    type: 'subscription_expiry_warning',
+    type: 'plan_expiry',
     payload_json: {
       title: 'Subscription Expiring Soon',
       message: 'Your subscription will expire in 3 days. Renew to maintain access to premium features.',
       data: subscriptionData
     },
-    status: 'pending'
+    channel: 'IN_APP',
+    status: 'PENDING'
   })
 }
 
 export async function notifySubscriptionExpired(userId: string, subscriptionData: any): Promise<void> {
   await createNotification({
     user_id: userId,
-    type: 'subscription_expired',
+    type: 'plan_expiry',
     payload_json: {
       title: 'Subscription Expired',
       message: 'Your subscription has expired. Renew to restore access to premium features.',
       data: subscriptionData
     },
-    status: 'pending'
+    channel: 'IN_APP',
+    status: 'PENDING'
   })
 }

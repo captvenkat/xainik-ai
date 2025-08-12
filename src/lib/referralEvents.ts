@@ -4,10 +4,16 @@ export interface ReferralEvent {
   id: string
   referral_id: string
   event_type: string
-  platform: string
-  user_agent?: string
-  ip_address?: string
-  metadata?: Record<string, any>
+  platform: string | null
+  user_agent?: string | null
+  ip_address?: string | null
+  country?: string | null
+  ip_hash?: string | null
+  feedback?: string | null
+  feedback_comment?: string | null
+  feedback_at?: string | null
+  debounce_key?: string | null
+  occurred_at: string
   created_at: string
 }
 
@@ -17,7 +23,11 @@ export async function recordEvent(data: {
   platform: string
   userAgent?: string
   ipAddress?: string
-  metadata?: Record<string, any>
+  country?: string
+  ipHash?: string
+  feedback?: string
+  feedbackComment?: string
+  debounceKey?: string
 }): Promise<{ success: boolean; error?: string }> {
   try {
     const supabaseAction = await createActionClient()
@@ -29,8 +39,11 @@ export async function recordEvent(data: {
         event_type: data.type,
         platform: data.platform,
         user_agent: data.userAgent,
-        ip_address: data.ipAddress,
-        metadata: data.metadata || {}
+        ip_hash: data.ipHash,
+        country: data.country,
+        feedback: data.feedback,
+        feedback_comment: data.feedbackComment,
+        debounce_key: data.debounceKey
       })
 
     if (error) {
@@ -53,14 +66,17 @@ export async function getReferralEvents(referralId: string): Promise<ReferralEve
       .from('referral_events')
       .select('*')
       .eq('referral_id', referralId)
-      .order('created_at', { ascending: false })
+      .order('occurred_at', { ascending: false })
 
     if (error) {
       console.error('Failed to fetch referral events:', error)
       return []
     }
 
-    return data || []
+    return (data || []).map(event => ({
+      ...event,
+      created_at: event.occurred_at // Map occurred_at to created_at for compatibility
+    }))
   } catch (error) {
     console.error('Failed to fetch referral events:', error)
     return []
@@ -78,8 +94,9 @@ export async function updateReferralEventFeedback(
     const { error } = await supabaseAction
       .from('referral_events')
       .update({
-        metadata: { feedback, feedback_comment: feedbackComment },
-        updated_at: new Date().toISOString()
+        feedback,
+        feedback_comment: feedbackComment,
+        feedback_at: new Date().toISOString()
       })
       .eq('id', eventId)
 

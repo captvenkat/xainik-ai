@@ -45,7 +45,7 @@ export async function createInvoice(invoiceData: Omit<InvoiceInsert, 'id' | 'inv
   await logUserActivity({
     user_id: invoice.user_id,
     activity_type: 'invoice_created',
-    metadata: { invoice_id: invoice.id, invoice_number: invoice.invoice_number }
+    activity_data: { invoice_id: invoice.id, invoice_number: invoice.invoice_number }
   });
   
   return invoice;
@@ -75,7 +75,7 @@ export async function updateInvoiceStatus(
   await logUserActivity({
     user_id: userId,
     activity_type: 'invoice_status_updated',
-    metadata: { invoice_id: invoiceId, status }
+    activity_data: { invoice_id: invoiceId, status }
   });
   
   return invoice;
@@ -151,7 +151,7 @@ export async function createReceipt(receiptData: Omit<ReceiptInsert, 'id' | 'rec
   await logUserActivity({
     user_id: receipt.user_id,
     activity_type: 'receipt_created',
-    metadata: { receipt_id: receipt.id, receipt_number: receipt.receipt_number }
+    activity_data: { receipt_id: receipt.id, receipt_number: receipt.receipt_number }
   });
   
   return receipt;
@@ -210,12 +210,25 @@ export async function createPaymentEvent(eventData: PaymentEventInsert): Promise
     throw new Error(`Failed to create payment event: ${error.message}`);
   }
   
-  // Log activity
-  await logUserActivity({
-    user_id: event.user_id,
-    activity_type: 'payment_event_created',
-    metadata: { event_id: event.id, event_type: event.event_type }
-  });
+  // Get user_id from invoice if available
+  let userId: string | null = null;
+  if (event.invoice_id) {
+    const { data: invoice } = await supabase
+      .from('invoices')
+      .select('user_id')
+      .eq('id', event.invoice_id)
+      .single();
+    userId = invoice?.user_id || null;
+  }
+  
+  // Log activity if we have a user_id
+  if (userId) {
+    await logUserActivity({
+      user_id: userId,
+      activity_type: 'payment_event_created',
+      activity_data: { event_id: event.id, event_type: event.event_type }
+    });
+  }
   
   return event;
 }
@@ -223,10 +236,14 @@ export async function createPaymentEvent(eventData: PaymentEventInsert): Promise
 export async function getPaymentEventsByUserId(userId: string): Promise<PaymentEvent[]> {
   const supabase = await createActionClient();
   
+  // Get payment events through invoices
   const { data: events, error } = await supabase
     .from('payment_events')
-    .select('*')
-    .eq('user_id', userId)
+    .select(`
+      *,
+      invoice:invoices!payment_events_invoice_id_fkey (user_id)
+    `)
+    .eq('invoice.user_id', userId)
     .order('created_at', { ascending: false });
   
   if (error) {
@@ -247,7 +264,7 @@ async function generateInvoiceNumber(): Promise<string> {
   const { data: numberingState, error: getError } = await supabase
     .from('numbering_state')
     .select('*')
-    .eq('type', 'invoice')
+    .eq('entity_type', 'invoice')
     .single();
   
   if (getError && getError.code !== 'PGRST116') {
@@ -259,14 +276,14 @@ async function generateInvoiceNumber(): Promise<string> {
   
   if (numberingState) {
     currentNumber = numberingState.current_number + 1;
-    prefix = numberingState.prefix;
+    prefix = numberingState.prefix || 'INV';
   }
   
   // Update or create numbering state
   const { error: upsertError } = await supabase
     .from('numbering_state')
     .upsert({
-      type: 'invoice',
+      entity_type: 'invoice',
       prefix,
       current_number: currentNumber,
       updated_at: new Date().toISOString()
@@ -289,7 +306,7 @@ async function generateReceiptNumber(): Promise<string> {
   const { data: numberingState, error: getError } = await supabase
     .from('numbering_state')
     .select('*')
-    .eq('type', 'receipt')
+    .eq('entity_type', 'receipt')
     .single();
   
   if (getError && getError.code !== 'PGRST116') {
@@ -301,14 +318,14 @@ async function generateReceiptNumber(): Promise<string> {
   
   if (numberingState) {
     currentNumber = numberingState.current_number + 1;
-    prefix = numberingState.prefix;
+    prefix = numberingState.prefix || 'RCP';
   }
   
   // Update or create numbering state
   const { error: upsertError } = await supabase
     .from('numbering_state')
     .upsert({
-      type: 'receipt',
+      entity_type: 'receipt',
       prefix,
       current_number: currentNumber,
       updated_at: new Date().toISOString()
@@ -337,10 +354,12 @@ export async function sendInvoiceEmail(invoiceId: string, recipientEmail: string
   // Log email attempt
   await logEmail({
     email_type: 'invoice_sent',
-    recipient_email: recipientEmail,
-    subject: `Invoice ${invoice.invoice_number} from Xainik`,
-    content: `Invoice ${invoice.invoice_number} has been sent to ${recipientEmail}`,
-    user_id: invoice.user_id
+    user_id: invoice.user_id,
+    email_data: {
+      recipient_email: recipientEmail,
+      subject: `Invoice ${invoice.invoice_number} from Xainik`,
+      content: `Invoice ${invoice.invoice_number} has been sent to ${recipientEmail}`
+    }
   });
   
   // TODO: Implement actual email sending with Resend
@@ -356,10 +375,12 @@ export async function sendReceiptEmail(receiptId: string, recipientEmail: string
   // Log email attempt
   await logEmail({
     email_type: 'receipt_sent',
-    recipient_email: recipientEmail,
-    subject: `Receipt ${receipt.receipt_number} from Xainik`,
-    content: `Receipt ${receipt.receipt_number} has been sent to ${recipientEmail}`,
-    user_id: receipt.user_id
+    user_id: receipt.user_id,
+    email_data: {
+      recipient_email: recipientEmail,
+      subject: `Receipt ${receipt.receipt_number} from Xainik`,
+      content: `Receipt ${receipt.receipt_number} has been sent to ${recipientEmail}`
+    }
   });
   
   // TODO: Implement actual email sending with Resend

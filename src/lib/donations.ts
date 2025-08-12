@@ -32,15 +32,15 @@ export async function createDonation(donationData: Omit<DonationInsert, 'id'>): 
   
   // Log activity
   if (donation.user_id) {
-    await logUserActivity({
-      user_id: donation.user_id,
-      activity_type: 'donation_created',
-      metadata: { 
-        donation_id: donation.id, 
-        amount_cents: donation.amount_cents,
-        is_anonymous: donation.is_anonymous 
-      }
-    });
+      await logUserActivity({
+    user_id: donation.user_id,
+    activity_type: 'donation_created',
+    activity_data: { 
+      donation_id: donation.id, 
+      amount_cents: donation.amount_cents,
+      is_anonymous: donation.is_anonymous 
+    }
+  });
   }
   
   return donation;

@@ -297,7 +297,7 @@ export async function getReferralsByPitchId(pitchId: string): Promise<Database['
     .from('referrals')
     .select(`
       *,
-      supporter:users!referrals_supporter_user_id_fkey (id, name, email)
+      supporter:users!referrals_user_id_fkey (id, name, email)
     `)
     .eq('pitch_id', pitchId)
     .order('created_at', { ascending: false });
