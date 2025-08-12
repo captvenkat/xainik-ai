@@ -75,7 +75,7 @@ export async function getRecentActivity(limit: number = 10): Promise<ActivityLog
       id: item.id,
       user_id: item.user_id,
       activity_type: item.activity_type,
-      activity_data: item.activity_data || {},
+      activity_data: (item.activity_data as Record<string, any>) || {},
       created_at: item.created_at,
       ip_address: item.ip_address,
       user_agent: item.user_agent
@@ -107,7 +107,7 @@ export async function getUserActivity(userId: string, limit: number = 20): Promi
       id: item.id,
       user_id: item.user_id,
       activity_type: item.activity_type,
-      activity_data: item.activity_data || {},
+      activity_data: (item.activity_data as Record<string, any>) || {},
       created_at: item.created_at,
       ip_address: item.ip_address,
       user_agent: item.user_agent

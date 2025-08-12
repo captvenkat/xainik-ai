@@ -148,7 +148,7 @@ export async function createUser(userData: {
     .from('users')
     .insert({
       email: userData.email,
-      name: userData.name || null,
+      name: userData.name || 'Unknown User',
       role: userData.role || 'veteran'
     })
     .select()
