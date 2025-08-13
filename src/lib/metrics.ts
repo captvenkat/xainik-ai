@@ -109,7 +109,7 @@ export async function getRecruiterMetrics(userId: string): Promise<any> {
       { count: resumeRequests },
       { data: recentActivity }
     ] = await Promise.all([
-      supabaseAction.from('recruiter_saved_filters').select('*', { count: 'exact', head: true }).eq('recruiter_user_id', userId),
+      supabaseAction.from('recruiter_saved_filters').select('*', { count: 'exact', head: true }).eq('recruiter_id', userId),
       supabaseAction.from('resume_requests').select('*', { count: 'exact', head: true }).eq('recruiter_user_id', userId),
       supabaseAction.from('user_activity_log').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(5)
     ])
