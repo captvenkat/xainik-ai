@@ -317,7 +317,7 @@ export default function VeteranDashboard() {
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold text-gray-900">My Pitch Status</h2>
               <div className="flex items-center gap-2">
-                {metrics.pitch.is_active ? (
+                {metrics?.pitch?.is_active ? (
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                     Active
                   </span>
@@ -331,8 +331,8 @@ export default function VeteranDashboard() {
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">{metrics.pitch.title}</h3>
-                <p className="text-sm text-gray-600">Plan: {metrics.pitch.plan_tier}</p>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">{metrics?.pitch?.title || 'No Title'}</h3>
+                <p className="text-sm text-gray-600">Plan: {metrics?.pitch?.plan_tier || 'No Plan'}</p>
               </div>
               
               <div className="flex items-center gap-2">
@@ -474,7 +474,7 @@ export default function VeteranDashboard() {
             {/* Quick Actions */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
               <a
-                href={metrics?.pitch?.id ? `/pitch/${metrics.pitch.id}/edit` : '/pitch/new'}
+                href={metrics?.pitch?.id ? `/pitch/${metrics?.pitch?.id}/edit` : '/pitch/new'}
                 className="flex items-center gap-3 p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow"
               >
                 <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
