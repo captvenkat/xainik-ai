@@ -82,42 +82,33 @@ export default function AuthCallbackPage() {
           return;
         }
 
-        // Create Supabase client and set session
+        // Create Supabase client - session should be automatically set from URL
         const supabase = createSupabaseBrowser();
-        console.log('AuthCallback: Setting session...');
+        console.log('AuthCallback: Checking session...');
         
-        const { data, error: sessionError } = await supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken,
-        });
-
+        // Wait a moment for Supabase to process the URL tokens
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Get the current session
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
         if (sessionError) {
           console.error('AuthCallback: Session error:', sessionError);
-          setError(`Session creation failed: ${sessionError.message}`);
+          setError(`Session error: ${sessionError.message}`);
           setStatus('error');
           clearTimeout(timeoutId);
           return;
         }
 
-        if (!data.session) {
-          console.error('AuthCallback: No session created');
-          setError('No session created');
+        if (!session) {
+          console.error('AuthCallback: No session found');
+          setError('No session found. Please try signing in again.');
           setStatus('error');
           clearTimeout(timeoutId);
           return;
         }
 
-        console.log('AuthCallback: Session created successfully for:', data.session.user.email);
-
-        // Verify the session is properly set
-        const { data: { session: verifySession } } = await supabase.auth.getSession();
-        if (!verifySession) {
-          console.error('AuthCallback: Session verification failed');
-          setError('Session verification failed');
-          setStatus('error');
-          clearTimeout(timeoutId);
-          return;
-        }
+        console.log('AuthCallback: Session found for:', session.user.email);
 
         console.log('AuthCallback: Session verified, checking user role...');
 
@@ -125,13 +116,13 @@ export default function AuthCallbackPage() {
         const { data: existingUser, error: userError } = await supabase
           .from('users')
           .select('role')
-          .eq('id', verifySession.user.id)
+          .eq('id', session.user.id)
           .single();
 
         if (userError) {
           console.log('AuthCallback: User not found in database, will create new user');
           // User doesn't exist in our database yet, they need to select a role
-          setUserEmail(verifySession.user.email || '');
+          setUserEmail(session.user.email || '');
           setStatus('role-selection');
           
           // Clear any hash fragments from the URL
@@ -162,7 +153,7 @@ export default function AuthCallbackPage() {
         } else {
           console.log('AuthCallback: User exists but no role, showing role selection');
           // User exists but has no role
-          setUserEmail(verifySession.user.email || '');
+          setUserEmail(session.user.email || '');
           setStatus('role-selection');
           
           // Clear any hash fragments from the URL
