@@ -1,5 +1,6 @@
 import { Shield, Users, Target, Heart, Award, Globe } from 'lucide-react'
 import { Metadata } from 'next'
+import Link from 'next/link'
 
 export const metadata: Metadata = {
   title: 'About Us | Xainik',
@@ -57,7 +58,7 @@ export default function AboutPage() {
                 <Target className="h-12 w-12 mb-4" />
                 <h3 className="text-2xl font-bold mb-4">Our Vision</h3>
                 <p className="text-blue-100">
-                  A world where every veteran's military experience is recognized, valued, and leveraged for successful civilian careers.
+                  A world where every veteran&apos;s military experience is recognized, valued, and leveraged for successful civilian careers.
                 </p>
               </div>
             </div>
@@ -194,7 +195,7 @@ export default function AboutPage() {
               </div>
               
               <p className="text-gray-600">
-                By choosing Xainik, you're supporting a mission-driven organization dedicated to veteran success, not shareholder profits. Every transaction helps us serve more veterans and improve our platform.
+                By choosing Xainik, you&apos;re supporting a mission-driven organization dedicated to veteran success, not shareholder profits. Every transaction helps us serve more veterans and improve our platform.
               </p>
             </div>
           </div>
@@ -208,18 +209,18 @@ export default function AboutPage() {
             Join Our Mission
           </h2>
           <p className="text-xl text-blue-100 mb-8">
-            Whether you're a veteran looking for opportunities, an employer seeking talent, or a supporter wanting to make a difference, there's a place for you in our community.
+            Whether you&apos;re a veteran looking for opportunities, an employer seeking talent, or a supporter wanting to make a difference, there&apos;s a place for you in our community.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="/pitch/new" className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
+            <Link href="/pitch/new" className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
               Post Your Pitch
-            </a>
-            <a href="/browse" className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition-colors">
+            </Link>
+            <Link href="/browse" className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition-colors">
               Browse Veterans
-            </a>
-            <a href="/donations" className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition-colors">
+            </Link>
+            <Link href="/donations" className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition-colors">
               Support Our Mission
-            </a>
+            </Link>
           </div>
         </div>
       </section>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 import { FileText, Save, ArrowLeft } from 'lucide-react'
@@ -14,6 +14,29 @@ export default function EditPitchPage({ params }: { params: Promise<{ id: string
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
+
+  const fetchPitchDetails = useCallback(async (userId: string, pitchId: string) => {
+    try {
+      const supabase = createSupabaseBrowser()
+      
+      const { data: pitchData, error: pitchError } = await supabase
+        .from('pitches')
+        .select('*')
+        .eq('id', pitchId)
+        .eq('user_id', userId)
+        .single()
+
+      if (pitchError || !pitchData) {
+        router.push('/dashboard/veteran')
+        return
+      }
+      
+      setPitch(pitchData)
+    } catch (error) {
+      console.error('Failed to fetch pitch details:', error)
+      setError('Failed to load pitch data')
+    }
+  }, [router])
 
   useEffect(() => {
     async function initializePage() {
@@ -58,30 +81,9 @@ export default function EditPitchPage({ params }: { params: Promise<{ id: string
     }
     
     initializePage()
-  }, [params, router])
+  }, [params, router, fetchPitchDetails])
 
-  async function fetchPitchDetails(userId: string, pitchId: string) {
-    try {
-      const supabase = createSupabaseBrowser()
-      
-      const { data: pitchData, error: pitchError } = await supabase
-        .from('pitches')
-        .select('*')
-        .eq('id', pitchId)
-        .eq('user_id', userId)
-        .single()
 
-      if (pitchError || !pitchData) {
-        router.push('/dashboard/veteran')
-        return
-      }
-      
-      setPitch(pitchData)
-    } catch (error) {
-      console.error('Failed to fetch pitch details:', error)
-      setError('Failed to load pitch data')
-    }
-  }
 
   // Show loading state
   if (isLoading) {
