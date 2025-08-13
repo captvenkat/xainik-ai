@@ -40,11 +40,21 @@ export default function HomePage() {
     console.log('Homepage: Signing out...')
     
     try {
+      // Clear user state immediately for better UX
+      setUser(null)
+      
       const { error } = await supabase.auth.signOut()
       if (error) {
         console.error('Sign out error:', error)
       } else {
         console.log('Sign out successful')
+        
+        // Clear any local storage
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('xainik-auth-token')
+          sessionStorage.clear()
+        }
+        
         // Force page reload to clear all state
         window.location.href = '/'
       }
@@ -82,43 +92,51 @@ export default function HomePage() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-              <Link href="/pitch/new" className="btn-primary text-lg inline-flex items-center gap-2">
-                Post My Pitch
-                <ArrowRight className="h-5 w-5" />
-              </Link>
-              <Link href="/browse" className="btn-secondary text-lg inline-flex items-center gap-2">
-                Browse Veterans
-                <ChevronRight className="h-5 w-5" />
-              </Link>
-              <Link href="/support" className="btn-secondary text-lg inline-flex items-center gap-2">
-                Refer a Pitch
-                <ChevronRight className="h-5 w-5" />
-              </Link>
-            </div>
-
-            {/* Auth Section */}
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-200/50 max-w-md mx-auto">
-              <div className="text-center">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">Authentication</h3>
-                <p className="text-gray-600 mb-4">Manage your account and access your dashboard</p>
-                <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                  <Link href="/auth" className="btn-primary inline-flex items-center gap-2">
+              {!isLoading && !user ? (
+                <>
+                  <Link href="/auth" className="btn-primary text-lg inline-flex items-center gap-2">
                     Sign In
-                    <ArrowRight className="h-4 w-4" />
+                    <ArrowRight className="h-5 w-5" />
                   </Link>
-                  <Link href="/auth" className="btn-secondary inline-flex items-center gap-2">
+                  <Link href="/auth" className="btn-secondary text-lg inline-flex items-center gap-2">
                     Get Started
-                    <ChevronRight className="h-4 w-4" />
+                    <ChevronRight className="h-5 w-5" />
+                  </Link>
+                </>
+              ) : !isLoading && user ? (
+                <>
+                  <Link href="/dashboard" className="btn-primary text-lg inline-flex items-center gap-2">
+                    Go to Dashboard
+                    <ArrowRight className="h-5 w-5" />
+                  </Link>
+                  <Link href="/browse" className="btn-secondary text-lg inline-flex items-center gap-2">
+                    Browse Veterans
+                    <ChevronRight className="h-5 w-5" />
                   </Link>
                   <button 
                     onClick={handleSignOut}
-                    className="btn-secondary inline-flex items-center gap-2 border-red-200 hover:border-red-300 hover:bg-red-50"
+                    className="btn-secondary text-lg inline-flex items-center gap-2 border-red-200 hover:border-red-300 hover:bg-red-50"
                   >
                     Sign Out
-                    <LogOut className="h-4 w-4" />
+                    <LogOut className="h-5 w-5" />
                   </button>
-                </div>
-              </div>
+                </>
+              ) : (
+                <>
+                  <Link href="/pitch/new" className="btn-primary text-lg inline-flex items-center gap-2">
+                    Post My Pitch
+                    <ArrowRight className="h-5 w-5" />
+                  </Link>
+                  <Link href="/browse" className="btn-secondary text-lg inline-flex items-center gap-2">
+                    Browse Veterans
+                    <ChevronRight className="h-5 w-5" />
+                  </Link>
+                  <Link href="/support" className="btn-secondary text-lg inline-flex items-center gap-2">
+                    Refer a Pitch
+                    <ChevronRight className="h-5 w-5" />
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>

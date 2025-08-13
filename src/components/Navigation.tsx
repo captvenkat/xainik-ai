@@ -108,9 +108,9 @@ export default function Navigation() {
     console.log('Navigation: Signing out...')
     
     try {
-      // Check current session before sign out
-      const { data: { session } } = await supabase.auth.getSession()
-      console.log('Navigation: Current session before sign out:', !!session)
+      // Clear user state immediately for better UX
+      setUser(null)
+      setProfile(null)
       
       const { error } = await supabase.auth.signOut()
       if (error) {
@@ -118,14 +118,11 @@ export default function Navigation() {
       } else {
         console.log('Navigation: Sign out successful')
         
-        // Check session after sign out
-        const { data: { session: sessionAfter } } = await supabase.auth.getSession()
-        console.log('Navigation: Session after sign out:', !!sessionAfter)
-        
         // Clear any local storage
         if (typeof window !== 'undefined') {
           localStorage.removeItem('xainik-auth-token')
-          console.log('Navigation: Cleared local storage')
+          sessionStorage.clear()
+          console.log('Navigation: Cleared storage')
         }
         
         // Clear the singleton instance
@@ -195,20 +192,37 @@ export default function Navigation() {
 
           {/* Auth Section */}
           <div className="flex items-center space-x-4">
-            {/* Sign-in buttons */}
-            <Link href="/auth" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
-              Sign In
-            </Link>
-            <Link href="/auth" className="btn-primary">
-              Get Started
-            </Link>
-            {/* Sign-out button */}
-            <button 
-              onClick={handleSignOut}
-              className="text-gray-700 hover:text-red-600 transition-colors font-medium border border-gray-300 hover:border-red-300 px-3 py-1 rounded"
-            >
-              Sign Out
-            </button>
+            {!isLoading && !user ? (
+              <>
+                <Link href="/auth" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
+                  Sign In
+                </Link>
+                <Link href="/auth" className="btn-primary">
+                  Get Started
+                </Link>
+              </>
+            ) : !isLoading && user ? (
+              <>
+                <Link href={getDashboardLink()} className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
+                  {getDashboardLabel()}
+                </Link>
+                <button 
+                  onClick={handleSignOut}
+                  className="text-gray-700 hover:text-red-600 transition-colors font-medium border border-gray-300 hover:border-red-300 px-3 py-1 rounded"
+                >
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <>
+                <Link href="/auth" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
+                  Sign In
+                </Link>
+                <Link href="/auth" className="btn-primary">
+                  Get Started
+                </Link>
+              </>
+            )}
             
 
           </div>
@@ -275,29 +289,60 @@ export default function Navigation() {
               
               {/* Auth buttons in mobile menu */}
               <div className="border-t border-gray-200 pt-4 mt-4">
-                <Link 
-                  href="/auth" 
-                  className="block text-gray-700 hover:text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 transition-all duration-200"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Sign In
-                </Link>
-                <Link 
-                  href="/auth" 
-                  className="block btn-primary mt-2"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Get Started
-                </Link>
-                <button 
-                  onClick={() => {
-                    handleSignOut()
-                    setIsMenuOpen(false)
-                  }}
-                  className="block w-full text-left text-gray-700 hover:text-red-600 px-4 py-2 rounded-lg hover:bg-red-50 transition-all duration-200 mt-2"
-                >
-                  Sign Out
-                </button>
+                {!isLoading && !user ? (
+                  <>
+                    <Link 
+                      href="/auth" 
+                      className="block text-gray-700 hover:text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 transition-all duration-200"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Sign In
+                    </Link>
+                    <Link 
+                      href="/auth" 
+                      className="block btn-primary mt-2"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Get Started
+                    </Link>
+                  </>
+                ) : !isLoading && user ? (
+                  <>
+                    <Link 
+                      href={getDashboardLink()} 
+                      className="block text-gray-700 hover:text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 transition-all duration-200"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      {getDashboardLabel()}
+                    </Link>
+                    <button 
+                      onClick={() => {
+                        handleSignOut()
+                        setIsMenuOpen(false)
+                      }}
+                      className="block w-full text-left text-gray-700 hover:text-red-600 px-4 py-2 rounded-lg hover:bg-red-50 transition-all duration-200 mt-2"
+                    >
+                      Sign Out
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link 
+                      href="/auth" 
+                      className="block text-gray-700 hover:text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 transition-all duration-200"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Sign In
+                    </Link>
+                    <Link 
+                      href="/auth" 
+                      className="block btn-primary mt-2"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Get Started
+                    </Link>
+                  </>
+                )}
               </div>
               
 
