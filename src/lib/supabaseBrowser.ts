@@ -51,6 +51,11 @@ export const createSupabaseBrowser = () => {
   return supabaseBrowserInstance;
 };
 
+// Function to clear the singleton instance (useful for sign out)
+export const clearSupabaseBrowserInstance = () => {
+  supabaseBrowserInstance = null;
+};
+
 // =====================================================
 // GOOGLE OAUTH HELPER
 // =====================================================
