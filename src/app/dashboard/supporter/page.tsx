@@ -1,33 +1,148 @@
-import { createSupabaseServerOnly } from '@/lib/supabaseServerOnly'
-import { redirect } from 'next/navigation'
+'use client'
+
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 import { Heart, Share2, TrendingUp, Eye, Phone, Mail, Award, Users, BarChart3 } from 'lucide-react'
-import { getSupporterMetrics } from '@/lib/metrics'
 import BarChart from '@/components/charts/BarChart'
 import PieChart from '@/components/charts/PieChart'
 import LineChart from '@/components/charts/LineChart'
 
-export default async function SupporterDashboard() {
-  const supabase = createSupabaseServerOnly()
-  
-  // Check authentication and role
-  const supabaseClient = await supabase
-  const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
-  if (authError || !user) {
-    redirect('/auth?redirect=/dashboard/supporter')
+export default function SupporterDashboard() {
+  const [user, setUser] = useState<any>(null)
+  const [profile, setProfile] = useState<any>(null)
+  const [metrics, setMetrics] = useState<any>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const router = useRouter()
+
+  useEffect(() => {
+    async function checkAuthAndLoadData() {
+      try {
+        const supabase = createSupabaseBrowser()
+        
+        // Check authentication
+        const { data: { user }, error: authError } = await supabase.auth.getUser()
+        if (authError || !user) {
+          router.push('/auth?redirect=/dashboard/supporter')
+          return
+        }
+        
+        setUser(user)
+        
+        // Check user role
+        const { data: profile, error: profileError } = await supabase
+          .from('users')
+          .select('role')
+          .eq('id', user.id)
+          .single()
+        
+        if (profileError || profile?.role !== 'supporter') {
+          router.push('/auth?redirect=/dashboard/supporter')
+          return
+        }
+        
+        setProfile(profile)
+        
+        // Fetch metrics using client-side approach
+        const metricsData = await fetchSupporterMetrics(user.id)
+        setMetrics(metricsData)
+        
+      } catch (error) {
+        console.error('Dashboard error:', error)
+        setError('Failed to load dashboard data')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    
+    checkAuthAndLoadData()
+  }, [router])
+
+  async function fetchSupporterMetrics(userId: string) {
+    try {
+      const supabase = createSupabaseBrowser()
+      
+      // Get supporter-specific metrics
+      const [
+        { count: totalDonations },
+        { count: totalEndorsements },
+        { data: recentActivity }
+      ] = await Promise.all([
+        supabase.from('donations').select('*', { count: 'exact', head: true }).eq('user_id', userId),
+        supabase.from('endorsements').select('*', { count: 'exact', head: true }).eq('endorser_user_id', userId),
+        supabase.from('user_activity_log').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(5)
+      ])
+
+      // Calculate conversion rate
+      const totalActions = (totalDonations || 0) + (totalEndorsements || 0)
+      const conversionRate = totalActions > 0 ? (totalActions / 100) * 100 : 0
+
+      return {
+        totalDonations: totalDonations || 0,
+        totalEndorsements: totalEndorsements || 0,
+        recentActivity: recentActivity || [],
+        conversions: {
+          conversionRate: conversionRate
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch supporter metrics:', error)
+      return {
+        totalDonations: 0,
+        totalEndorsements: 0,
+        recentActivity: [],
+        conversions: {
+          conversionRate: 0
+        }
+      }
+    }
   }
 
-  const { data: profile } = await supabaseClient
-    .from('users')
-    .select('role')
-    .eq('id', user.id)
-    .single()
-
-  if (profile?.role !== 'supporter') {
-    redirect('/auth?redirect=/dashboard/supporter')
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <h2 className="text-xl font-semibold text-gray-900">Loading Dashboard...</h2>
+          <p className="text-gray-600">Please wait while we load your data.</p>
+        </div>
+      </div>
+    )
   }
 
-  // Fetch supporter metrics
-  const metrics = await getSupporterMetrics(user.id)
+  // Show error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-500 text-6xl mb-4">⚠️</div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Dashboard Error</h2>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // Show dashboard content
+  if (!metrics) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-gray-500 text-6xl mb-4">📊</div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">No Data Available</h2>
+          <p className="text-gray-600">Your dashboard data is being prepared.</p>
+        </div>
+      </div>
+    )
+  }
 
   // Calculate summary stats
   const totalReferred = metrics.totalDonations || 0
