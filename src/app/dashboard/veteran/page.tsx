@@ -115,6 +115,7 @@ export default function VeteranDashboard() {
 
   async function fetchVeteranMetrics(userId: string) {
     try {
+      console.log('Veteran Dashboard: fetchVeteranMetrics started for user:', userId)
       const supabase = createSupabaseBrowser()
       
       // Get veteran-specific metrics
@@ -130,6 +131,8 @@ export default function VeteranDashboard() {
         supabase.from('pitches').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(1).maybeSingle()
       ])
 
+      console.log('Veteran Dashboard: pitchData from Promise.all:', pitchData)
+
       // Get pitch views from activity log
       const { data: pitchViews } = await supabase
         .from('user_activity_log')
@@ -137,15 +140,22 @@ export default function VeteranDashboard() {
         .eq('user_id', userId)
         .eq('activity_type', 'pitch_view')
 
-      return {
+      console.log('Veteran Dashboard: pitchViews count:', pitchViews?.length || 0)
+
+      const result = {
         totalPitches: totalPitches || 0,
         totalEndorsements: totalEndorsements || 0,
         recentActivity: recentActivity || [],
-        pitch: {
+        pitch: pitchData ? {
           ...pitchData,
+          views: pitchViews?.length || 0
+        } : {
           views: pitchViews?.length || 0
         }
       }
+      
+      console.log('Veteran Dashboard: fetchVeteranMetrics result:', result)
+      return result
     } catch (error) {
       console.error('Failed to fetch veteran metrics:', error)
       return {
