@@ -79,15 +79,15 @@ export default function VeteranDashboard() {
       setInvoices(invoicesData)
 
       // Fetch pitch data for expiry calculation
-      const { data: pitchData } = await supabase
+      const { data: pitchData, error: pitchError } = await supabase
         .from('pitches')
         .select('end_date')
         .eq('user_id', userId)
         .order('created_at', { ascending: false })
         .limit(1)
-        .single()
+        .maybeSingle()
 
-      // Calculate days until expiry
+      // Calculate days until expiry (only if pitch exists)
       if (pitchData?.end_date) {
         const daysUntil = Math.ceil((new Date(pitchData.end_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
         setDaysUntilExpiry(daysUntil)
@@ -105,24 +105,40 @@ export default function VeteranDashboard() {
       const [
         { count: totalPitches },
         { count: totalEndorsements },
-        { data: recentActivity }
+        { data: recentActivity },
+        { data: pitchData }
       ] = await Promise.all([
         supabase.from('pitches').select('*', { count: 'exact', head: true }).eq('user_id', userId),
         supabase.from('endorsements').select('*', { count: 'exact', head: true }).eq('user_id', userId),
-        supabase.from('user_activity_log').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(5)
+        supabase.from('user_activity_log').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(5),
+        supabase.from('pitches').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(1).maybeSingle()
       ])
+
+      // Get pitch views from activity log
+      const { data: pitchViews } = await supabase
+        .from('user_activity_log')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('activity_type', 'pitch_view')
 
       return {
         totalPitches: totalPitches || 0,
         totalEndorsements: totalEndorsements || 0,
-        recentActivity: recentActivity || []
+        recentActivity: recentActivity || [],
+        pitch: {
+          ...pitchData,
+          views: pitchViews?.length || 0
+        }
       }
     } catch (error) {
       console.error('Failed to fetch veteran metrics:', error)
       return {
         totalPitches: 0,
         totalEndorsements: 0,
-        recentActivity: []
+        recentActivity: [],
+        pitch: {
+          views: 0
+        }
       }
     }
   }
@@ -306,7 +322,7 @@ export default function VeteranDashboard() {
                 <Eye className="w-5 h-5 text-gray-400" />
                 <div>
                   <p className="text-sm text-gray-600">Total Views</p>
-                  <p className="text-lg font-semibold text-gray-900">{(metrics.pitch as any)?.views || 0}</p>
+                  <p className="text-lg font-semibold text-gray-900">{metrics?.pitch?.views || 0}</p>
                 </div>
               </div>
             </div>
@@ -368,7 +384,7 @@ export default function VeteranDashboard() {
               </div>
               <div>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">Pitch Views</h3>
-                <p className="text-sm text-gray-600">Total: {(metrics?.pitch as any)?.views || 0}</p>
+                <p className="text-sm text-gray-600">Total: {metrics?.pitch?.views || 0}</p>
               </div>
             </div>
 
