@@ -170,17 +170,27 @@ export async function getSupporterMetrics(userId: string): Promise<any> {
       supabaseAction.from('user_activity_log').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(5)
     ])
 
+    // Calculate conversion rate
+    const totalActions = (totalDonations || 0) + (totalEndorsements || 0)
+    const conversionRate = totalActions > 0 ? (totalActions / 100) * 100 : 0
+
     return {
       totalDonations: totalDonations || 0,
       totalEndorsements: totalEndorsements || 0,
-      recentActivity: recentActivity || []
+      recentActivity: recentActivity || [],
+      conversions: {
+        conversionRate: conversionRate
+      }
     }
   } catch (error) {
     console.error('Failed to get supporter metrics:', error)
     return {
       totalDonations: 0,
       totalEndorsements: 0,
-      recentActivity: []
+      recentActivity: [],
+      conversions: {
+        conversionRate: 0
+      }
     }
   }
 }
