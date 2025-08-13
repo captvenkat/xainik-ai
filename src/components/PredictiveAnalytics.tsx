@@ -48,67 +48,67 @@ export default function PredictiveAnalytics({ currentMetrics, historicalData }: 
       const olderTrend = historicalData.slice(-14, -7)
       
       const recentAvg = {
-        views: recentTrend.reduce((sum, day) => sum + day.views, 0) / 7,
-        calls: recentTrend.reduce((sum, day) => sum + day.calls, 0) / 7,
-        emails: recentTrend.reduce((sum, day) => sum + day.emails, 0) / 7
+        views: recentTrend.reduce((sum, day) => sum + (day?.views || 0), 0) / 7,
+        calls: recentTrend.reduce((sum, day) => sum + (day?.calls || 0), 0) / 7,
+        emails: recentTrend.reduce((sum, day) => sum + (day?.emails || 0), 0) / 7
       }
       
       const olderAvg = {
-        views: olderTrend.reduce((sum, day) => sum + day.views, 0) / 7,
-        calls: olderTrend.reduce((sum, day) => sum + day.calls, 0) / 7,
-        emails: olderTrend.reduce((sum, day) => sum + day.emails, 0) / 7
+        views: olderTrend.reduce((sum, day) => sum + (day?.views || 0), 0) / 7,
+        calls: olderTrend.reduce((sum, day) => sum + (day?.calls || 0), 0) / 7,
+        emails: olderTrend.reduce((sum, day) => sum + (day?.emails || 0), 0) / 7
       }
 
       // Calculate growth rates
       const growthRates = {
-        views: olderAvg.views > 0 ? (recentAvg.views - olderAvg.views) / olderAvg.views : 0,
-        calls: olderAvg.calls > 0 ? (recentAvg.calls - olderAvg.calls) / olderAvg.calls : 0,
-        emails: olderAvg.emails > 0 ? (recentAvg.emails - olderAvg.emails) / olderAvg.emails : 0
+        views: (olderAvg?.views || 0) > 0 ? ((recentAvg?.views || 0) - (olderAvg?.views || 0)) / (olderAvg?.views || 1) : 0,
+        calls: (olderAvg?.calls || 0) > 0 ? ((recentAvg?.calls || 0) - (olderAvg?.calls || 0)) / (olderAvg?.calls || 1) : 0,
+        emails: (olderAvg?.emails || 0) > 0 ? ((recentAvg?.emails || 0) - (olderAvg?.emails || 0)) / (olderAvg?.emails || 1) : 0
       }
 
       // Predict next 30 days
-      const predictedViews = Math.max(0, Math.round(recentAvg.views * 30 * (1 + growthRates.views * 0.5)))
-      const predictedCalls = Math.max(0, Math.round(recentAvg.calls * 30 * (1 + growthRates.calls * 0.5)))
-      const predictedEmails = Math.max(0, Math.round(recentAvg.emails * 30 * (1 + growthRates.emails * 0.5)))
+      const predictedViews = Math.max(0, Math.round((recentAvg?.views || 0) * 30 * (1 + (growthRates?.views || 0) * 0.5)))
+      const predictedCalls = Math.max(0, Math.round((recentAvg?.calls || 0) * 30 * (1 + (growthRates?.calls || 0) * 0.5)))
+      const predictedEmails = Math.max(0, Math.round((recentAvg?.emails || 0) * 30 * (1 + (growthRates?.emails || 0) * 0.5)))
 
       // Determine trend direction
-      const avgGrowth = (growthRates.views + growthRates.calls + growthRates.emails) / 3
+      const avgGrowth = ((growthRates?.views || 0) + (growthRates?.calls || 0) + (growthRates?.emails || 0)) / 3
       const trendDirection: 'up' | 'down' | 'stable' = avgGrowth > 0.1 ? 'up' : avgGrowth < -0.1 ? 'down' : 'stable'
 
       // Calculate confidence based on data consistency
       const variance = historicalData.slice(-7).reduce((sum, day) => {
-        const deviation = Math.abs(day.views - recentAvg.views)
+        const deviation = Math.abs((day?.views || 0) - (recentAvg?.views || 0))
         return sum + deviation
       }, 0) / 7
       
-      const confidence = Math.max(60, Math.min(95, 100 - (variance / recentAvg.views) * 100))
+              const confidence = Math.max(60, Math.min(95, 100 - (variance / (recentAvg?.views || 1)) * 100))
 
       // Generate insights
       const riskFactors: string[] = []
       const opportunities: string[] = []
 
-      if (growthRates.views < -0.2) {
+      if ((growthRates?.views || 0) < -0.2) {
         riskFactors.push('Declining visibility - consider increasing pitch sharing')
       }
-      if (growthRates.calls < -0.3) {
+      if ((growthRates?.calls || 0) < -0.3) {
         riskFactors.push('Call engagement dropping - review contact information')
       }
-      if (growthRates.emails < -0.3) {
+      if ((growthRates?.emails || 0) < -0.3) {
         riskFactors.push('Email engagement declining - optimize pitch content')
       }
 
-      if (growthRates.views > 0.2) {
+      if ((growthRates?.views || 0) > 0.2) {
         opportunities.push('Strong visibility growth - capitalize on momentum')
       }
-      if (growthRates.calls > 0.3) {
+      if ((growthRates?.calls || 0) > 0.3) {
         opportunities.push('High call engagement - focus on conversion optimization')
       }
-      if (growthRates.emails > 0.3) {
+      if ((growthRates?.emails || 0) > 0.3) {
         opportunities.push('Strong email engagement - build on success')
       }
 
       // Calculate next milestone
-      const currentTotal = currentMetrics.views + currentMetrics.calls + currentMetrics.emails
+      const currentTotal = (currentMetrics?.views || 0) + (currentMetrics?.calls || 0) + (currentMetrics?.emails || 0)
       const nextMilestone = currentTotal < 50 ? '50 total engagements' :
                            currentTotal < 100 ? '100 total engagements' :
                            currentTotal < 200 ? '200 total engagements' : '500 total engagements'
@@ -117,7 +117,7 @@ export default function PredictiveAnalytics({ currentMetrics, historicalData }: 
                              nextMilestone.includes('100') ? 100 :
                              nextMilestone.includes('200') ? 200 : 500
       
-      const estimatedDaysToMilestone = Math.ceil((milestoneTarget - currentTotal) / Math.max(1, recentAvg.views + recentAvg.calls + recentAvg.emails))
+      const estimatedDaysToMilestone = Math.ceil((milestoneTarget - currentTotal) / Math.max(1, (recentAvg?.views || 0) + (recentAvg?.calls || 0) + (recentAvg?.emails || 0)))
 
       setPredictiveData({
         predictedViews,

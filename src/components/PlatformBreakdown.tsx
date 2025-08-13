@@ -24,9 +24,9 @@ export default function PlatformBreakdown({
   showChart = true,
   chartType = 'bar'
 }: PlatformBreakdownProps) {
-  const totalViews = data.reduce((sum, p) => sum + p.views, 0)
-  const totalCalls = data.reduce((sum, p) => sum + p.calls, 0)
-  const totalEmails = data.reduce((sum, p) => sum + p.emails, 0)
+  const totalViews = data.reduce((sum, p) => sum + (p?.views || 0), 0)
+  const totalCalls = data.reduce((sum, p) => sum + (p?.calls || 0), 0)
+  const totalEmails = data.reduce((sum, p) => sum + (p?.emails || 0), 0)
   const totalConversions = totalCalls + totalEmails
 
   const overallConversionRate = totalViews > 0 ? (totalConversions / totalViews) * 100 : 0
@@ -34,13 +34,13 @@ export default function PlatformBreakdown({
   // Prepare chart data
   const barChartData = data.map(platform => ({
     label: platform.platform,
-    value: platform.views + platform.calls + platform.emails,
+    value: (platform?.views || 0) + (platform?.calls || 0) + (platform?.emails || 0),
     color: getPlatformColor(platform.platform)
   }))
 
   const pieChartData = data.map(platform => ({
     label: platform.platform,
-    value: platform.views + platform.calls + platform.emails,
+    value: (platform?.views || 0) + (platform?.calls || 0) + (platform?.emails || 0),
     color: getPlatformColor(platform.platform)
   }))
 
@@ -116,8 +116,8 @@ export default function PlatformBreakdown({
       {/* Platform Details */}
       <div className="space-y-4">
         {data.map((platform) => {
-          const platformTotal = platform.views + platform.calls + platform.emails
-          const platformConversionRate = platform.views > 0 ? ((platform.calls + platform.emails) / platform.views) * 100 : 0
+          const platformTotal = (platform?.views || 0) + (platform?.calls || 0) + (platform?.emails || 0)
+          const platformConversionRate = (platform?.views || 0) > 0 ? (((platform?.calls || 0) + (platform?.emails || 0)) / (platform?.views || 1)) * 100 : 0
           
           return (
             <div key={platform.platform} className="border rounded-lg p-4">
@@ -137,15 +137,15 @@ export default function PlatformBreakdown({
               
               <div className="grid grid-cols-3 gap-4 text-center">
                 <div>
-                  <div className="text-lg font-bold text-blue-600">{platform.views}</div>
+                  <div className="text-lg font-bold text-blue-600">{platform?.views || 0}</div>
                   <div className="text-xs text-gray-600">Views</div>
                 </div>
                 <div>
-                  <div className="text-lg font-bold text-yellow-600">{platform.calls}</div>
+                  <div className="text-lg font-bold text-yellow-600">{platform?.calls || 0}</div>
                   <div className="text-xs text-gray-600">Calls</div>
                 </div>
                 <div>
-                  <div className="text-lg font-bold text-red-600">{platform.emails}</div>
+                  <div className="text-lg font-bold text-red-600">{platform?.emails || 0}</div>
                   <div className="text-xs text-gray-600">Emails</div>
                 </div>
               </div>
@@ -154,12 +154,12 @@ export default function PlatformBreakdown({
               <div className="mt-3">
                 <div className="flex justify-between text-xs text-gray-600 mb-1">
                   <span>Views</span>
-                  <span>{platform.views > 0 ? ((platform.views / platformTotal) * 100).toFixed(1) : 0}%</span>
+                  <span>{(platform?.views || 0) > 0 ? (((platform?.views || 0) / platformTotal) * 100).toFixed(1) : 0}%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div 
                     className="bg-blue-500 h-2 rounded-full" 
-                    style={{ width: `${platform.views > 0 ? (platform.views / platformTotal) * 100 : 0}%` }}
+                    style={{ width: `${(platform?.views || 0) > 0 ? ((platform?.views || 0) / platformTotal) * 100 : 0}%` }}
                   ></div>
                 </div>
               </div>
@@ -178,12 +178,12 @@ export default function PlatformBreakdown({
           <div className="text-sm text-blue-800">
             {(() => {
               const bestPlatform = data.reduce((best, current) => {
-                const currentRate = current.views > 0 ? ((current.calls + current.emails) / current.views) * 100 : 0
-                const bestRate = best.views > 0 ? ((best.calls + best.emails) / best.views) * 100 : 0
+                const currentRate = (current?.views || 0) > 0 ? (((current?.calls || 0) + (current?.emails || 0)) / (current?.views || 1)) * 100 : 0
+                const bestRate = (best?.views || 0) > 0 ? (((best?.calls || 0) + (best?.emails || 0)) / (best?.views || 1)) * 100 : 0
                 return currentRate > bestRate ? current : best
               })
               
-              const bestRate = bestPlatform.views > 0 ? ((bestPlatform.calls + bestPlatform.emails) / bestPlatform.views) * 100 : 0
+              const bestRate = (bestPlatform?.views || 0) > 0 ? (((bestPlatform?.calls || 0) + (bestPlatform?.emails || 0)) / (bestPlatform?.views || 1)) * 100 : 0
               
               return (
                 <p>
