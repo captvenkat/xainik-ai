@@ -1,70 +1,212 @@
-import { createSupabaseServerOnly } from '@/lib/supabaseServerOnly'
-import { redirect } from 'next/navigation'
+'use client'
+
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 import { Briefcase, Users, Phone, Mail, FileText, TrendingUp, Eye, Calendar, Plus, Download, Filter, BarChart3, Save } from 'lucide-react'
-import { getRecruiterMetrics, getRecruiterAnalytics } from '@/lib/metrics'
 import BarChart from '@/components/charts/BarChart'
 import PieChart from '@/components/charts/PieChart'
 import LineChart from '@/components/charts/LineChart'
 import SavedFiltersClient from '@/components/SavedFiltersClient'
 
-export default async function RecruiterDashboard() {
-  const supabase = await createSupabaseServerOnly()
-  
-  // Check authentication and role
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
-  if (authError || !user) {
-    redirect('/auth?redirect=/dashboard/recruiter')
+export default function RecruiterDashboard() {
+  const [user, setUser] = useState<any>(null)
+  const [profile, setProfile] = useState<any>(null)
+  const [metrics, setMetrics] = useState<any>(null)
+  const [analytics, setAnalytics] = useState<any>(null)
+  const [savedFilters, setSavedFilters] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const router = useRouter()
+
+  useEffect(() => {
+    async function checkAuthAndLoadData() {
+      try {
+        const supabase = createSupabaseBrowser()
+        
+        // Check authentication
+        const { data: { user }, error: authError } = await supabase.auth.getUser()
+        if (authError || !user) {
+          router.push('/auth?redirect=/dashboard/recruiter')
+          return
+        }
+        
+        setUser(user)
+        
+        // Check user role
+        const { data: profile, error: profileError } = await supabase
+          .from('users')
+          .select('role')
+          .eq('id', user.id)
+          .single()
+        
+        if (profileError || profile?.role !== 'recruiter') {
+          router.push('/auth?redirect=/dashboard/recruiter')
+          return
+        }
+        
+        setProfile(profile)
+        
+        // Fetch recruiter data
+        await fetchRecruiterData(user.id)
+        
+      } catch (error) {
+        console.error('Recruiter dashboard error:', error)
+        setError('Failed to load dashboard data')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    
+    checkAuthAndLoadData()
+  }, [router])
+
+  async function fetchRecruiterData(userId: string) {
+    try {
+      const supabase = createSupabaseBrowser()
+      
+      // Fetch recruiter metrics, analytics, and saved filters
+      const [metricsResult, analyticsResult, savedFiltersResult] = await Promise.all([
+        fetchRecruiterMetrics(userId),
+        fetchRecruiterAnalytics(userId),
+        fetchSavedFilters(userId)
+      ])
+      
+      setMetrics(metricsResult)
+      setAnalytics(analyticsResult)
+      setSavedFilters(savedFiltersResult)
+    } catch (error) {
+      console.error('Failed to fetch recruiter data:', error)
+    }
   }
 
-  const { data: profile } = await supabase
-    .from('users')
-    .select('role')
-    .eq('id', user.id)
-    .single()
+  async function fetchRecruiterMetrics(userId: string) {
+    try {
+      const supabase = createSupabaseBrowser()
+      
+      // Get recruiter-specific metrics
+      const [
+        { count: savedFilters },
+        { count: resumeRequests },
+        { data: recentActivity }
+      ] = await Promise.all([
+        supabase.from('recruiter_saved_filters').select('*', { count: 'exact', head: true }).eq('recruiter_user_id', userId),
+        supabase.from('resume_requests').select('*', { count: 'exact', head: true }).eq('recruiter_user_id', userId),
+        supabase.from('user_activity_log').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(5)
+      ])
 
-  if (profile?.role !== 'recruiter') {
-    redirect('/auth?redirect=/dashboard/recruiter')
+      return {
+        savedFilters: savedFilters || 0,
+        resumeRequests: resumeRequests || 0,
+        recentActivity: recentActivity || []
+      }
+    } catch (error) {
+      console.error('Failed to fetch recruiter metrics:', error)
+      return {
+        savedFilters: 0,
+        resumeRequests: 0,
+        recentActivity: []
+      }
+    }
   }
 
-  // Fetch recruiter metrics, analytics, and saved filters
-  const [metrics, analytics, savedFilters] = await Promise.all([
-    getRecruiterMetrics(user.id),
-    getRecruiterAnalytics(user.id),
-    // Fetch saved filters
-    (async () => {
-      const supabaseClient = supabase
-      const { data: filters, error } = await supabaseClient
+  async function fetchRecruiterAnalytics(userId: string) {
+    try {
+      const supabase = createSupabaseBrowser()
+      
+      // Get recruiter analytics data
+      const { data: analytics } = await supabase
+        .from('user_activity_log')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('activity_type', 'recruiter_action')
+        .order('created_at', { ascending: false })
+        .limit(50)
+
+      return {
+        analytics: analytics || [],
+        totalActions: analytics?.length || 0
+      }
+    } catch (error) {
+      console.error('Failed to fetch recruiter analytics:', error)
+      return {
+        analytics: [],
+        totalActions: 0
+      }
+    }
+  }
+
+  async function fetchSavedFilters(userId: string) {
+    try {
+      const supabase = createSupabaseBrowser()
+      
+      const { data: filters, error } = await supabase
         .from('recruiter_saved_filters')
         .select('id, name, filters, created_at')
-        .eq('recruiter_user_id', user.id)
+        .eq('recruiter_user_id', userId)
         .order('created_at', { ascending: false });
       
       if (error) {
         return [];
       }
       return filters || [];
-    })()
-  ])
+    } catch (error) {
+      console.error('Failed to fetch saved filters:', error)
+      return []
+    }
+  }
+
+
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <h2 className="text-xl font-semibold text-gray-900">Loading Recruiter Dashboard...</h2>
+          <p className="text-gray-600">Please wait while we load your data.</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-500 text-6xl mb-4">⚠️</div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Dashboard Error</h2>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   // Calculate summary stats
-  const totalShortlisted = metrics.savedFilters || 0
-  const totalContacted = analytics.totalActions || 0
-  const pendingResumeRequests = metrics.resumeRequests || 0
-  const totalNotes = metrics.recentActivity?.length || 0
+  const totalShortlisted = metrics?.savedFilters || 0
+  const totalContacted = analytics?.totalActions || 0
+  const pendingResumeRequests = metrics?.resumeRequests || 0
+  const totalNotes = metrics?.recentActivity?.length || 0
 
   // Prepare chart data
   const contactTypeData = [
-    { label: 'Actions', value: analytics.totalActions || 0, color: '#10B981' },
-    { label: 'Filters', value: metrics.savedFilters || 0, color: '#3B82F6' }
+    { label: 'Actions', value: analytics?.totalActions || 0, color: '#10B981' },
+    { label: 'Filters', value: metrics?.savedFilters || 0, color: '#3B82F6' }
   ]
 
   const resumeRequestStatusData = [
-    { label: 'Pending', value: metrics.resumeRequests || 0, color: '#F59E0B' },
-    { label: 'Completed', value: analytics.totalActions || 0, color: '#10B981' },
-    { label: 'Total', value: (metrics.resumeRequests || 0) + (analytics.totalActions || 0), color: '#EF4444' }
+    { label: 'Pending', value: metrics?.resumeRequests || 0, color: '#F59E0B' },
+    { label: 'Completed', value: analytics?.totalActions || 0, color: '#10B981' },
+    { label: 'Total', value: (metrics?.resumeRequests || 0) + (analytics?.totalActions || 0), color: '#EF4444' }
   ]
-
-
 
   return (
     <div className="min-h-screen bg-gray-50">

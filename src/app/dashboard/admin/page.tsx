@@ -1,5 +1,8 @@
-import { createSupabaseServerOnly } from '@/lib/supabaseServerOnly'
-import { redirect } from 'next/navigation'
+'use client'
+
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 import { 
   Users, 
   FileText, 
@@ -12,62 +15,151 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 
-export default async function AdminDashboard() {
-  const supabase = await createSupabaseServerOnly()
-  
-  // Check admin access
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    redirect('/auth')
+export default function AdminDashboard() {
+  const [user, setUser] = useState<any>(null)
+  const [profile, setProfile] = useState<any>(null)
+  const [stats, setStats] = useState<any>(null)
+  const [recentActivity, setRecentActivity] = useState<any[]>([])
+  const [recentUsers, setRecentUsers] = useState<any[]>([])
+  const [recentPitches, setRecentPitches] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const router = useRouter()
+
+  useEffect(() => {
+    async function checkAuthAndLoadData() {
+      try {
+        const supabase = createSupabaseBrowser()
+        
+        // Check authentication
+        const { data: { user }, error: authError } = await supabase.auth.getUser()
+        if (authError || !user) {
+          router.push('/auth')
+          return
+        }
+        
+        setUser(user)
+        
+        // Check admin access
+        const { data: profile } = await supabase
+          .from('users')
+          .select('role')
+          .eq('id', user.id)
+          .single()
+
+        if (profile?.role !== 'admin') {
+          router.push('/dashboard/veteran')
+          return
+        }
+        
+        setProfile(profile)
+        
+        // Fetch admin data
+        await fetchAdminData()
+        
+      } catch (error) {
+        console.error('Admin dashboard error:', error)
+        setError('Failed to load dashboard data')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    
+    checkAuthAndLoadData()
+  }, [router])
+
+  async function fetchAdminData() {
+    try {
+      const supabase = createSupabaseBrowser()
+      
+      // Fetch admin data
+      const [
+        { count: totalUsers },
+        { count: totalPitches },
+        { count: totalEndorsements },
+        { count: totalDonations },
+        { count: resumeRequests },
+        { count: suspiciousFlags }
+      ] = await Promise.all([
+        supabase.from('users').select('*', { count: 'exact', head: true }),
+        supabase.from('pitches').select('*', { count: 'exact', head: true }),
+        supabase.from('endorsements').select('*', { count: 'exact', head: true }),
+        supabase.from('donations').select('*', { count: 'exact', head: true }),
+        supabase.from('resume_requests').select('*', { count: 'exact', head: true }),
+        supabase.from('user_activity_log').select('*', { count: 'exact', head: true }).eq('activity_type', 'suspicious_activity')
+      ])
+
+      setStats({
+        totalUsers: totalUsers || 0,
+        totalPitches: totalPitches || 0,
+        totalEndorsements: totalEndorsements || 0,
+        totalDonations: totalDonations || 0,
+        resumeRequests: resumeRequests || 0,
+        suspiciousFlags: suspiciousFlags || 0
+      })
+
+      // Fetch recent activity
+      const { data: activity } = await supabase
+        .from('user_activity_log')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(10)
+
+      setRecentActivity(activity || [])
+
+      // Fetch recent users
+      const { data: users } = await supabase
+        .from('users')
+        .select('id, name, email, role, created_at')
+        .order('created_at', { ascending: false })
+        .limit(5)
+
+      setRecentUsers(users || [])
+
+      // Fetch recent pitches
+      const { data: pitches } = await supabase
+        .from('pitches')
+        .select('id, title, user:users(name), created_at')
+        .order('created_at', { ascending: false })
+        .limit(5)
+
+      setRecentPitches(pitches || [])
+    } catch (error) {
+      console.error('Failed to fetch admin data:', error)
+    }
   }
 
-  const { data: profile } = await supabase
-    .from('users')
-    .select('role')
-    .eq('id', user.id)
-    .single()
-
-  if (profile?.role !== 'admin') {
-    redirect('/dashboard/veteran')
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <h2 className="text-xl font-semibold text-gray-900">Loading Admin Dashboard...</h2>
+          <p className="text-gray-600">Please wait while we load your data.</p>
+        </div>
+      </div>
+    )
   }
 
-  // Fetch admin data
-  const [
-    { count: totalUsers },
-    { count: totalPitches },
-    { count: totalEndorsements },
-    { count: totalDonations },
-    { count: resumeRequests },
-    { count: suspiciousFlags }
-  ] = await Promise.all([
-    supabase.from('users').select('*', { count: 'exact', head: true }),
-    supabase.from('pitches').select('*', { count: 'exact', head: true }),
-    supabase.from('endorsements').select('*', { count: 'exact', head: true }),
-    supabase.from('donations').select('*', { count: 'exact', head: true }),
-    supabase.from('resume_requests').select('*', { count: 'exact', head: true }),
-    supabase.from('user_activity_log').select('*', { count: 'exact', head: true }).eq('activity_type', 'suspicious_activity')
-  ])
-
-  // Fetch recent activity
-  const { data: recentActivity } = await supabase
-    .from('user_activity_log')
-    .select('*')
-    .order('created_at', { ascending: false })
-    .limit(10)
-
-  // Fetch recent users
-  const { data: recentUsers } = await supabase
-    .from('users')
-    .select('id, name, email, role, created_at')
-    .order('created_at', { ascending: false })
-    .limit(5)
-
-  // Fetch recent pitches
-  const { data: recentPitches } = await supabase
-    .from('pitches')
-    .select('id, title, user:users(name), created_at')
-    .order('created_at', { ascending: false })
-    .limit(5)
+  // Show error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-500 text-6xl mb-4">⚠️</div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Dashboard Error</h2>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">

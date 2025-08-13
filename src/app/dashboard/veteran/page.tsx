@@ -1,8 +1,9 @@
-import { createSupabaseServerOnly } from '@/lib/supabaseServerOnly'
-import { redirect } from 'next/navigation'
+'use client'
+
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 import { Shield, Calendar, Users, Eye, Phone, Mail, FileText, Share2, RefreshCw, TrendingUp, Award, Clock, AlertTriangle, Target, Lightbulb } from 'lucide-react'
-import { getVeteranMetrics, getVeteranAnalytics, getTrendlineAllPitches, getCohortsBySource, getAvgTimeToFirstContact } from '@/lib/metrics'
-import { getCachedVeteranAnalytics } from '@/lib/actions/analytics'
 import ReferralFunnel from '@/components/ReferralFunnel'
 import PlatformBreakdown from '@/components/PlatformBreakdown'
 import TrendlineChart from '@/components/Trendline'
@@ -11,75 +12,256 @@ import PerformanceInsights from '@/components/PerformanceInsights'
 import RefreshButton from '@/components/RefreshButton'
 import PitchImprovementTips from '@/components/PitchImprovementTips'
 
-export default async function VeteranDashboard() {
-  const supabase = createSupabaseServerOnly()
-  
-  // Check authentication
-  const supabaseClient = await supabase
-  const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
-  if (authError || !user) {
-    redirect('/auth?redirect=/dashboard/veteran')
+export default function VeteranDashboard() {
+  const [user, setUser] = useState<any>(null)
+  const [profile, setProfile] = useState<any>(null)
+  const [metrics, setMetrics] = useState<any>(null)
+  const [analytics, setAnalytics] = useState<any>(null)
+  const [trendlineData, setTrendlineData] = useState<any>(null)
+  const [cohortData, setCohortData] = useState<any>(null)
+  const [avgTimeData, setAvgTimeData] = useState<any>(null)
+  const [invoices, setInvoices] = useState<any>(null)
+  const [daysUntilExpiry, setDaysUntilExpiry] = useState<number | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const router = useRouter()
+
+  useEffect(() => {
+    async function checkAuthAndLoadData() {
+      try {
+        const supabase = createSupabaseBrowser()
+        
+        // Check authentication
+        const { data: { user }, error: authError } = await supabase.auth.getUser()
+        if (authError || !user) {
+          router.push('/auth?redirect=/dashboard/veteran')
+          return
+        }
+        
+        setUser(user)
+        
+        // Get user profile to check role
+        const { data: profile } = await supabase
+          .from('users')
+          .select('role')
+          .eq('id', user.id)
+          .single()
+
+        setProfile(profile)
+
+        // Allow access to all authenticated users, but show different content based on role
+        const isVeteran = profile?.role === 'veteran'
+        const hasRole = !!profile?.role
+
+        // If user has no role, redirect to role selection
+        if (!hasRole) {
+          router.push('/role-selection')
+          return
+        }
+
+        // Only fetch veteran-specific data if user is actually a veteran
+        if (isVeteran) {
+          await fetchVeteranData(user.id)
+        }
+        
+      } catch (error) {
+        console.error('Veteran dashboard error:', error)
+        setError('Failed to load dashboard data')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    
+    checkAuthAndLoadData()
+  }, [router])
+
+  async function fetchVeteranData(userId: string) {
+    try {
+      const supabase = createSupabaseBrowser()
+      
+      // Fetch veteran metrics and analytics
+      const [metricsResult, analyticsResult, trendlineDataResult, cohortDataResult, avgTimeDataResult] = await Promise.all([
+        fetchVeteranMetrics(userId),
+        fetchVeteranAnalytics(userId),
+        fetchTrendlineData(),
+        fetchCohortData(),
+        fetchAvgTimeData()
+      ])
+      
+      setMetrics(metricsResult)
+      setAnalytics(analyticsResult)
+      setTrendlineData(trendlineDataResult)
+      setCohortData(cohortDataResult)
+      setAvgTimeData(avgTimeDataResult)
+
+      // Fetch invoices
+      const { data: invoicesData } = await supabase
+        .from('invoices')
+        .select('id, invoice_number, amount_cents, created_at')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(5)
+
+      setInvoices(invoicesData)
+
+      // Calculate days until expiry
+      if (metricsResult?.pitch?.end_date) {
+        const daysUntil = Math.ceil((new Date(metricsResult.pitch.end_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
+        setDaysUntilExpiry(daysUntil)
+      }
+    } catch (error) {
+      console.error('Failed to fetch veteran data:', error)
+    }
   }
 
-  // Get user profile to check role
-  const { data: profile } = await supabaseClient
-    .from('users')
-    .select('role')
-    .eq('id', user.id)
-    .single()
+  async function fetchVeteranMetrics(userId: string) {
+    try {
+      const supabase = createSupabaseBrowser()
+      
+      // Get veteran-specific metrics
+      const [
+        { count: totalPitches },
+        { count: totalEndorsements },
+        { data: recentActivity }
+      ] = await Promise.all([
+        supabase.from('pitches').select('*', { count: 'exact', head: true }).eq('user_id', userId),
+        supabase.from('endorsements').select('*', { count: 'exact', head: true }).eq('user_id', userId),
+        supabase.from('user_activity_log').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(5)
+      ])
+
+      return {
+        totalPitches: totalPitches || 0,
+        totalEndorsements: totalEndorsements || 0,
+        recentActivity: recentActivity || []
+      }
+    } catch (error) {
+      console.error('Failed to fetch veteran metrics:', error)
+      return {
+        totalPitches: 0,
+        totalEndorsements: 0,
+        recentActivity: []
+      }
+    }
+  }
+
+  async function fetchVeteranAnalytics(userId: string) {
+    try {
+      const supabase = createSupabaseBrowser()
+      
+      // Get veteran analytics data
+      const { data: analytics } = await supabase
+        .from('user_activity_log')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('activity_type', 'pitch_view')
+        .order('created_at', { ascending: false })
+        .limit(50)
+
+      return {
+        analytics: analytics || [],
+        totalViews: analytics?.length || 0
+      }
+    } catch (error) {
+      console.error('Failed to fetch veteran analytics:', error)
+      return {
+        analytics: [],
+        totalViews: 0
+      }
+    }
+  }
+
+  async function fetchTrendlineData() {
+    try {
+      const supabase = createSupabaseBrowser()
+      
+      // Get trendline data for all pitches
+      const { data: trendline } = await supabase
+        .from('user_activity_log')
+        .select('*')
+        .eq('activity_type', 'pitch_view')
+        .order('created_at', { ascending: true })
+        .limit(100)
+
+      return trendline || []
+    } catch (error) {
+      console.error('Failed to fetch trendline data:', error)
+      return []
+    }
+  }
+
+  async function fetchCohortData() {
+    try {
+      const supabase = createSupabaseBrowser()
+      
+      // Get cohort data by source
+      const { data: cohorts } = await supabase
+        .from('user_activity_log')
+        .select('*')
+        .eq('activity_type', 'pitch_view')
+        .order('created_at', { ascending: false })
+        .limit(100)
+
+      return cohorts || []
+    } catch (error) {
+      console.error('Failed to fetch cohort data:', error)
+      return []
+    }
+  }
+
+  async function fetchAvgTimeData() {
+    try {
+      const supabase = createSupabaseBrowser()
+      
+      // Get average time to first contact data
+      const { data: avgTime } = await supabase
+        .from('user_activity_log')
+        .select('*')
+        .eq('activity_type', 'first_contact')
+        .order('created_at', { ascending: false })
+        .limit(50)
+
+      return avgTime || []
+    } catch (error) {
+      console.error('Failed to fetch average time data:', error)
+      return []
+    }
+  }
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <h2 className="text-xl font-semibold text-gray-900">Loading Veteran Dashboard...</h2>
+          <p className="text-gray-600">Please wait while we load your data.</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-500 text-6xl mb-4">⚠️</div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Dashboard Error</h2>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   // Allow access to all authenticated users, but show different content based on role
   const isVeteran = profile?.role === 'veteran'
   const hasRole = !!profile?.role
-
-  // If user has no role, redirect to role selection
-  if (!hasRole) {
-    redirect('/role-selection')
-  }
-
-  // Only fetch veteran-specific data if user is actually a veteran
-  let metrics = null
-  let analytics = null
-  let trendlineData = null
-  let cohortData = null
-  let avgTimeData = null
-  let invoices = null
-  let daysUntilExpiry = null
-
-  if (isVeteran) {
-    // Fetch veteran metrics and analytics (using cached analytics)
-    const [metricsResult, analyticsResult] = await Promise.all([
-      getVeteranMetrics(user.id),
-      getCachedVeteranAnalytics(user.id)
-    ])
-    metrics = metricsResult
-    analytics = analyticsResult
-
-    // Fetch additional data for new components
-    const [trendlineDataResult, cohortDataResult, avgTimeDataResult] = await Promise.all([
-      getTrendlineAllPitches(),
-      getCohortsBySource(),
-      getAvgTimeToFirstContact()
-    ])
-    trendlineData = trendlineDataResult
-    cohortData = cohortDataResult
-    avgTimeData = avgTimeDataResult
-
-    // Fetch invoices
-    const { data: invoicesData } = await supabaseClient
-      .from('invoices')
-      .select('id, invoice_number, amount_cents, created_at')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(5)
-
-    invoices = invoicesData
-
-    // Calculate days until expiry
-            daysUntilExpiry = metrics?.pitch?.end_date
-          ? Math.ceil((new Date(metrics.pitch.end_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
-      : null
-  }
 
   return (
     <div className="min-h-screen bg-gray-50">
