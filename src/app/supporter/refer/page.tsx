@@ -1,43 +1,117 @@
-import { createSupabaseServerOnly } from '@/lib/supabaseServerOnly'
-import { redirect } from 'next/navigation'
+'use client'
+
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 import { Share2, Copy, Eye, TrendingUp } from 'lucide-react'
 import Link from 'next/link'
 
-export default async function SupporterReferPage() {
-  const supabase = createSupabaseServerOnly()
-  
-  // Check authentication and role
-  const supabaseClient = await supabase
-  const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
-  if (authError || !user) {
-    redirect('/auth?redirectTo=/supporter/refer')
+export default function SupporterReferPage() {
+  const [user, setUser] = useState<any>(null)
+  const [profile, setProfile] = useState<any>(null)
+  const [activePitches, setActivePitches] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const router = useRouter()
+
+  useEffect(() => {
+    async function checkAuthAndLoadData() {
+      try {
+        const supabase = createSupabaseBrowser()
+        
+        // Check authentication
+        const { data: { user }, error: authError } = await supabase.auth.getUser()
+        if (authError || !user) {
+          router.push('/auth?redirectTo=/supporter/refer')
+          return
+        }
+        
+        setUser(user)
+        
+        // Check user role
+        const { data: profile, error: profileError } = await supabase
+          .from('users')
+          .select('role')
+          .eq('id', user.id)
+          .single()
+        
+        if (profileError || profile?.role !== 'supporter') {
+          router.push('/dashboard')
+          return
+        }
+        
+        setProfile(profile)
+        
+        // Fetch active pitches
+        await fetchActivePitches()
+        
+      } catch (error) {
+        console.error('Supporter refer page error:', error)
+        setError('Failed to load data')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    
+    checkAuthAndLoadData()
+  }, [router])
+
+  async function fetchActivePitches() {
+    try {
+      const supabase = createSupabaseBrowser()
+      
+      const { data: pitches } = await supabase
+        .from('pitches')
+        .select(`
+          id,
+          title,
+          pitch_text,
+          skills,
+          experience_years,
+          user:users(
+            name
+          )
+        `)
+        .order('created_at', { ascending: false })
+        .limit(20)
+
+      setActivePitches(pitches || [])
+    } catch (error) {
+      console.error('Failed to fetch active pitches:', error)
+    }
   }
 
-  const { data: profile } = await supabaseClient
-    .from('users')
-    .select('role')
-    .eq('id', user.id)
-    .single()
-
-  if (profile?.role !== 'supporter') {
-    redirect('/dashboard')
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <h2 className="text-xl font-semibold text-gray-900">Loading Refer Page...</h2>
+          <p className="text-gray-600">Please wait while we load veteran pitches.</p>
+        </div>
+      </div>
+    )
   }
 
-  // Fetch active pitches that can be referred
-  const { data: activePitches } = await supabaseClient
-    .from('pitches')
-    .select(`
-      id,
-      title,
-      pitch_text,
-      skills,
-      experience_years,
-      user:users(
-        name
-      )
-    `)
-    .order('created_at', { ascending: false })
-    .limit(20)
+  // Show error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-500 text-6xl mb-4">⚠️</div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Page Error</h2>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
