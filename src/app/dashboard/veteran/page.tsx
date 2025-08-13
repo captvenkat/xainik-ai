@@ -31,29 +31,44 @@ export default function VeteranDashboard() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    console.log('Veteran Dashboard useEffect:', { authLoading, user: !!user, profile: !!profile })
+    
     async function loadVeteranData() {
       if (!user) return
       
+      console.log('Veteran Dashboard: Starting to load data for user:', user.id)
+      
       try {
         await fetchVeteranData(user.id)
+        console.log('Veteran Dashboard: Data loaded successfully')
       } catch (error) {
         console.error('Veteran dashboard error:', error)
         setError('Failed to load dashboard data')
       } finally {
+        console.log('Veteran Dashboard: Setting isLoading to false')
         setIsLoading(false)
       }
     }
     
     if (!authLoading && user) {
+      console.log('Veteran Dashboard: Auth complete, user exists, loading data')
       loadVeteranData()
+    } else if (!authLoading && !user) {
+      // If auth is done but no user, stop loading
+      console.log('Veteran Dashboard: Auth complete, no user, stopping loading')
+      setIsLoading(false)
+    } else {
+      console.log('Veteran Dashboard: Still waiting for auth or user')
     }
   }, [user, authLoading])
 
   async function fetchVeteranData(userId: string) {
     try {
+      console.log('Veteran Dashboard: fetchVeteranData started for user:', userId)
       const supabase = createSupabaseBrowser()
       
       // Fetch veteran metrics and analytics
+      console.log('Veteran Dashboard: Starting Promise.all for data fetching')
       const [metricsResult, analyticsResult, trendlineDataResult, cohortDataResult, avgTimeDataResult] = await Promise.all([
         fetchVeteranMetrics(userId),
         fetchVeteranAnalytics(userId),
@@ -62,6 +77,7 @@ export default function VeteranDashboard() {
         fetchAvgTimeData()
       ])
       
+      console.log('Veteran Dashboard: Promise.all completed, setting state')
       setMetrics(metricsResult)
       setAnalytics(analyticsResult)
       setTrendlineData(trendlineDataResult)
@@ -228,6 +244,7 @@ export default function VeteranDashboard() {
 
   // Show loading state
   if (authLoading || isLoading) {
+    console.log('Veteran Dashboard Loading:', { authLoading, isLoading, user: !!user, profile: !!profile })
     return <LoadingSpinner message="Loading Veteran Dashboard..." fullScreen />
   }
 
