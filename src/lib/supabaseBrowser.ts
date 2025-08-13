@@ -38,7 +38,9 @@ export const createSupabaseBrowser = () => {
       auth: {
         autoRefreshToken: true,
         persistSession: true,
-        detectSessionInUrl: true
+        detectSessionInUrl: true,
+        storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+        storageKey: 'xainik-auth-token'
       },
       db: {
         schema: 'public'
