@@ -15,9 +15,6 @@ import {
 } from 'lucide-react'
 import NotificationBell from './NotificationBell'
 
-// Create supabase instance once outside component
-const supabase = createSupabaseBrowser()
-
 export default function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [user, setUser] = useState<any>(null)
@@ -26,33 +23,30 @@ export default function Navigation() {
   const router = useRouter()
 
   useEffect(() => {
+    const supabase = createSupabaseBrowser()
+    
     const getUser = async () => {
       console.log('Navigation: Starting auth check...')
       
-      // Add a timeout to prevent infinite loading
-      const timeoutId = setTimeout(() => {
-        console.log('Navigation: Auth check timeout, setting loading to false')
-        setIsLoading(false)
-      }, 5000) // 5 second timeout
-      
       try {
-        const { data: { user }, error } = await supabase.auth.getUser()
-        console.log('Navigation: Auth result:', { user: user?.email, error })
-        setUser(user)
+        // First check session
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+        console.log('Navigation: Session check:', { session: !!session, error: sessionError })
         
-        if (user) {
-          console.log('User authenticated:', user.email)
+        if (session?.user) {
+          setUser(session.user)
+          console.log('User authenticated:', session.user.email)
+          
           // Try to get user profile
           try {
             const { data: profile, error } = await supabase
               .from('users')
               .select('role, name')
-              .eq('id', user.id)
+              .eq('id', session.user.id)
               .single()
             
             if (error) {
               console.warn('Failed to fetch user profile:', error)
-              // Don't set a default profile - let the auth flow handle role selection
               setProfile(null)
             } else {
               console.log('Profile fetched:', profile)
@@ -63,12 +57,15 @@ export default function Navigation() {
             setProfile(null)
           }
         } else {
-          console.log('No user found')
+          console.log('No session found')
+          setUser(null)
+          setProfile(null)
         }
       } catch (error) {
         console.error('Auth error:', error)
+        setUser(null)
+        setProfile(null)
       } finally {
-        clearTimeout(timeoutId)
         console.log('Navigation: Setting isLoading to false')
         setIsLoading(false)
       }
@@ -77,7 +74,9 @@ export default function Navigation() {
     getUser()
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: string, session: any) => {
+      console.log('Navigation: Auth state change:', event, session?.user?.email)
       setUser(session?.user ?? null)
+      
       if (session?.user) {
         try {
           const { data, error } = await supabase
@@ -105,8 +104,23 @@ export default function Navigation() {
   }, [])
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut()
-    router.push('/')
+    const supabase = createSupabaseBrowser()
+    console.log('Navigation: Signing out...')
+    
+    try {
+      const { error } = await supabase.auth.signOut()
+      if (error) {
+        console.error('Sign out error:', error)
+      } else {
+        console.log('Sign out successful')
+        // Force page reload to clear all state
+        window.location.href = '/'
+      }
+    } catch (error) {
+      console.error('Sign out error:', error)
+      // Force page reload anyway
+      window.location.href = '/'
+    }
   }
 
   const getDashboardLink = () => {

@@ -37,8 +37,22 @@ export default function HomePage() {
 
   const handleSignOut = async () => {
     const supabase = createSupabaseBrowser()
-    await supabase.auth.signOut()
-    window.location.reload()
+    console.log('Homepage: Signing out...')
+    
+    try {
+      const { error } = await supabase.auth.signOut()
+      if (error) {
+        console.error('Sign out error:', error)
+      } else {
+        console.log('Sign out successful')
+        // Force page reload to clear all state
+        window.location.href = '/'
+      }
+    } catch (error) {
+      console.error('Sign out error:', error)
+      // Force page reload anyway
+      window.location.href = '/'
+    }
   }
 
   return (
