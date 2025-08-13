@@ -1,8 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useAuth } from '@/lib/hooks/useAuth'
 import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
+import LoadingSpinner from '@/components/LoadingSpinner'
+import ErrorState from '@/components/ErrorState'
 import { Shield, Calendar, Users, Eye, Phone, Mail, FileText, Share2, RefreshCw, TrendingUp, Award, Clock, AlertTriangle, Target, Lightbulb } from 'lucide-react'
 import ReferralFunnel from '@/components/ReferralFunnel'
 import PlatformBreakdown from '@/components/PlatformBreakdown'
@@ -13,8 +15,11 @@ import RefreshButton from '@/components/RefreshButton'
 import PitchImprovementTips from '@/components/PitchImprovementTips'
 
 export default function VeteranDashboard() {
-  const [user, setUser] = useState<any>(null)
-  const [profile, setProfile] = useState<any>(null)
+  const { user, profile, isLoading: authLoading, error: authError } = useAuth({ 
+    requiredRole: 'veteran',
+    redirectTo: '/auth?redirect=/dashboard/veteran'
+  })
+  
   const [metrics, setMetrics] = useState<any>(null)
   const [analytics, setAnalytics] = useState<any>(null)
   const [trendlineData, setTrendlineData] = useState<any>(null)
@@ -24,46 +29,13 @@ export default function VeteranDashboard() {
   const [daysUntilExpiry, setDaysUntilExpiry] = useState<number | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const router = useRouter()
 
   useEffect(() => {
-    async function checkAuthAndLoadData() {
+    async function loadVeteranData() {
+      if (!user) return
+      
       try {
-        const supabase = createSupabaseBrowser()
-        
-        // Check authentication
-        const { data: { user }, error: authError } = await supabase.auth.getUser()
-        if (authError || !user) {
-          router.push('/auth?redirect=/dashboard/veteran')
-          return
-        }
-        
-        setUser(user)
-        
-        // Get user profile to check role
-        const { data: profile } = await supabase
-          .from('users')
-          .select('role')
-          .eq('id', user.id)
-          .single()
-
-        setProfile(profile)
-
-        // Allow access to all authenticated users, but show different content based on role
-        const isVeteran = profile?.role === 'veteran'
-        const hasRole = !!profile?.role
-
-        // If user has no role, redirect to role selection
-        if (!hasRole) {
-          router.push('/role-selection')
-          return
-        }
-
-        // Only fetch veteran-specific data if user is actually a veteran
-        if (isVeteran) {
-          await fetchVeteranData(user.id)
-        }
-        
+        await fetchVeteranData(user.id)
       } catch (error) {
         console.error('Veteran dashboard error:', error)
         setError('Failed to load dashboard data')
@@ -72,8 +44,10 @@ export default function VeteranDashboard() {
       }
     }
     
-    checkAuthAndLoadData()
-  }, [router])
+    if (!authLoading && user) {
+      loadVeteranData()
+    }
+  }, [user, authLoading])
 
   async function fetchVeteranData(userId: string) {
     try {
@@ -237,35 +211,13 @@ export default function VeteranDashboard() {
   }
 
   // Show loading state
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <h2 className="text-xl font-semibold text-gray-900">Loading Veteran Dashboard...</h2>
-          <p className="text-gray-600">Please wait while we load your data.</p>
-        </div>
-      </div>
-    )
+  if (authLoading || isLoading) {
+    return <LoadingSpinner message="Loading Veteran Dashboard..." fullScreen />
   }
 
   // Show error state
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-red-500 text-6xl mb-4">⚠️</div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Dashboard Error</h2>
-          <p className="text-gray-600 mb-4">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Try Again
-          </button>
-        </div>
-      </div>
-    )
+  if (authError || error) {
+    return <ErrorState error={authError || error || 'Unknown error'} fullScreen />
   }
 
   // Allow access to all authenticated users, but show different content based on role
