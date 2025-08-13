@@ -445,6 +445,7 @@ export default function VeteranDashboard() {
 
               <button
                 onClick={() => {
+                  if (!user) return
                   const url = `${process.env.NEXT_PUBLIC_SITE_URL}/browse?ref=${user.id}`
                   navigator.clipboard.writeText(url)
                   alert('Invite link copied to clipboard!')
@@ -479,7 +480,7 @@ export default function VeteranDashboard() {
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-gray-900">Analytics & Performance</h2>
                 <RefreshButton 
-                  userId={user.id}
+                  userId={user?.id || ''}
                   role="veteran"
                   path="/dashboard/veteran"
                 />
