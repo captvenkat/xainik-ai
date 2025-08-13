@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
+import { createSupabaseBrowser, clearSupabaseBrowserInstance } from '@/lib/supabaseBrowser'
 import { 
   Shield,
   Menu,
@@ -108,16 +108,36 @@ export default function Navigation() {
     console.log('Navigation: Signing out...')
     
     try {
+      // Check current session before sign out
+      const { data: { session } } = await supabase.auth.getSession()
+      console.log('Navigation: Current session before sign out:', !!session)
+      
       const { error } = await supabase.auth.signOut()
       if (error) {
-        console.error('Sign out error:', error)
+        console.error('Navigation: Sign out error:', error)
       } else {
-        console.log('Sign out successful')
+        console.log('Navigation: Sign out successful')
+        
+        // Check session after sign out
+        const { data: { session: sessionAfter } } = await supabase.auth.getSession()
+        console.log('Navigation: Session after sign out:', !!sessionAfter)
+        
+        // Clear any local storage
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('xainik-auth-token')
+          console.log('Navigation: Cleared local storage')
+        }
+        
+        // Clear the singleton instance
+        clearSupabaseBrowserInstance()
+        console.log('Navigation: Cleared Supabase instance')
+        
         // Force page reload to clear all state
+        console.log('Navigation: Redirecting to home page...')
         window.location.href = '/'
       }
     } catch (error) {
-      console.error('Sign out error:', error)
+      console.error('Navigation: Sign out error:', error)
       // Force page reload anyway
       window.location.href = '/'
     }
