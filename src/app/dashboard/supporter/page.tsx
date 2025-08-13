@@ -253,16 +253,16 @@ export default async function SupporterDashboard() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {platformData.map((platform: any) => {
+                {platformData.map((platform: any, index: number) => {
                   const totalActions = platform.value
                   const conversionRate = platform.value > 0 ? (platform.value / 100) * 100 : 0
                   
                   return (
-                    <tr key={platform.platform} className="hover:bg-gray-50">
+                    <tr key={index} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
-                          <div className="w-4 h-4 rounded-full mr-3" style={{ backgroundColor: platform.platform === 'WhatsApp' ? '#25D366' : platform.platform === 'LinkedIn' ? '#0077B5' : platform.platform === 'Email' ? '#EA4335' : '#6B7280' }}></div>
-                          <div className="text-sm font-medium text-gray-900">{platform.platform}</div>
+                          <div className="w-4 h-4 rounded-full mr-3" style={{ backgroundColor: platform.color }}></div>
+                          <div className="text-sm font-medium text-gray-900">{platform.label}</div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{platform.value}</td>
