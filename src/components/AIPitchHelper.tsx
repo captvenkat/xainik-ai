@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { validateLinkedInUrl } from '@/lib/validators'
-import { Upload, FileText, Link, Edit3, Loader2, RefreshCw, CheckCircle } from 'lucide-react'
+import { Upload, FileText, Link, Edit3, Loader2, RefreshCw, CheckCircle, SkipForward } from 'lucide-react'
 
 interface AIPitchHelperProps {
   formData: any
@@ -11,7 +11,7 @@ interface AIPitchHelperProps {
   onBack: () => void
 }
 
-type InputMethod = 'linkedin' | 'resume' | 'manual' | null
+type InputMethod = 'linkedin' | 'resume' | 'manual' | 'skip-ai' | null
 
 interface GeneratedPitch {
   title: string
@@ -25,6 +25,11 @@ export default function AIPitchHelper({ formData, updateFormData, onNext, onBack
   const [error, setError] = useState('')
   const [generatedPitch, setGeneratedPitch] = useState<GeneratedPitch | null>(null)
   const [currentInput, setCurrentInput] = useState<any>(null)
+  const [manualPitch, setManualPitch] = useState<GeneratedPitch>({
+    title: '',
+    pitch: '',
+    skills: ['', '', '']
+  })
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const callAIApi = async (input: any) => {
@@ -99,18 +104,18 @@ export default function AIPitchHelper({ formData, updateFormData, onNext, onBack
         throw new Error(errorData.error || 'Failed to upload resume')
       }
 
-      const uploadData = await uploadResponse.json()
-      setCurrentInput({ inputType: 'resume', resumeKey: uploadData.storagePath })
+      const { resumeKey } = await uploadResponse.json()
+      setCurrentInput({ inputType: 'resume', resumeKey })
 
-      // Then generate pitch
+      // Then generate pitch from resume
       const result = await callAIApi({
         inputType: 'resume',
-        resumeKey: uploadData.storagePath
+        resumeKey
       })
 
       setGeneratedPitch(result)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to process resume')
+      setError(err instanceof Error ? err.message : 'Failed to generate pitch')
     } finally {
       setIsGenerating(false)
     }
@@ -170,6 +175,30 @@ export default function AIPitchHelper({ formData, updateFormData, onNext, onBack
     onNext()
   }
 
+  const handleUseManualPitch = () => {
+    // Validate manual pitch
+    if (!manualPitch.title.trim()) {
+      setError('Please enter a title')
+      return
+    }
+    if (!manualPitch.pitch.trim()) {
+      setError('Please enter a pitch description')
+      return
+    }
+    if (manualPitch.skills.some(skill => !skill.trim())) {
+      setError('Please enter all 3 skills')
+      return
+    }
+
+    updateFormData({
+      title: manualPitch.title.trim(),
+      pitch: manualPitch.pitch.trim(),
+      skills: manualPitch.skills.map(skill => skill.trim())
+    })
+
+    onNext()
+  }
+
   const renderInputMethod = () => {
     switch (inputMethod) {
       case 'linkedin':
@@ -178,6 +207,8 @@ export default function AIPitchHelper({ formData, updateFormData, onNext, onBack
         return <ResumeUpload onSubmit={handleResumeUpload} isGenerating={isGenerating} fileInputRef={fileInputRef} />
       case 'manual':
         return <ManualInput onSubmit={handleManualSubmit} isGenerating={isGenerating} />
+      case 'skip-ai':
+        return <ManualPitchInput pitch={manualPitch} setPitch={setManualPitch} onSubmit={handleUseManualPitch} />
       default:
         return null
     }
@@ -189,16 +220,16 @@ export default function AIPitchHelper({ formData, updateFormData, onNext, onBack
     return (
       <div className="bg-green-50 border border-green-200 rounded-lg p-6 space-y-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <CheckCircle className="w-5 h-5 text-green-600" />
-            <h3 className="font-semibold text-green-900">Generated Pitch</h3>
+          <div className="flex items-center">
+            <CheckCircle className="w-5 h-5 text-green-600 mr-2" />
+            <h3 className="text-lg font-semibold text-green-800">AI Generated Pitch</h3>
           </div>
           <button
             onClick={handleRegenerate}
             disabled={isGenerating}
-            className="flex items-center gap-2 text-green-700 hover:text-green-800 disabled:opacity-50"
+            className="flex items-center text-sm text-blue-600 hover:text-blue-700 disabled:opacity-50"
           >
-            <RefreshCw className={`w-4 h-4 ${isGenerating ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-4 h-4 mr-1 ${isGenerating ? 'animate-spin' : ''}`} />
             Regenerate
           </button>
         </div>
@@ -278,6 +309,34 @@ export default function AIPitchHelper({ formData, updateFormData, onNext, onBack
     )
   }
 
+  // Show skip AI option when there's an error
+  const renderSkipAIOption = () => {
+    if (!error || inputMethod === 'skip-ai') return null
+
+    return (
+      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-sm font-medium text-yellow-800">AI Generation Failed</h3>
+            <p className="text-sm text-yellow-700 mt-1">
+              Don't worry! You can still create your pitch manually.
+            </p>
+          </div>
+          <button
+            onClick={() => {
+              setError('')
+              setInputMethod('skip-ai')
+            }}
+            className="inline-flex items-center px-4 py-2 border border-yellow-300 text-yellow-700 rounded-lg text-sm font-medium hover:bg-yellow-100 transition-colors"
+          >
+            <SkipForward className="w-4 h-4 mr-2" />
+            Create Manually
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       {error && (
@@ -285,6 +344,8 @@ export default function AIPitchHelper({ formData, updateFormData, onNext, onBack
           <p className="text-red-600 text-sm">{error}</p>
         </div>
       )}
+
+      {renderSkipAIOption()}
 
       {!inputMethod ? (
         <div className="space-y-4">
@@ -326,6 +387,20 @@ export default function AIPitchHelper({ formData, updateFormData, onNext, onBack
               </p>
             </button>
           </div>
+
+          {/* Skip AI Option */}
+          <div className="mt-6 pt-6 border-t border-gray-200">
+            <div className="text-center">
+              <p className="text-gray-600 mb-4">Or create your pitch manually without AI assistance</p>
+              <button
+                onClick={() => setInputMethod('skip-ai')}
+                className="inline-flex items-center px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+              >
+                <SkipForward className="w-5 h-5 mr-2" />
+                Skip AI & Create Manually
+              </button>
+            </div>
+          </div>
         </div>
       ) : (
         <div>
@@ -334,6 +409,7 @@ export default function AIPitchHelper({ formData, updateFormData, onNext, onBack
               setInputMethod(null)
               setGeneratedPitch(null)
               setCurrentInput(null)
+              setManualPitch({ title: '', pitch: '', skills: ['', '', ''] })
             }}
             className="flex items-center text-blue-600 hover:text-blue-700 mb-4"
           >
@@ -504,6 +580,82 @@ function ManualInput({ onSubmit, isGenerating }: { onSubmit: (summary: string) =
             </>
           ) : (
             'Generate Pitch from Summary'
+          )}
+        </button>
+      </form>
+    </div>
+  )
+}
+
+function ManualPitchInput({ pitch, setPitch, onSubmit }: { 
+  pitch: GeneratedPitch; 
+  setPitch: (pitch: GeneratedPitch) => void; 
+  onSubmit: () => void;
+}) {
+  return (
+    <div>
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">Manual Pitch Creation</h3>
+      <form onSubmit={(e) => { e.preventDefault(); onSubmit(); }} className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Pitch Title (required)
+          </label>
+          <input
+            type="text"
+            value={pitch.title}
+            onChange={(e) => setPitch({ ...pitch, title: e.target.value })}
+            placeholder="e.g., Military Veteran, Experienced Leader"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            required
+            maxLength={80}
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Pitch Description (required)
+          </label>
+          <textarea
+            value={pitch.pitch}
+            onChange={(e) => setPitch({ ...pitch, pitch: e.target.value })}
+            placeholder="Describe your military experience, key achievements, and transferable skills..."
+            rows={4}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+            required
+            maxLength={300}
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Skills (exactly 3, required)
+          </label>
+          <div className="flex gap-2">
+            {pitch.skills.map((skill, index) => (
+              <input
+                key={index}
+                type="text"
+                value={skill}
+                onChange={(e) => {
+                  const newSkills = [...pitch.skills]
+                  newSkills[index] = e.target.value
+                  setPitch({ ...pitch, skills: newSkills })
+                }}
+                placeholder={`Skill ${index + 1}`}
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+                maxLength={20}
+              />
+            ))}
+          </div>
+        </div>
+        <button
+          type="submit"
+          disabled={!pitch.title || !pitch.pitch || pitch.skills.some(skill => !skill.trim())}
+          className="w-full bg-gradient-primary text-white py-3 px-4 rounded-lg font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+        >
+          {pitch.title && pitch.pitch && pitch.skills.every(skill => skill.trim()) ? (
+            'Use This Manual Pitch'
+          ) : (
+            'Complete Pitch Details'
           )}
         </button>
       </form>
