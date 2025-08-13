@@ -49,7 +49,7 @@ export default function ContactPage() {
             <h1 className="text-3xl font-bold text-gray-900">Contact Us</h1>
           </div>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Have questions about Xainik? We're here to help veterans and recruiters connect.
+            Have questions about Xainik? We&apos;re here to help veterans and recruiters connect.
           </p>
         </div>
 

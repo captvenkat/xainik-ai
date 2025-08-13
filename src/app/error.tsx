@@ -18,7 +18,7 @@ export default function Error({
           <h1 className="text-6xl font-bold text-red-300 mb-4">500</h1>
           <h2 className="text-2xl font-semibold text-gray-900 mb-2">Something went wrong</h2>
           <p className="text-gray-600 mb-4">
-            We're experiencing technical difficulties. Please try again.
+            We&apos;re experiencing technical difficulties. Please try again.
           </p>
           {process.env.NODE_ENV === 'development' && (
             <details className="text-left bg-gray-100 p-4 rounded-lg mb-4">
