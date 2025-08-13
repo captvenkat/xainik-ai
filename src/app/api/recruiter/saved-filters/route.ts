@@ -27,7 +27,7 @@ export async function GET() {
     const { data: filters, error } = await supabase
       .from('recruiter_saved_filters')
       .select('id, name, filters, created_at')
-      .eq('user_id', user.id)
+      .eq('recruiter_id', user.id)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
     const { data, error } = await supabase
       .from('recruiter_saved_filters')
       .insert({
-        user_id: user.id,
+        recruiter_id: user.id,
         name,
         filters
       })

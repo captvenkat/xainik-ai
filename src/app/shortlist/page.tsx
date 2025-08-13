@@ -63,22 +63,21 @@ export default function ShortlistPage() {
       const { data: shortlistedData } = await supabase
         .from('shared_pitches')
         .select(`
-          id,
-          created_at,
+          pitch_id,
+          share_link,
+          click_count,
           pitch:pitches(
             id,
             title,
             pitch_text,
             skills,
-            experience_years,
             user:users(
               name,
               email
             )
           )
         `)
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
+        .eq('supporter_id', userId)
 
       setShortlisted(shortlistedData || [])
     } catch (error) {
@@ -135,7 +134,7 @@ export default function ShortlistPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
           {shortlisted && shortlisted.length > 0 ? (
             shortlisted.map((item: any) => (
-              <div key={item.id as string} className="bg-white rounded-xl shadow-lg p-6">
+              <div key={item.pitch_id as string} className="bg-white rounded-xl shadow-lg p-6">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">

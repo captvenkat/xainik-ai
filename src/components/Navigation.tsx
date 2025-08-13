@@ -39,6 +39,7 @@ export default function Navigation() {
           
           // Try to get user profile
           try {
+            console.log('Navigation: Fetching profile for user:', session.user.id)
             const { data: profile, error } = await supabase
               .from('users')
               .select('role, name')
@@ -49,7 +50,7 @@ export default function Navigation() {
               console.warn('Failed to fetch user profile:', error)
               setProfile(null)
             } else {
-              console.log('Profile fetched:', profile)
+              console.log('Navigation: Profile fetched successfully:', profile)
               setProfile(profile ? { role: profile.role as string, full_name: profile.name as string } : null)
             }
           } catch (profileError) {
@@ -79,6 +80,7 @@ export default function Navigation() {
       
       if (session?.user) {
         try {
+          console.log('Navigation: Fetching profile in auth change for user:', session.user.id)
           const { data, error } = await supabase
             .from('users')
             .select('role, name')
@@ -89,6 +91,7 @@ export default function Navigation() {
             console.warn('Profile fetch error in auth change:', error)
             setProfile(null)
           } else {
+            console.log('Navigation: Profile fetched in auth change:', data)
             setProfile(data ? { role: data.role, full_name: data.name } : null)
           }
         } catch (profileError) {
@@ -141,11 +144,18 @@ export default function Navigation() {
   }
 
   const getDashboardLink = () => {
-    if (!profile?.role) return '/auth'
-    return `/dashboard/${profile.role}`
+    console.log('Navigation: getDashboardLink called with profile:', profile)
+    if (!profile?.role) {
+      console.log('Navigation: No role found, returning /dashboard')
+      return '/dashboard'
+    }
+    const link = `/dashboard/${profile.role}`
+    console.log('Navigation: Returning dashboard link:', link)
+    return link
   }
 
   const getDashboardLabel = () => {
+    console.log('Navigation: getDashboardLabel called with profile:', profile)
     if (!profile?.role) return 'Dashboard'
     const labels: Record<string, string> = {
       veteran: 'Veteran Dashboard',
@@ -153,7 +163,9 @@ export default function Navigation() {
       supporter: 'Supporter Dashboard',
       admin: 'Admin Dashboard'
     }
-    return labels[profile.role] || 'Dashboard'
+    const label = labels[profile.role] || 'Dashboard'
+    console.log('Navigation: Returning dashboard label:', label)
+    return label
   }
 
   return (

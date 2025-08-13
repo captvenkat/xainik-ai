@@ -92,7 +92,7 @@ export default function RecruiterDashboard() {
         { count: resumeRequests },
         { data: recentActivity }
       ] = await Promise.all([
-        supabase.from('recruiter_saved_filters').select('*', { count: 'exact', head: true }).eq('recruiter_user_id', userId),
+        supabase.from('recruiter_saved_filters').select('*', { count: 'exact', head: true }).eq('recruiter_id', userId),
         supabase.from('resume_requests').select('*', { count: 'exact', head: true }).eq('recruiter_user_id', userId),
         supabase.from('user_activity_log').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(5)
       ])
@@ -145,7 +145,7 @@ export default function RecruiterDashboard() {
       const { data: filters, error } = await supabase
         .from('recruiter_saved_filters')
         .select('id, name, filters, created_at')
-        .eq('recruiter_user_id', userId)
+        .eq('recruiter_id', userId)
         .order('created_at', { ascending: false });
       
       if (error) {

@@ -477,47 +477,92 @@ export default function VeteranDashboard() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
               <a
                 href={metrics?.pitch?.id ? `/pitch/${metrics?.pitch?.id}/edit` : '/pitch/new'}
-                className="flex items-center gap-3 p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow"
+                className="flex items-center gap-3 p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer"
               >
                 <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
                   <RefreshCw className="w-5 h-5 text-blue-600" />
                 </div>
                 <div>
                   <div className="font-medium text-gray-900">Edit Pitch</div>
-                  <div className="text-sm text-gray-600">Update your profile</div>
+                  <div className="text-sm text-gray-600">
+                    {metrics?.pitch?.id ? 'Update your profile' : 'Create your first pitch'}
+                  </div>
                 </div>
               </a>
 
               <button
-                onClick={() => {
-                  if (!user) return
-                  const url = `${process.env.NEXT_PUBLIC_SITE_URL}/browse?ref=${user.id}`
-                  navigator.clipboard.writeText(url)
-                  alert('Invite link copied to clipboard!')
+                onClick={async () => {
+                  if (!user) {
+                    alert('Please sign in to share your pitch')
+                    return
+                  }
+                  
+                  try {
+                    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin
+                    const url = `${baseUrl}/browse?ref=${user.id}`
+                    
+                    if (navigator.clipboard && window.isSecureContext) {
+                      await navigator.clipboard.writeText(url)
+                      alert('✅ Invite link copied to clipboard!\n\nShare this link with supporters to increase your pitch visibility.')
+                    } else {
+                      // Fallback for older browsers or non-HTTPS
+                      const textArea = document.createElement('textarea')
+                      textArea.value = url
+                      document.body.appendChild(textArea)
+                      textArea.select()
+                      document.execCommand('copy')
+                      document.body.removeChild(textArea)
+                      alert('✅ Invite link copied to clipboard!\n\nShare this link with supporters to increase your pitch visibility.')
+                    }
+                  } catch (error) {
+                    console.error('Failed to copy link:', error)
+                    alert('❌ Failed to copy link. Please try again.')
+                  }
                 }}
-                className="flex items-center gap-3 p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow"
+                className="flex items-center gap-3 p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer"
               >
                 <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
                   <Share2 className="w-5 h-5 text-green-600" />
                 </div>
                 <div>
                   <div className="font-medium text-gray-900">Invite Supporters</div>
-                  <div className="text-sm text-gray-600">Share your pitch</div>
+                  <div className="text-sm text-gray-600">Share your pitch link</div>
                 </div>
               </button>
 
-              <a
-                href="/pricing"
-                className="flex items-center gap-3 p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow"
+              <button
+                onClick={() => {
+                  if (!user) {
+                    alert('Please sign in to access pricing')
+                    return
+                  }
+                  
+                  // Check if user has an active plan
+                  const hasActivePlan = metrics?.pitch?.end_date && new Date(metrics.pitch.end_date) > new Date()
+                  
+                  if (hasActivePlan) {
+                    alert('You have an active plan! Your pitch is currently visible to recruiters.')
+                  } else {
+                    window.location.href = '/pricing'
+                  }
+                }}
+                className="flex items-center gap-3 p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer"
               >
                 <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
                   <Calendar className="w-5 h-5 text-purple-600" />
                 </div>
                 <div>
-                  <div className="font-medium text-gray-900">Renew Plan</div>
-                  <div className="text-sm text-gray-600">Extend visibility</div>
+                  <div className="font-medium text-gray-900">
+                    {metrics?.pitch?.end_date && new Date(metrics.pitch.end_date) > new Date() ? 'Active Plan' : 'Get Plan'}
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    {metrics?.pitch?.end_date && new Date(metrics.pitch.end_date) > new Date() 
+                      ? 'Your pitch is visible' 
+                      : 'Make your pitch visible'
+                    }
+                  </div>
                 </div>
-              </a>
+              </button>
             </div>
 
             {/* Analytics Section */}
