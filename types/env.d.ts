@@ -17,6 +17,7 @@ declare namespace NodeJS {
     SENTRY_ENVIRONMENT?: string;
     DEV_TEST_ROUTES?: string;
     DEV_UAT?: string;
+    NEXT_PUBLIC_GOOGLE_PLACES_API_KEY?: string;
   }
 }
 export {};

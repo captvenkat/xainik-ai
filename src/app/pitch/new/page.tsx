@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 import AIPitchHelper from '@/components/AIPitchHelper'
+import LocationAutocomplete from '@/components/LocationAutocomplete'
 import { Shield, CheckCircle, AlertCircle } from 'lucide-react'
 
 interface FormData {
@@ -22,7 +23,7 @@ interface FormData {
 }
 
 const JOB_TYPES = [
-  'full-time', 'part-time', 'freelance', 'consulting', 
+  'full-time', 'part-time', 'freelance', 'consulting',
   'hybrid', 'project-based', 'remote', 'on-site'
 ]
 
@@ -31,7 +32,6 @@ const AVAILABILITY_OPTIONS = [
 ]
 
 export default function NewPitchPage() {
-  const router = useRouter()
   const [currentStep, setCurrentStep] = useState(0)
   const [formData, setFormData] = useState<FormData>({
     job_type: '',
@@ -41,206 +41,137 @@ export default function NewPitchPage() {
     phone: '',
     title: '',
     pitch: '',
-    skills: []
+    skills: ['', '', '']
   })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
-  const [userRole, setUserRole] = useState<string | null>(null)
-  const [isFirstTime, setIsFirstTime] = useState(false)
+  const router = useRouter()
 
-  useEffect(() => {
-    checkUserRole()
-  }, [])
-
-  const checkUserRole = async () => {
-    const supabase = createSupabaseBrowser()
-    const { data: { user } } = await supabase.auth.getUser()
-    
-    if (!user) {
-      router.push('/login?redirect=/pitch/new')
-      return
-    }
-
-    const { data: profile } = await supabase
-      .from('users')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-
-    if (profile?.role !== 'veteran') {
-      setError('Only veterans can create pitches')
-      return
-    }
-
-    setUserRole(profile.role)
-
-    // Check if this is their first pitch
-    const { data: existingPitches } = await supabase
-      .from('pitches')
-      .select('id')
-      .eq('user_id', user.id)
-      .limit(1)
-
-    setIsFirstTime(existingPitches?.length === 0)
-  }
-
-  const updateFormData = (updates: Partial<FormData>) => {
+  const updateFormData = useCallback((updates: Partial<FormData>) => {
     setFormData(prev => ({ ...prev, ...updates }))
-  }
-
-  const handleNext = () => {
-    if (currentStep < 4) {
-      setCurrentStep(prev => prev + 1)
-    }
-  }
-
-  const handleBack = () => {
-    if (currentStep > 0) {
-      setCurrentStep(prev => prev - 1)
-    }
-  }
+  }, [])
 
   const handleSubmit = async () => {
     setIsLoading(true)
     setError('')
 
     try {
-      const response = await fetch('/api/pitch/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      })
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || 'Failed to create pitch')
+      const supabase = createSupabaseBrowser()
+      
+      // Get current user
+      const { data: { user }, error: authError } = await supabase.auth.getUser()
+      if (authError || !user) {
+        throw new Error('Authentication required')
       }
 
-      const { pitchId } = await response.json()
-      router.push(`/pitch/${pitchId}`)
+      // Validate required fields
+      if (!formData.title.trim() || !formData.pitch.trim() || formData.skills.some(skill => !skill.trim())) {
+        throw new Error('Please complete all required fields')
+      }
+
+      // Create pitch
+      const { data: pitch, error: pitchError } = await supabase
+        .from('pitches')
+        .insert({
+          user_id: user.id,
+          title: formData.title.trim(),
+          pitch_text: formData.pitch.trim(),
+          skills: formData.skills.map(skill => skill.trim()),
+          job_type: formData.job_type,
+          location: formData.location_current,
+          location_preferred: formData.location_preferred,
+          availability: formData.availability,
+          phone: formData.phone,
+          linkedin_url: formData.linkedin_url,
+          is_active: true,
+          end_date: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString() // 90 days from now
+        })
+        .select()
+        .single()
+
+      if (pitchError) {
+        throw new Error('Failed to create pitch')
+      }
+
+      // Redirect to the new pitch
+      router.push(`/pitch/${pitch.id}`)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
+      setError(err instanceof Error ? err.message : 'Failed to create pitch')
     } finally {
       setIsLoading(false)
     }
   }
 
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8 text-center">
-          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h1>
-          <p className="text-gray-600 mb-6">{error}</p>
-          <button
-            onClick={() => router.push('/')}
-            className="w-full bg-gradient-primary text-white py-3 px-4 rounded-lg font-medium hover:opacity-90 transition-opacity"
-          >
-            Return to Homepage
-          </button>
-        </div>
-      </div>
-    )
+  const nextStep = () => {
+    if (currentStep < 3) {
+      setCurrentStep(currentStep + 1)
+    } else {
+      handleSubmit()
+    }
   }
 
-  if (!userRole) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
-      </div>
-    )
+  const prevStep = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1)
+    }
+  }
+
+  const renderStep = () => {
+    switch (currentStep) {
+      case 0:
+        return <Step0Basics formData={formData} updateFormData={updateFormData} onNext={nextStep} />
+      case 1:
+        return <AIPitchHelper formData={formData} updateFormData={updateFormData} onNext={nextStep} onBack={prevStep} />
+      case 2:
+        return <Step2Review formData={formData} onNext={nextStep} onBack={prevStep} />
+      case 3:
+        return <Step3Submit isLoading={isLoading} error={error} onBack={prevStep} />
+      default:
+        return null
+    }
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <Shield className="w-8 h-8 text-blue-600" />
-            <h1 className="text-3xl font-bold text-gray-900">Create Your Pitch</h1>
-          </div>
-          {isFirstTime && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-              <p className="text-blue-800 text-sm">
-                Welcome! This is your first pitch. We'll help you create a compelling profile that showcases your military experience and skills.
-              </p>
-            </div>
-          )}
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Your Pitch</h1>
+          <p className="text-gray-600">Showcase your military experience to potential employers</p>
         </div>
 
-        {/* Progress Steps */}
-        <div className="flex items-center justify-center mb-8">
-          {['Basics', 'AI Input', 'Review', 'Plan', 'Pay'].map((step, index) => (
-            <div key={step} className="flex items-center">
-              <div className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${
-                index <= currentStep 
-                  ? 'bg-blue-600 border-blue-600 text-white' 
-                  : 'bg-white border-gray-300 text-gray-500'
-              }`}>
-                {index < currentStep ? (
-                  <CheckCircle className="w-6 h-6" />
-                ) : (
-                  <span className="text-sm font-medium">{index + 1}</span>
+        {/* Progress Bar */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between">
+            {['Basic Info', 'AI Pitch Helper', 'Review', 'Submit'].map((step, index) => (
+              <div key={index} className="flex items-center">
+                <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
+                  index <= currentStep ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'
+                }`}>
+                  {index < currentStep ? (
+                    <CheckCircle className="w-5 h-5" />
+                  ) : (
+                    <span className="text-sm font-medium">{index + 1}</span>
+                  )}
+                </div>
+                <span className={`ml-2 text-sm font-medium ${
+                  index <= currentStep ? 'text-blue-600' : 'text-gray-500'
+                }`}>
+                  {step}
+                </span>
+                {index < 3 && (
+                  <div className={`w-16 h-0.5 mx-4 ${
+                    index < currentStep ? 'bg-blue-600' : 'bg-gray-200'
+                  }`} />
                 )}
               </div>
-              <span className={`ml-2 text-sm font-medium ${
-                index <= currentStep ? 'text-blue-600' : 'text-gray-500'
-              }`}>
-                {step}
-              </span>
-              {index < 4 && (
-                <div className={`w-16 h-0.5 mx-4 ${
-                  index < currentStep ? 'bg-blue-600' : 'bg-gray-300'
-                }`} />
-              )}
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
         {/* Step Content */}
-        <div className="bg-white rounded-xl shadow-lg p-8">
-          {currentStep === 0 && (
-            <Step0Basics 
-              formData={formData} 
-              updateFormData={updateFormData} 
-              onNext={handleNext}
-            />
-          )}
-          
-          {currentStep === 1 && (
-            <Step1AIInput 
-              formData={formData} 
-              updateFormData={updateFormData} 
-              onNext={handleNext}
-              onBack={handleBack}
-            />
-          )}
-          
-          {currentStep === 2 && (
-            <Step2Review 
-              formData={formData} 
-              onNext={handleNext}
-              onBack={handleBack}
-            />
-          )}
-          
-          {currentStep === 3 && (
-            <Step3Plan 
-              formData={formData} 
-              onNext={handleNext}
-              onBack={handleBack}
-            />
-          )}
-          
-          {currentStep === 4 && (
-            <Step4Payment 
-              formData={formData} 
-              onBack={handleBack}
-              onSubmit={handleSubmit}
-              isLoading={isLoading}
-            />
-          )}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          {renderStep()}
         </div>
       </div>
     </div>
@@ -289,12 +220,10 @@ function Step0Basics({ formData, updateFormData, onNext }: any) {
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Current Location *
           </label>
-          <input
-            type="text"
+          <LocationAutocomplete
             value={formData.location_current}
-            onChange={(e) => updateFormData({ location_current: e.target.value })}
+            onChange={(value) => updateFormData({ location_current: value })}
             placeholder="Enter your current city"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
 
@@ -350,25 +279,11 @@ function Step0Basics({ formData, updateFormData, onNext }: any) {
         <button
           onClick={onNext}
           disabled={!isValid}
-          className="bg-gradient-primary text-white px-6 py-3 rounded-lg font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+          className="bg-gradient-primary text-white px-8 py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Continue
+          Next: AI Pitch Helper
         </button>
       </div>
-    </div>
-  )
-}
-
-function Step1AIInput({ formData, updateFormData, onNext, onBack }: any) {
-  return (
-    <div>
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">AI-Powered Pitch Generation</h2>
-      <AIPitchHelper 
-        formData={formData}
-        updateFormData={updateFormData}
-        onNext={onNext}
-        onBack={onBack}
-      />
     </div>
   )
 }
@@ -380,25 +295,25 @@ function Step2Review({ formData, onNext, onBack }: any) {
       
       <div className="space-y-6">
         <div className="bg-gray-50 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Pitch Preview</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Pitch Details</h3>
           
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
-              <p className="text-gray-900 font-medium">{formData.title}</p>
+              <p className="text-gray-900">{formData.title || 'Not provided'}</p>
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Pitch</label>
-              <p className="text-gray-900">{formData.pitch}</p>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Pitch Description</label>
+              <p className="text-gray-900">{formData.pitch || 'Not provided'}</p>
             </div>
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Skills</label>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex gap-2">
                 {formData.skills.map((skill: string, index: number) => (
-                  <span key={index} className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
-                    {skill}
+                  <span key={index} className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
+                    {skill || `Skill ${index + 1}`}
                   </span>
                 ))}
               </div>
@@ -406,23 +321,37 @@ function Step2Review({ formData, onNext, onBack }: any) {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Job Type</label>
-            <p className="text-gray-900">{formData.job_type}</p>
+        <div className="bg-gray-50 rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Basic Information</h3>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Job Type</label>
+              <p className="text-gray-900">{formData.job_type || 'Not provided'}</p>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Current Location</label>
+              <p className="text-gray-900">{formData.location_current || 'Not provided'}</p>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Availability</label>
+              <p className="text-gray-900">{formData.availability || 'Not provided'}</p>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+              <p className="text-gray-900">{formData.phone || 'Not provided'}</p>
+            </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Availability</label>
-            <p className="text-gray-900">{formData.availability}</p>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Current Location</label>
-            <p className="text-gray-900">{formData.location_current}</p>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-            <p className="text-gray-900">{formData.phone}</p>
-          </div>
+
+          {formData.location_preferred.length > 0 && (
+            <div className="mt-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Preferred Locations</label>
+              <p className="text-gray-900">{formData.location_preferred.join(', ')}</p>
+            </div>
+          )}
         </div>
       </div>
 
@@ -435,11 +364,43 @@ function Step2Review({ formData, onNext, onBack }: any) {
         </button>
         <button
           onClick={onNext}
-          className="bg-gradient-primary text-white px-6 py-3 rounded-lg font-medium hover:opacity-90 transition-opacity"
+          className="bg-gradient-primary text-white px-8 py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity"
         >
-          Continue to Plan Selection
+          Create Pitch
         </button>
       </div>
+    </div>
+  )
+}
+
+function Step3Submit({ isLoading, error, onBack }: any) {
+  return (
+    <div className="text-center">
+      {isLoading ? (
+        <div>
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Creating Your Pitch...</h2>
+          <p className="text-gray-600">Please wait while we save your pitch to the platform.</p>
+        </div>
+      ) : error ? (
+        <div>
+          <div className="text-red-500 text-6xl mb-4">⚠️</div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Error Creating Pitch</h2>
+          <p className="text-gray-600 mb-6">{error}</p>
+          <button
+            onClick={onBack}
+            className="bg-gradient-primary text-white px-8 py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity"
+          >
+            Go Back & Fix
+          </button>
+        </div>
+      ) : (
+        <div>
+          <div className="text-green-500 text-6xl mb-4">✅</div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Pitch Created Successfully!</h2>
+          <p className="text-gray-600">Your pitch has been created and is now live on the platform.</p>
+        </div>
+      )}
     </div>
   )
 }
