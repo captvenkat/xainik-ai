@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 import { Briefcase, Users, Phone, Mail, FileText, TrendingUp, Eye, Calendar, Plus, Download, Filter, BarChart3, Save } from 'lucide-react'
@@ -18,6 +18,25 @@ export default function RecruiterDashboard() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
+
+  const fetchRecruiterData = useCallback(async (userId: string) => {
+    try {
+      const supabase = createSupabaseBrowser()
+      
+      // Fetch recruiter metrics, analytics, and saved filters
+      const [metricsResult, analyticsResult, savedFiltersResult] = await Promise.all([
+        fetchRecruiterMetrics(userId),
+        fetchRecruiterAnalytics(userId),
+        fetchSavedFilters(userId)
+      ])
+      
+      setMetrics(metricsResult)
+      setAnalytics(analyticsResult)
+      setSavedFilters(savedFiltersResult)
+    } catch (error) {
+      console.error('Failed to fetch recruiter data:', error)
+    }
+  }, [])
 
   useEffect(() => {
     async function checkAuthAndLoadData() {
@@ -59,26 +78,9 @@ export default function RecruiterDashboard() {
     }
     
     checkAuthAndLoadData()
-  }, [router])
+  }, [router, fetchRecruiterData])
 
-  async function fetchRecruiterData(userId: string) {
-    try {
-      const supabase = createSupabaseBrowser()
-      
-      // Fetch recruiter metrics, analytics, and saved filters
-      const [metricsResult, analyticsResult, savedFiltersResult] = await Promise.all([
-        fetchRecruiterMetrics(userId),
-        fetchRecruiterAnalytics(userId),
-        fetchSavedFilters(userId)
-      ])
-      
-      setMetrics(metricsResult)
-      setAnalytics(analyticsResult)
-      setSavedFilters(savedFiltersResult)
-    } catch (error) {
-      console.error('Failed to fetch recruiter data:', error)
-    }
-  }
+
 
   async function fetchRecruiterMetrics(userId: string) {
     try {

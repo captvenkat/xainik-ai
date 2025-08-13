@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 import LoadingSpinner from '@/components/LoadingSpinner'
@@ -30,39 +30,7 @@ export default function VeteranDashboard() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    console.log('Veteran Dashboard useEffect:', { authLoading, user: !!user, profile: !!profile })
-    
-    async function loadVeteranData() {
-      if (!user) return
-      
-      console.log('Veteran Dashboard: Starting to load data for user:', user.id)
-      
-      try {
-        await fetchVeteranData(user.id)
-        console.log('Veteran Dashboard: Data loaded successfully')
-      } catch (error) {
-        console.error('Veteran dashboard error:', error)
-        setError('Failed to load dashboard data')
-      } finally {
-        console.log('Veteran Dashboard: Setting isLoading to false')
-        setIsLoading(false)
-      }
-    }
-    
-    if (!authLoading && user) {
-      console.log('Veteran Dashboard: Auth complete, user exists, loading data')
-      loadVeteranData()
-    } else if (!authLoading && !user) {
-      // If auth is done but no user, stop loading
-      console.log('Veteran Dashboard: Auth complete, no user, stopping loading')
-      setIsLoading(false)
-    } else {
-      console.log('Veteran Dashboard: Still waiting for auth or user')
-    }
-  }, [user, authLoading])
-
-  async function fetchVeteranData(userId: string) {
+  const fetchVeteranData = useCallback(async (userId: string) => {
     try {
       console.log('Veteran Dashboard: fetchVeteranData started for user:', userId)
       const supabase = createSupabaseBrowser()
@@ -111,7 +79,41 @@ export default function VeteranDashboard() {
     } catch (error) {
       console.error('Failed to fetch veteran data:', error)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    console.log('Veteran Dashboard useEffect:', { authLoading, user: !!user, profile: !!profile })
+    
+    async function loadVeteranData() {
+      if (!user) return
+      
+      console.log('Veteran Dashboard: Starting to load data for user:', user.id)
+      
+      try {
+        await fetchVeteranData(user.id)
+        console.log('Veteran Dashboard: Data loaded successfully')
+      } catch (error) {
+        console.error('Veteran dashboard error:', error)
+        setError('Failed to load dashboard data')
+      } finally {
+        console.log('Veteran Dashboard: Setting isLoading to false')
+        setIsLoading(false)
+      }
+    }
+    
+    if (!authLoading && user) {
+      console.log('Veteran Dashboard: Auth complete, user exists, loading data')
+      loadVeteranData()
+    } else if (!authLoading && !user) {
+      // If auth is done but no user, stop loading
+      console.log('Veteran Dashboard: Auth complete, no user, stopping loading')
+      setIsLoading(false)
+    } else {
+      console.log('Veteran Dashboard: Still waiting for auth or user')
+    }
+  }, [user, authLoading, profile, fetchVeteranData])
+
+
 
   async function fetchVeteranMetrics(userId: string) {
     try {
