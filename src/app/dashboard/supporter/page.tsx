@@ -18,40 +18,54 @@ export default function SupporterDashboard() {
 
   useEffect(() => {
     async function checkAuthAndLoadData() {
+      console.log('Dashboard: Starting auth and data load...')
       try {
         const supabase = createSupabaseBrowser()
         
         // Check authentication
+        console.log('Dashboard: Checking authentication...')
         const { data: { user }, error: authError } = await supabase.auth.getUser()
+        console.log('Dashboard: Auth result:', { user: !!user, error: authError })
+        
         if (authError || !user) {
+          console.log('Dashboard: Auth failed, redirecting...')
           router.push('/auth?redirect=/dashboard/supporter')
           return
         }
         
+        console.log('Dashboard: User authenticated:', user.email)
         setUser(user)
         
         // Check user role
+        console.log('Dashboard: Checking user role...')
         const { data: profile, error: profileError } = await supabase
           .from('users')
           .select('role')
           .eq('id', user.id)
           .single()
         
+        console.log('Dashboard: Profile result:', { profile, error: profileError })
+        
         if (profileError || profile?.role !== 'supporter') {
+          console.log('Dashboard: Role check failed, redirecting...')
           router.push('/auth?redirect=/dashboard/supporter')
           return
         }
         
+        console.log('Dashboard: Role verified as supporter')
         setProfile(profile)
         
         // Fetch metrics using client-side approach
+        console.log('Dashboard: Fetching metrics...')
         const metricsData = await fetchSupporterMetrics(user.id)
+        console.log('Dashboard: Metrics fetched:', metricsData)
         setMetrics(metricsData)
         
       } catch (error) {
         console.error('Dashboard error:', error)
         setError('Failed to load dashboard data')
       } finally {
+        console.log('Dashboard: Setting loading to false')
         setIsLoading(false)
       }
     }
@@ -60,25 +74,27 @@ export default function SupporterDashboard() {
   }, [router])
 
   async function fetchSupporterMetrics(userId: string) {
+    console.log('Dashboard: fetchSupporterMetrics called with userId:', userId)
     try {
       const supabase = createSupabaseBrowser()
       
       // Get supporter-specific metrics
-      const [
-        { count: totalDonations },
-        { count: totalEndorsements },
-        { data: recentActivity }
-      ] = await Promise.all([
-        supabase.from('donations').select('*', { count: 'exact', head: true }).eq('user_id', userId),
-        supabase.from('endorsements').select('*', { count: 'exact', head: true }).eq('endorser_user_id', userId),
-        supabase.from('user_activity_log').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(5)
-      ])
+      console.log('Dashboard: Fetching donations...')
+      const { count: totalDonations } = await supabase.from('donations').select('*', { count: 'exact', head: true }).eq('user_id', userId)
+      
+      console.log('Dashboard: Fetching endorsements...')
+      const { count: totalEndorsements } = await supabase.from('endorsements').select('*', { count: 'exact', head: true }).eq('endorser_user_id', userId)
+      
+      console.log('Dashboard: Fetching activity...')
+      const { data: recentActivity } = await supabase.from('user_activity_log').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(5)
+
+      console.log('Dashboard: Raw metrics data:', { totalDonations, totalEndorsements, recentActivity })
 
       // Calculate conversion rate
       const totalActions = (totalDonations || 0) + (totalEndorsements || 0)
       const conversionRate = totalActions > 0 ? (totalActions / 100) * 100 : 0
 
-      return {
+      const result = {
         totalDonations: totalDonations || 0,
         totalEndorsements: totalEndorsements || 0,
         recentActivity: recentActivity || [],
@@ -86,8 +102,11 @@ export default function SupporterDashboard() {
           conversionRate: conversionRate
         }
       }
+      
+      console.log('Dashboard: Processed metrics result:', result)
+      return result
     } catch (error) {
-      console.error('Failed to fetch supporter metrics:', error)
+      console.error('Dashboard: Failed to fetch supporter metrics:', error)
       return {
         totalDonations: 0,
         totalEndorsements: 0,
@@ -172,6 +191,8 @@ export default function SupporterDashboard() {
     { label: 'Week 4', value: Math.floor((metrics.totalDonations || 0) * 0.25) }
   ]
 
+  console.log('Dashboard: Rendering component with state:', { isLoading, error, metrics: !!metrics, user: !!user })
+  
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
