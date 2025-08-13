@@ -10,27 +10,12 @@ import LineChart from '@/components/charts/LineChart'
 
 export default function SupporterDashboard() {
   console.log('Dashboard: Component is loading!')
-  
-  // Simple test render first
-  return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">Dashboard Test</h1>
-        <p className="text-xl text-gray-600">Dashboard component is loading!</p>
-        <p className="text-sm text-gray-500 mt-4">If you can see this, the component is working</p>
-      </div>
-    </div>
-  )
-  
-  // Comment out the complex logic for now
-  /*
   const [user, setUser] = useState<any>(null)
   const [profile, setProfile] = useState<any>(null)
   const [metrics, setMetrics] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
-  */
 
   useEffect(() => {
     async function checkAuthAndLoadData() {
