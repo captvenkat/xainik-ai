@@ -110,19 +110,19 @@ export default function PerformanceInsights({ insights, comparativeMetrics }: Pe
           </div>
           
           {/* Progress Tracking */}
-          {comparativeMetrics && (
+          {comparativeMetrics?.last30d && (
             <div className="mt-6 p-4 bg-gray-50 rounded-lg">
               <h5 className="font-medium text-gray-900 mb-3">Current Progress</h5>
               <div className="grid grid-cols-2 gap-4">
                 <div className="text-center">
                   <div className="text-2xl font-bold text-blue-600">
-                    {comparativeMetrics.last30d.views}
+                    {comparativeMetrics.last30d.views || 0}
                   </div>
                   <div className="text-sm text-gray-600">Views (30d)</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-green-600">
-                    {comparativeMetrics.last30d.calls + comparativeMetrics.last30d.emails}
+                    {(comparativeMetrics.last30d.calls || 0) + (comparativeMetrics.last30d.emails || 0)}
                   </div>
                   <div className="text-sm text-gray-600">Contacts (30d)</div>
                 </div>
