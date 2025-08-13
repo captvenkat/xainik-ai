@@ -1,39 +1,131 @@
-import { createSupabaseServerOnly } from '@/lib/supabaseServerOnly'
-import { redirect } from 'next/navigation'
+'use client'
+
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 import { FileText, Save, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 
-export default async function EditPitchPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
-  const supabase = createSupabaseServerOnly()
-  
-  // Check authentication and role
-  const supabaseClient = await supabase
-  const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
-  if (authError || !user) {
-    redirect('/login?redirect=/pitch/' + id + '/edit')
+export default function EditPitchPage({ params }: { params: Promise<{ id: string }> }) {
+  const [id, setId] = useState<string>('')
+  const [user, setUser] = useState<any>(null)
+  const [profile, setProfile] = useState<any>(null)
+  const [pitch, setPitch] = useState<any>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const router = useRouter()
+
+  useEffect(() => {
+    async function initializePage() {
+      try {
+        const { id: pitchId } = await params
+        setId(pitchId)
+        
+        const supabase = createSupabaseBrowser()
+        
+        // Check authentication
+        const { data: { user }, error: authError } = await supabase.auth.getUser()
+        if (authError || !user) {
+          router.push('/login?redirect=/pitch/' + pitchId + '/edit')
+          return
+        }
+        
+        setUser(user)
+        
+        // Check user role
+        const { data: profile, error: profileError } = await supabase
+          .from('users')
+          .select('role')
+          .eq('id', user.id)
+          .single()
+        
+        if (profileError || profile?.role !== 'veteran') {
+          router.push('/dashboard')
+          return
+        }
+        
+        setProfile(profile)
+        
+        // Fetch pitch details
+        await fetchPitchDetails(user.id, pitchId)
+        
+      } catch (error) {
+        console.error('Edit pitch page error:', error)
+        setError('Failed to load pitch data')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    
+    initializePage()
+  }, [params, router])
+
+  async function fetchPitchDetails(userId: string, pitchId: string) {
+    try {
+      const supabase = createSupabaseBrowser()
+      
+      const { data: pitchData, error: pitchError } = await supabase
+        .from('pitches')
+        .select('*')
+        .eq('id', pitchId)
+        .eq('user_id', userId)
+        .single()
+
+      if (pitchError || !pitchData) {
+        router.push('/dashboard/veteran')
+        return
+      }
+      
+      setPitch(pitchData)
+    } catch (error) {
+      console.error('Failed to fetch pitch details:', error)
+      setError('Failed to load pitch data')
+    }
   }
 
-  const { data: profile } = await supabaseClient
-    .from('users')
-    .select('role')
-    .eq('id', user.id)
-    .single()
-
-  if (profile?.role !== 'veteran') {
-    redirect('/dashboard')
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <h2 className="text-xl font-semibold text-gray-900">Loading Pitch Editor...</h2>
+          <p className="text-gray-600">Please wait while we load your pitch data.</p>
+        </div>
+      </div>
+    )
   }
 
-  // Fetch pitch details
-  const { data: pitch, error: pitchError } = await supabaseClient
-    .from('pitches')
-    .select('*')
-    .eq('id', id)
-    .eq('user_id', user.id)
-    .single()
+  // Show error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-500 text-6xl mb-4">⚠️</div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Page Error</h2>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    )
+  }
 
-  if (pitchError || !pitch) {
-    redirect('/dashboard/veteran')
+  // Show loading state if pitch not loaded yet
+  if (!pitch) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <h2 className="text-xl font-semibold text-gray-900">Loading Pitch...</h2>
+          <p className="text-gray-600">Please wait while we load your pitch details.</p>
+        </div>
+      </div>
+    )
   }
 
   return (
