@@ -29,14 +29,29 @@ export default function AuthCallbackPage() {
   }, []);
 
   useEffect(() => {
+    // Only process callback when client is ready
+    if (!isClient) return;
+    
     async function processCallback() {
+      // Add a timeout to prevent infinite spinning
+      const timeoutId = setTimeout(() => {
+        console.error('AuthCallback: Timeout reached, redirecting to auth page');
+        setError('Authentication timeout. Please try again.');
+        setStatus('error');
+      }, 10000); // 10 second timeout
+
       try {
+        console.log('AuthCallback: Starting callback processing...');
         
         // Check if we have hash fragment tokens
         const hash = window.location.hash.substring(1);
+        console.log('AuthCallback: Hash fragment:', hash ? 'Present' : 'Missing');
+        
         if (!hash) {
+          console.log('AuthCallback: No hash fragment found');
           setError('No authentication data received');
           setStatus('error');
+          clearTimeout(timeoutId);
           return;
         }
 
@@ -45,21 +60,31 @@ export default function AuthCallbackPage() {
         const refreshToken = params.get('refresh_token');
         const error = params.get('error');
 
+        console.log('AuthCallback: Tokens found:', { 
+          accessToken: !!accessToken, 
+          refreshToken: !!refreshToken, 
+          error 
+        });
+
         if (error) {
+          console.error('AuthCallback: Authentication error:', error);
           setError(`Authentication error: ${error}`);
           setStatus('error');
+          clearTimeout(timeoutId);
           return;
         }
 
         if (!accessToken || !refreshToken) {
+          console.error('AuthCallback: Missing tokens');
           setError('Missing authentication tokens');
           setStatus('error');
+          clearTimeout(timeoutId);
           return;
         }
 
-
         // Create Supabase client and set session
         const supabase = createSupabaseBrowser();
+        console.log('AuthCallback: Setting session...');
         
         const { data, error: sessionError } = await supabase.auth.setSession({
           access_token: accessToken,
@@ -67,33 +92,58 @@ export default function AuthCallbackPage() {
         });
 
         if (sessionError) {
+          console.error('AuthCallback: Session error:', sessionError);
           setError(`Session creation failed: ${sessionError.message}`);
           setStatus('error');
+          clearTimeout(timeoutId);
           return;
         }
 
         if (!data.session) {
+          console.error('AuthCallback: No session created');
           setError('No session created');
           setStatus('error');
+          clearTimeout(timeoutId);
           return;
         }
+
+        console.log('AuthCallback: Session created successfully for:', data.session.user.email);
 
         // Verify the session is properly set
         const { data: { session: verifySession } } = await supabase.auth.getSession();
         if (!verifySession) {
+          console.error('AuthCallback: Session verification failed');
           setError('Session verification failed');
           setStatus('error');
+          clearTimeout(timeoutId);
           return;
         }
 
+        console.log('AuthCallback: Session verified, checking user role...');
+
         // Check if user already has a role set
-        const { data: existingUser } = await supabase
+        const { data: existingUser, error: userError } = await supabase
           .from('users')
           .select('role')
           .eq('id', verifySession.user.id)
           .single();
 
+        if (userError) {
+          console.log('AuthCallback: User not found in database, will create new user');
+          // User doesn't exist in our database yet, they need to select a role
+          setUserEmail(verifySession.user.email || '');
+          setStatus('role-selection');
+          
+          // Clear any hash fragments from the URL
+          if (typeof window !== 'undefined') {
+            window.history.replaceState(null, '', window.location.pathname);
+          }
+          clearTimeout(timeoutId);
+          return;
+        }
+
         if (existingUser?.role) {
+          console.log('AuthCallback: User has role:', existingUser.role);
           // User already has a role, proceed to dashboard
           setStatus('success');
           const redirectPath = sessionStorage.getItem('auth_redirect') || `/dashboard/${existingUser.role}`;
@@ -104,11 +154,14 @@ export default function AuthCallbackPage() {
             window.history.replaceState(null, '', window.location.pathname);
           }
           
+          console.log('AuthCallback: Redirecting to:', redirectPath);
+          clearTimeout(timeoutId);
           setTimeout(() => {
             router.push(redirectPath);
           }, 1000);
         } else {
-          // User needs to select a role
+          console.log('AuthCallback: User exists but no role, showing role selection');
+          // User exists but has no role
           setUserEmail(verifySession.user.email || '');
           setStatus('role-selection');
           
@@ -116,16 +169,19 @@ export default function AuthCallbackPage() {
           if (typeof window !== 'undefined') {
             window.history.replaceState(null, '', window.location.pathname);
           }
+          clearTimeout(timeoutId);
         }
 
       } catch (e) {
+        console.error('AuthCallback: Unexpected error:', e);
         setError(e instanceof Error ? e.message : 'Unknown error occurred');
         setStatus('error');
+        clearTimeout(timeoutId);
       }
     }
 
     processCallback();
-  }, [router]);
+  }, [router, isClient]);
 
   const handleRoleSelected = (role: string) => {
     setStatus('success');
@@ -148,6 +204,9 @@ export default function AuthCallbackPage() {
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
         <h1 className="text-xl font-semibold mb-2">Processing Authentication...</h1>
         <p className="text-gray-600">Please wait while we complete your sign-in.</p>
+        {!isClient && (
+          <p className="text-sm text-gray-500 mt-4">Loading client-side components...</p>
+        )}
       </main>
     );
   }
