@@ -6,7 +6,7 @@ import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 
 interface User {
   id: string
-  email: string
+  email?: string
   role?: string
   name?: string
 }
