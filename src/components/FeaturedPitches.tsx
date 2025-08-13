@@ -5,6 +5,7 @@ import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 import PitchCard from './PitchCard'
 import type { PitchCardData } from '@/types/domain'
 import { toPitchCardData, type RawPitchRow } from '@/lib/mappers/pitches'
+import Link from 'next/link'
 
 // Create supabase instance once outside component
 const supabase = createSupabaseBrowser()
@@ -94,12 +95,12 @@ export default function FeaturedPitches() {
             Be the first to create a pitch and get featured here!
           </p>
         </div>
-        <a
+        <Link
           href="/pitch/new"
           className="inline-flex items-center gap-2 bg-gradient-primary text-white px-6 py-3 rounded-lg font-medium hover:opacity-90 transition-opacity"
         >
           Create Your Pitch
-        </a>
+        </Link>
       </div>
     )
   }
@@ -124,12 +125,12 @@ export default function FeaturedPitches() {
       </div>
 
       <div className="text-center mt-8">
-        <a
+        <Link
           href="/browse"
           className="inline-flex items-center gap-2 bg-gray-100 text-gray-700 px-6 py-3 rounded-lg font-medium hover:bg-gray-200 transition-colors"
         >
           View All Veterans
-        </a>
+        </Link>
       </div>
     </div>
   )

@@ -1,4 +1,5 @@
 import { CheckCircle, XCircle } from 'lucide-react'
+import Link from 'next/link'
 
 export default async function ResumeRequestSuccessPage({
   searchParams,
@@ -34,18 +35,18 @@ export default async function ResumeRequestSuccessPage({
         )}
 
         <div className="space-y-3">
-          <a
+          <Link
             href="/"
             className="block w-full bg-gradient-primary text-white py-3 px-4 rounded-lg font-medium hover:opacity-90 transition-opacity"
           >
             Return to Homepage
-          </a>
-          <a
+          </Link>
+          <Link
             href="/pitches"
             className="block w-full border border-gray-300 text-gray-700 py-3 px-4 rounded-lg font-medium hover:bg-gray-50 transition-colors"
           >
             Browse More Pitches
-          </a>
+          </Link>
         </div>
       </div>
     </div>
