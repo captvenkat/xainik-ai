@@ -182,7 +182,7 @@ export default function AdminDashboard() {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Total Users</p>
-                <p className="text-2xl font-bold text-gray-900">{totalUsers || 0}</p>
+                <p className="text-2xl font-bold text-gray-900">{stats?.totalUsers || 0}</p>
               </div>
             </div>
           </div>
@@ -194,7 +194,7 @@ export default function AdminDashboard() {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Active Pitches</p>
-                <p className="text-2xl font-bold text-gray-900">{totalPitches || 0}</p>
+                <p className="text-2xl font-bold text-gray-900">{stats?.totalPitches || 0}</p>
               </div>
             </div>
           </div>
@@ -206,7 +206,7 @@ export default function AdminDashboard() {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Endorsements</p>
-                <p className="text-2xl font-bold text-gray-900">{totalEndorsements || 0}</p>
+                <p className="text-2xl font-bold text-gray-900">{stats?.totalEndorsements || 0}</p>
               </div>
             </div>
           </div>
@@ -218,7 +218,7 @@ export default function AdminDashboard() {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Donations</p>
-                <p className="text-2xl font-bold text-gray-900">{totalDonations || 0}</p>
+                <p className="text-2xl font-bold text-gray-900">{stats?.totalDonations || 0}</p>
               </div>
             </div>
           </div>
@@ -288,11 +288,11 @@ export default function AdminDashboard() {
               <div className="space-y-3">
                 <div className="flex items-center gap-2 text-orange-600">
                   <AlertTriangle className="h-4 w-4" />
-                  <span className="text-sm">{suspiciousFlags || 0} suspicious activities</span>
+                  <span className="text-sm">{stats?.suspiciousFlags || 0} suspicious activities</span>
                 </div>
                 <div className="flex items-center gap-2 text-blue-600">
                   <FileText className="h-4 w-4" />
-                  <span className="text-sm">{resumeRequests || 0} pending resume requests</span>
+                  <span className="text-sm">{stats?.resumeRequests || 0} pending resume requests</span>
                 </div>
               </div>
             </div>
