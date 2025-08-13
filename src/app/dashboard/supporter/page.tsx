@@ -9,6 +9,7 @@ import PieChart from '@/components/charts/PieChart'
 import LineChart from '@/components/charts/LineChart'
 
 export default function SupporterDashboard() {
+  console.log('Dashboard: Component is loading!')
   const [user, setUser] = useState<any>(null)
   const [profile, setProfile] = useState<any>(null)
   const [metrics, setMetrics] = useState<any>(null)
@@ -192,6 +193,20 @@ export default function SupporterDashboard() {
   ]
 
   console.log('Dashboard: Rendering component with state:', { isLoading, error, metrics: !!metrics, user: !!user })
+  
+  // Immediate test render
+  if (!isLoading && !error && !metrics) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Dashboard Test</h1>
+          <p className="text-gray-600">Component is loading but no metrics yet</p>
+          <p className="text-sm text-gray-500 mt-2">User: {user?.email || 'None'}</p>
+          <p className="text-sm text-gray-500">Profile: {profile?.role || 'None'}</p>
+        </div>
+      </div>
+    )
+  }
   
   return (
     <div className="min-h-screen bg-gray-50">
