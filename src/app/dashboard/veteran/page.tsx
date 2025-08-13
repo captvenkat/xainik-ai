@@ -104,9 +104,18 @@ export default function VeteranDashboard() {
 
       setInvoices(invoicesData)
 
+      // Fetch pitch data for expiry calculation
+      const { data: pitchData } = await supabase
+        .from('pitches')
+        .select('end_date')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single()
+
       // Calculate days until expiry
-      if (metricsResult?.pitch?.end_date) {
-        const daysUntil = Math.ceil((new Date(metricsResult.pitch.end_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
+      if (pitchData?.end_date) {
+        const daysUntil = Math.ceil((new Date(pitchData.end_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
         setDaysUntilExpiry(daysUntil)
       }
     } catch (error) {
