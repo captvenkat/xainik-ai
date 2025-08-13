@@ -1,8 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { updateUserRole } from '@/lib/actions/auth-server';
-import { getCurrentUser } from '@/lib/auth-client';
+import { createSupabaseBrowser } from '@/lib/supabaseBrowser';
 import { Shield, Briefcase, Heart, Check } from 'lucide-react';
 
 const roles = [
@@ -57,14 +56,22 @@ export default function RoleSelectionPage() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const currentUser = await getCurrentUser();
-        setUser(currentUser);
+        const supabase = createSupabaseBrowser();
+        const { data: { user }, error } = await supabase.auth.getUser();
+        
+        if (error || !user) {
+          router.push('/auth?redirect=/role-selection');
+          return;
+        }
+        
+        setUser(user);
       } catch (err) {
         console.error('Failed to fetch user:', err);
+        router.push('/auth?redirect=/role-selection');
       }
     };
     fetchUser();
-  }, []);
+  }, [router]);
 
   const handleRoleSelection = async () => {
     if (!selectedRole) {
@@ -76,13 +83,23 @@ export default function RoleSelectionPage() {
     setError('');
 
     try {
-      // Use the server action to update the user role
-      await updateUserRole(user?.id || '', selectedRole as 'veteran' | 'recruiter' | 'supporter');
+      const supabase = createSupabaseBrowser();
+      
+      // Update user role in database
+      const { error } = await supabase
+        .from('users')
+        .update({ role: selectedRole })
+        .eq('id', user?.id);
+
+      if (error) {
+        throw error;
+      }
 
       // Redirect to the appropriate dashboard
       router.push(`/dashboard/${selectedRole}`);
       
     } catch (err) {
+      console.error('Failed to update role:', err);
       setError('Failed to update role. Please try again.');
     } finally {
       setIsLoading(false);

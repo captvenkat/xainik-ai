@@ -1,48 +1,123 @@
-import { createSupabaseServerOnly } from '@/lib/supabaseServerOnly'
-import { redirect } from 'next/navigation'
+'use client'
+
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 import { Star, Phone, Mail, Eye, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 
-export default async function ShortlistPage() {
-  const supabase = await createSupabaseServerOnly()
-  
-  // Check authentication and role
-  const supabaseClient = await supabase
-  const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
-  if (authError || !user) {
-    redirect('/login?redirect=/shortlist')
+export default function ShortlistPage() {
+  const [user, setUser] = useState<any>(null)
+  const [profile, setProfile] = useState<any>(null)
+  const [shortlisted, setShortlisted] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const router = useRouter()
+
+  useEffect(() => {
+    async function checkAuthAndLoadData() {
+      try {
+        const supabase = createSupabaseBrowser()
+        
+        // Check authentication
+        const { data: { user }, error: authError } = await supabase.auth.getUser()
+        if (authError || !user) {
+          router.push('/login?redirect=/shortlist')
+          return
+        }
+        
+        setUser(user)
+        
+        // Check user role
+        const { data: profile, error: profileError } = await supabase
+          .from('users')
+          .select('role')
+          .eq('id', user.id)
+          .single()
+        
+        if (profileError || profile?.role !== 'recruiter') {
+          router.push('/dashboard')
+          return
+        }
+        
+        setProfile(profile)
+        
+        // Fetch shortlisted pitches
+        await fetchShortlistedPitches(user.id)
+        
+      } catch (error) {
+        console.error('Shortlist page error:', error)
+        setError('Failed to load shortlist data')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    
+    checkAuthAndLoadData()
+  }, [router])
+
+  async function fetchShortlistedPitches(userId: string) {
+    try {
+      const supabase = createSupabaseBrowser()
+      
+      const { data: shortlistedData } = await supabase
+        .from('shared_pitches')
+        .select(`
+          id,
+          created_at,
+          pitch:pitches(
+            id,
+            title,
+            pitch_text,
+            skills,
+            experience_years,
+            user:users(
+              name,
+              email
+            )
+          )
+        `)
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+
+      setShortlisted(shortlistedData || [])
+    } catch (error) {
+      console.error('Failed to fetch shortlisted pitches:', error)
+      setError('Failed to load shortlist data')
+    }
   }
 
-  const { data: profile } = await supabaseClient
-    .from('users')
-    .select('role')
-    .eq('id', user.id)
-    .single()
-
-  if (profile?.role !== 'recruiter') {
-    redirect('/dashboard')
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <h2 className="text-xl font-semibold text-gray-900">Loading Shortlist...</h2>
+          <p className="text-gray-600">Please wait while we load your shortlisted veterans.</p>
+        </div>
+      </div>
+    )
   }
 
-  // Fetch shortlisted pitches (using shared_pitches table)
-  const { data: shortlisted } = await supabaseClient
-    .from('shared_pitches')
-    .select(`
-      id,
-      created_at,
-      pitch:pitches(
-        id,
-        title,
-        pitch_text,
-        skills,
-        experience_years,
-        user:users(
-          name,
-          email
-        )
-      )
-    `)
-    .eq('user_id', user.id)
-    .order('created_at', { ascending: false })
+  // Show error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-500 text-6xl mb-4">⚠️</div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Page Error</h2>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
