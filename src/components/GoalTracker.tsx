@@ -55,18 +55,18 @@ export default function GoalTracker({ userId, currentMetrics }: GoalTrackerProps
         title: 'Visibility Champion',
         description: 'Reach 100 pitch views',
         target: 100,
-        current: currentMetrics.views,
+        current: currentMetrics?.views || 0,
         unit: 'views',
         deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
         category: 'visibility',
         priority: 'high',
-        status: currentMetrics.views >= 100 ? 'completed' : 'active',
+        status: (currentMetrics?.views || 0) >= 100 ? 'completed' : 'active',
         streak: 0,
         rewards: ['Profile Badge', '50 XP', 'Featured Listing'],
         milestones: [
-          { target: 25, reward: '25 XP', achieved: currentMetrics.views >= 25 },
-          { target: 50, reward: '50 XP', achieved: currentMetrics.views >= 50 },
-          { target: 100, reward: '100 XP + Badge', achieved: currentMetrics.views >= 100 }
+                  { target: 25, reward: '25 XP', achieved: (currentMetrics?.views || 0) >= 25 },
+        { target: 50, reward: '50 XP', achieved: (currentMetrics?.views || 0) >= 50 },
+        { target: 100, reward: '100 XP + Badge', achieved: (currentMetrics?.views || 0) >= 100 }
         ]
       },
       {
@@ -74,18 +74,18 @@ export default function GoalTracker({ userId, currentMetrics }: GoalTrackerProps
         title: 'Engagement Expert',
         description: 'Achieve 20% conversion rate',
         target: 20,
-        current: currentMetrics.views > 0 ? ((currentMetrics.calls + currentMetrics.emails) / currentMetrics.views) * 100 : 0,
+        current: (currentMetrics?.views || 0) > 0 ? (((currentMetrics?.calls || 0) + (currentMetrics?.emails || 0)) / (currentMetrics?.views || 1)) * 100 : 0,
         unit: '%',
         deadline: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000).toISOString(),
         category: 'conversion',
         priority: 'high',
-        status: currentMetrics.views > 0 && ((currentMetrics.calls + currentMetrics.emails) / currentMetrics.views) * 100 >= 20 ? 'completed' : 'active',
+        status: (currentMetrics?.views || 0) > 0 && (((currentMetrics?.calls || 0) + (currentMetrics?.emails || 0)) / (currentMetrics?.views || 1)) * 100 >= 20 ? 'completed' : 'active',
         streak: 0,
         rewards: ['Conversion Badge', '75 XP', 'Priority in Search'],
         milestones: [
-          { target: 5, reward: '25 XP', achieved: currentMetrics.views > 0 && ((currentMetrics.calls + currentMetrics.emails) / currentMetrics.views) * 100 >= 5 },
-          { target: 10, reward: '50 XP', achieved: currentMetrics.views > 0 && ((currentMetrics.calls + currentMetrics.emails) / currentMetrics.views) * 100 >= 10 },
-          { target: 20, reward: '75 XP + Badge', achieved: currentMetrics.views > 0 && ((currentMetrics.calls + currentMetrics.emails) / currentMetrics.views) * 100 >= 20 }
+                  { target: 5, reward: '25 XP', achieved: (currentMetrics?.views || 0) > 0 && (((currentMetrics?.calls || 0) + (currentMetrics?.emails || 0)) / (currentMetrics?.views || 1)) * 100 >= 5 },
+        { target: 10, reward: '50 XP', achieved: (currentMetrics?.views || 0) > 0 && (((currentMetrics?.calls || 0) + (currentMetrics?.emails || 0)) / (currentMetrics?.views || 1)) * 100 >= 10 },
+        { target: 20, reward: '75 XP + Badge', achieved: (currentMetrics?.views || 0) > 0 && (((currentMetrics?.calls || 0) + (currentMetrics?.emails || 0)) / (currentMetrics?.views || 1)) * 100 >= 20 }
         ]
       },
       {
@@ -93,18 +93,18 @@ export default function GoalTracker({ userId, currentMetrics }: GoalTrackerProps
         title: 'Network Builder',
         description: 'Get 10 endorsements',
         target: 10,
-        current: currentMetrics.endorsements,
+        current: currentMetrics?.endorsements || 0,
         unit: 'endorsements',
         deadline: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString(),
         category: 'networking',
         priority: 'medium',
-        status: currentMetrics.endorsements >= 10 ? 'completed' : 'active',
+        status: (currentMetrics?.endorsements || 0) >= 10 ? 'completed' : 'active',
         streak: 0,
         rewards: ['Network Badge', '100 XP', 'Community Recognition'],
         milestones: [
-          { target: 3, reward: '25 XP', achieved: currentMetrics.endorsements >= 3 },
-          { target: 7, reward: '50 XP', achieved: currentMetrics.endorsements >= 7 },
-          { target: 10, reward: '100 XP + Badge', achieved: currentMetrics.endorsements >= 10 }
+                  { target: 3, reward: '25 XP', achieved: (currentMetrics?.endorsements || 0) >= 3 },
+        { target: 7, reward: '50 XP', achieved: (currentMetrics?.endorsements || 0) >= 7 },
+        { target: 10, reward: '100 XP + Badge', achieved: (currentMetrics?.endorsements || 0) >= 10 }
         ]
       },
       {
@@ -112,18 +112,18 @@ export default function GoalTracker({ userId, currentMetrics }: GoalTrackerProps
         title: 'Share Master',
         description: 'Share pitch 50 times',
         target: 50,
-        current: currentMetrics.shares,
+        current: currentMetrics?.shares || 0,
         unit: 'shares',
         deadline: new Date(Date.now() + 40 * 24 * 60 * 60 * 1000).toISOString(),
         category: 'visibility',
         priority: 'medium',
-        status: currentMetrics.shares >= 50 ? 'completed' : 'active',
+        status: (currentMetrics?.shares || 0) >= 50 ? 'completed' : 'active',
         streak: 0,
         rewards: ['Share Badge', '60 XP', 'Viral Potential'],
         milestones: [
-          { target: 15, reward: '25 XP', achieved: currentMetrics.shares >= 15 },
-          { target: 30, reward: '35 XP', achieved: currentMetrics.shares >= 30 },
-          { target: 50, reward: '60 XP + Badge', achieved: currentMetrics.shares >= 50 }
+                  { target: 15, reward: '25 XP', achieved: (currentMetrics?.shares || 0) >= 15 },
+        { target: 30, reward: '35 XP', achieved: (currentMetrics?.shares || 0) >= 30 },
+        { target: 50, reward: '60 XP + Badge', achieved: (currentMetrics?.shares || 0) >= 50 }
         ]
       }
     ]

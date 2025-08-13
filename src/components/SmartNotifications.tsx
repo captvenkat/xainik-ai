@@ -46,11 +46,11 @@ export default function SmartNotifications({ userId, userMetrics }: SmartNotific
   const generateSmartNotifications = () => {
     const newNotifications: Notification[] = []
     const now = new Date()
-    const lastActivity = new Date(userMetrics.lastActivity)
+    const lastActivity = new Date(userMetrics?.lastActivity || Date.now())
     const daysSinceActivity = Math.floor((now.getTime() - lastActivity.getTime()) / (1000 * 60 * 60 * 24))
 
     // Performance-based notifications
-    if (userMetrics.views === 0) {
+          if (userMetrics?.views === 0) {
       newNotifications.push({
         id: '1',
         type: 'info',
@@ -65,7 +65,7 @@ export default function SmartNotifications({ userId, userMetrics }: SmartNotific
         actionText: 'Create Pitch',
         aiGenerated: true
       })
-    } else if (userMetrics.views > 0 && userMetrics.calls === 0 && userMetrics.emails === 0) {
+          } else if (userMetrics?.views > 0 && userMetrics?.calls === 0 && userMetrics?.emails === 0) {
       newNotifications.push({
         id: '2',
         type: 'warning',
@@ -81,12 +81,12 @@ export default function SmartNotifications({ userId, userMetrics }: SmartNotific
     }
 
     // Milestone notifications
-    if (userMetrics.views >= 10 && userMetrics.views < 50) {
+          if (userMetrics?.views >= 10 && userMetrics?.views < 50) {
       newNotifications.push({
         id: '3',
         type: 'achievement',
         title: 'First Milestone Reached! 🎉',
-        message: `Congratulations! You've reached ${userMetrics.views} pitch views. Keep sharing to reach 50 views and unlock new features.`,
+        message: `Congratulations! You've reached ${userMetrics?.views || 0} pitch views. Keep sharing to reach 50 views and unlock new features.`,
         timestamp: now.toISOString(),
         priority: 'medium',
         category: 'milestone',
@@ -96,12 +96,12 @@ export default function SmartNotifications({ userId, userMetrics }: SmartNotific
       })
     }
 
-    if (userMetrics.endorsements >= 3) {
+          if (userMetrics?.endorsements >= 3) {
       newNotifications.push({
         id: '4',
         type: 'success',
         title: 'Network Growing Strong!',
-        message: `You've received ${userMetrics.endorsements} endorsements. Your network is expanding - keep building relationships!`,
+        message: `You've received ${userMetrics?.endorsements || 0} endorsements. Your network is expanding - keep building relationships!`,
         timestamp: now.toISOString(),
         priority: 'low',
         category: 'networking',
@@ -128,8 +128,8 @@ export default function SmartNotifications({ userId, userMetrics }: SmartNotific
     }
 
     // Performance insights
-    if (userMetrics.views > 20) {
-      const conversionRate = ((userMetrics.calls + userMetrics.emails) / userMetrics.views) * 100
+          if (userMetrics?.views > 20) {
+        const conversionRate = (((userMetrics?.calls || 0) + (userMetrics?.emails || 0)) / (userMetrics?.views || 1)) * 100
       if (conversionRate < 5) {
         newNotifications.push({
           id: '6',
