@@ -2,8 +2,7 @@ import './globals.css'
 import Navigation from '@/components/Navigation'
 import Footer from '@/components/Footer'
 import AuthSessionWatcher from '@/components/AuthSessionWatcher'
-import AuthDebug from '@/components/AuthDebug'
-import SignInTest from '@/components/SignInTest'
+
 
 export const metadata = {
   title: {
@@ -72,8 +71,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </main>
         <Footer />
         <AuthSessionWatcher />
-        <AuthDebug />
-        <SignInTest />
       </body>
     </html>
   )
