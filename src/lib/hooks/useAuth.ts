@@ -30,25 +30,25 @@ export function useAuth(options: UseAuthOptions = {}) {
     let timeoutId: NodeJS.Timeout
     let authSubscription: any
 
-    async function checkAuth() {
+    function checkAuth() {
       // Prevent multiple simultaneous auth checks
       if (hasChecked) return
       setHasChecked(true)
       
-      try {
-        const supabase = createSupabaseBrowser()
-        
-        // Set a timeout to prevent infinite loading with hard refresh
-        timeoutId = setTimeout(() => {
-          console.warn('useAuth: Auth check timeout, forcing hard refresh')
-          setIsLoading(false)
-          setError('Authentication timeout - refreshing page')
-          // Force hard refresh immediately
-          window.location.href = window.location.href
-        }, 2000) // 2 second timeout - extremely aggressive
-        
-        // Check authentication
-        const { data: { user }, error: authError } = await supabase.auth.getUser()
+      const supabase = createSupabaseBrowser()
+      
+      // Set a timeout to prevent infinite loading with hard refresh
+      timeoutId = setTimeout(() => {
+        console.warn('useAuth: Auth check timeout, forcing hard refresh')
+        setIsLoading(false)
+        setError('Authentication timeout - refreshing page')
+        // Force hard refresh immediately
+        window.location.href = window.location.href
+      }, 1500) // 1.5 second timeout - extremely aggressive
+      
+      // Use non-async approach to prevent hanging
+      supabase.auth.getUser().then(({ data: { user }, error: authError }) => {
+        clearTimeout(timeoutId)
         
         if (authError) {
           console.error('useAuth: Auth error:', authError)
@@ -60,6 +60,7 @@ export function useAuth(options: UseAuthOptions = {}) {
             setUser(null)
             setProfile(null)
           }
+          setIsLoading(false)
           return
         }
         
@@ -71,44 +72,54 @@ export function useAuth(options: UseAuthOptions = {}) {
             setUser(null)
             setProfile(null)
           }
+          setIsLoading(false)
           return
         }
         
         setUser(user)
         
-        // Get user profile from database
-        const { data: profile, error: profileError } = await supabase
+        // Get user profile with timeout
+        const profileTimeoutId = setTimeout(() => {
+          setProfile(null)
+          setIsLoading(false)
+        }, 500) // 500ms timeout for profile
+        
+        supabase
           .from('users')
           .select('role, name')
           .eq('id', user.id)
           .single()
-        
-        if (profileError) {
-          // Silently handle profile fetch errors - don't log warnings
-          setProfile(null)
-        } else {
-          setProfile(profile)
-        }
-        
-        // Check role requirement
-        if (requiredRole && profile?.role !== requiredRole) {
-          const redirectPath = redirectTo || '/dashboard'
-          router.push(redirectPath)
-          return
-        }
-        
+          .then(({ data: profile, error: profileError }) => {
+            clearTimeout(profileTimeoutId)
+            
+            if (profileError) {
+              setProfile(null)
+            } else {
+              setProfile(profile)
+            }
+            
+            // Check role requirement
+            if (requiredRole && profile?.role !== requiredRole) {
+              const redirectPath = redirectTo || '/dashboard'
+              router.push(redirectPath)
+              return
+            }
+            
+            setIsLoading(false)
+          })
+          .catch(() => {
+            clearTimeout(profileTimeoutId)
+            setProfile(null)
+            setIsLoading(false)
+          })
+      }).catch(() => {
         clearTimeout(timeoutId)
-        
-      } catch (error) {
-        console.error('useAuth: Auth check error:', error)
         setError('Authentication failed')
         if (requireAuth) {
           router.push('/auth')
         }
-      } finally {
-        clearTimeout(timeoutId)
         setIsLoading(false)
-      }
+      })
     }
     
     // Set up auth state change listener (simplified to prevent spinning)
