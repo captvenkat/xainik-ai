@@ -37,13 +37,22 @@ export default function Navigation() {
       const controller = new AbortController()
       
       // Set timeout with cleanup
+      // More aggressive timeout for desktop browsers
+      const isDesktop = typeof window !== 'undefined' && window.innerWidth > 768
+      const timeoutDuration = isDesktop ? 800 : 2000 // 800ms for desktop, 2s for mobile
+      
       timeoutId = setTimeout(() => {
         if (isMounted) {
-          console.warn('Navigation: Auth timeout, forcing refresh')
+          console.warn(`Navigation: Auth timeout (${timeoutDuration}ms), forcing refresh`)
           setIsLoading(false)
-          window.location.href = window.location.href
+          // Force immediate hard refresh for desktop
+          if (isDesktop) {
+            window.location.reload()
+          } else {
+            window.location.href = window.location.href
+          }
         }
-      }, 2000) // 2 second timeout - reasonable for production
+      }, timeoutDuration)
       
       // Enterprise pattern: Promise with proper error handling
       const authPromise = supabase.auth.getSession()
