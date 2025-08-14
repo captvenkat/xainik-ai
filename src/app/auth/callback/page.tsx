@@ -43,22 +43,25 @@ export default function AuthCallbackPage() {
       try {
         console.log('AuthCallback: Starting callback processing...');
         
-        // Check if we have hash fragment tokens
+        // Check for OAuth tokens in URL (Google OAuth uses query params, not hash)
+        const urlParams = new URLSearchParams(window.location.search);
         const hash = window.location.hash.substring(1);
+        
+        console.log('AuthCallback: URL params:', urlParams.toString());
         console.log('AuthCallback: Hash fragment:', hash ? 'Present' : 'Missing');
         
-        if (!hash) {
-          console.log('AuthCallback: No hash fragment found');
-          setError('No authentication data received');
-          setStatus('error');
-          clearTimeout(timeoutId);
-          return;
+        // Try to get tokens from URL params first (Google OAuth)
+        let accessToken = urlParams.get('access_token');
+        let refreshToken = urlParams.get('refresh_token');
+        let error = urlParams.get('error');
+        
+        // If not in URL params, try hash fragment (fallback)
+        if (!accessToken && hash) {
+          const hashParams = new URLSearchParams(hash);
+          accessToken = hashParams.get('access_token');
+          refreshToken = hashParams.get('refresh_token');
+          error = hashParams.get('error');
         }
-
-        const params = new URLSearchParams(hash);
-        const accessToken = params.get('access_token');
-        const refreshToken = params.get('refresh_token');
-        const error = params.get('error');
 
         console.log('AuthCallback: Tokens found:', { 
           accessToken: !!accessToken, 
@@ -74,13 +77,17 @@ export default function AuthCallbackPage() {
           return;
         }
 
-        if (!accessToken || !refreshToken) {
-          console.error('AuthCallback: Missing tokens');
-          setError('Missing authentication tokens');
+        // For Google OAuth, we might not have tokens in URL - let Supabase handle it
+        if (error) {
+          console.error('AuthCallback: Authentication error:', error);
+          setError(`Authentication error: ${error}`);
           setStatus('error');
           clearTimeout(timeoutId);
           return;
         }
+
+        // If no tokens in URL, that's okay - Supabase should handle the OAuth flow
+        console.log('AuthCallback: Proceeding with Supabase session check...');
 
         // Create Supabase client - session should be automatically set from URL
         const supabase = createSupabaseBrowser();
