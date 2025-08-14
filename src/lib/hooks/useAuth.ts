@@ -26,26 +26,50 @@ export function useAuth(options: UseAuthOptions = {}) {
   const router = useRouter()
 
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout
+    let authSubscription: any
+
     async function checkAuth() {
       try {
+        console.log('useAuth: Starting auth check...')
         const supabase = createSupabaseBrowser()
+        
+        // Set a timeout to prevent infinite loading
+        timeoutId = setTimeout(() => {
+          console.warn('useAuth: Auth check timeout, setting loading to false')
+          setIsLoading(false)
+          setError('Authentication timeout')
+        }, 10000) // 10 second timeout
         
         // Check authentication
         const { data: { user }, error: authError } = await supabase.auth.getUser()
         
-        if (authError || !user) {
+        if (authError) {
+          console.error('useAuth: Auth error:', authError)
+          setError(authError.message)
           if (requireAuth) {
             const redirectPath = redirectTo || '/auth'
             router.push(redirectPath)
-            return
           } else {
             setUser(null)
             setProfile(null)
-            setIsLoading(false)
-            return
           }
+          return
         }
         
+        if (!user) {
+          console.log('useAuth: No user found')
+          if (requireAuth) {
+            const redirectPath = redirectTo || '/auth'
+            router.push(redirectPath)
+          } else {
+            setUser(null)
+            setProfile(null)
+          }
+          return
+        }
+        
+        console.log('useAuth: User authenticated:', user.email)
         setUser(user)
         
         // Get user profile from database
@@ -56,31 +80,87 @@ export function useAuth(options: UseAuthOptions = {}) {
           .single()
         
         if (profileError) {
-          console.warn('Failed to fetch user profile:', profileError)
+          console.warn('useAuth: Failed to fetch user profile:', profileError)
           setProfile(null)
         } else {
+          console.log('useAuth: Profile fetched:', profile)
           setProfile(profile)
         }
         
         // Check role requirement
         if (requiredRole && profile?.role !== requiredRole) {
+          console.log('useAuth: Role mismatch, redirecting')
           const redirectPath = redirectTo || '/dashboard'
           router.push(redirectPath)
           return
         }
         
+        clearTimeout(timeoutId)
+        
       } catch (error) {
-        console.error('Auth check error:', error)
+        console.error('useAuth: Auth check error:', error)
         setError('Authentication failed')
         if (requireAuth) {
           router.push('/auth')
         }
       } finally {
+        clearTimeout(timeoutId)
         setIsLoading(false)
       }
     }
     
+    // Set up auth state change listener
+    const supabase = createSupabaseBrowser()
+    authSubscription = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('useAuth: Auth state change:', event, session?.user?.email)
+      
+      if (event === 'SIGNED_IN' && session?.user) {
+        setUser(session.user)
+        setIsLoading(true)
+        
+        // Fetch profile for new session
+        try {
+          const { data: profile, error: profileError } = await supabase
+            .from('users')
+            .select('role, name')
+            .eq('id', session.user.id)
+            .single()
+          
+          if (profileError) {
+            console.warn('useAuth: Failed to fetch profile on auth change:', profileError)
+            setProfile(null)
+          } else {
+            setProfile(profile)
+          }
+        } catch (error) {
+          console.error('useAuth: Profile fetch error on auth change:', error)
+          setProfile(null)
+        } finally {
+          setIsLoading(false)
+        }
+      } else if (event === 'SIGNED_OUT') {
+        console.log('useAuth: User signed out')
+        setUser(null)
+        setProfile(null)
+        setIsLoading(false)
+        setError(null)
+      } else if (event === 'TOKEN_REFRESHED') {
+        console.log('useAuth: Token refreshed')
+        // Re-fetch user data if needed
+        if (session?.user) {
+          setUser(session.user)
+        }
+      }
+    })
+    
     checkAuth()
+    
+    return () => {
+      clearTimeout(timeoutId)
+      if (authSubscription?.data?.subscription) {
+        authSubscription.data.subscription.unsubscribe()
+      }
+    }
   }, [router, requiredRole, redirectTo, requireAuth])
 
   const signOut = async () => {

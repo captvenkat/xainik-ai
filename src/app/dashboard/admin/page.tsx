@@ -43,7 +43,7 @@ export default function AdminDashboard() {
         // Check admin access
         const { data: profile } = await supabase
           .from('users')
-          .select('role')
+          .select('role, name')
           .eq('id', user.id)
           .single()
 
@@ -168,7 +168,16 @@ export default function AdminDashboard() {
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-4">
             <Shield className="w-8 h-8 text-red-600" />
-            <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">
+                Welcome, {profile?.name || user?.email?.split('@')[0] || 'Admin'}!
+              </h1>
+              <div className="flex items-center gap-2 mt-1">
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                  {profile?.role || 'User'}
+                </span>
+              </div>
+            </div>
           </div>
           <p className="text-gray-600">Monitor platform activity and manage users</p>
         </div>

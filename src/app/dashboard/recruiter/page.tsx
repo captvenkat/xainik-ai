@@ -55,7 +55,7 @@ export default function RecruiterDashboard() {
         // Check user role
         const { data: profile, error: profileError } = await supabase
           .from('users')
-          .select('role')
+          .select('role, name')
           .eq('id', user.id)
           .single()
         
@@ -217,7 +217,16 @@ export default function RecruiterDashboard() {
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-4">
             <Briefcase className="w-8 h-8 text-blue-600" />
-            <h1 className="text-3xl font-bold text-gray-900">Recruiter Dashboard</h1>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">
+                Welcome, {profile?.name || user?.email?.split('@')[0] || 'Recruiter'}!
+              </h1>
+              <div className="flex items-center gap-2 mt-1">
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                  {profile?.role || 'User'}
+                </span>
+              </div>
+            </div>
           </div>
           <p className="text-gray-600">Track your candidate pipeline and manage connections</p>
         </div>

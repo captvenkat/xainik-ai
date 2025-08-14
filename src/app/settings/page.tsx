@@ -67,7 +67,28 @@ export default function SettingsPage() {
         </div>
 
         {/* Settings Options */}
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-6 md:grid-cols-3">
+          {/* Profile Settings */}
+          <div className="bg-white rounded-lg shadow-sm border p-6">
+            <div className="flex items-center mb-4">
+              <svg className="h-6 w-6 text-purple-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              <h2 className="text-xl font-semibold text-gray-900">
+                Profile Settings
+              </h2>
+            </div>
+            <p className="text-gray-600 mb-4">
+              Update your profile information and military service details
+            </p>
+            <Link
+              href="/settings/profile"
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+            >
+              Edit Profile
+            </Link>
+          </div>
+
           {/* Role Selection */}
           <div className="bg-white rounded-lg shadow-sm border p-6">
             <div className="flex items-center mb-4">
