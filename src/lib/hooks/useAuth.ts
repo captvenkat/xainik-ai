@@ -84,7 +84,7 @@ export function useAuth(options: UseAuthOptions = {}) {
           .single()
         
         if (profileError) {
-          console.warn('useAuth: Failed to fetch user profile:', profileError)
+          // Silently handle profile fetch errors - don't log warnings
           setProfile(null)
         } else {
           setProfile(profile)

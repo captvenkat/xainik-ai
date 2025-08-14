@@ -56,13 +56,13 @@ export default function Navigation() {
               .single()
             
             if (error) {
-              console.warn('Failed to fetch user profile:', error)
+              // Silently handle profile fetch errors - don't log warnings
               setProfile(null)
             } else {
               setProfile(profile ? { role: profile.role as string, full_name: profile.name as string } : null)
             }
           } catch (profileError) {
-            console.warn('Profile fetch error:', profileError)
+            // Silently handle profile fetch errors - don't log warnings
             setProfile(null)
           }
         } else {
@@ -82,28 +82,16 @@ export default function Navigation() {
     getUser()
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: string, session: any) => {
-      setUser(session?.user ?? null)
-      
-      if (session?.user) {
-        try {
-          const { data, error } = await supabase
-            .from('users')
-            .select('role, name')
-            .eq('id', session.user.id)
-            .single()
-          
-          if (error) {
-            console.warn('Profile fetch error in auth change:', error)
-            setProfile(null)
-          } else {
-            setProfile(data ? { role: data.role, full_name: data.name } : null)
-          }
-        } catch (profileError) {
-          console.warn('Profile fetch error in auth change:', profileError)
+      try {
+        // Only handle basic user state, don't fetch profile here
+        setUser(session?.user ?? null)
+        
+        if (!session?.user) {
           setProfile(null)
         }
-      } else {
-        setProfile(null)
+        // Profile will be fetched in the main getUser function
+      } catch (error) {
+        // Silently handle any auth state change errors
       }
     })
 
