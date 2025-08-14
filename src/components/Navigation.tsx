@@ -25,41 +25,68 @@ export default function Navigation() {
   const router = useRouter()
 
   useEffect(() => {
-    // TEMPORARILY DISABLE AUTH CHECK TO FIX SPINNING ISSUE
-    console.log('Navigation: Temporarily disabling auth check')
-    setIsLoading(false)
-    setUser(null)
-    setProfile(null)
+    // Simple auth check without complex timeouts
+    console.log('Navigation: Starting simple auth check')
     
-    // TODO: Re-enable auth check once the issue is resolved
-    /*
     const supabase = createSupabaseBrowser()
-    let timeoutId: NodeJS.Timeout
     let isMounted = true
     
-    const getUser = () => {
-      // Prevent multiple simultaneous auth checks
-      if (hasChecked) return
-      setHasChecked(true)
-      
-      // Enterprise pattern: Use AbortController for clean cancellation
-      const controller = new AbortController()
-      
-      // Set timeout with cleanup
-      timeoutId = setTimeout(() => {
-        if (isMounted) {
-          console.warn('Navigation: Auth timeout, stopping loading')
-          setIsLoading(false)
+    const checkAuth = async () => {
+      try {
+        // Simple session check
+        const { data: { session }, error } = await supabase.auth.getSession()
+        
+        if (!isMounted) return
+        
+        if (session?.user) {
+          setUser(session.user)
+          console.log('Navigation: User found:', session.user.id)
+          
+          // Get profile
+          const { data: profile, error: profileError } = await supabase
+            .from('users')
+            .select('role, name')
+            .eq('id', session.user.id)
+            .single()
+          
+          if (!isMounted) return
+          
+          if (!profileError && profile) {
+            setProfile({ role: profile.role as string, full_name: profile.name as string })
+          }
+        } else {
           setUser(null)
           setProfile(null)
         }
-      }, 3000)
-      
-      // Auth check logic here...
+      } catch (error) {
+        console.error('Navigation: Auth check error:', error)
+        setUser(null)
+        setProfile(null)
+      } finally {
+        if (isMounted) {
+          setIsLoading(false)
+        }
+      }
     }
-
-    getUser()
-    */
+    
+    checkAuth()
+    
+    // Simple auth state change listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Navigation: Auth state change:', event)
+      if (isMounted) {
+        setUser(session?.user ?? null)
+        if (!session?.user) {
+          setProfile(null)
+        }
+        setIsLoading(false)
+      }
+    })
+    
+    return () => {
+      isMounted = false
+      subscription.unsubscribe()
+    }
   }, [])
 
   const handleSignOut = async () => {
