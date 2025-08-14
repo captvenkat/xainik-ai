@@ -94,12 +94,15 @@ export function useAuth(options: UseAuthOptions = {}) {
             }
           }, 1500) // 1.5 second timeout for profile
           
-          return supabase
-            .from('users')
-            .select('role, name')
-            .eq('id', user.id)
-            .single()
-            .then(({ data: profile, error: profileError }) => {
+          // Use async/await in a separate function to avoid Promise chain issues
+          const fetchProfile = async () => {
+            try {
+              const { data: profile, error: profileError } = await supabase
+                .from('users')
+                .select('role, name')
+                .eq('id', user.id)
+                .single()
+              
               if (!isMounted) return
               clearTimeout(profileTimeoutId)
               
@@ -117,13 +120,15 @@ export function useAuth(options: UseAuthOptions = {}) {
               }
               
               setIsLoading(false)
-            })
-            .catch((error) => {
+            } catch (error) {
               if (!isMounted) return
               clearTimeout(profileTimeoutId)
               setProfile(null)
               setIsLoading(false)
-            })
+            }
+          }
+          
+          fetchProfile()
         })
         .catch((error) => {
           if (!isMounted) return
