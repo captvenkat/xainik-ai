@@ -41,16 +41,23 @@ export function useAuth(options: UseAuthOptions = {}) {
       // Enterprise pattern: Use AbortController for clean cancellation
       const controller = new AbortController()
       
-      // Set a timeout to prevent infinite loading with hard refresh
+      // More aggressive timeout for desktop browsers
+      const isDesktop = typeof window !== 'undefined' && window.innerWidth > 768
+      const timeoutDuration = isDesktop ? 1000 : 3000 // 1s for desktop, 3s for mobile
+      
       timeoutId = setTimeout(() => {
         if (isMounted) {
-          console.warn('useAuth: Auth check timeout, forcing hard refresh')
+          console.warn(`useAuth: Auth check timeout (${timeoutDuration}ms), forcing hard refresh`)
           setIsLoading(false)
           setError('Authentication timeout - refreshing page')
-          // Force hard refresh immediately
-          window.location.href = window.location.href
+          // Force immediate hard refresh for desktop
+          if (isDesktop) {
+            window.location.reload()
+          } else {
+            window.location.href = window.location.href
+          }
         }
-      }, 3000) // 3 second timeout - reasonable for production
+      }, timeoutDuration)
       
       // Enterprise pattern: Promise with proper error handling
       supabase.auth.getUser()
@@ -86,13 +93,14 @@ export function useAuth(options: UseAuthOptions = {}) {
           
           setUser(user)
           
-          // Get user profile with timeout
+          // Get user profile with timeout - more aggressive for desktop
+          const profileTimeoutDuration = isDesktop ? 800 : 1500 // 800ms for desktop, 1.5s for mobile
           const profileTimeoutId = setTimeout(() => {
             if (isMounted) {
               setProfile(null)
               setIsLoading(false)
             }
-          }, 1500) // 1.5 second timeout for profile
+          }, profileTimeoutDuration)
           
           // Use async/await in a separate function to avoid Promise chain issues
           const fetchProfile = async () => {
