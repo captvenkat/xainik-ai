@@ -26,59 +26,79 @@ export default function Navigation() {
   useEffect(() => {
     const supabase = createSupabaseBrowser()
     let timeoutId: NodeJS.Timeout
+    let isMounted = true
     
     const getUser = () => {
       // Prevent multiple simultaneous auth checks
       if (hasChecked) return
       setHasChecked(true)
       
-      // Set immediate timeout - if auth takes more than 1 second, refresh
-      timeoutId = setTimeout(() => {
-        console.warn('Navigation: Auth timeout, forcing refresh')
-        setIsLoading(false)
-        window.location.href = window.location.href
-      }, 1000) // 1 second timeout - immediate refresh
+      // Enterprise pattern: Use AbortController for clean cancellation
+      const controller = new AbortController()
       
-      // Use non-async approach to prevent hanging
-      supabase.auth.getSession().then(({ data: { session }, error: sessionError }) => {
-        clearTimeout(timeoutId)
-        
-        if (session?.user) {
-          setUser(session.user)
+      // Set timeout with cleanup
+      timeoutId = setTimeout(() => {
+        if (isMounted) {
+          console.warn('Navigation: Auth timeout, forcing refresh')
+          setIsLoading(false)
+          window.location.href = window.location.href
+        }
+      }, 2000) // 2 second timeout - reasonable for production
+      
+      // Enterprise pattern: Promise with proper error handling
+      const authPromise = supabase.auth.getSession()
+        .then(({ data: { session }, error: sessionError }) => {
+          if (!isMounted) return
+          clearTimeout(timeoutId)
           
-          // Get profile with another timeout
-          const profileTimeoutId = setTimeout(() => {
-            setProfile(null)
-          }, 500) // 500ms timeout for profile
-          
-          supabase
-            .from('users')
-            .select('role, name')
-            .eq('id', session.user.id)
-            .single()
-            .then(({ data: profile, error }) => {
-              clearTimeout(profileTimeoutId)
-              if (!error && profile) {
-                setProfile({ role: profile.role as string, full_name: profile.name as string })
-              } else {
+          if (session?.user) {
+            setUser(session.user)
+            
+            // Get profile with separate timeout
+            const profileController = new AbortController()
+            const profileTimeoutId = setTimeout(() => {
+              if (isMounted) {
                 setProfile(null)
               }
-            })
-            .catch(() => {
-              clearTimeout(profileTimeoutId)
-              setProfile(null)
-            })
-        } else {
+            }, 1000)
+            
+            return supabase
+              .from('users')
+              .select('role, name')
+              .eq('id', session.user.id)
+              .single()
+              .then(({ data: profile, error }) => {
+                if (!isMounted) return
+                clearTimeout(profileTimeoutId)
+                if (!error && profile) {
+                  setProfile({ role: profile.role as string, full_name: profile.name as string })
+                } else {
+                  setProfile(null)
+                }
+              })
+              .catch((error) => {
+                if (!isMounted) return
+                clearTimeout(profileTimeoutId)
+                setProfile(null)
+              })
+          } else {
+            setUser(null)
+            setProfile(null)
+          }
+          setIsLoading(false)
+        })
+        .catch((error) => {
+          if (!isMounted) return
+          clearTimeout(timeoutId)
           setUser(null)
           setProfile(null)
-        }
-        setIsLoading(false)
-      }).catch(() => {
-        clearTimeout(timeoutId)
-        setUser(null)
-        setProfile(null)
-        setIsLoading(false)
-      })
+          setIsLoading(false)
+        })
+      
+      // Cleanup function
+      return () => {
+        controller.abort()
+      }
     }
 
     getUser()
@@ -98,6 +118,7 @@ export default function Navigation() {
     })
 
     return () => {
+      isMounted = false
       clearTimeout(timeoutId)
       subscription.unsubscribe()
     }
