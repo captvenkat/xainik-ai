@@ -25,6 +25,14 @@ export default function Navigation() {
   const router = useRouter()
 
   useEffect(() => {
+    // TEMPORARILY DISABLE AUTH CHECK TO FIX SPINNING ISSUE
+    console.log('Navigation: Temporarily disabling auth check')
+    setIsLoading(false)
+    setUser(null)
+    setProfile(null)
+    
+    // TODO: Re-enable auth check once the issue is resolved
+    /*
     const supabase = createSupabaseBrowser()
     let timeoutId: NodeJS.Timeout
     let isMounted = true
@@ -38,103 +46,20 @@ export default function Navigation() {
       const controller = new AbortController()
       
       // Set timeout with cleanup
-      // Set a reasonable timeout - don't be too aggressive
       timeoutId = setTimeout(() => {
         if (isMounted) {
           console.warn('Navigation: Auth timeout, stopping loading')
           setIsLoading(false)
-          // Set user to null if auth times out
           setUser(null)
           setProfile(null)
         }
-      }, 3000) // 3 second timeout - reasonable
+      }, 3000)
       
-      // Enterprise pattern: Promise with proper error handling
-      const authPromise = supabase.auth.getSession()
-        .then(({ data: { session }, error: sessionError }) => {
-          if (!isMounted) return
-          clearTimeout(timeoutId)
-          
-          if (session?.user) {
-            setUser(session.user)
-            
-            // Get profile with separate timeout
-            const profileTimeoutId = setTimeout(() => {
-              if (isMounted) {
-                setProfile(null)
-              }
-            }, 1000)
-            
-            // Use async/await in a separate function to avoid Promise chain issues
-            const fetchProfile = async () => {
-              try {
-                const { data: profile, error } = await supabase
-                  .from('users')
-                  .select('role, name')
-                  .eq('id', session.user.id)
-                  .single()
-                
-                if (!isMounted) return
-                clearTimeout(profileTimeoutId)
-                
-                if (!error && profile) {
-                  setProfile({ role: profile.role as string, full_name: profile.name as string })
-                } else {
-                  setProfile(null)
-                }
-              } catch (error) {
-                if (!isMounted) return
-                clearTimeout(profileTimeoutId)
-                setProfile(null)
-              }
-            }
-            
-            fetchProfile()
-          } else {
-            setUser(null)
-            setProfile(null)
-          }
-          setIsLoading(false)
-        })
-        .catch((error) => {
-          if (!isMounted) return
-          clearTimeout(timeoutId)
-          setUser(null)
-          setProfile(null)
-          setIsLoading(false)
-        })
-      
-      // Cleanup function
-      return () => {
-        controller.abort()
-      }
+      // Auth check logic here...
     }
 
     getUser()
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: string, session: any) => {
-      console.log('Navigation: Auth state change:', event, session?.user?.id)
-      
-      try {
-        // Only handle basic user state, don't fetch profile here
-        setUser(session?.user ?? null)
-        
-        if (!session?.user) {
-          setProfile(null)
-          setIsLoading(false)
-        }
-        // Profile will be fetched in the main getUser function
-      } catch (error) {
-        console.error('Navigation: Auth state change error:', error)
-        setIsLoading(false)
-      }
-    })
-
-    return () => {
-      isMounted = false
-      clearTimeout(timeoutId)
-      subscription.unsubscribe()
-    }
+    */
   }, [])
 
   const handleSignOut = async () => {
