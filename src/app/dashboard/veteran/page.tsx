@@ -27,6 +27,7 @@ export default function VeteranDashboard() {
   const [avgTimeData, setAvgTimeData] = useState<any>(null)
   const [invoices, setInvoices] = useState<any>(null)
   const [daysUntilExpiry, setDaysUntilExpiry] = useState<number | null>(null)
+  const [veteranProfile, setVeteranProfile] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -37,12 +38,13 @@ export default function VeteranDashboard() {
       
       // Fetch veteran metrics and analytics
       console.log('Veteran Dashboard: Starting Promise.all for data fetching')
-      const [metricsResult, analyticsResult, trendlineDataResult, cohortDataResult, avgTimeDataResult] = await Promise.all([
+      const [metricsResult, analyticsResult, trendlineDataResult, cohortDataResult, avgTimeDataResult, veteranProfile] = await Promise.all([
         fetchVeteranMetrics(userId),
         fetchVeteranAnalytics(userId),
         fetchTrendlineData(),
         fetchCohortData(),
-        fetchAvgTimeData()
+        fetchAvgTimeData(),
+        fetchVeteranProfile(userId)
       ])
       
       console.log('Veteran Dashboard: Promise.all completed, setting state')
@@ -51,6 +53,7 @@ export default function VeteranDashboard() {
       setTrendlineData(trendlineDataResult)
       setCohortData(cohortDataResult)
       setAvgTimeData(avgTimeDataResult)
+      setVeteranProfile(veteranProfile)
 
       // Fetch invoices
       const { data: invoicesData } = await supabase
@@ -254,6 +257,28 @@ export default function VeteranDashboard() {
     }
   }
 
+  async function fetchVeteranProfile(userId: string) {
+    try {
+      const supabase = createSupabaseBrowser()
+      
+      // Fetch veteran profile data
+      const { data: veteranData, error: veteranError } = await supabase
+        .from('veterans')
+        .select('*')
+        .eq('user_id', userId)
+        .single()
+      
+      if (veteranError && veteranError.code !== 'PGRST116') {
+        console.error('Failed to fetch veteran profile:', veteranError)
+      }
+      
+      return veteranData || null
+    } catch (error) {
+      console.error('Failed to fetch veteran profile:', error)
+      return null
+    }
+  }
+
   // Show loading state
   if (authLoading || isLoading) {
     console.log('Veteran Dashboard Loading:', { authLoading, isLoading, user: !!user, profile: !!profile })
@@ -276,12 +301,21 @@ export default function VeteranDashboard() {
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-4">
             <Shield className="w-8 h-8 text-blue-600" />
-            <h1 className="text-3xl font-bold text-gray-900">Veteran Dashboard</h1>
-            {!isVeteran && (
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                Preview Mode
-              </span>
-            )}
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">
+                Welcome, {profile?.name || user?.email?.split('@')[0] || 'Veteran'}!
+              </h1>
+              <div className="flex items-center gap-2 mt-1">
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                  {profile?.role || 'User'}
+                </span>
+                {!isVeteran && (
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                    Preview Mode
+                  </span>
+                )}
+              </div>
+            </div>
           </div>
           <p className="text-gray-600">
             {isVeteran 
@@ -290,6 +324,81 @@ export default function VeteranDashboard() {
             }
           </p>
         </div>
+
+        {/* Profile Information Section - Only show for veterans */}
+        {isVeteran && (
+          <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold text-gray-900">Profile Information</h2>
+              <button
+                onClick={() => window.location.href = '/settings/profile'}
+                className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                Edit Profile
+              </button>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* Basic Information */}
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 mb-3">Basic Information</h3>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Full Name</label>
+                    <p className="mt-1 text-sm text-gray-900">{profile?.name || 'Not set'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Email</label>
+                    <p className="mt-1 text-sm text-gray-900">{user?.email}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Phone</label>
+                    <p className="mt-1 text-sm text-gray-900">{profile?.phone || 'Not set'}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Military Service */}
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 mb-3">Military Service</h3>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Rank</label>
+                    <p className="mt-1 text-sm text-gray-900">{veteranProfile?.rank || 'Not set'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Service Branch</label>
+                    <p className="mt-1 text-sm text-gray-900">{veteranProfile?.service_branch || 'Not set'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Years of Experience</label>
+                    <p className="mt-1 text-sm text-gray-900">{veteranProfile?.years_experience || 'Not set'}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Location Information */}
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 mb-3">Location</h3>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Current Location</label>
+                    <p className="mt-1 text-sm text-gray-900">{veteranProfile?.location_current || 'Not set'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Preferred Locations</label>
+                    <p className="mt-1 text-sm text-gray-900">
+                      {veteranProfile?.locations_preferred && veteranProfile.locations_preferred.length > 0 
+                        ? veteranProfile.locations_preferred.join(', ')
+                        : 'Not set'
+                      }
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Role Notice for Non-Veterans */}
         {!isVeteran && (
