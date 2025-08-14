@@ -47,9 +47,11 @@ export function useAuth(options: UseAuthOptions = {}) {
           console.warn('useAuth: Auth check timeout, stopping loading')
           setIsLoading(false)
           setError('Authentication timeout')
-          // Don't force refresh - just stop loading
+          // Set user to null if auth times out
+          setUser(null)
+          setProfile(null)
         }
-      }, 5000) // 5 second timeout - reasonable
+      }, 3000) // 3 second timeout - reasonable
       
       // Enterprise pattern: Promise with proper error handling
       supabase.auth.getUser()
