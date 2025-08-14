@@ -26,20 +26,15 @@ export default function Navigation() {
     const supabase = createSupabaseBrowser()
     
     const getUser = async () => {
-      console.log('Navigation: Starting auth check...')
-      
       try {
         // First check session
         const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-        console.log('Navigation: Session check:', { session: !!session, error: sessionError })
         
         if (session?.user) {
           setUser(session.user)
-          console.log('User authenticated:', session.user.email)
           
           // Try to get user profile
           try {
-            console.log('Navigation: Fetching profile for user:', session.user.id)
             const { data: profile, error } = await supabase
               .from('users')
               .select('role, name')
@@ -50,7 +45,6 @@ export default function Navigation() {
               console.warn('Failed to fetch user profile:', error)
               setProfile(null)
             } else {
-              console.log('Navigation: Profile fetched successfully:', profile)
               setProfile(profile ? { role: profile.role as string, full_name: profile.name as string } : null)
             }
           } catch (profileError) {
@@ -58,7 +52,6 @@ export default function Navigation() {
             setProfile(null)
           }
         } else {
-          console.log('No session found')
           setUser(null)
           setProfile(null)
         }
@@ -67,7 +60,6 @@ export default function Navigation() {
         setUser(null)
         setProfile(null)
       } finally {
-        console.log('Navigation: Setting isLoading to false')
         setIsLoading(false)
       }
     }
@@ -75,12 +67,10 @@ export default function Navigation() {
     getUser()
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: string, session: any) => {
-      console.log('Navigation: Auth state change:', event, session?.user?.email)
       setUser(session?.user ?? null)
       
       if (session?.user) {
         try {
-          console.log('Navigation: Fetching profile in auth change for user:', session.user.id)
           const { data, error } = await supabase
             .from('users')
             .select('role, name')
@@ -91,7 +81,6 @@ export default function Navigation() {
             console.warn('Profile fetch error in auth change:', error)
             setProfile(null)
           } else {
-            console.log('Navigation: Profile fetched in auth change:', data)
             setProfile(data ? { role: data.role, full_name: data.name } : null)
           }
         } catch (profileError) {
@@ -108,7 +97,6 @@ export default function Navigation() {
 
   const handleSignOut = async () => {
     const supabase = createSupabaseBrowser()
-    console.log('Navigation: Signing out...')
     
     try {
       // Clear user state immediately for better UX
@@ -119,21 +107,16 @@ export default function Navigation() {
       if (error) {
         console.error('Navigation: Sign out error:', error)
       } else {
-        console.log('Navigation: Sign out successful')
-        
         // Clear any local storage
         if (typeof window !== 'undefined') {
           localStorage.removeItem('xainik-auth-token')
           sessionStorage.clear()
-          console.log('Navigation: Cleared storage')
         }
         
         // Clear the singleton instance
         clearSupabaseBrowserInstance()
-        console.log('Navigation: Cleared Supabase instance')
         
         // Force page reload to clear all state
-        console.log('Navigation: Redirecting to home page...')
         window.location.href = '/'
       }
     } catch (error) {
@@ -144,18 +127,14 @@ export default function Navigation() {
   }
 
   const getDashboardLink = () => {
-    console.log('Navigation: getDashboardLink called with profile:', profile)
     if (!profile?.role) {
-      console.log('Navigation: No role found, returning /dashboard')
       return '/dashboard'
     }
     const link = `/dashboard/${profile.role}`
-    console.log('Navigation: Returning dashboard link:', link)
     return link
   }
 
   const getDashboardLabel = () => {
-    console.log('Navigation: getDashboardLabel called with profile:', profile)
     if (!profile?.role) return 'Dashboard'
     const labels: Record<string, string> = {
       veteran: 'Veteran Dashboard',
@@ -164,7 +143,6 @@ export default function Navigation() {
       admin: 'Admin Dashboard'
     }
     const label = labels[profile.role] || 'Dashboard'
-    console.log('Navigation: Returning dashboard label:', label)
     return label
   }
 
