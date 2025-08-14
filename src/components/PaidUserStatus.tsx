@@ -93,7 +93,7 @@ export default function PaidUserStatus({ userPlan, daysUntilExpiry, onManageSubs
             <h3 className="font-medium text-gray-900">Expires In</h3>
           </div>
           <p className="text-sm text-gray-600">
-            {daysUntilExpiry !== null && daysUntilExpiry > 0 
+            {daysUntilExpiry !== null && daysUntilExpiry !== undefined && daysUntilExpiry > 0 
               ? `${daysUntilExpiry} days`
               : 'Active'
             }
