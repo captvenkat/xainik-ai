@@ -45,7 +45,7 @@ export function useAuth(options: UseAuthOptions = {}) {
           setError('Authentication timeout - refreshing page')
           // Force hard refresh immediately
           window.location.href = window.location.href
-        }, 5000) // 5 second timeout - more aggressive
+        }, 3000) // 3 second timeout - very aggressive
         
         // Check authentication
         const { data: { user }, error: authError } = await supabase.auth.getUser()
