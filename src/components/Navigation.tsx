@@ -200,6 +200,11 @@ export default function Navigation() {
             <Link href="/contact" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
               Contact
             </Link>
+            {process.env.NEXT_PUBLIC_FEATURE_IMPACT === 'true' && profile?.role === 'veteran' && (
+              <Link href="/dashboard/veteran/impact" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
+                Impact
+              </Link>
+            )}
           </div>
 
           {/* Auth Section */}
@@ -298,6 +303,15 @@ export default function Navigation() {
               >
                 Contact
               </Link>
+              {process.env.NEXT_PUBLIC_FEATURE_IMPACT === 'true' && profile?.role === 'veteran' && (
+                <Link 
+                  href="/dashboard/veteran/impact" 
+                  className="text-gray-700 hover:text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 transition-all duration-200"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Impact
+                </Link>
+              )}
               
               {/* Auth buttons in mobile menu */}
               <div className="border-t border-gray-200 pt-4 mt-4">
