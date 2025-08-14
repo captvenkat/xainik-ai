@@ -24,9 +24,20 @@ export default function Navigation() {
 
   useEffect(() => {
     const supabase = createSupabaseBrowser()
+    let timeoutId: NodeJS.Timeout
     
     const getUser = async () => {
       try {
+        // Set timeout for auth check
+        timeoutId = setTimeout(() => {
+          console.warn('Navigation: Auth timeout, forcing refresh')
+          setIsLoading(false)
+          // Force hard refresh after 2 seconds
+          setTimeout(() => {
+            window.location.href = window.location.href
+          }, 2000)
+        }, 6000) // 6 second timeout
+        
         // First check session
         const { data: { session }, error: sessionError } = await supabase.auth.getSession()
         
@@ -60,6 +71,7 @@ export default function Navigation() {
         setUser(null)
         setProfile(null)
       } finally {
+        clearTimeout(timeoutId)
         setIsLoading(false)
       }
     }
@@ -92,7 +104,10 @@ export default function Navigation() {
       }
     })
 
-    return () => subscription.unsubscribe()
+    return () => {
+      clearTimeout(timeoutId)
+      subscription.unsubscribe()
+    }
   }, [])
 
   const handleSignOut = async () => {
