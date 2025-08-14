@@ -27,73 +27,58 @@ export default function Navigation() {
     const supabase = createSupabaseBrowser()
     let timeoutId: NodeJS.Timeout
     
-    const getUser = async () => {
+    const getUser = () => {
       // Prevent multiple simultaneous auth checks
       if (hasChecked) return
       setHasChecked(true)
       
-      try {
-        // Set timeout for auth check
-        timeoutId = setTimeout(() => {
-          console.warn('Navigation: Auth timeout, forcing refresh')
-          setIsLoading(false)
-          // Force hard refresh immediately
-          window.location.href = window.location.href
-        }, 1500) // 1.5 second timeout - extremely aggressive
-        
-        // First check session with Promise.race to prevent hanging
-        const sessionPromise = supabase.auth.getSession()
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Session timeout')), 1000)
-        )
-        
-        const { data: { session }, error: sessionError } = await Promise.race([
-          sessionPromise,
-          timeoutPromise
-        ]) as any
+      // Set immediate timeout - if auth takes more than 1 second, refresh
+      timeoutId = setTimeout(() => {
+        console.warn('Navigation: Auth timeout, forcing refresh')
+        setIsLoading(false)
+        window.location.href = window.location.href
+      }, 1000) // 1 second timeout - immediate refresh
+      
+      // Use non-async approach to prevent hanging
+      supabase.auth.getSession().then(({ data: { session }, error: sessionError }) => {
+        clearTimeout(timeoutId)
         
         if (session?.user) {
           setUser(session.user)
           
-          // Try to get user profile with timeout
-          try {
-            const profilePromise = supabase
-              .from('users')
-              .select('role, name')
-              .eq('id', session.user.id)
-              .single()
-            
-            const profileTimeoutPromise = new Promise((_, reject) => 
-              setTimeout(() => reject(new Error('Profile timeout')), 1000)
-            )
-            
-            const { data: profile, error } = await Promise.race([
-              profilePromise,
-              profileTimeoutPromise
-            ]) as any
-            
-            if (error) {
-              // Silently handle profile fetch errors - don't log warnings
-              setProfile(null)
-            } else {
-              setProfile(profile ? { role: profile.role as string, full_name: profile.name as string } : null)
-            }
-          } catch (profileError) {
-            // Silently handle profile fetch errors - don't log warnings
+          // Get profile with another timeout
+          const profileTimeoutId = setTimeout(() => {
             setProfile(null)
-          }
+          }, 500) // 500ms timeout for profile
+          
+          supabase
+            .from('users')
+            .select('role, name')
+            .eq('id', session.user.id)
+            .single()
+            .then(({ data: profile, error }) => {
+              clearTimeout(profileTimeoutId)
+              if (!error && profile) {
+                setProfile({ role: profile.role as string, full_name: profile.name as string })
+              } else {
+                setProfile(null)
+              }
+            })
+            .catch(() => {
+              clearTimeout(profileTimeoutId)
+              setProfile(null)
+            })
         } else {
           setUser(null)
           setProfile(null)
         }
-      } catch (error) {
-        console.error('Auth error:', error)
+        setIsLoading(false)
+      }).catch(() => {
+        clearTimeout(timeoutId)
         setUser(null)
         setProfile(null)
-      } finally {
-        clearTimeout(timeoutId)
         setIsLoading(false)
-      }
+      })
     }
 
     getUser()
