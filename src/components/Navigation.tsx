@@ -55,32 +55,37 @@ export default function Navigation() {
             setUser(session.user)
             
             // Get profile with separate timeout
-            const profileController = new AbortController()
             const profileTimeoutId = setTimeout(() => {
               if (isMounted) {
                 setProfile(null)
               }
             }, 1000)
             
-            supabase
-              .from('users')
-              .select('role, name')
-              .eq('id', session.user.id)
-              .single()
-              .then(({ data: profile, error }) => {
+            // Use async/await in a separate function to avoid Promise chain issues
+            const fetchProfile = async () => {
+              try {
+                const { data: profile, error } = await supabase
+                  .from('users')
+                  .select('role, name')
+                  .eq('id', session.user.id)
+                  .single()
+                
                 if (!isMounted) return
                 clearTimeout(profileTimeoutId)
+                
                 if (!error && profile) {
                   setProfile({ role: profile.role as string, full_name: profile.name as string })
                 } else {
                   setProfile(null)
                 }
-              })
-              .catch(() => {
+              } catch (error) {
                 if (!isMounted) return
                 clearTimeout(profileTimeoutId)
                 setProfile(null)
-              })
+              }
+            }
+            
+            fetchProfile()
           } else {
             setUser(null)
             setProfile(null)
