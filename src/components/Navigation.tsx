@@ -39,7 +39,7 @@ export default function Navigation() {
           setIsLoading(false)
           // Force hard refresh immediately
           window.location.href = window.location.href
-        }, 4000) // 4 second timeout - more aggressive
+        }, 2500) // 2.5 second timeout - very aggressive
         
         // First check session
         const { data: { session }, error: sessionError } = await supabase.auth.getSession()
