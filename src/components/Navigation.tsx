@@ -62,7 +62,7 @@ export default function Navigation() {
               }
             }, 1000)
             
-            return supabase
+            supabase
               .from('users')
               .select('role, name')
               .eq('id', session.user.id)
