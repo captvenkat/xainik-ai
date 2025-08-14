@@ -23,6 +23,7 @@ export function useAuth(options: UseAuthOptions = {}) {
   const [profile, setProfile] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [hasChecked, setHasChecked] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -30,6 +31,10 @@ export function useAuth(options: UseAuthOptions = {}) {
     let authSubscription: any
 
     async function checkAuth() {
+      // Prevent multiple simultaneous auth checks
+      if (hasChecked) return
+      setHasChecked(true)
+      
       try {
         const supabase = createSupabaseBrowser()
         
@@ -38,11 +43,9 @@ export function useAuth(options: UseAuthOptions = {}) {
           console.warn('useAuth: Auth check timeout, forcing hard refresh')
           setIsLoading(false)
           setError('Authentication timeout - refreshing page')
-          // Force hard refresh after 3 seconds
-          setTimeout(() => {
-            window.location.href = window.location.href
-          }, 3000)
-        }, 8000) // 8 second timeout
+          // Force hard refresh immediately
+          window.location.href = window.location.href
+        }, 5000) // 5 second timeout - more aggressive
         
         // Check authentication
         const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -108,47 +111,18 @@ export function useAuth(options: UseAuthOptions = {}) {
       }
     }
     
-    // Set up auth state change listener
+    // Set up auth state change listener (simplified to prevent spinning)
     const supabase = createSupabaseBrowser()
     authSubscription = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('useAuth: Auth state change:', event, session?.user?.email)
-      
       if (event === 'SIGNED_IN' && session?.user) {
         setUser(session.user)
-        setIsLoading(true)
-        
-        // Fetch profile for new session
-        try {
-          const { data: profile, error: profileError } = await supabase
-            .from('users')
-            .select('role, name')
-            .eq('id', session.user.id)
-            .single()
-          
-          if (profileError) {
-            console.warn('useAuth: Failed to fetch profile on auth change:', profileError)
-            setProfile(null)
-          } else {
-            setProfile(profile)
-          }
-        } catch (error) {
-          console.error('useAuth: Profile fetch error on auth change:', error)
-          setProfile(null)
-        } finally {
-          setIsLoading(false)
-        }
+        // Don't set loading to true here to prevent spinning
+        // Profile will be fetched in the main checkAuth function
       } else if (event === 'SIGNED_OUT') {
-        console.log('useAuth: User signed out')
         setUser(null)
         setProfile(null)
         setIsLoading(false)
         setError(null)
-      } else if (event === 'TOKEN_REFRESHED') {
-        console.log('useAuth: Token refreshed')
-        // Re-fetch user data if needed
-        if (session?.user) {
-          setUser(session.user)
-        }
       }
     })
     
