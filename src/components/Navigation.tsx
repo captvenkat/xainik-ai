@@ -43,9 +43,11 @@ export default function Navigation() {
         if (isMounted) {
           console.warn('Navigation: Auth timeout, stopping loading')
           setIsLoading(false)
-          // Don't force refresh - just stop loading
+          // Set user to null if auth times out
+          setUser(null)
+          setProfile(null)
         }
-      }, 5000) // 5 second timeout - reasonable
+      }, 3000) // 3 second timeout - reasonable
       
       // Enterprise pattern: Promise with proper error handling
       const authPromise = supabase.auth.getSession()
@@ -111,9 +113,7 @@ export default function Navigation() {
     getUser()
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: string, session: any) => {
-      // Prevent multiple auth state changes from causing loops
-      if (authStateHandled) return
-      setAuthStateHandled(true)
+      console.log('Navigation: Auth state change:', event, session?.user?.id)
       
       try {
         // Only handle basic user state, don't fetch profile here
@@ -121,10 +121,12 @@ export default function Navigation() {
         
         if (!session?.user) {
           setProfile(null)
+          setIsLoading(false)
         }
         // Profile will be fetched in the main getUser function
       } catch (error) {
-        // Silently handle any auth state change errors
+        console.error('Navigation: Auth state change error:', error)
+        setIsLoading(false)
       }
     })
 
