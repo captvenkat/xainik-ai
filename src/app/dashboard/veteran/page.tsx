@@ -5,6 +5,8 @@ import { useAuth } from '@/lib/hooks/useAuth'
 import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 import LoadingSpinner from '@/components/LoadingSpinner'
 import ErrorState from '@/components/ErrorState'
+import FreeUserStatus from '@/components/FreeUserStatus'
+import PaidUserStatus from '@/components/PaidUserStatus'
 import { Shield, Calendar, Users, Eye, Phone, Mail, FileText, Share2, RefreshCw, TrendingUp, Award, Clock, AlertTriangle, Target, Lightbulb } from 'lucide-react'
 import ReferralFunnel from '@/components/ReferralFunnel'
 import PlatformBreakdown from '@/components/PlatformBreakdown'
@@ -28,6 +30,7 @@ export default function VeteranDashboard() {
   const [invoices, setInvoices] = useState<any>(null)
   const [daysUntilExpiry, setDaysUntilExpiry] = useState<number | null>(null)
   const [veteranProfile, setVeteranProfile] = useState<any>(null)
+  const [userPlan, setUserPlan] = useState<string>('free')
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -78,6 +81,13 @@ export default function VeteranDashboard() {
       if (pitchData?.end_date) {
         const daysUntil = Math.ceil((new Date(pitchData.end_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
         setDaysUntilExpiry(daysUntil)
+      }
+
+      // Determine user plan status
+      if (pitchData?.plan_tier && pitchData.plan_tier !== 'free') {
+        setUserPlan(pitchData.plan_tier)
+      } else {
+        setUserPlan('free')
       }
     } catch (error) {
       console.error('Failed to fetch veteran data:', error)
@@ -282,7 +292,7 @@ export default function VeteranDashboard() {
   // Show loading state
   if (authLoading || isLoading) {
     console.log('Veteran Dashboard Loading:', { authLoading, isLoading, user: !!user, profile: !!profile })
-    return <LoadingSpinner message="Loading Veteran Dashboard..." fullScreen />
+    return <LoadingSpinner message="Loading Veteran Dashboard..." />
   }
 
   // Show error state
@@ -324,6 +334,22 @@ export default function VeteranDashboard() {
             }
           </p>
         </div>
+
+        {/* User Status - Show appropriate status based on plan */}
+        {isVeteran && userPlan === 'free' && (
+          <FreeUserStatus 
+            userPlan={userPlan}
+            onUpgradeClick={() => window.location.href = '/pricing'}
+          />
+        )}
+        
+        {isVeteran && userPlan !== 'free' && (
+          <PaidUserStatus 
+            userPlan={userPlan}
+            daysUntilExpiry={daysUntilExpiry}
+            onManageSubscription={() => window.location.href = '/settings'}
+          />
+        )}
 
         {/* Profile Information Section - Only show for veterans */}
         {isVeteran && (

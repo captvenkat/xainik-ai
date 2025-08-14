@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createSupabaseServer } from '@/lib/supabase-server';
+import { createRouteClient } from '@/lib/supabase-server';
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createSupabaseServer();
+    const supabase = await createRouteClient();
     
     // Check if user is admin
     const { data: { user } } = await supabase.auth.getUser();
