@@ -68,10 +68,10 @@ export default function VeteranDashboard() {
 
       setInvoices(invoicesData)
 
-      // Fetch pitch data for expiry calculation
+      // Fetch pitch data for expiry calculation and plan status
       const { data: pitchData, error: pitchError } = await supabase
         .from('pitches')
-        .select('end_date')
+        .select('end_date, plan_tier')
         .eq('user_id', userId)
         .order('created_at', { ascending: false })
         .limit(1)
