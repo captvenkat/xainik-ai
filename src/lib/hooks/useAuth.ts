@@ -31,7 +31,6 @@ export function useAuth(options: UseAuthOptions = {}) {
 
     async function checkAuth() {
       try {
-        console.log('useAuth: Starting auth check...')
         const supabase = createSupabaseBrowser()
         
         // Set a timeout to prevent infinite loading
@@ -58,7 +57,6 @@ export function useAuth(options: UseAuthOptions = {}) {
         }
         
         if (!user) {
-          console.log('useAuth: No user found')
           if (requireAuth) {
             const redirectPath = redirectTo || '/auth'
             router.push(redirectPath)
@@ -69,7 +67,6 @@ export function useAuth(options: UseAuthOptions = {}) {
           return
         }
         
-        console.log('useAuth: User authenticated:', user.email)
         setUser(user)
         
         // Get user profile from database
@@ -83,13 +80,11 @@ export function useAuth(options: UseAuthOptions = {}) {
           console.warn('useAuth: Failed to fetch user profile:', profileError)
           setProfile(null)
         } else {
-          console.log('useAuth: Profile fetched:', profile)
           setProfile(profile)
         }
         
         // Check role requirement
         if (requiredRole && profile?.role !== requiredRole) {
-          console.log('useAuth: Role mismatch, redirecting')
           const redirectPath = redirectTo || '/dashboard'
           router.push(redirectPath)
           return

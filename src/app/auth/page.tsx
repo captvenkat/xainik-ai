@@ -19,7 +19,7 @@ function AuthPageContent() {
     const checkAuth = async () => {
       try {
         setIsLoading(true);
-        console.log('Checking authentication...');
+
         
         const supabase = createSupabaseBrowser();
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
@@ -28,7 +28,7 @@ function AuthPageContent() {
           console.error('Session check error:', sessionError);
           setAuthError(sessionError.message);
         } else if (session) {
-          console.log('User is authenticated:', session.user.email);
+
           // If authenticated and no error, redirect to stored path or default
           if (!error) {
             const storedRedirect = sessionStorage.getItem('auth_redirect') || redirect;
@@ -37,7 +37,7 @@ function AuthPageContent() {
             return;
           }
         } else {
-          console.log('No active session found');
+
         }
       } catch (err) {
         console.error('Auth check error:', err);
@@ -53,7 +53,7 @@ function AuthPageContent() {
   async function handleGoogle() {
     try {
       setIsLoading(true);
-      console.log('Initiating Google sign-in...');
+
       await signInWithGoogle();
     } catch (error) {
       console.error('Google sign-in error:', error);
