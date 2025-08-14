@@ -20,6 +20,7 @@ export default function Navigation() {
   const [user, setUser] = useState<any>(null)
   const [profile, setProfile] = useState<{ role: string; full_name: string } | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [hasChecked, setHasChecked] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -27,16 +28,18 @@ export default function Navigation() {
     let timeoutId: NodeJS.Timeout
     
     const getUser = async () => {
+      // Prevent multiple simultaneous auth checks
+      if (hasChecked) return
+      setHasChecked(true)
+      
       try {
         // Set timeout for auth check
         timeoutId = setTimeout(() => {
           console.warn('Navigation: Auth timeout, forcing refresh')
           setIsLoading(false)
-          // Force hard refresh after 2 seconds
-          setTimeout(() => {
-            window.location.href = window.location.href
-          }, 2000)
-        }, 6000) // 6 second timeout
+          // Force hard refresh immediately
+          window.location.href = window.location.href
+        }, 4000) // 4 second timeout - more aggressive
         
         // First check session
         const { data: { session }, error: sessionError } = await supabase.auth.getSession()
