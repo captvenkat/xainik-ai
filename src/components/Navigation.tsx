@@ -21,6 +21,7 @@ export default function Navigation() {
   const [profile, setProfile] = useState<{ role: string; full_name: string } | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [hasChecked, setHasChecked] = useState(false)
+  const [authStateHandled, setAuthStateHandled] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -37,22 +38,14 @@ export default function Navigation() {
       const controller = new AbortController()
       
       // Set timeout with cleanup
-      // More aggressive timeout for desktop browsers
-      const isDesktop = typeof window !== 'undefined' && window.innerWidth > 768
-      const timeoutDuration = isDesktop ? 800 : 2000 // 800ms for desktop, 2s for mobile
-      
+      // Set a reasonable timeout - don't be too aggressive
       timeoutId = setTimeout(() => {
         if (isMounted) {
-          console.warn(`Navigation: Auth timeout (${timeoutDuration}ms), forcing refresh`)
+          console.warn('Navigation: Auth timeout, stopping loading')
           setIsLoading(false)
-          // Force immediate hard refresh for desktop
-          if (isDesktop) {
-            window.location.reload()
-          } else {
-            window.location.href = window.location.href
-          }
+          // Don't force refresh - just stop loading
         }
-      }, timeoutDuration)
+      }, 5000) // 5 second timeout - reasonable
       
       // Enterprise pattern: Promise with proper error handling
       const authPromise = supabase.auth.getSession()
@@ -118,6 +111,10 @@ export default function Navigation() {
     getUser()
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: string, session: any) => {
+      // Prevent multiple auth state changes from causing loops
+      if (authStateHandled) return
+      setAuthStateHandled(true)
+      
       try {
         // Only handle basic user state, don't fetch profile here
         setUser(session?.user ?? null)
