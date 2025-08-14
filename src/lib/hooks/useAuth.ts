@@ -33,12 +33,16 @@ export function useAuth(options: UseAuthOptions = {}) {
       try {
         const supabase = createSupabaseBrowser()
         
-        // Set a timeout to prevent infinite loading
+        // Set a timeout to prevent infinite loading with hard refresh
         timeoutId = setTimeout(() => {
-          console.warn('useAuth: Auth check timeout, setting loading to false')
+          console.warn('useAuth: Auth check timeout, forcing hard refresh')
           setIsLoading(false)
-          setError('Authentication timeout')
-        }, 10000) // 10 second timeout
+          setError('Authentication timeout - refreshing page')
+          // Force hard refresh after 3 seconds
+          setTimeout(() => {
+            window.location.href = window.location.href
+          }, 3000)
+        }, 8000) // 8 second timeout
         
         // Check authentication
         const { data: { user }, error: authError } = await supabase.auth.getUser()
