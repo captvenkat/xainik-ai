@@ -76,7 +76,7 @@ export default function Navigation() {
                   setProfile(null)
                 }
               })
-              .catch((error) => {
+              .catch(() => {
                 if (!isMounted) return
                 clearTimeout(profileTimeoutId)
                 setProfile(null)
