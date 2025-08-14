@@ -39,21 +39,38 @@ export default function Navigation() {
           setIsLoading(false)
           // Force hard refresh immediately
           window.location.href = window.location.href
-        }, 2500) // 2.5 second timeout - very aggressive
+        }, 1500) // 1.5 second timeout - extremely aggressive
         
-        // First check session
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+        // First check session with Promise.race to prevent hanging
+        const sessionPromise = supabase.auth.getSession()
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Session timeout')), 1000)
+        )
+        
+        const { data: { session }, error: sessionError } = await Promise.race([
+          sessionPromise,
+          timeoutPromise
+        ]) as any
         
         if (session?.user) {
           setUser(session.user)
           
-          // Try to get user profile
+          // Try to get user profile with timeout
           try {
-            const { data: profile, error } = await supabase
+            const profilePromise = supabase
               .from('users')
               .select('role, name')
               .eq('id', session.user.id)
               .single()
+            
+            const profileTimeoutPromise = new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('Profile timeout')), 1000)
+            )
+            
+            const { data: profile, error } = await Promise.race([
+              profilePromise,
+              profileTimeoutPromise
+            ]) as any
             
             if (error) {
               // Silently handle profile fetch errors - don't log warnings
