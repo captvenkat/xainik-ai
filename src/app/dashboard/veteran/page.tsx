@@ -29,6 +29,8 @@ export default function VeteranDashboard() {
     requiredRole: 'veteran',
     redirectTo: '/auth?redirect=/dashboard/veteran'
   })
+
+
   
   const [metrics, setMetrics] = useState<ConversionMetrics | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -142,7 +144,7 @@ export default function VeteranDashboard() {
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">
-                Welcome back, {profile.full_name || 'Veteran'}! 👋
+                Welcome back, {profile?.name || profile?.full_name || 'Veteran'}! 👋
               </h1>
               <p className="text-gray-600 mt-1">
                 Your success dashboard - see how your pitch is performing
@@ -425,7 +427,7 @@ export default function VeteranDashboard() {
             pitchId={pitchId!}
             pitchTitle={pitchData.title}
             pitchText={pitchData.pitch_text}
-            veteranName={profile.full_name || 'Veteran'}
+                                veteranName={profile?.name || profile?.full_name || 'Veteran'}
           />
         )}
 
