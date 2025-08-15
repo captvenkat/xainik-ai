@@ -168,7 +168,7 @@ export default function AIPitchHelper({ formData, updateFormData, onNext, onBack
       title: generatedPitch.title,
       pitch_text: generatedPitch.pitch,
       skills: generatedPitch.skills,
-      ...(currentInput?.inputType === 'linkedin' && { linkedin_url: currentInput.linkedinUrl }),
+      ...(currentInput?.inputType === 'linkedin' && { web_link: currentInput.linkedinUrl }),
       ...(currentInput?.inputType === 'manual' && { manual_summary: currentInput.text })
     })
 
