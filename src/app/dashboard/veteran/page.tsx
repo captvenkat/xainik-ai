@@ -10,7 +10,8 @@ import SmartNotifications from '@/components/SmartNotifications'
 import LiveActivityTicker from '@/components/LiveActivityTicker'
 import AIContactSuggestions from '@/components/AIContactSuggestions'
 import SupportersWall from '@/components/SupportersWall'
-import { Eye, Heart, Mail, Phone, TrendingUp, Share2, Users, RefreshCw } from 'lucide-react'
+import VeteranProfileTab from '@/components/VeteranProfileTab'
+import { Eye, Heart, Mail, Phone, TrendingUp, Share2, Users, RefreshCw, BarChart3, User } from 'lucide-react'
 
 interface ConversionMetrics {
   pitchViews: number
@@ -39,6 +40,7 @@ export default function VeteranDashboard() {
   const [pitchId, setPitchId] = useState<string | null>(null)
   const [pitchData, setPitchData] = useState<{ title: string; pitch_text: string } | null>(null)
   const [showShareModal, setShowShareModal] = useState(false)
+  const [activeTab, setActiveTab] = useState<'analytics' | 'profile'>('analytics')
 
   const fetchVeteranData = useCallback(async (userId: string) => {
     try {
@@ -114,7 +116,7 @@ export default function VeteranDashboard() {
 
   const handleCreateOrSharePitch = () => {
     if (!pitchId) {
-      window.open('/pitch/new', '_blank')
+      window.open('/pitch/new/ai-first', '_blank')
     } else {
       setShowShareModal(true)
     }
@@ -179,8 +181,44 @@ export default function VeteranDashboard() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Hero Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        {/* Tab Navigation */}
+        <div className="mb-8">
+          <div className="border-b border-gray-200">
+            <nav className="-mb-px flex space-x-8">
+              <button
+                onClick={() => setActiveTab('analytics')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'analytics'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <div className="flex items-center">
+                  <BarChart3 className="w-4 h-4 mr-2" />
+                  Analytics
+                </div>
+              </button>
+              <button
+                onClick={() => setActiveTab('profile')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'profile'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <div className="flex items-center">
+                  <User className="w-4 h-4 mr-2" />
+                  Profile
+                </div>
+              </button>
+            </nav>
+          </div>
+        </div>
+
+        {activeTab === 'analytics' && (
+          <>
+            {/* Hero Metrics */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center">
               <div className="flex-shrink-0">
@@ -419,19 +457,25 @@ export default function VeteranDashboard() {
           </div>
         </div>
 
-        {/* Share Modal */}
-        {showShareModal && pitchData && (
-          <ShareModal
-            isOpen={showShareModal}
-            onClose={() => setShowShareModal(false)}
-            pitchId={pitchId!}
-            pitchTitle={pitchData.title}
-            pitchText={pitchData.pitch_text}
-                                veteranName={profile?.name || profile?.full_name || 'Veteran'}
-          />
-        )}
+                          {/* Share Modal */}
+                  {showShareModal && pitchData && (
+                    <ShareModal
+                      isOpen={showShareModal}
+                      onClose={() => setShowShareModal(false)}
+                      pitchId={pitchId!}
+                      pitchTitle={pitchData.title}
+                      pitchText={pitchData.pitch_text}
+                      veteranName={profile?.name || profile?.full_name || 'Veteran'}
+                    />
+                  )}
+                </>
+              )}
 
-      </div>
-    </div>
-  )
-}
+              {activeTab === 'profile' && (
+                <VeteranProfileTab />
+              )}
+
+                </div>
+              </div>
+            )
+            }
