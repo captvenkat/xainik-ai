@@ -9,12 +9,11 @@ import { Eye, Heart, Mail, Phone, TrendingUp, Share2, Users, Target, Activity, C
 
 interface ConversionMetrics {
   profileViews: number
+  likes: number
+  shares: number
   endorsements: number
   emails: number
   calls: number
-  totalShares: number
-  todayShares: number
-  thisWeekShares: number
   totalSupporters: number
 }
 
@@ -69,48 +68,32 @@ export default function VeteranDashboard() {
       }
 
       // Fetch conversion metrics
-      const [viewsResult, endorsementsResult, emailsResult, callsResult, sharesResult, supportersResult] = await Promise.all([
+      const [viewsResult, likesResult, sharesResult, endorsementsResult, emailsResult, callsResult, supportersResult] = await Promise.all([
         // Profile views (from pitch_views or similar table)
         supabase.from('pitch_views').select('count').eq('pitch_id', pitch.id).single().then(r => r.data?.count || 0),
+        // Likes (from pitch_likes or similar table)
+        supabase.from('pitch_likes').select('count').eq('pitch_id', pitch.id).single().then(r => r.data?.count || 0),
+        // Shares (from referral_events or similar)
+        supabase.from('referral_events').select('count').eq('pitch_id', pitch.id).eq('event_type', 'share').single().then(r => r.data?.count || 0),
         // Endorsements
         supabase.from('endorsements').select('count').eq('pitch_id', pitch.id).single().then(r => r.data?.count || 0),
         // Emails (from contact_requests or similar)
         supabase.from('contact_requests').select('count').eq('pitch_id', pitch.id).eq('type', 'email').single().then(r => r.data?.count || 0),
         // Calls (from contact_requests or similar)
         supabase.from('contact_requests').select('count').eq('pitch_id', pitch.id).eq('type', 'call').single().then(r => r.data?.count || 0),
-        // Shares (from referral_events or similar)
-        supabase.from('referral_events').select('count').eq('pitch_id', pitch.id).eq('event_type', 'share').single().then(r => r.data?.count || 0),
         // Supporters count
         supabase.from('users').select('count').eq('role', 'supporter').single().then(r => r.data?.count || 0)
       ])
 
-      // Calculate today's and this week's shares
-      const today = new Date()
-      const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)
-      
-      const [todayShares, weekShares] = await Promise.all([
-        supabase.from('referral_events')
-          .select('count')
-          .eq('pitch_id', pitch.id)
-          .eq('event_type', 'share')
-          .gte('created_at', today.toISOString().split('T')[0])
-          .single().then(r => r.data?.count || 0),
-        supabase.from('referral_events')
-          .select('count')
-          .eq('pitch_id', pitch.id)
-          .eq('event_type', 'share')
-          .gte('created_at', weekAgo.toISOString())
-          .single().then(r => r.data?.count || 0)
-      ])
+
 
       setMetrics({
         profileViews: viewsResult,
+        likes: likesResult,
+        shares: sharesResult,
         endorsements: endorsementsResult,
         emails: emailsResult,
         calls: callsResult,
-        totalShares: sharesResult,
-        todayShares: todayShares,
-        thisWeekShares: weekShares,
         totalSupporters: supportersResult
       })
 
@@ -215,19 +198,45 @@ export default function VeteranDashboard() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Hero Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center">
               <div className="flex-shrink-0">
                 <Eye className="h-8 w-8 text-blue-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Views</p>
+                <p className="text-sm font-medium text-gray-600">Profile Views</p>
                 <p className="text-2xl font-bold text-gray-900">{metrics?.profileViews || 0}</p>
               </div>
             </div>
           </div>
 
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <Heart className="h-8 w-8 text-pink-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Likes</p>
+                <p className="text-2xl font-bold text-gray-900">{metrics?.likes || 0}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <Share2 className="h-8 w-8 text-orange-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Shares</p>
+                <p className="text-2xl font-bold text-gray-900">{metrics?.shares || 0}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center">
               <div className="flex-shrink-0">
@@ -272,8 +281,9 @@ export default function VeteranDashboard() {
             <p className="text-sm text-gray-600">Track how viewers become supporters</p>
           </div>
           <div className="p-6">
-            <div className="flex items-center justify-between space-x-4">
-              <div className="flex-1 text-center">
+            <div className="flex flex-wrap justify-center items-center gap-4">
+              {/* Profile Views */}
+              <div className="text-center">
                 <div className="bg-blue-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-2">
                   <Eye className="h-8 w-8 text-blue-600" />
                 </div>
@@ -281,26 +291,64 @@ export default function VeteranDashboard() {
                 <p className="text-2xl font-bold text-blue-600">{metrics?.profileViews || 0}</p>
               </div>
               
-              <div className="flex-1 flex justify-center">
+              {/* Arrow */}
+              <div className="flex items-center justify-center">
                 <div className="w-8 h-0.5 bg-gray-300"></div>
               </div>
               
-              <div className="flex-1 text-center">
+              {/* Likes */}
+              <div className="text-center">
+                <div className="bg-pink-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-2">
+                  <Heart className="h-8 w-8 text-pink-600" />
+                </div>
+                <p className="text-sm font-medium text-gray-900">Likes</p>
+                <p className="text-2xl font-bold text-pink-600">{metrics?.likes || 0}</p>
+                <p className="text-xs text-gray-500">
+                  {metrics?.profileViews ? Math.round((metrics.likes / metrics.profileViews) * 100) : 0}% conversion
+                </p>
+              </div>
+              
+              {/* Arrow */}
+              <div className="flex items-center justify-center">
+                <div className="w-8 h-0.5 bg-gray-300"></div>
+              </div>
+              
+              {/* Shares */}
+              <div className="text-center">
+                <div className="bg-orange-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-2">
+                  <Share2 className="h-8 w-8 text-orange-600" />
+                </div>
+                <p className="text-sm font-medium text-gray-900">Shares</p>
+                <p className="text-2xl font-bold text-orange-600">{metrics?.shares || 0}</p>
+                <p className="text-xs text-gray-500">
+                  {metrics?.likes ? Math.round((metrics.shares / metrics.likes) * 100) : 0}% conversion
+                </p>
+              </div>
+              
+              {/* Arrow */}
+              <div className="flex items-center justify-center">
+                <div className="w-8 h-0.5 bg-gray-300"></div>
+              </div>
+              
+              {/* Endorsements */}
+              <div className="text-center">
                 <div className="bg-red-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-2">
                   <Heart className="h-8 w-8 text-red-600" />
                 </div>
                 <p className="text-sm font-medium text-gray-900">Endorsements</p>
                 <p className="text-2xl font-bold text-red-600">{metrics?.endorsements || 0}</p>
                 <p className="text-xs text-gray-500">
-                  {metrics?.profileViews ? Math.round((metrics.endorsements / metrics.profileViews) * 100) : 0}% conversion
+                  {metrics?.shares ? Math.round((metrics.endorsements / metrics.shares) * 100) : 0}% conversion
                 </p>
               </div>
               
-              <div className="flex-1 flex justify-center">
+              {/* Arrow */}
+              <div className="flex items-center justify-center">
                 <div className="w-8 h-0.5 bg-gray-300"></div>
               </div>
               
-              <div className="flex-1 text-center">
+              {/* Emails */}
+              <div className="text-center">
                 <div className="bg-green-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-2">
                   <Mail className="h-8 w-8 text-green-600" />
                 </div>
@@ -311,11 +359,13 @@ export default function VeteranDashboard() {
                 </p>
               </div>
               
-              <div className="flex-1 flex justify-center">
+              {/* Arrow */}
+              <div className="flex items-center justify-center">
                 <div className="w-8 h-0.5 bg-gray-300"></div>
               </div>
               
-              <div className="flex-1 text-center">
+              {/* Calls */}
+              <div className="text-center">
                 <div className="bg-purple-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-2">
                   <Phone className="h-8 w-8 text-purple-600" />
                 </div>
