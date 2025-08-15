@@ -163,7 +163,7 @@ export default function LiveActivityTicker({
   if (!isVisible || activities.length === 0) return null
 
   const currentActivity = activities[currentIndex]
-  const Icon = getIcon(currentActivity.icon)
+  const Icon = currentActivity ? getIcon(currentActivity.icon) : null
 
   return (
     <div className={`bg-white border border-gray-200 rounded-lg p-4 shadow-sm ${className}`}>
@@ -183,7 +183,7 @@ export default function LiveActivityTicker({
 
       <div className="flex items-center space-x-3">
         <div className={`flex-shrink-0 ${getColorClasses(currentActivity.color)}`}>
-          <Icon className="w-5 h-5" />
+          {Icon && <Icon className="w-5 h-5" />}
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-sm text-gray-900 font-medium">
