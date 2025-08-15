@@ -122,7 +122,7 @@ export async function sendWeeklyReport(userId: string, pitchId?: string) {
     await sendEmail({
       to: user.email,
       subject: 'Your Weekly Xainik Performance Report',
-      html: report.data.reportContent
+      html: report.data?.reportContent || 'No report content available'
     })
 
     return { success: true }
