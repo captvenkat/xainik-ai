@@ -5,6 +5,11 @@ import { useAuth } from '@/lib/hooks/useAuth'
 import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 import LoadingSpinner from '@/components/LoadingSpinner'
 import ErrorState from '@/components/ErrorState'
+import ShareModal from '@/components/ShareModal'
+import SmartNotifications from '@/components/SmartNotifications'
+import LiveActivityTicker from '@/components/LiveActivityTicker'
+import AIContactSuggestions from '@/components/AIContactSuggestions'
+import SupportersWall from '@/components/SupportersWall'
 import { Eye, Heart, Mail, Phone, TrendingUp, Share2, Users, RefreshCw } from 'lucide-react'
 
 interface ConversionMetrics {
@@ -30,6 +35,8 @@ export default function VeteranDashboard() {
   const [error, setError] = useState<string | null>(null)
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date())
   const [pitchId, setPitchId] = useState<string | null>(null)
+  const [pitchData, setPitchData] = useState<{ title: string; pitch_text: string } | null>(null)
+  const [showShareModal, setShowShareModal] = useState(false)
 
   const fetchVeteranData = useCallback(async (userId: string) => {
     try {
@@ -39,7 +46,7 @@ export default function VeteranDashboard() {
       // Fetch pitch data
       const { data: pitch } = await supabase
         .from('pitches')
-        .select('id, title, created_at')
+        .select('id, title, pitch_text, created_at')
         .eq('user_id', userId)
         .single()
 
@@ -47,6 +54,7 @@ export default function VeteranDashboard() {
       // This allows the dashboard to render with empty state
       const currentPitchId = pitch?.id || null
       setPitchId(currentPitchId)
+      setPitchData(pitch ? { title: pitch.title, pitch_text: pitch.pitch_text } : null)
 
       // Fetch conversion metrics (handle case when no pitch exists)
       const [viewsResult, likesResult, sharesResult, endorsementsResult, emailsResult, callsResult, supportersResult] = await Promise.all([
@@ -106,7 +114,7 @@ export default function VeteranDashboard() {
     if (!pitchId) {
       window.open('/pitch/new', '_blank')
     } else {
-      window.open(`/pitch/${pitchId}`, '_blank')
+      setShowShareModal(true)
     }
   }
 
@@ -148,6 +156,11 @@ export default function VeteranDashboard() {
               )}
             </div>
             <div className="flex items-center space-x-3">
+              <SmartNotifications 
+                userId={user.id} 
+                pitchId={pitchId || undefined}
+                className="mr-2"
+              />
               <button
                 onClick={handleRefresh}
                 className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
@@ -346,38 +359,75 @@ export default function VeteranDashboard() {
           </div>
         </div>
 
-        {/* Quick Actions */}
-        <div className="bg-white rounded-lg shadow mb-8">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">Take Action</h2>
-            <p className="text-sm text-gray-600">Share your pitch and invite people to help you succeed</p>
+        {/* Live Activity and Quick Actions */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          {/* Live Activity Ticker */}
+          <div className="lg:col-span-1">
+            <LiveActivityTicker pitchId={pitchId || undefined} />
           </div>
-          <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <button
-                onClick={handleCreateOrSharePitch}
-                className="flex items-center justify-center px-4 py-3 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                <Share2 className="w-5 h-5 mr-2" />
-                {pitchId ? 'Share Your Pitch' : 'Create Your Pitch'}
-              </button>
-               
-              <button
-                onClick={handleInviteSupporters}
-                className={`flex items-center justify-center px-4 py-3 border border-transparent text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-                  pitchId 
-                    ? 'text-white bg-green-600 hover:bg-green-700 focus:ring-green-500' 
-                    : 'text-gray-400 bg-gray-300 cursor-not-allowed'
-                }`}
-                disabled={!pitchId}
-              >
-                <Users className="w-5 h-5 mr-2" />
-                Invite Supporters
-              </button>
+
+          {/* Quick Actions */}
+          <div className="lg:col-span-2 bg-white rounded-lg shadow">
+            <div className="px-6 py-4 border-b border-gray-200">
+              <h2 className="text-lg font-semibold text-gray-900">Take Action</h2>
+              <p className="text-sm text-gray-600">Share your pitch and invite people to help you succeed</p>
+            </div>
+            <div className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <button
+                  onClick={handleCreateOrSharePitch}
+                  className="flex items-center justify-center px-4 py-3 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  <Share2 className="w-5 h-5 mr-2" />
+                  {pitchId ? 'Share Your Pitch' : 'Create Your Pitch'}
+                </button>
+                 
+                <button
+                  onClick={handleInviteSupporters}
+                  className={`flex items-center justify-center px-4 py-3 border border-transparent text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                    pitchId 
+                      ? 'text-white bg-green-600 hover:bg-green-700 focus:ring-green-500' 
+                      : 'text-gray-400 bg-gray-300 cursor-not-allowed'
+                  }`}
+                  disabled={!pitchId}
+                >
+                  <Users className="w-5 h-5 mr-2" />
+                  Invite Supporters
+                </button>
+              </div>
             </div>
           </div>
         </div>
 
+        {/* AI Features and Supporters */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          {/* AI Contact Suggestions */}
+          <div>
+            <AIContactSuggestions 
+              userId={user.id} 
+              pitchId={pitchId || undefined}
+            />
+          </div>
+
+          {/* Supporters Wall */}
+          <div>
+            <SupportersWall 
+              pitchId={pitchId || undefined}
+            />
+          </div>
+        </div>
+
+        {/* Share Modal */}
+        {showShareModal && pitchData && (
+          <ShareModal
+            isOpen={showShareModal}
+            onClose={() => setShowShareModal(false)}
+            pitchId={pitchId!}
+            pitchTitle={pitchData.title}
+            pitchText={pitchData.pitch_text}
+            veteranName={profile.full_name || 'Veteran'}
+          />
+        )}
 
       </div>
     </div>
