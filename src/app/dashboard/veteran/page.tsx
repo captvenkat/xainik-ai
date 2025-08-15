@@ -111,11 +111,7 @@ export default function VeteranDashboard() {
   }
 
   const handleInviteSupporters = () => {
-    if (!pitchId) {
-      window.open('/pitch/new', '_blank')
-    } else {
-      window.open('/supporter/refer', '_blank')
-    }
+    window.open('/supporter/refer', '_blank')
   }
 
   if (authLoading || isLoading) {
@@ -357,7 +353,7 @@ export default function VeteranDashboard() {
             <p className="text-sm text-gray-600">Take action to improve your conversions</p>
           </div>
           <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <button
                 onClick={handleCreateOrSharePitch}
                 className="flex items-center justify-center px-4 py-3 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -366,20 +362,17 @@ export default function VeteranDashboard() {
                 {pitchId ? 'Share Your Pitch' : 'Create Your Pitch'}
               </button>
                
-               <button
-                 onClick={handleInviteSupporters}
-                 className="flex items-center justify-center px-4 py-3 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-               >
-                 <Users className="w-5 h-5 mr-2" />
-                 {pitchId ? 'Invite Supporters' : 'Get Started'}
-               </button>
-              
               <button
-                onClick={() => window.open('/dashboard/veteran/impact', '_blank')}
-                className="flex items-center justify-center px-4 py-3 border border-transparent text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                onClick={handleInviteSupporters}
+                className={`flex items-center justify-center px-4 py-3 border border-transparent text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                  pitchId 
+                    ? 'text-white bg-green-600 hover:bg-green-700 focus:ring-green-500' 
+                    : 'text-gray-400 bg-gray-300 cursor-not-allowed'
+                }`}
+                disabled={!pitchId}
               >
-                <TrendingUp className="w-5 h-5 mr-2" />
-                View Analytics
+                <Users className="w-5 h-5 mr-2" />
+                Invite Supporters
               </button>
             </div>
           </div>
