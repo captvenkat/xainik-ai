@@ -72,8 +72,20 @@ export default function AIFirstPitchPage() {
       }
 
       // Validate required fields
-      if (!formData.title.trim() || !formData.pitch_text.trim() || formData.skills.some(skill => !skill.trim())) {
-        throw new Error('Please complete all required fields')
+      if (!formData.title.trim()) {
+        throw new Error('Please enter a title')
+      }
+      if (!formData.pitch_text.trim()) {
+        throw new Error('Please enter a pitch description')
+      }
+      if (formData.skills.some(skill => !skill.trim())) {
+        throw new Error('Please enter all skills')
+      }
+      if (!formData.job_type) {
+        throw new Error('Please select a job type')
+      }
+      if (!formData.availability) {
+        throw new Error('Please select availability')
       }
 
       // Create pitch with profile data auto-populated
@@ -380,11 +392,11 @@ function ReviewStep({ formData, profile, onNext, onBack, isLoading, error, succe
           <div className="space-y-4">
             <div>
               <span className="text-gray-600 text-sm">Title:</span>
-              <p className="font-medium">{formData.title}</p>
+              <p className="font-medium">{formData.title || 'Not set'}</p>
             </div>
             <div>
               <span className="text-gray-600 text-sm">Pitch:</span>
-              <p className="mt-1 text-gray-900">{formData.pitch_text}</p>
+              <p className="mt-1 text-gray-900">{formData.pitch_text || 'Not set'}</p>
             </div>
             <div>
               <span className="text-gray-600 text-sm">Skills:</span>
@@ -394,16 +406,19 @@ function ReviewStep({ formData, profile, onNext, onBack, isLoading, error, succe
                     {skill}
                   </span>
                 ))}
+                {formData.skills.filter((skill: string) => skill.trim()).length === 0 && (
+                  <span className="text-gray-500 text-sm">No skills set</span>
+                )}
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <span className="text-gray-600 text-sm">Job Type:</span>
-                <p className="font-medium">{formData.job_type}</p>
+                <p className="font-medium">{formData.job_type || 'Not set'}</p>
               </div>
               <div>
                 <span className="text-gray-600 text-sm">Availability:</span>
-                <p className="font-medium">{formData.availability}</p>
+                <p className="font-medium">{formData.availability || 'Not set'}</p>
               </div>
             </div>
           </div>
