@@ -75,6 +75,8 @@ export default function AIFirstPitchPage() {
         throw new Error('Profile data not found. Please complete your profile first.')
       }
 
+      console.log('Profile data:', JSON.stringify(profile, null, 2))
+
       // Validate required fields with detailed feedback
       const missingFields = []
       
@@ -98,6 +100,8 @@ export default function AIFirstPitchPage() {
         throw new Error(`Please complete the following fields: ${missingFields.join(', ')}`)
       }
 
+      console.log('Form data:', JSON.stringify(formData, null, 2))
+
       // Check if profile has location (required for pitch creation)
       if (!profile.location) {
         throw new Error('Please add your location in your profile before creating a pitch')
@@ -119,7 +123,7 @@ export default function AIFirstPitchPage() {
         is_active: true
       }
 
-      console.log('Attempting to create pitch with data:', pitchData)
+      console.log('Attempting to create pitch with data:', JSON.stringify(pitchData, null, 2))
 
       const { data: pitch, error: pitchError } = await supabase
         .from('pitches')
@@ -128,8 +132,14 @@ export default function AIFirstPitchPage() {
         .single()
 
       if (pitchError) {
-        console.error('Pitch creation error:', pitchError)
-        throw new Error(`Failed to create pitch: ${pitchError.message || pitchError.details || 'Unknown error'}`)
+        console.error('Pitch creation error:', JSON.stringify(pitchError, null, 2))
+        console.error('Error details:', {
+          message: pitchError.message,
+          details: pitchError.details,
+          hint: pitchError.hint,
+          code: pitchError.code
+        })
+        throw new Error(`Failed to create pitch: ${pitchError.message || pitchError.details || pitchError.hint || 'Unknown error'}`)
       }
 
       setSuccess('Pitch created successfully!')
