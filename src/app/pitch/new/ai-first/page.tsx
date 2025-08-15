@@ -71,45 +71,65 @@ export default function AIFirstPitchPage() {
         throw new Error('Authentication required')
       }
 
-      // Validate required fields
+      if (!profile) {
+        throw new Error('Profile data not found. Please complete your profile first.')
+      }
+
+      // Validate required fields with detailed feedback
+      const missingFields = []
+      
       if (!formData.title.trim()) {
-        throw new Error('Please enter a title')
+        missingFields.push('Title')
       }
       if (!formData.pitch_text.trim()) {
-        throw new Error('Please enter a pitch description')
+        missingFields.push('Pitch Description')
       }
-      if (formData.skills.some(skill => !skill.trim())) {
-        throw new Error('Please enter all skills')
+      if (formData.skills.length === 0 || formData.skills.some(skill => !skill.trim())) {
+        missingFields.push('Skills')
       }
       if (!formData.job_type) {
-        throw new Error('Please select a job type')
+        missingFields.push('Job Type')
       }
       if (!formData.availability) {
-        throw new Error('Please select availability')
+        missingFields.push('Availability')
+      }
+
+      if (missingFields.length > 0) {
+        throw new Error(`Please complete the following fields: ${missingFields.join(', ')}`)
+      }
+
+      // Check if profile has location (required for pitch creation)
+      if (!profile.location) {
+        throw new Error('Please add your location in your profile before creating a pitch')
       }
 
       // Create pitch with profile data auto-populated
+      const pitchData = {
+        user_id: user.id,
+        title: formData.title.trim(),
+        pitch_text: formData.pitch_text.trim(),
+        skills: formData.skills.filter(skill => skill.trim()),
+        job_type: formData.job_type,
+        availability: formData.availability,
+        location: profile.location, // Use profile location (already validated above)
+        photo_url: formData.photo_url,
+        resume_url: formData.resume_url,
+        resume_share_enabled: formData.resume_share_enabled,
+        linkedin_url: formData.web_link, // Keep database field name as linkedin_url for compatibility
+        is_active: true
+      }
+
+      console.log('Attempting to create pitch with data:', pitchData)
+
       const { data: pitch, error: pitchError } = await supabase
         .from('pitches')
-        .insert({
-          user_id: user.id,
-          title: formData.title.trim(),
-          pitch_text: formData.pitch_text.trim(),
-          skills: formData.skills.filter(skill => skill.trim()),
-          job_type: formData.job_type,
-          availability: formData.availability,
-          location: profile?.location || 'Not specified', // Add location from profile
-          photo_url: formData.photo_url,
-          resume_url: formData.resume_url,
-          resume_share_enabled: formData.resume_share_enabled,
-          linkedin_url: formData.web_link, // Keep database field name as linkedin_url for compatibility
-          is_active: true
-        })
+        .insert(pitchData)
         .select()
         .single()
 
       if (pitchError) {
-        throw new Error('Failed to create pitch')
+        console.error('Pitch creation error:', pitchError)
+        throw new Error(`Failed to create pitch: ${pitchError.message || pitchError.details || 'Unknown error'}`)
       }
 
       setSuccess('Pitch created successfully!')
