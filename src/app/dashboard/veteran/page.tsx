@@ -48,6 +48,7 @@ export default function VeteranDashboard() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date())
+  const [pitchId, setPitchId] = useState<string | null>(null)
 
   const fetchVeteranData = useCallback(async (userId: string) => {
     try {
@@ -63,22 +64,23 @@ export default function VeteranDashboard() {
 
       // If no pitch exists, we'll use null and show 0 counts
       // This allows the dashboard to render with empty state
-      const pitchId = pitch?.id || null
+      const currentPitchId = pitch?.id || null
+      setPitchId(currentPitchId)
 
       // Fetch conversion metrics (handle case when no pitch exists)
       const [viewsResult, likesResult, sharesResult, endorsementsResult, emailsResult, callsResult, supportersResult] = await Promise.all([
         // Profile views (from pitch_views or similar table)
-        pitchId ? supabase.from('pitch_views').select('count').eq('pitch_id', pitchId).single().then(r => r.data?.count || 0) : Promise.resolve(0),
+        currentPitchId ? supabase.from('pitch_views').select('count').eq('pitch_id', currentPitchId).single().then(r => r.data?.count || 0) : Promise.resolve(0),
         // Likes (from pitch_likes or similar table)
-        pitchId ? supabase.from('pitch_likes').select('count').eq('pitch_id', pitchId).single().then(r => r.data?.count || 0) : Promise.resolve(0),
+        currentPitchId ? supabase.from('pitch_likes').select('count').eq('pitch_id', currentPitchId).single().then(r => r.data?.count || 0) : Promise.resolve(0),
         // Shares (from referral_events or similar)
-        pitchId ? supabase.from('referral_events').select('count').eq('pitch_id', pitchId).eq('event_type', 'share').single().then(r => r.data?.count || 0) : Promise.resolve(0),
+        currentPitchId ? supabase.from('referral_events').select('count').eq('pitch_id', currentPitchId).eq('event_type', 'share').single().then(r => r.data?.count || 0) : Promise.resolve(0),
         // Endorsements
-        pitchId ? supabase.from('endorsements').select('count').eq('pitch_id', pitchId).single().then(r => r.data?.count || 0) : Promise.resolve(0),
+        currentPitchId ? supabase.from('endorsements').select('count').eq('pitch_id', currentPitchId).single().then(r => r.data?.count || 0) : Promise.resolve(0),
         // Emails (from contact_requests or similar)
-        pitchId ? supabase.from('contact_requests').select('count').eq('pitch_id', pitchId).eq('type', 'email').single().then(r => r.data?.count || 0) : Promise.resolve(0),
+        currentPitchId ? supabase.from('contact_requests').select('count').eq('pitch_id', currentPitchId).eq('type', 'email').single().then(r => r.data?.count || 0) : Promise.resolve(0),
         // Calls (from contact_requests or similar)
-        pitchId ? supabase.from('contact_requests').select('count').eq('pitch_id', pitchId).eq('type', 'call').single().then(r => r.data?.count || 0) : Promise.resolve(0),
+        currentPitchId ? supabase.from('contact_requests').select('count').eq('pitch_id', currentPitchId).eq('type', 'call').single().then(r => r.data?.count || 0) : Promise.resolve(0),
         // Supporters count
         supabase.from('users').select('count').eq('role', 'supporter').single().then(r => r.data?.count || 0)
       ])
@@ -114,7 +116,7 @@ export default function VeteranDashboard() {
       const { data: activity } = await supabase
         .from('referral_events')
         .select('event_type, created_at, user_id')
-        .eq('pitch_id', pitchId || '')
+        .eq('pitch_id', currentPitchId || '')
         .order('created_at', { ascending: false })
         .limit(10)
 
