@@ -137,12 +137,12 @@ export default function VeteranDashboard() {
                 Welcome back, {profile.full_name || 'Veteran'}! 👋
               </h1>
               <p className="text-gray-600 mt-1">
-                Track your pitch performance and conversion funnel
+                Your success dashboard - see how your pitch is performing
               </p>
               {!pitchId && (
                 <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                   <p className="text-sm text-blue-800">
-                    <strong>Get started:</strong> Create your first pitch to start tracking your conversion funnel and analytics.
+                    <strong>Ready to get opportunities?</strong> Create your pitch and start sharing it with people. Jobs and opportunities will come your way!
                   </p>
                 </div>
               )}
@@ -244,8 +244,8 @@ export default function VeteranDashboard() {
         {/* Conversion Funnel */}
         <div className="bg-white rounded-lg shadow mb-8">
           <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">Conversion Funnel</h2>
-            <p className="text-sm text-gray-600">Track how viewers become supporters</p>
+            <h2 className="text-lg font-semibold text-gray-900">Your Journey to Opportunities</h2>
+            <p className="text-sm text-gray-600">See how people discover and connect with you</p>
           </div>
           <div className="p-6">
             <div className="flex flex-wrap justify-center items-center gap-4">
@@ -349,8 +349,8 @@ export default function VeteranDashboard() {
         {/* Quick Actions */}
         <div className="bg-white rounded-lg shadow mb-8">
           <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">Quick Actions</h2>
-            <p className="text-sm text-gray-600">Take action to improve your conversions</p>
+            <h2 className="text-lg font-semibold text-gray-900">Take Action</h2>
+            <p className="text-sm text-gray-600">Share your pitch and invite people to help you succeed</p>
           </div>
           <div className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
