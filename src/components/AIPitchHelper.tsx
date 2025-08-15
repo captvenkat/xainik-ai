@@ -166,7 +166,7 @@ export default function AIPitchHelper({ formData, updateFormData, onNext, onBack
     
     updateFormData({
       title: generatedPitch.title,
-      pitch: generatedPitch.pitch,
+      pitch_text: generatedPitch.pitch,
       skills: generatedPitch.skills,
       ...(currentInput?.inputType === 'linkedin' && { linkedin_url: currentInput.linkedinUrl }),
       ...(currentInput?.inputType === 'manual' && { manual_summary: currentInput.text })
@@ -192,7 +192,7 @@ export default function AIPitchHelper({ formData, updateFormData, onNext, onBack
 
     updateFormData({
       title: manualPitch.title.trim(),
-      pitch: manualPitch.pitch.trim(),
+      pitch_text: manualPitch.pitch.trim(),
       skills: manualPitch.skills.map(skill => skill.trim())
     })
 
