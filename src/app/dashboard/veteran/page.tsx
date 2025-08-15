@@ -13,7 +13,7 @@ import SupportersWall from '@/components/SupportersWall'
 import { Eye, Heart, Mail, Phone, TrendingUp, Share2, Users, RefreshCw } from 'lucide-react'
 
 interface ConversionMetrics {
-  profileViews: number
+  pitchViews: number
   likes: number
   shares: number
   endorsements: number
@@ -58,8 +58,8 @@ export default function VeteranDashboard() {
 
       // Fetch conversion metrics (handle case when no pitch exists)
       const [viewsResult, likesResult, sharesResult, endorsementsResult, emailsResult, callsResult, supportersResult] = await Promise.all([
-        // Profile views (from pitch_views or similar table)
-        currentPitchId ? supabase.from('pitch_views').select('count').eq('pitch_id', currentPitchId).single().then(r => r.data?.count || 0) : Promise.resolve(0),
+              // Pitch views (from pitch_views or similar table)
+      currentPitchId ? supabase.from('pitch_views').select('count').eq('pitch_id', currentPitchId).single().then(r => r.data?.count || 0) : Promise.resolve(0),
         // Likes (from pitch_likes or similar table)
         currentPitchId ? supabase.from('pitch_likes').select('count').eq('pitch_id', currentPitchId).single().then(r => r.data?.count || 0) : Promise.resolve(0),
         // Shares (from referral_events or similar)
@@ -77,7 +77,7 @@ export default function VeteranDashboard() {
 
 
       setMetrics({
-        profileViews: viewsResult,
+        pitchViews: viewsResult,
         likes: likesResult,
         shares: sharesResult,
         endorsements: endorsementsResult,
@@ -185,8 +185,8 @@ export default function VeteranDashboard() {
                 <Eye className="h-8 w-8 text-blue-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Profile Views</p>
-                <p className="text-2xl font-bold text-gray-900">{metrics?.profileViews || 0}</p>
+                <p className="text-sm font-medium text-gray-600">Pitch Views</p>
+                <p className="text-2xl font-bold text-gray-900">{metrics?.pitchViews || 0}</p>
               </div>
             </div>
           </div>
@@ -262,13 +262,13 @@ export default function VeteranDashboard() {
           </div>
           <div className="p-6">
             <div className="flex flex-wrap justify-center items-center gap-4">
-              {/* Profile Views */}
+              {/* Pitch Views */}
               <div className="text-center">
                 <div className="bg-blue-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-2">
                   <Eye className="h-8 w-8 text-blue-600" />
                 </div>
-                <p className="text-sm font-medium text-gray-900">Profile Views</p>
-                <p className="text-2xl font-bold text-blue-600">{metrics?.profileViews || 0}</p>
+                <p className="text-sm font-medium text-gray-900">Pitch Views</p>
+                <p className="text-2xl font-bold text-blue-600">{metrics?.pitchViews || 0}</p>
               </div>
               
               {/* Arrow */}
@@ -284,7 +284,7 @@ export default function VeteranDashboard() {
                 <p className="text-sm font-medium text-gray-900">Likes</p>
                 <p className="text-2xl font-bold text-pink-600">{metrics?.likes || 0}</p>
                 <p className="text-xs text-gray-500">
-                  {metrics?.profileViews ? Math.round((metrics.likes / metrics.profileViews) * 100) : 0}% conversion
+                  {metrics?.pitchViews ? Math.round((metrics.likes / metrics.pitchViews) * 100) : 0}% conversion
                 </p>
               </div>
               
