@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react'
 import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 import { useAuth } from '@/lib/hooks/useAuth'
-import { User, Mail, Phone, MapPin, Calendar, Save, Edit3, CheckCircle, AlertCircle, ArrowLeft } from 'lucide-react'
+import { User, Mail, Phone, Calendar, Save, Edit3, CheckCircle, AlertCircle, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
+import LocationAutocomplete from './LocationAutocomplete'
 
 interface ProfileData {
   name: string
@@ -275,14 +276,17 @@ export default function VeteranProfileTab() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Location
                 </label>
-                <input
-                  type="text"
-                  value={profileData.location || ''}
-                  onChange={(e) => setProfileData(prev => ({ ...prev, location: e.target.value }))}
-                  disabled={!isEditing}
-                  placeholder="City, State"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50"
-                />
+                {isEditing ? (
+                  <LocationAutocomplete
+                    value={profileData.location || ''}
+                    onChange={(location) => setProfileData(prev => ({ ...prev, location }))}
+                    placeholder="Enter your city"
+                  />
+                ) : (
+                  <div className="px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-900">
+                    {profileData.location || 'Not specified'}
+                  </div>
+                )}
               </div>
             </div>
           </div>

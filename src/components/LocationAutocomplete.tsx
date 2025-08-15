@@ -1,190 +1,201 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { MapPin } from 'lucide-react'
+import { MapPin, ChevronDown, X } from 'lucide-react'
+
+interface LocationOption {
+  place_id: string
+  description: string
+  city: string
+}
 
 interface LocationAutocompleteProps {
   value: string
-  onChange: (value: string) => void
+  onChange: (location: string) => void
   placeholder?: string
   className?: string
-  disabled?: boolean
 }
 
-interface GooglePlace {
-  place_id: string
-  description: string
-  structured_formatting: {
-    main_text: string
-    secondary_text: string
-  }
-}
-
-declare global {
-  interface Window {
-    google: any
-  }
-}
-
-export default function LocationAutocomplete({
-  value,
-  onChange,
-  placeholder = "Enter location...",
-  className = "",
-  disabled = false
+export default function LocationAutocomplete({ 
+  value, 
+  onChange, 
+  placeholder = "Enter your location...",
+  className = ""
 }: LocationAutocompleteProps) {
-  const [suggestions, setSuggestions] = useState<GooglePlace[]>([])
-  const [showSuggestions, setShowSuggestions] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
+  const [suggestions, setSuggestions] = useState<LocationOption[]>([])
   const [isLoading, setIsLoading] = useState(false)
+  const [inputValue, setInputValue] = useState(value)
   const inputRef = useRef<HTMLInputElement>(null)
-  const autocompleteService = useRef<any>(null)
-  const placesService = useRef<any>(null)
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
-  // Initialize Google Places API
+  // Google Places API key - you'll need to add this to your environment variables
+  const GOOGLE_PLACES_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY
+
   useEffect(() => {
-    const initGooglePlaces = () => {
-      if (typeof window !== 'undefined' && window.google && window.google.maps) {
-        autocompleteService.current = new window.google.maps.places.AutocompleteService()
-        placesService.current = new window.google.maps.places.PlacesService(
-          document.createElement('div')
-        )
+    setInputValue(value)
+  }, [value])
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false)
       }
     }
 
-    // Load Google Places API script
-    const loadGooglePlacesScript = () => {
-      if (typeof window !== 'undefined' && !window.google) {
-        const script = document.createElement('script')
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY}&libraries=places`
-        script.async = true
-        script.defer = true
-        script.onload = initGooglePlaces
-        document.head.appendChild(script)
-      } else {
-        initGooglePlaces()
-      }
-    }
-
-    loadGooglePlacesScript()
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  const getPlaceSuggestions = async (input: string) => {
-    if (!autocompleteService.current || !input.trim()) {
+  const extractCityFromDescription = (description: string): string => {
+    // Extract city from Google Places description
+    // Format is usually: "City, State, Country" or "City, Country"
+    const parts = description.split(', ')
+    if (parts.length >= 2) {
+      // Return the first part (city) and second part (state/country)
+      return `${parts[0]}, ${parts[1]}`
+    }
+    return parts[0] || description
+  }
+
+  const searchLocations = async (query: string) => {
+    if (!query.trim() || query.length < 2) {
       setSuggestions([])
+      return
+    }
+
+    if (!GOOGLE_PLACES_API_KEY) {
+      console.warn('Google Places API key not found')
+      // Fallback to basic suggestions
+      setSuggestions([
+        { place_id: '1', description: 'New York, NY, USA', city: 'New York, NY' },
+        { place_id: '2', description: 'Los Angeles, CA, USA', city: 'Los Angeles, CA' },
+        { place_id: '3', description: 'Chicago, IL, USA', city: 'Chicago, IL' },
+        { place_id: '4', description: 'Houston, TX, USA', city: 'Houston, TX' },
+        { place_id: '5', description: 'Phoenix, AZ, USA', city: 'Phoenix, AZ' }
+      ])
       return
     }
 
     setIsLoading(true)
     try {
-      const request = {
-        input: input,
-        types: ['(cities)'], // Restrict to cities
-        componentRestrictions: { country: 'in' } // Restrict to India
+      const response = await fetch(
+        `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(query)}&types=(cities)&key=${GOOGLE_PLACES_API_KEY}`
+      )
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch locations')
       }
 
-      autocompleteService.current.getPlacePredictions(
-        request,
-        (predictions: GooglePlace[], status: string) => {
-          setIsLoading(false)
-          if (status === window.google.maps.places.PlacesServiceStatus.OK && predictions) {
-            setSuggestions(predictions)
-            setShowSuggestions(true)
-          } else {
-            setSuggestions([])
-            setShowSuggestions(false)
-          }
-        }
-      )
+      const data = await response.json()
+      
+      if (data.predictions) {
+        const options: LocationOption[] = data.predictions.slice(0, 5).map((prediction: any) => ({
+          place_id: prediction.place_id,
+          description: prediction.description,
+          city: extractCityFromDescription(prediction.description)
+        }))
+        setSuggestions(options)
+      } else {
+        setSuggestions([])
+      }
     } catch (error) {
-      console.error('Error fetching place suggestions:', error)
-      setIsLoading(false)
+      console.error('Error fetching locations:', error)
       setSuggestions([])
+    } finally {
+      setIsLoading(false)
     }
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value
+    setInputValue(newValue)
     onChange(newValue)
     
-    if (newValue.length >= 2) {
-      getPlaceSuggestions(newValue)
+    if (newValue.trim()) {
+      setIsOpen(true)
+      searchLocations(newValue)
     } else {
+      setIsOpen(false)
       setSuggestions([])
-      setShowSuggestions(false)
     }
   }
 
-  const handleSuggestionClick = (suggestion: GooglePlace) => {
-    onChange(suggestion.description)
+  const handleSelectLocation = (option: LocationOption) => {
+    setInputValue(option.city)
+    onChange(option.city)
+    setIsOpen(false)
     setSuggestions([])
-    setShowSuggestions(false)
-    inputRef.current?.blur()
   }
 
-  const handleInputBlur = () => {
-    // Delay hiding suggestions to allow for clicks
-    setTimeout(() => {
-      setShowSuggestions(false)
-    }, 200)
-  }
-
-  const handleInputFocus = () => {
-    if (suggestions.length > 0) {
-      setShowSuggestions(true)
-    }
+  const handleClear = () => {
+    setInputValue('')
+    onChange('')
+    setIsOpen(false)
+    setSuggestions([])
   }
 
   return (
-    <div className="relative">
+    <div className={`relative ${className}`}>
       <div className="relative">
-        <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <MapPin className="h-5 w-5 text-gray-400" />
+        </div>
         <input
           ref={inputRef}
           type="text"
-          value={value}
+          value={inputValue}
           onChange={handleInputChange}
-          onBlur={handleInputBlur}
-          onFocus={handleInputFocus}
+          onFocus={() => {
+            if (suggestions.length > 0) setIsOpen(true)
+          }}
           placeholder={placeholder}
-          disabled={disabled}
-          className={`w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${className} ${
-            disabled ? 'bg-gray-100 cursor-not-allowed' : ''
-          }`}
+          className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
-        {isLoading && (
-          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-          </div>
-        )}
+        <div className="absolute inset-y-0 right-0 flex items-center pr-2">
+          {inputValue && (
+            <button
+              onClick={handleClear}
+              className="p-1 text-gray-400 hover:text-gray-600"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+          <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        </div>
       </div>
 
-      {/* Suggestions Dropdown */}
-      {showSuggestions && suggestions.length > 0 && (
-        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-          {suggestions.map((suggestion) => (
-            <button
-              key={suggestion.place_id}
-              type="button"
-              onClick={() => handleSuggestionClick(suggestion)}
-              className="w-full px-4 py-2 text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none"
-            >
-              <div className="font-medium text-gray-900">
-                {suggestion.structured_formatting.main_text}
-              </div>
-              <div className="text-sm text-gray-500">
-                {suggestion.structured_formatting.secondary_text}
-              </div>
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* No suggestions message */}
-      {showSuggestions && suggestions.length === 0 && value.length >= 2 && !isLoading && (
-        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg">
-          <div className="px-4 py-2 text-gray-500 text-sm">
-            No cities found. Try a different search term.
-          </div>
+      {/* Dropdown */}
+      {isOpen && (
+        <div
+          ref={dropdownRef}
+          className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto"
+        >
+          {isLoading ? (
+            <div className="px-4 py-2 text-sm text-gray-500">
+              Loading locations...
+            </div>
+          ) : suggestions.length > 0 ? (
+            <ul>
+              {suggestions.map((option) => (
+                <li key={option.place_id}>
+                  <button
+                    onClick={() => handleSelectLocation(option)}
+                    className="w-full px-4 py-2 text-left hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
+                  >
+                    <div className="flex items-center">
+                      <MapPin className="h-4 w-4 text-gray-400 mr-2" />
+                      <span className="text-sm">{option.city}</span>
+                    </div>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : inputValue.trim() && !isLoading ? (
+            <div className="px-4 py-2 text-sm text-gray-500">
+              No locations found
+            </div>
+          ) : null}
         </div>
       )}
     </div>
