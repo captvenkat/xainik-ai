@@ -61,26 +61,24 @@ export default function VeteranDashboard() {
         .eq('user_id', userId)
         .single()
 
-      if (!pitch) {
-        setError('No pitch found. Please create a pitch first.')
-        setIsLoading(false)
-        return
-      }
+      // If no pitch exists, we'll use null and show 0 counts
+      // This allows the dashboard to render with empty state
+      const pitchId = pitch?.id || null
 
-      // Fetch conversion metrics
+      // Fetch conversion metrics (handle case when no pitch exists)
       const [viewsResult, likesResult, sharesResult, endorsementsResult, emailsResult, callsResult, supportersResult] = await Promise.all([
         // Profile views (from pitch_views or similar table)
-        supabase.from('pitch_views').select('count').eq('pitch_id', pitch.id).single().then(r => r.data?.count || 0),
+        pitchId ? supabase.from('pitch_views').select('count').eq('pitch_id', pitchId).single().then(r => r.data?.count || 0) : Promise.resolve(0),
         // Likes (from pitch_likes or similar table)
-        supabase.from('pitch_likes').select('count').eq('pitch_id', pitch.id).single().then(r => r.data?.count || 0),
+        pitchId ? supabase.from('pitch_likes').select('count').eq('pitch_id', pitchId).single().then(r => r.data?.count || 0) : Promise.resolve(0),
         // Shares (from referral_events or similar)
-        supabase.from('referral_events').select('count').eq('pitch_id', pitch.id).eq('event_type', 'share').single().then(r => r.data?.count || 0),
+        pitchId ? supabase.from('referral_events').select('count').eq('pitch_id', pitchId).eq('event_type', 'share').single().then(r => r.data?.count || 0) : Promise.resolve(0),
         // Endorsements
-        supabase.from('endorsements').select('count').eq('pitch_id', pitch.id).single().then(r => r.data?.count || 0),
+        pitchId ? supabase.from('endorsements').select('count').eq('pitch_id', pitchId).single().then(r => r.data?.count || 0) : Promise.resolve(0),
         // Emails (from contact_requests or similar)
-        supabase.from('contact_requests').select('count').eq('pitch_id', pitch.id).eq('type', 'email').single().then(r => r.data?.count || 0),
+        pitchId ? supabase.from('contact_requests').select('count').eq('pitch_id', pitchId).eq('type', 'email').single().then(r => r.data?.count || 0) : Promise.resolve(0),
         // Calls (from contact_requests or similar)
-        supabase.from('contact_requests').select('count').eq('pitch_id', pitch.id).eq('type', 'call').single().then(r => r.data?.count || 0),
+        pitchId ? supabase.from('contact_requests').select('count').eq('pitch_id', pitchId).eq('type', 'call').single().then(r => r.data?.count || 0) : Promise.resolve(0),
         // Supporters count
         supabase.from('users').select('count').eq('role', 'supporter').single().then(r => r.data?.count || 0)
       ])
@@ -116,7 +114,7 @@ export default function VeteranDashboard() {
       const { data: activity } = await supabase
         .from('referral_events')
         .select('event_type, created_at, user_id')
-        .eq('pitch_id', pitch.id)
+        .eq('pitch_id', pitchId || '')
         .order('created_at', { ascending: false })
         .limit(10)
 
@@ -145,13 +143,23 @@ export default function VeteranDashboard() {
   }
 
   const handleSharePitch = () => {
-    // Navigate to pitch sharing page
-    window.open(`/pitch/${user?.id}`, '_blank')
+    if (!pitchId) {
+      // If no pitch exists, redirect to create pitch
+      window.open('/pitch/new', '_blank')
+    } else {
+      // Navigate to pitch sharing page
+      window.open(`/pitch/${pitchId}`, '_blank')
+    }
   }
 
   const handleInviteSupporters = () => {
-    // Navigate to supporter invitation page
-    window.open('/supporter/refer', '_blank')
+    if (!pitchId) {
+      // If no pitch exists, redirect to create pitch first
+      window.open('/pitch/new', '_blank')
+    } else {
+      // Navigate to supporter invitation page
+      window.open('/supporter/refer', '_blank')
+    }
   }
 
   if (authLoading || isLoading) {
@@ -179,6 +187,13 @@ export default function VeteranDashboard() {
               <p className="text-gray-600 mt-1">
                 Track your pitch performance and conversion funnel
               </p>
+              {!pitchId && (
+                <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-sm text-blue-800">
+                    <strong>Get started:</strong> Create your first pitch to start tracking your conversion funnel and analytics.
+                  </p>
+                </div>
+              )}
             </div>
             <div className="flex items-center space-x-3">
               <button
@@ -392,16 +407,16 @@ export default function VeteranDashboard() {
                 className="flex items-center justify-center px-4 py-3 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
                 <Share2 className="w-5 h-5 mr-2" />
-                Share Your Pitch
+                {pitchId ? 'Share Your Pitch' : 'Create Your Pitch'}
               </button>
-              
-              <button
-                onClick={handleInviteSupporters}
-                className="flex items-center justify-center px-4 py-3 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-              >
-                <Users className="w-5 h-5 mr-2" />
-                Invite Supporters
-              </button>
+               
+               <button
+                 onClick={handleInviteSupporters}
+                 className="flex items-center justify-center px-4 py-3 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+               >
+                 <Users className="w-5 h-5 mr-2" />
+                 {pitchId ? 'Invite Supporters' : 'Get Started'}
+               </button>
               
               <button
                 onClick={() => window.open('/dashboard/veteran/impact', '_blank')}
