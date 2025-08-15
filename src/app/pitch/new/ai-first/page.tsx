@@ -18,7 +18,7 @@ interface AIPitchFormData {
   photo_url?: string
   resume_url?: string
   resume_share_enabled: boolean
-  linkedin_url?: string
+  web_link?: string  // Changed from linkedin_url to be more generic
 }
 
 const JOB_TYPES = [
@@ -101,7 +101,7 @@ export default function AIFirstPitchPage() {
           photo_url: formData.photo_url,
           resume_url: formData.resume_url,
           resume_share_enabled: formData.resume_share_enabled,
-          linkedin_url: formData.linkedin_url,
+          linkedin_url: formData.web_link, // Keep database field name as linkedin_url for compatibility
           is_active: true
         })
         .select()
@@ -297,18 +297,21 @@ function DetailsStep({ formData, updateFormData, onNext, onBack }: any) {
           </select>
         </div>
 
-        {/* LinkedIn URL */}
+        {/* Web Link */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            LinkedIn Profile (Optional)
+            Share a Web Link (Optional)
           </label>
           <input
             type="url"
-            value={formData.linkedin_url || ''}
-            onChange={(e) => updateFormData({ linkedin_url: e.target.value })}
-            placeholder="https://linkedin.com/in/yourprofile"
+            value={formData.web_link || ''}
+            onChange={(e) => updateFormData({ web_link: e.target.value })}
+            placeholder="https://linkedin.com/in/yourprofile, https://github.com/username, https://youtube.com/channel, or your website"
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
+          <p className="mt-1 text-xs text-gray-500">
+            Can be LinkedIn, GitHub, YouTube, portfolio website, or any professional link
+          </p>
         </div>
 
         {/* Resume Share */}
@@ -421,6 +424,23 @@ function ReviewStep({ formData, profile, onNext, onBack, isLoading, error, succe
                 <p className="font-medium">{formData.availability || 'Not set'}</p>
               </div>
             </div>
+            
+            {/* Web Link */}
+            {formData.web_link && (
+              <div>
+                <span className="text-gray-600 text-sm">Web Link:</span>
+                <div className="mt-1">
+                  <a 
+                    href={formData.web_link} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:text-blue-800 underline break-all"
+                  >
+                    {formData.web_link}
+                  </a>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
