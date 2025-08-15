@@ -176,11 +176,11 @@ export default function VeteranDashboard() {
   }
 
   if (authError || error) {
-    return <ErrorState message={authError || error || 'Failed to load dashboard'} />
+    return <ErrorState error={authError || error || 'Failed to load dashboard'} />
   }
 
   if (!user || !profile) {
-    return <ErrorState message="Authentication required" />
+    return <ErrorState error="Authentication required" />
   }
 
   return (
