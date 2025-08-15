@@ -100,7 +100,7 @@ export function useAuth(options: UseAuthOptions = {}) {
             try {
               const { data: profile, error: profileError } = await supabase
                 .from('users')
-                .select('role, name')
+                .select('role, name, email, phone, location, military_branch, military_rank, years_of_service, discharge_date, education_level, certifications, bio')
                 .eq('id', user.id)
                 .single()
               
