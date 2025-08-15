@@ -98,6 +98,7 @@ export default function AIFirstPitchPage() {
           skills: formData.skills.filter(skill => skill.trim()),
           job_type: formData.job_type,
           availability: formData.availability,
+          location: profile?.location || 'Not specified', // Add location from profile
           photo_url: formData.photo_url,
           resume_url: formData.resume_url,
           resume_share_enabled: formData.resume_share_enabled,
@@ -422,6 +423,10 @@ function ReviewStep({ formData, profile, onNext, onBack, isLoading, error, succe
               <div>
                 <span className="text-gray-600 text-sm">Availability:</span>
                 <p className="font-medium">{formData.availability || 'Not set'}</p>
+              </div>
+              <div>
+                <span className="text-gray-600 text-sm">Location:</span>
+                <p className="font-medium">{profile?.location || 'Not specified'}</p>
               </div>
             </div>
             
