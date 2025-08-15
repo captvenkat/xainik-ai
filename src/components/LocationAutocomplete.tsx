@@ -66,13 +66,16 @@ export default function LocationAutocomplete({
 
     if (!GOOGLE_PLACES_API_KEY) {
       console.warn('Google Places API key not found')
-      // Fallback to basic suggestions
+      // Fallback to basic Indian city suggestions
       setSuggestions([
-        { place_id: '1', description: 'New York, NY, USA', city: 'New York, NY' },
-        { place_id: '2', description: 'Los Angeles, CA, USA', city: 'Los Angeles, CA' },
-        { place_id: '3', description: 'Chicago, IL, USA', city: 'Chicago, IL' },
-        { place_id: '4', description: 'Houston, TX, USA', city: 'Houston, TX' },
-        { place_id: '5', description: 'Phoenix, AZ, USA', city: 'Phoenix, AZ' }
+        { place_id: '1', description: 'Mumbai, Maharashtra, India', city: 'Mumbai, Maharashtra' },
+        { place_id: '2', description: 'Delhi, Delhi, India', city: 'Delhi, Delhi' },
+        { place_id: '3', description: 'Bangalore, Karnataka, India', city: 'Bangalore, Karnataka' },
+        { place_id: '4', description: 'Hyderabad, Telangana, India', city: 'Hyderabad, Telangana' },
+        { place_id: '5', description: 'Chennai, Tamil Nadu, India', city: 'Chennai, Tamil Nadu' },
+        { place_id: '6', description: 'Kolkata, West Bengal, India', city: 'Kolkata, West Bengal' },
+        { place_id: '7', description: 'Pune, Maharashtra, India', city: 'Pune, Maharashtra' },
+        { place_id: '8', description: 'Ahmedabad, Gujarat, India', city: 'Ahmedabad, Gujarat' }
       ])
       return
     }
@@ -80,7 +83,7 @@ export default function LocationAutocomplete({
     setIsLoading(true)
     try {
       const response = await fetch(
-        `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(query)}&types=(cities)&key=${GOOGLE_PLACES_API_KEY}`
+        `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(query)}&types=(cities)&components=country:in&key=${GOOGLE_PLACES_API_KEY}`
       )
       
       if (!response.ok) {

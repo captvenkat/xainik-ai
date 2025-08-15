@@ -36,6 +36,8 @@ For security, restrict your API key:
 5. Under "API restrictions", select "Restrict key"
 6. Select "Places API" from the list
 
+**Note:** The API is configured to prioritize Indian cities with `components=country:in` parameter.
+
 ### **4. Features Enabled:**
 
 With the API key configured, the location autocomplete will:
@@ -47,12 +49,15 @@ With the API key configured, the location autocomplete will:
 
 ### **5. Fallback Behavior:**
 
-If no API key is provided, the component will show basic location suggestions:
-- New York, NY
-- Los Angeles, CA
-- Chicago, IL
-- Houston, TX
-- Phoenix, AZ
+If no API key is provided, the component will show basic Indian city suggestions:
+- Mumbai, Maharashtra
+- Delhi, Delhi
+- Bangalore, Karnataka
+- Hyderabad, Telangana
+- Chennai, Tamil Nadu
+- Kolkata, West Bengal
+- Pune, Maharashtra
+- Ahmedabad, Gujarat
 
 ### **6. Usage:**
 
