@@ -63,17 +63,26 @@ export const clearSupabaseBrowserInstance = () => {
 export const signInWithGoogle = async () => {
   const supabase = createSupabaseBrowser();
   
-  const { error } = await supabase.auth.signInWithOAuth({
+  console.log('signInWithGoogle: Starting OAuth flow...');
+  console.log('signInWithGoogle: Redirect URL:', `${window.location.origin}/auth/callback`);
+  
+  const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: `${window.location.origin}/auth/callback`, // Back to main callback
+      redirectTo: `${window.location.origin}/auth/callback`,
       queryParams: { access_type: 'offline', prompt: 'consent' }
     }
   });
 
+  console.log('signInWithGoogle: OAuth response:', { data, error });
+
   if (error) {
+    console.error('signInWithGoogle: OAuth error:', error);
     throw error;
   }
+
+  // If we get here, the OAuth flow should have started
+  console.log('signInWithGoogle: OAuth flow initiated successfully');
 };
 
 export async function signOut() {
