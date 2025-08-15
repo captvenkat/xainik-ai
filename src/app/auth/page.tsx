@@ -53,8 +53,20 @@ function AuthPageContent() {
   async function handleGoogle() {
     try {
       setIsLoading(true);
+      setAuthError(null); // Clear any previous errors
+
+      // Add a timeout to prevent infinite spinning
+      const timeoutId = setTimeout(() => {
+        setIsLoading(false);
+        setAuthError('Sign-in timeout. Please try again.');
+      }, 10000); // 10 second timeout
 
       await signInWithGoogle();
+      
+      // If we reach here, the OAuth redirect should have happened
+      // Clear the timeout since we're redirecting
+      clearTimeout(timeoutId);
+      
     } catch (error) {
       console.error('Google sign-in error:', error);
       setAuthError(error instanceof Error ? error.message : 'Google sign-in failed');
