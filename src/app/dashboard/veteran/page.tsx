@@ -5,7 +5,7 @@ import { useAuth } from '@/lib/hooks/useAuth'
 import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 import LoadingSpinner from '@/components/LoadingSpinner'
 import ErrorState from '@/components/ErrorState'
-import { Eye, Heart, Mail, Phone, TrendingUp, Share2, Users, Target, Activity, Calendar, RefreshCw } from 'lucide-react'
+import { Eye, Heart, Mail, Phone, TrendingUp, Share2, Users, RefreshCw } from 'lucide-react'
 
 interface ConversionMetrics {
   profileViews: number
@@ -17,23 +17,7 @@ interface ConversionMetrics {
   totalSupporters: number
 }
 
-interface ChannelData {
-  channel: string
-  views: number
-  endorsements: number
-  emails: number
-  calls: number
-  conversionRate: number
-}
 
-interface SupporterData {
-  name: string
-  shares: number
-  endorsements: number
-  emails: number
-  calls: number
-  totalImpact: number
-}
 
 export default function VeteranDashboard() {
   const { user, profile, isLoading: authLoading, error: authError } = useAuth({ 
@@ -42,9 +26,6 @@ export default function VeteranDashboard() {
   })
   
   const [metrics, setMetrics] = useState<ConversionMetrics | null>(null)
-  const [channels, setChannels] = useState<ChannelData[]>([])
-  const [topSupporters, setTopSupporters] = useState<SupporterData[]>([])
-  const [recentActivity, setRecentActivity] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date())
@@ -97,30 +78,7 @@ export default function VeteranDashboard() {
         totalSupporters: supportersResult
       })
 
-      // Fetch channel performance (mock data for now)
-      setChannels([
-        { channel: 'LinkedIn', views: 450, endorsements: 23, emails: 8, calls: 3, conversionRate: 7.6 },
-        { channel: 'Twitter', views: 320, endorsements: 18, emails: 6, calls: 2, conversionRate: 8.1 },
-        { channel: 'WhatsApp', views: 280, endorsements: 15, emails: 5, calls: 2, conversionRate: 7.9 },
-        { channel: 'Email', views: 197, endorsements: 12, emails: 4, calls: 1, conversionRate: 8.6 }
-      ])
 
-      // Fetch top supporters (mock data for now)
-      setTopSupporters([
-        { name: 'John Doe', shares: 23, endorsements: 12, emails: 5, calls: 2, totalImpact: 42 },
-        { name: 'Jane Smith', shares: 18, endorsements: 8, emails: 3, calls: 1, totalImpact: 30 },
-        { name: 'Mike Johnson', shares: 15, endorsements: 6, emails: 2, calls: 1, totalImpact: 24 }
-      ])
-
-      // Fetch recent activity
-      const { data: activity } = await supabase
-        .from('referral_events')
-        .select('event_type, created_at, user_id')
-        .eq('pitch_id', currentPitchId || '')
-        .order('created_at', { ascending: false })
-        .limit(10)
-
-      setRecentActivity(activity || [])
       setLastUpdated(new Date())
 
     } catch (error) {
@@ -144,22 +102,18 @@ export default function VeteranDashboard() {
     }
   }
 
-  const handleSharePitch = () => {
+  const handleCreateOrSharePitch = () => {
     if (!pitchId) {
-      // If no pitch exists, redirect to create pitch
       window.open('/pitch/new', '_blank')
     } else {
-      // Navigate to pitch sharing page
       window.open(`/pitch/${pitchId}`, '_blank')
     }
   }
 
   const handleInviteSupporters = () => {
     if (!pitchId) {
-      // If no pitch exists, redirect to create pitch first
       window.open('/pitch/new', '_blank')
     } else {
-      // Navigate to supporter invitation page
       window.open('/supporter/refer', '_blank')
     }
   }
@@ -405,7 +359,7 @@ export default function VeteranDashboard() {
           <div className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <button
-                onClick={handleSharePitch}
+                onClick={handleCreateOrSharePitch}
                 className="flex items-center justify-center px-4 py-3 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
                 <Share2 className="w-5 h-5 mr-2" />
@@ -431,54 +385,7 @@ export default function VeteranDashboard() {
           </div>
         </div>
 
-        {/* Channel Performance */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div className="bg-white rounded-lg shadow">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900">Channel Performance</h2>
-              <p className="text-sm text-gray-600">See which platforms drive the most conversions</p>
-            </div>
-            <div className="p-6">
-              <div className="space-y-4">
-                {channels.map((channel, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div className="flex items-center">
-                      <div className="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
-                      <span className="font-medium text-gray-900">{channel.channel}</span>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-medium text-gray-900">{channel.views} views</p>
-                      <p className="text-xs text-gray-500">{channel.conversionRate}% conversion</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
 
-          <div className="bg-white rounded-lg shadow">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900">Top Supporters</h2>
-              <p className="text-sm text-gray-600">Your most engaged supporters</p>
-            </div>
-            <div className="p-6">
-              <div className="space-y-4">
-                {topSupporters.map((supporter, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div>
-                      <p className="font-medium text-gray-900">{supporter.name}</p>
-                      <p className="text-sm text-gray-500">{supporter.shares} shares</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-medium text-gray-900">{supporter.totalImpact} total impact</p>
-                      <p className="text-xs text-gray-500">{supporter.endorsements} endorsements</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   )
