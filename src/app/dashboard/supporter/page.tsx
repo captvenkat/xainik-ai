@@ -15,6 +15,7 @@ import SupporterAnalytics from '@/components/impact/SupporterAnalytics'
 import MissionInvitationModal from '@/components/mission/MissionInvitationModal'
 import MissionInvitationAnalytics from '@/components/mission/MissionInvitationAnalytics'
 import CommunitySuggestions from '@/components/community/CommunitySuggestions'
+import VeteransSupporting from '@/components/supporter/VeteransSupporting'
 
 // =====================================================
 // STREAMLINED SUPPORTER DASHBOARD - STRIPE-LEVEL CLARITY
@@ -524,6 +525,9 @@ function OverviewTab({ metrics, userId, onOpenInviteModal }: { metrics: Supporte
           </p>
         </div>
       </div>
+
+      {/* Veterans You're Supporting - Professional Impact Tracking */}
+      <VeteransSupporting userId={userId} />
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
