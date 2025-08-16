@@ -1,95 +1,88 @@
-import { createClient } from '@supabase/supabase-js'
-import dotenv from 'dotenv'
+const { createClient } = require('@supabase/supabase-js')
+require('dotenv').config({ path: '.env.local' })
 
-// Load environment variables
-dotenv.config({ path: '.env.local' })
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-const serviceRole = process.env.SUPABASE_SERVICE_ROLE_KEY
-
-console.log('🔒 Checking RLS Policies...')
-console.log('==========================')
-
-if (!url || !serviceRole) {
+if (!supabaseUrl || !supabaseKey) {
   console.error('❌ Missing Supabase environment variables')
   process.exit(1)
 }
 
-const supabase = createClient(url, serviceRole, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false
-  }
-})
+const supabase = createClient(supabaseUrl, supabaseKey)
 
 async function checkRLSPolicies() {
+  console.log('🔍 Checking RLS policies on pitches table...\n')
+
   try {
-    // Test 1: Check if we can access the users table with service role
-    console.log('\n1️⃣ Testing users table access with service role...')
-    const { data: users, error: usersError } = await supabase
-      .from('users')
-      .select('*')
-      .limit(1)
-    
-    if (usersError) {
-      console.error('❌ Users table access failed:', usersError)
+    // Check if RLS is enabled
+    const { data: rlsEnabled, error: rlsError } = await supabase
+      .rpc('check_rls_enabled', { table_name: 'pitches' })
+
+    if (rlsError) {
+      console.log('⚠️ Could not check RLS status via RPC')
     } else {
-      console.log('✅ Users table accessible with service role')
+      console.log('📋 RLS enabled:', rlsEnabled)
     }
+
+    // Try to get current user
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
     
-    // Test 2: Try to create a user record with service role
-    console.log('\n2️⃣ Testing user creation with service role...')
-    const testUserId = '713e1683-8089-4dfc-ac29-b0f1b2d6c787'
-    const { data: newUser, error: createError } = await supabase
-      .from('users')
-      .upsert({
-        id: testUserId,
-        email: 'test@example.com',
-        name: 'Test User',
-        role: 'veteran'
-      }, {
-        onConflict: 'id'
-      })
+    if (userError) {
+      console.error('❌ Error getting user:', userError)
+      return
+    }
+
+    console.log('👤 Current user:', user?.id)
+
+    // Check if user can insert into pitches
+    console.log('\n🧪 Testing pitch creation with authenticated user...')
+    
+    const testPitch = {
+      user_id: user.id,
+      title: 'RLS Test Pitch',
+      pitch_text: 'Testing RLS policies',
+      skills: ['test'],
+      job_type: 'full-time',
+      availability: 'Immediate',
+      location: 'Test Location',
+      is_active: true
+    }
+
+    console.log('📋 Test pitch data:', testPitch)
+
+    const { data: pitch, error: pitchError } = await supabase
+      .from('pitches')
+      .insert(testPitch)
       .select()
-    
-    if (createError) {
-      console.error('❌ User creation failed:', createError)
-    } else {
-      console.log('✅ User created successfully:', newUser)
-    }
-    
-    // Test 3: Check current RLS policies
-    console.log('\n3️⃣ Checking current RLS policies...')
-    const { data: policies, error: policiesError } = await supabase
-      .from('information_schema.policies')
-      .select('*')
-      .eq('table_name', 'users')
-    
-    if (policiesError) {
-      console.error('❌ Failed to check policies:', policiesError)
-    } else {
-      console.log('✅ Current policies for users table:')
-      policies?.forEach(policy => {
-        console.log(`   - ${policy.policy_name}: ${policy.cmd} ${policy.permissive ? 'PERMISSIVE' : 'RESTRICTIVE'}`)
-      })
-    }
-    
-    // Test 4: Test user query with the created user
-    console.log('\n4️⃣ Testing user query...')
-    const { data: userData, error: queryError } = await supabase
-      .from('users')
-      .select('role, name')
-      .eq('id', testUserId)
       .single()
-    
-    if (queryError) {
-      console.error('❌ User query failed:', queryError)
+
+    if (pitchError) {
+      console.error('❌ Pitch creation failed:', pitchError)
+      
+      // Check if it's an RLS issue
+      if (pitchError.message.includes('row-level security policy')) {
+        console.log('\n🔒 RLS Policy Issue Detected!')
+        console.log('The user does not have permission to insert into pitches table.')
+        console.log('This could be due to:')
+        console.log('1. Missing RLS policy for INSERT operations')
+        console.log('2. RLS policy condition not met')
+        console.log('3. User role not having insert permissions')
+      }
     } else {
-      console.log('✅ User query successful:', userData)
+      console.log('✅ Pitch created successfully:', pitch)
+      
+      // Clean up
+      await supabase
+        .from('pitches')
+        .delete()
+        .eq('id', pitch.id)
+      
+      console.log('🧹 Test pitch cleaned up')
     }
-    
+
   } catch (error) {
-    console.error('❌ Script failed:', error)
+    console.error('❌ Error:', error)
   }
 }
 

@@ -25,6 +25,7 @@ export default function ReferModal({
   const [referralLink, setReferralLink] = useState<string | null>(null)
   const [userRole, setUserRole] = useState<string | null>(null)
   const [copied, setCopied] = useState<string | null>(null)
+  const [emailError, setEmailError] = useState<string | null>(null)
 
   useEffect(() => {
     const checkUserRole = async () => {
@@ -100,9 +101,32 @@ export default function ReferModal({
     const shareUrl = createShareUrl(platform)
     
     if (platform === 'copy') {
-      await navigator.clipboard.writeText(shareUrl)
-      setCopied('copy')
-      setTimeout(() => setCopied(null), 2000)
+      try {
+        await navigator.clipboard.writeText(shareUrl)
+        setCopied('copy')
+        setTimeout(() => setCopied(null), 2000)
+      } catch (error) {
+        console.error('Error copying to clipboard:', error)
+        setEmailError('Failed to copy to clipboard. Please select and copy manually.')
+      }
+    } else if (platform === 'email') {
+      try {
+        const emailWindow = window.open(shareUrl, '_blank')
+        if (!emailWindow) {
+          setEmailError('Email client could not be opened. Please use the copy option and send manually.')
+        } else {
+          setEmailError(null)
+          // Close popup after delay
+          setTimeout(() => {
+            if (emailWindow && !emailWindow.closed) {
+              emailWindow.close()
+            }
+          }, 1000)
+        }
+      } catch (error) {
+        console.error('Error opening email client:', error)
+        setEmailError('Email client could not be opened. Please use the copy option and send manually.')
+      }
     } else {
       window.open(shareUrl, '_blank', 'noopener,noreferrer')
     }
@@ -118,6 +142,7 @@ export default function ReferModal({
           ip_hash: 'client-side'
         })
       } catch (error) {
+        console.error('Error tracking share event:', error)
       }
     }
   }
@@ -165,6 +190,15 @@ export default function ReferModal({
         {error && (
           <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
             <p className="text-red-600 text-sm">{error}</p>
+          </div>
+        )}
+
+        {emailError && (
+          <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p className="text-yellow-800 text-sm">{emailError}</p>
+            <p className="text-yellow-700 text-xs mt-1">
+              You can still copy the link and send it manually via your email app.
+            </p>
           </div>
         )}
 

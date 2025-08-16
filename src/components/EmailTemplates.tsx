@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Mail, Copy, Check, Edit3, Save } from 'lucide-react'
+import { Mail, Copy, Check, Edit3, Save, AlertCircle } from 'lucide-react'
 
 interface EmailTemplatesProps {
   pitchId: string
@@ -31,6 +31,8 @@ export default function EmailTemplates({
   const [isEditing, setIsEditing] = useState(false)
   const [customSubject, setCustomSubject] = useState('')
   const [customBody, setCustomBody] = useState('')
+  const [emailError, setEmailError] = useState<string | null>(null)
+  const [showEmailFallback, setShowEmailFallback] = useState(false)
 
   const pitchUrl = `${window.location.origin}/pitch/${pitchId}`
 
@@ -136,6 +138,8 @@ Best regards,
       setCustomSubject(template.subject)
       setCustomBody(template.body)
       setIsEditing(false)
+      setEmailError(null)
+      setShowEmailFallback(false)
     }
   }
 
@@ -146,14 +150,40 @@ Best regards,
       setTimeout(() => setCopied(false), 2000)
     } catch (error) {
       console.error('Error copying to clipboard:', error)
+      setEmailError('Failed to copy to clipboard. Please select and copy manually.')
     }
   }
 
   const openEmailClient = () => {
-    const subject = encodeURIComponent(customSubject)
-    const body = encodeURIComponent(customBody)
-    const emailUrl = `mailto:?subject=${subject}&body=${body}`
-    window.open(emailUrl)
+    try {
+      const subject = encodeURIComponent(customSubject)
+      const body = encodeURIComponent(customBody)
+      const emailUrl = `mailto:?subject=${subject}&body=${body}`
+      
+      // Try to open email client
+      const emailWindow = window.open(emailUrl, '_blank')
+      
+      // Check if the window opened successfully
+      if (emailWindow) {
+        // Close the popup after a short delay
+        setTimeout(() => {
+          if (emailWindow && !emailWindow.closed) {
+            emailWindow.close()
+          }
+        }, 1000)
+        
+        setEmailError(null)
+        setShowEmailFallback(false)
+      } else {
+        // If popup was blocked or failed, show fallback
+        setEmailError('Email client could not be opened. Please use the copy option below.')
+        setShowEmailFallback(true)
+      }
+    } catch (error) {
+      console.error('Error opening email client:', error)
+      setEmailError('Email client could not be opened. Please use the copy option below.')
+      setShowEmailFallback(true)
+    }
   }
 
   const saveTemplate = () => {
@@ -211,6 +241,16 @@ Best regards,
             </div>
           </div>
 
+          {/* Email Error Message */}
+          {emailError && (
+            <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-yellow-600" />
+                <p className="text-yellow-800 text-sm">{emailError}</p>
+              </div>
+            </div>
+          )}
+
           <div className="space-y-3">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Subject:</label>
@@ -258,6 +298,46 @@ Best regards,
               {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
               {copied ? 'Copied!' : 'Copy Text'}
             </button>
+          </div>
+
+          {/* Email Fallback Instructions */}
+          {showEmailFallback && (
+            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <h5 className="font-medium text-blue-900 mb-2">Email Client Not Available?</h5>
+              <p className="text-blue-800 text-sm mb-2">
+                If your email client didn't open automatically, you can:
+              </p>
+              <ol className="text-blue-800 text-sm list-decimal list-inside space-y-1">
+                <li>Copy the email text above</li>
+                <li>Open your email app manually (Gmail, Outlook, etc.)</li>
+                <li>Paste the content and send</li>
+              </ol>
+            </div>
+          )}
+
+          {/* Alternative Email Options */}
+          <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+            <h5 className="font-medium text-gray-900 mb-2">Alternative Email Options:</h5>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+              <a
+                href={`https://mail.google.com/mail/?view=cm&fs=1&tf=1&to=&su=${encodeURIComponent(customSubject)}&body=${encodeURIComponent(customBody)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 p-2 bg-white border border-gray-200 rounded hover:bg-gray-50 transition-colors"
+              >
+                <Mail className="w-4 h-4 text-red-500" />
+                Gmail
+              </a>
+              <a
+                href={`https://outlook.live.com/mail/0/deeplink/compose?subject=${encodeURIComponent(customSubject)}&body=${encodeURIComponent(customBody)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 p-2 bg-white border border-gray-200 rounded hover:bg-gray-50 transition-colors"
+              >
+                <Mail className="w-4 h-4 text-blue-500" />
+                Outlook
+              </a>
+            </div>
           </div>
         </div>
       )}
