@@ -106,9 +106,9 @@ CREATE POLICY "Users can create their own suggestions" ON community_suggestions
 CREATE POLICY "Users can update their own suggestions" ON community_suggestions
     FOR UPDATE USING (auth.uid() = user_id);
 
--- Admins can manage all suggestions
+-- Admins can manage all suggestions (using users table, not profiles)
 CREATE POLICY "Admins can manage all suggestions" ON community_suggestions
-    FOR ALL USING (EXISTS (SELECT 1 FROM profiles WHERE user_id = auth.uid() AND role = 'admin'));
+    FOR ALL USING (EXISTS (SELECT 1 FROM users WHERE user_id = auth.uid() AND role = 'admin'));
 
 -- =====================================================
 -- 7. GRANT PERMISSIONS
