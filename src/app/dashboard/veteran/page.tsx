@@ -11,7 +11,7 @@ import LiveActivityTicker from '@/components/LiveActivityTicker'
 import AIContactSuggestions from '@/components/AIContactSuggestions'
 import SupportersWall from '@/components/SupportersWall'
 import VeteranProfileTab from '@/components/VeteranProfileTab'
-import { Eye, Heart, Mail, Phone, TrendingUp, Share2, Users, RefreshCw, BarChart3, User } from 'lucide-react'
+import { Eye, Heart, Mail, Phone, TrendingUp, Share2, Users, RefreshCw, BarChart3, User, BarChart } from 'lucide-react'
 
 interface ConversionMetrics {
   pitchViews: number
@@ -211,6 +211,17 @@ export default function VeteranDashboard() {
                   Profile
                 </div>
               </button>
+              {process.env.NEXT_PUBLIC_FEATURE_IMPACT === 'true' && (
+                <a
+                  href="/dashboard/veteran/impact"
+                  className="py-2 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                >
+                  <div className="flex items-center">
+                    <BarChart className="w-4 h-4 mr-2" />
+                    Impact Analytics
+                  </div>
+                </a>
+              )}
             </nav>
           </div>
         </div>
@@ -435,6 +446,17 @@ export default function VeteranDashboard() {
                   Invite Supporters
                 </button>
               </div>
+              {process.env.NEXT_PUBLIC_FEATURE_IMPACT === 'true' && pitchId && (
+                <div className="mt-4">
+                  <a
+                    href="/dashboard/veteran/impact"
+                    className="flex items-center justify-center w-full px-4 py-3 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  >
+                    <BarChart className="w-5 h-5 mr-2" />
+                    View Detailed Impact Analytics
+                  </a>
+                </div>
+              )}
             </div>
           </div>
         </div>
