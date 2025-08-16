@@ -4,12 +4,12 @@ import { useState, useEffect } from 'react'
 import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 import { 
   Users, Share2, Mail, MessageCircle, Copy, Check, X,
-  Heart, Star, TrendingUp, ArrowRight, ExternalLink
+  Heart, Star, TrendingUp, ArrowRight, ExternalLink, Twitter, Facebook
 } from 'lucide-react'
 
 // =====================================================
 // MISSION INVITATION MODAL
-// Simple, clean invitations to join the mission
+// Enhanced with multiple social media platforms
 // =====================================================
 
 interface MissionInvitationModalProps {
@@ -117,11 +117,29 @@ You can join in any role that fits you. Check it out!`
     }
   }
 
+  function shareViaTwitter() {
+    if (invitationLink) {
+      const message = encodeURIComponent(defaultMessage + '\n\n' + invitationLink)
+      const url = `https://twitter.com/intent/tweet?text=${message}`
+      window.open(url, '_blank')
+      setSelectedPlatform('twitter')
+    }
+  }
+
+  function shareViaFacebook() {
+    if (invitationLink) {
+      const message = encodeURIComponent(defaultMessage + '\n\n' + invitationLink)
+      const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(invitationLink)}&quote=${message}`
+      window.open(url, '_blank')
+      setSelectedPlatform('facebook')
+    }
+  }
+
   if (!isOpen) return null
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-100">
           <div className="flex items-center gap-3">
@@ -220,7 +238,7 @@ You can join in any role that fits you. Check it out!`
               {/* Share Options */}
               <div className="space-y-3">
                 <h3 className="text-sm font-medium text-gray-900">Share via:</h3>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                   <button
                     onClick={shareViaWhatsApp}
                     className={`flex flex-col items-center gap-2 p-3 rounded-lg border transition-colors ${
@@ -255,6 +273,42 @@ You can join in any role that fits you. Check it out!`
                   >
                     <ExternalLink className="w-5 h-5" />
                     <span className="text-xs font-medium">LinkedIn</span>
+                  </button>
+
+                  <button
+                    onClick={shareViaTwitter}
+                    className={`flex flex-col items-center gap-2 p-3 rounded-lg border transition-colors ${
+                      selectedPlatform === 'twitter'
+                        ? 'border-blue-500 bg-blue-50 text-blue-700'
+                        : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'
+                    }`}
+                  >
+                    <Twitter className="w-5 h-5" />
+                    <span className="text-xs font-medium">X (Twitter)</span>
+                  </button>
+
+                  <button
+                    onClick={shareViaFacebook}
+                    className={`flex flex-col items-center gap-2 p-3 rounded-lg border transition-colors ${
+                      selectedPlatform === 'facebook'
+                        ? 'border-blue-500 bg-blue-50 text-blue-700'
+                        : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'
+                    }`}
+                  >
+                    <Facebook className="w-5 h-5" />
+                    <span className="text-xs font-medium">Facebook</span>
+                  </button>
+
+                  <button
+                    onClick={copyToClipboard}
+                    className={`flex flex-col items-center gap-2 p-3 rounded-lg border transition-colors ${
+                      copied
+                        ? 'border-green-500 bg-green-50 text-green-700'
+                        : 'border-gray-200 hover:border-green-300 hover:bg-green-50'
+                    }`}
+                  >
+                    <Copy className="w-5 h-5" />
+                    <span className="text-xs font-medium">Copy Link</span>
                   </button>
                 </div>
               </div>
