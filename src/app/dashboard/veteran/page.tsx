@@ -11,7 +11,10 @@ import LiveActivityTicker from '@/components/LiveActivityTicker'
 import AIContactSuggestions from '@/components/AIContactSuggestions'
 import SupportersWall from '@/components/SupportersWall'
 import VeteranProfileTab from '@/components/VeteranProfileTab'
-import { Eye, Heart, Mail, Phone, TrendingUp, Share2, Users, RefreshCw, BarChart3, User, BarChart } from 'lucide-react'
+import MissionInvitationModal from '@/components/mission/MissionInvitationModal'
+import MissionInvitationAnalytics from '@/components/mission/MissionInvitationAnalytics'
+import CommunitySuggestions from '@/components/community/CommunitySuggestions'
+import { Eye, Heart, Mail, Phone, TrendingUp, Share2, Users, RefreshCw, BarChart3, User, BarChart, Lightbulb, MessageCircle } from 'lucide-react'
 
 interface ConversionMetrics {
   pitchViews: number
@@ -40,7 +43,7 @@ export default function VeteranDashboard() {
   const [pitchId, setPitchId] = useState<string | null>(null)
   const [pitchData, setPitchData] = useState<{ title: string; pitch_text: string } | null>(null)
   const [showShareModal, setShowShareModal] = useState(false)
-  const [activeTab, setActiveTab] = useState<'analytics' | 'profile'>('analytics')
+  const [activeTab, setActiveTab] = useState<'analytics' | 'profile' | 'mission' | 'community'>('analytics')
 
   const fetchVeteranData = useCallback(async (userId: string) => {
     try {
@@ -211,6 +214,32 @@ export default function VeteranDashboard() {
                   Profile
                 </div>
               </button>
+              <button
+                onClick={() => setActiveTab('mission')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'mission'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <div className="flex items-center">
+                  <MessageCircle className="w-4 h-4 mr-2" />
+                  Mission Invitations
+                </div>
+              </button>
+              <button
+                onClick={() => setActiveTab('community')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'community'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <div className="flex items-center">
+                  <Lightbulb className="w-4 h-4 mr-2" />
+                  Community
+                </div>
+              </button>
               {process.env.NEXT_PUBLIC_FEATURE_IMPACT === 'true' && (
                 <a
                   href="/dashboard/veteran/impact"
@@ -226,6 +255,7 @@ export default function VeteranDashboard() {
           </div>
         </div>
 
+        {/* Tab Content */}
         {activeTab === 'analytics' && (
           <>
             {/* Hero Metrics */}
@@ -496,6 +526,31 @@ export default function VeteranDashboard() {
               {activeTab === 'profile' && (
                 <VeteranProfileTab />
               )}
+
+        {activeTab === 'mission' && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-lg shadow p-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">Mission Invitations</h2>
+              <p className="text-gray-600 mb-6">
+                Invite others to join the mission and help veterans succeed. Track your invitation success and build your network.
+              </p>
+              <MissionInvitationModal userId={user.id} userRole="veteran" />
+            </div>
+            <MissionInvitationAnalytics userId={user.id} />
+          </div>
+        )}
+
+        {activeTab === 'community' && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-lg shadow p-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">Community Suggestions</h2>
+              <p className="text-gray-600 mb-6">
+                Help shape the platform's future by submitting suggestions and voting on improvements. Your voice matters in building a better experience for all veterans.
+              </p>
+            </div>
+            <CommunitySuggestions userId={user.id} />
+          </div>
+        )}
 
                 </div>
               </div>
