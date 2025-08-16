@@ -533,6 +533,24 @@ function PitchesTab({ userId }: { userId: string }) {
   async function fetchPitches() {
     try {
       setLoading(true)
+      
+      // First, check if the required tables exist
+      const { error: endorsementsCheck } = await supabase
+        .from('endorsements')
+        .select('id')
+        .limit(1)
+      
+      if (endorsementsCheck && (endorsementsCheck.message.includes('relation') || endorsementsCheck.message.includes('table'))) {
+        // Required tables don't exist yet
+        setDatabaseReady(false)
+        setError('Database tables not ready - please run the migration script first')
+        setPitches([])
+        return
+      }
+
+      // If we get here, the tables exist, so we can query pitches
+      setDatabaseReady(true)
+      
       const { data, error } = await supabase
         .from('pitches')
         .select(`
@@ -545,15 +563,8 @@ function PitchesTab({ userId }: { userId: string }) {
         .order('created_at', { ascending: false })
 
       if (error) {
-        // Check if it's a missing table error
-        if (error.message.includes('relation') || error.message.includes('table')) {
-          setDatabaseReady(false)
-          setError('Database tables not ready')
-        } else {
-          throw error
-        }
+        throw error
       } else {
-        setDatabaseReady(true)
         setPitches(data || [])
       }
     } catch (error) {
@@ -610,6 +621,12 @@ function PitchesTab({ userId }: { userId: string }) {
                   <strong>File:</strong> completely_safe_fix.sql<br/>
                   <strong>Location:</strong> Your project root directory<br/>
                   <strong>Status:</strong> Waiting for database migration
+                </p>
+              </div>
+              <div className="mt-4 p-3 bg-red-50 rounded-lg">
+                <p className="text-sm text-red-800">
+                  <strong>Current Error:</strong> Missing tables: endorsements, likes, shares, community_suggestions<br/>
+                  <strong>Solution:</strong> Run the SQL migration script to create these tables
                 </p>
               </div>
             </div>
