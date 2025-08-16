@@ -17,7 +17,7 @@ import MissionInvitationAnalytics from '@/components/mission/MissionInvitationAn
 import CommunitySuggestions from '@/components/community/CommunitySuggestions'
 
 // =====================================================
-// SUPER-CLEAN SUPPORTER DASHBOARD - STRIPE-LEVEL DESIGN
+// STREAMLINED SUPPORTER DASHBOARD - STRIPE-LEVEL CLARITY
 // Enterprise-Grade Professional Implementation
 // PRODUCTION READY - All features deployed and working
 // =====================================================
@@ -51,7 +51,7 @@ export default function SupporterDashboard() {
   const [metrics, setMetrics] = useState<SupporterMetrics | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<'overview' | 'analytics' | 'impact' | 'referrals' | 'celebrations' | 'suggestions' | 'invitations' | 'community'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'analytics' | 'community'>('overview')
   const [showInvitationModal, setShowInvitationModal] = useState(false)
   const router = useRouter()
 
@@ -317,11 +317,6 @@ export default function SupporterDashboard() {
             {[
               { id: 'overview', label: 'Overview', icon: BarChart3 },
               { id: 'analytics', label: 'Analytics', icon: TrendingUp },
-              { id: 'impact', label: 'Impact', icon: Target },
-              { id: 'referrals', label: 'Referrals', icon: Share2 },
-              { id: 'invitations', label: 'Mission', icon: Heart },
-              { id: 'celebrations', label: 'Celebrations', icon: Trophy },
-              { id: 'suggestions', label: 'AI Suggestions', icon: Zap },
               { id: 'community', label: 'Community', icon: Lightbulb }
             ].map((tab) => {
               const Icon = tab.icon
@@ -344,13 +339,8 @@ export default function SupporterDashboard() {
         </div>
 
         {/* Tab Content */}
-        {activeTab === 'overview' && <OverviewTab metrics={metrics} />}
+        {activeTab === 'overview' && <OverviewTab metrics={metrics} userId={user?.id} onOpenInviteModal={() => setShowInvitationModal(true)} />}
         {activeTab === 'analytics' && <AnalyticsTab userId={user?.id} />}
-        {activeTab === 'impact' && <ImpactTab metrics={metrics} />}
-        {activeTab === 'referrals' && <ReferralsTab metrics={metrics} />}
-        {activeTab === 'invitations' && <InvitationsTab userId={user?.id} onOpenInviteModal={() => setShowInvitationModal(true)} />}
-        {activeTab === 'celebrations' && <CelebrationsTab metrics={metrics} />}
-        {activeTab === 'suggestions' && <SuggestionsTab metrics={metrics} />}
         {activeTab === 'community' && <CommunitySuggestions userId={user?.id} />}
       </div>
 
@@ -368,8 +358,8 @@ export default function SupporterDashboard() {
   )
 }
 
-// Overview Tab Component
-function OverviewTab({ metrics }: { metrics: SupporterMetrics }) {
+// Overview Tab Component - Consolidated with Mission Invitations and Celebrations
+function OverviewTab({ metrics, userId, onOpenInviteModal }: { metrics: SupporterMetrics; userId: string; onOpenInviteModal: () => void }) {
   // Prepare chart data once
   const impactData = [
     { label: 'Donations', value: metrics.totalDonations, color: '#10B981' },
@@ -432,6 +422,28 @@ function OverviewTab({ metrics }: { metrics: SupporterMetrics }) {
         />
       </div>
 
+      {/* Mission Invitations Section - Integrated into main dashboard */}
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Invite Others to Join the Mission</h3>
+            <p className="text-gray-600">Help grow our community of supporters and see your impact multiply</p>
+          </div>
+          <button
+            onClick={onOpenInviteModal}
+            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+          >
+            <Heart className="w-5 h-5" />
+            <span>Invite to Mission</span>
+          </button>
+        </div>
+        
+        {/* Mission Invitation Analytics - Integrated */}
+        <div className="bg-white rounded-lg p-4">
+          <MissionInvitationAnalytics userId={userId} />
+        </div>
+      </div>
+
       {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <ChartCard title="Your Support Distribution">
@@ -462,6 +474,57 @@ function OverviewTab({ metrics }: { metrics: SupporterMetrics }) {
         <LineChart title="" data={weeklyTrendData} height={200} color="#8B5CF6" />
       </ChartCard>
 
+      {/* Celebrations & Achievements - Integrated */}
+      <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 border border-purple-100">
+        <h3 className="text-xl font-bold text-gray-900 mb-6">🎉 Your Celebrations & Achievements</h3>
+        
+        {/* Supporter Badges */}
+        <div className="mb-6">
+          <h4 className="text-lg font-semibold text-gray-900 mb-4">Achievement Badges</h4>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {metrics.supporterBadges.length > 0 ? (
+              metrics.supporterBadges.map((badge, index) => (
+                <div key={index} className="text-center p-4 bg-white rounded-lg shadow-sm">
+                  <div className="text-3xl mb-2">{badge.icon}</div>
+                  <p className="text-sm font-medium text-gray-900 mb-1">{badge.name}</p>
+                  <div className="text-xs text-blue-600 font-medium">
+                    {badge.type === 'donor' ? 'Donation' : 
+                     badge.type === 'endorser' ? 'Endorsement' : 
+                     badge.type === 'referrer' ? 'Referral' : 'Achievement'}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="col-span-full text-center py-8">
+                <div className="text-4xl mb-4">🎯</div>
+                <p className="text-gray-600">No badges yet</p>
+                <p className="text-sm text-gray-500">Your support journey begins here</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Next Milestone */}
+        <div className="bg-white rounded-lg p-4">
+          <h4 className="text-lg font-semibold text-gray-900 mb-4">Next Milestone</h4>
+          <div className="mb-2">
+            <div className="flex justify-between text-sm mb-1">
+              <span>{metrics.nextMilestone.current} / {metrics.nextMilestone.target}</span>
+              <span>{Math.round(metrics.nextMilestone.progress)}%</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-3">
+              <div 
+                className="bg-blue-600 h-3 rounded-full transition-all duration-300"
+                style={{ width: `${metrics.nextMilestone.progress}%` }}
+              ></div>
+            </div>
+          </div>
+          <p className="text-blue-600 text-sm font-medium">
+            {metrics.nextMilestone.title} - Continue supporting veterans to reach the next level
+          </p>
+        </div>
+      </div>
+
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <QuickActionCard
@@ -485,6 +548,19 @@ function OverviewTab({ metrics }: { metrics: SupporterMetrics }) {
           description="Contribute to veteran success initiatives"
           color="purple"
         />
+      </div>
+    </div>
+  )
+}
+
+// Analytics Tab Component - Streamlined
+function AnalyticsTab({ userId }: { userId: string }) {
+  return (
+    <div className="space-y-8">
+      <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+        <h3 className="text-xl font-bold text-gray-900 mb-4">Your Support Analytics</h3>
+        <p className="text-gray-600 mb-6">See the impact of your contributions to veteran success</p>
+        <SupporterAnalytics userId={userId} timeRange="30d" />
       </div>
     </div>
   )
@@ -569,154 +645,6 @@ function QuickActionCard({ href, icon: Icon, title, description, color }: {
       </div>
       <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 transition-colors" />
     </a>
-  )
-}
-
-// Other Tab Components (simplified)
-function AnalyticsTab({ userId }: { userId: string }) {
-  return (
-    <div className="space-y-8">
-      <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-        <h3 className="text-xl font-bold text-gray-900 mb-4">Your Support Analytics</h3>
-        <p className="text-gray-600 mb-6">See the impact of your contributions to veteran success</p>
-        <SupporterAnalytics userId={userId} timeRange="30d" />
-      </div>
-    </div>
-  )
-}
-
-function ImpactTab({ metrics }: { metrics: SupporterMetrics }) {
-  return (
-    <div className="space-y-8">
-      <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-        <h3 className="text-xl font-bold text-gray-900 mb-4">Impact Overview</h3>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="text-center p-4 bg-gray-50 rounded-lg">
-            <div className="text-3xl font-bold text-green-600 mb-1">{metrics.totalReferrals}</div>
-            <div className="text-sm text-gray-600">Veterans Referred</div>
-          </div>
-          <div className="text-center p-4 bg-gray-50 rounded-lg">
-            <div className="text-3xl font-bold text-blue-600 mb-1">{metrics.totalViews}</div>
-            <div className="text-sm text-gray-600">Views Generated</div>
-          </div>
-          <div className="text-center p-4 bg-gray-50 rounded-lg">
-            <div className="text-3xl font-bold text-purple-600 mb-1">{metrics.conversionRate.toFixed(1)}%</div>
-            <div className="text-sm text-gray-600">Conversion Rate</div>
-          </div>
-          <div className="text-center p-4 bg-gray-50 rounded-lg">
-            <div className="text-3xl font-bold text-orange-600 mb-1">{metrics.totalEndorsements}</div>
-            <div className="text-sm text-gray-600">Endorsements</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function ReferralsTab({ metrics }: { metrics: SupporterMetrics }) {
-  return (
-    <div className="space-y-8">
-      <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-        <h3 className="text-xl font-bold text-gray-900 mb-4">Referral Performance</h3>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="text-center p-4 bg-gray-50 rounded-lg">
-            <div className="text-3xl font-bold text-green-600 mb-1">{metrics.totalReferrals}</div>
-            <div className="text-sm text-gray-600">Total Referrals</div>
-          </div>
-          <div className="text-center p-4 bg-gray-50 rounded-lg">
-            <div className="text-3xl font-bold text-blue-600 mb-1">{metrics.totalViews}</div>
-            <div className="text-sm text-gray-600">Views Generated</div>
-          </div>
-          <div className="text-center p-4 bg-gray-50 rounded-lg">
-            <div className="text-3xl font-bold text-purple-600 mb-1">{metrics.totalCalls}</div>
-            <div className="text-sm text-gray-600">Calls Made</div>
-          </div>
-          <div className="text-center p-4 bg-gray-50 rounded-lg">
-            <div className="text-3xl font-bold text-orange-600 mb-1">{metrics.totalEmails}</div>
-            <div className="text-sm text-gray-600">Emails Sent</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function CelebrationsTab({ metrics }: { metrics: SupporterMetrics }) {
-  return (
-    <div className="space-y-8">
-      <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-        <h3 className="text-xl font-bold text-gray-900 mb-4">Your Achievements</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {metrics.supporterBadges.length > 0 ? (
-            metrics.supporterBadges.map((badge, index) => (
-              <div key={index} className="text-center p-4 bg-gray-50 rounded-lg">
-                <div className="text-3xl mb-2">{badge.icon}</div>
-                <p className="text-sm font-medium text-gray-900 mb-1">{badge.name}</p>
-                <div className="text-xs text-blue-600 font-medium">
-                  {badge.type === 'donor' ? 'Donation' : 
-                   badge.type === 'endorser' ? 'Endorsement' : 
-                   badge.type === 'referrer' ? 'Referral' : 'Achievement'}
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className="col-span-full text-center py-8">
-              <div className="text-4xl mb-4">🎯</div>
-              <p className="text-gray-600">No badges yet</p>
-              <p className="text-sm text-gray-500">Your support journey begins here</p>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function SuggestionsTab({ metrics }: { metrics: SupporterMetrics }) {
-  return (
-    <div className="space-y-8">
-      <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-        <h3 className="text-xl font-bold text-gray-900 mb-4">AI Support Suggestions</h3>
-        {metrics.aiSuggestions.length > 0 ? (
-          <div className="space-y-4">
-            {metrics.aiSuggestions.map((suggestion, index) => (
-              <div key={index} className="p-4 bg-gray-50 rounded-lg">
-                <h4 className="font-medium text-gray-900 mb-1">{suggestion.title}</h4>
-                <p className="text-sm text-gray-600">{suggestion.description}</p>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-8">
-            <div className="text-4xl mb-4">🤖</div>
-            <p className="text-gray-600">No suggestions available</p>
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
-function InvitationsTab({ userId, onOpenInviteModal }: { userId: string, onOpenInviteModal: () => void }) {
-  return (
-    <div className="space-y-8">
-      <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Mission Invitations</h3>
-            <p className="text-gray-600">Invite people to join the mission and see your impact grow</p>
-          </div>
-          <button
-            onClick={onOpenInviteModal}
-            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-          >
-            <Heart className="w-5 h-5" />
-            <span>Invite to Mission</span>
-          </button>
-        </div>
-      </div>
-      <MissionInvitationAnalytics userId={userId} />
-    </div>
   )
 }
 
