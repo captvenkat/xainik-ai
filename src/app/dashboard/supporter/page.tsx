@@ -423,6 +423,35 @@ function OverviewTab({ metrics, userId, onOpenInviteModal }: { metrics: Supporte
         />
       </div>
 
+      {/* Quick Actions - Moved up for better visibility */}
+      <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6 border border-green-100">
+        <h3 className="text-xl font-bold text-gray-900 mb-4">🚀 Take Action - Support Veterans</h3>
+        <p className="text-gray-600 mb-6">Quick ways to make an impact and support our mission</p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <QuickActionCard
+            href="/browse"
+            icon={Users}
+            title="Browse Veterans"
+            description="Discover veterans who could benefit from your network"
+            color="blue"
+          />
+          <QuickActionCard
+            href="/supporter/refer"
+            icon={Share2}
+            title="Create Referrals"
+            description="Connect veterans with opportunities in your network"
+            color="green"
+          />
+          <QuickActionCard
+            href="/donate"
+            icon={Gift}
+            title="Make a Donation"
+            description="Contribute to veteran success initiatives"
+            color="purple"
+          />
+        </div>
+      </div>
+
       {/* Mission Invitations Section - Integrated into main dashboard */}
       <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100">
         <div className="flex items-center justify-between mb-6">
@@ -528,31 +557,6 @@ function OverviewTab({ metrics, userId, onOpenInviteModal }: { metrics: Supporte
 
       {/* Veterans You're Supporting - Professional Impact Tracking */}
       <VeteransSupporting userId={userId} />
-
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <QuickActionCard
-          href="/browse"
-          icon={Users}
-          title="Browse Veterans"
-          description="Discover veterans who could benefit from your network"
-          color="blue"
-        />
-        <QuickActionCard
-          href="/supporter/refer"
-          icon={Share2}
-          title="Create Referrals"
-          description="Connect veterans with opportunities in your network"
-          color="green"
-        />
-        <QuickActionCard
-          href="/donate"
-          icon={Gift}
-          title="Make a Donation"
-          description="Contribute to veteran success initiatives"
-          color="purple"
-        />
-      </div>
     </div>
   )
 }
