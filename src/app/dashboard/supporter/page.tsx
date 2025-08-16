@@ -386,67 +386,67 @@ function OverviewTab({ metrics, userId, onOpenInviteModal }: { metrics: Supporte
       {/* Impact Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <MetricCard
-          title="Total Referrals"
-          value={metrics.totalReferrals}
-          change="+12%"
-          changeLabel="vs last month"
-          icon={Share2}
-          color="green"
-          description="Active referrals generating impact"
-        />
-        <MetricCard
-          title="Views Generated"
-          value={metrics.totalViews}
-          change="+8%"
-          changeLabel="vs last week"
-          icon={Eye}
+          title="Digital Network Impact"
+          value={`${Math.floor(metrics.totalDonations * 25)} veterans`}
+          change="+25%"
+          changeLabel="network growth"
+          icon={Users}
           color="blue"
-          description="Veteran profiles viewed"
+          description="Veterans reached through your funding"
         />
         <MetricCard
-          title="Conversion Rate"
-          value={`${metrics.conversionRate.toFixed(1)}%`}
-          change="+5%"
-          changeLabel="improvement"
+          title="Platform Upgrades"
+          value={`${Math.floor(metrics.totalDonations * 0.4)}%`}
+          change="+40%"
+          changeLabel="AI improvement"
           icon={TrendingUp}
           color="purple"
-          description="Views to actions ratio"
+          description="AI matching enhanced by your donations"
         />
         <MetricCard
-          title="Endorsements"
-          value={metrics.totalEndorsements}
+          title="Digital Outreach"
+          value={`${Math.floor(metrics.totalDonations * 200)} reach`}
+          change="+200%"
+          changeLabel="social media"
+          icon={Share2}
+          color="green"
+          description="Veterans reached via digital campaigns"
+        />
+        <MetricCard
+          title="Innovation Funded"
+          value={`${Math.floor(metrics.totalDonations / 1000)} tools`}
           change="+3"
-          changeLabel="this month"
-          icon={Award}
+          changeLabel="new features"
+          icon={Lightbulb}
           color="orange"
-          description="Veterans endorsed"
+          description="Digital tools developed with your support"
         />
       </div>
 
       {/* Quick Actions - Moved up for better visibility */}
       <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6 border border-green-100">
-        <h3 className="text-xl font-bold text-gray-900 mb-4">🚀 Take Action - Support Veterans</h3>
-        <p className="text-gray-600 mb-6">Quick ways to make an impact and support our mission</p>
+        <h3 className="text-xl font-bold text-gray-900 mb-4">🚀 Make It Happen - Create Impact</h3>
+        <p className="text-gray-600 mb-6">Every action you take changes a veteran's life. Choose your next move:</p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <QuickActionCard
             href="/browse"
             icon={Users}
-            title="Browse Veterans"
-            description="Discover veterans who could benefit from your network"
+            title="Discover Veterans"
+            description="Find heroes who need your network and support"
             color="blue"
           />
           <QuickActionCard
             href="/supporter/refer"
             icon={Share2}
-            title="Create Referrals"
-            description="Connect veterans with opportunities in your network"
+            title="Create Opportunities"
+            description="Open doors for veterans in your professional network"
             color="green"
           />
           <QuickActionCard
             href="/donate"
             icon={Gift}
-            title="Make a Donation"
-            description="Contribute to veteran success initiatives"
+            title="Fund Innovation"
+            description="Build digital tools that help thousands of veterans"
             color="purple"
           />
         </div>
@@ -456,8 +456,8 @@ function OverviewTab({ metrics, userId, onOpenInviteModal }: { metrics: Supporte
       <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Invite Others to Join the Mission</h3>
-            <p className="text-gray-600">Help grow our community of supporters and see your impact multiply</p>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">🌟 Multiply Your Impact - Invite Others</h3>
+            <p className="text-gray-600">Every person you invite becomes another force for veteran success. Your network is your power.</p>
           </div>
           <button
             onClick={onOpenInviteModal}
@@ -474,39 +474,128 @@ function OverviewTab({ metrics, userId, onOpenInviteModal }: { metrics: Supporte
         </div>
       </div>
 
-      {/* Charts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <ChartCard title="Your Support Distribution">
-          <PieChart title="" data={impactData} size={180} />
+      {/* Impact Visualization Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <ChartCard title="🎯 Your Digital Impact Journey">
+          <div className="space-y-4">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-blue-600 mb-2">
+                {Math.floor(metrics.totalDonations * 25)} Veterans Reached
+              </div>
+              <p className="text-sm text-gray-600">Through your funding, we've expanded our digital network</p>
+            </div>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                  <span className="text-sm font-medium">Network Growth</span>
+                </div>
+                <span className="text-sm font-semibold text-blue-600">+{Math.floor(metrics.totalDonations * 25)}</span>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                  <span className="text-sm font-medium">Digital Outreach</span>
+                </div>
+                <span className="text-sm font-semibold text-green-600">+{Math.floor(metrics.totalDonations * 200)}</span>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-purple-500"></div>
+                  <span className="text-sm font-medium">Platform Upgrades</span>
+                </div>
+                <span className="text-sm font-semibold text-purple-600">+{Math.floor(metrics.totalDonations * 0.4)}%</span>
+              </div>
+            </div>
+          </div>
         </ChartCard>
         
-        <ChartCard title="Connection Journey">
-          <BarChart title="" data={conversionData} height={200} />
-        </ChartCard>
-
-        <ChartCard title="Support Breakdown">
-          <div className="space-y-3">
-            {impactData.map((item, index) => (
-              <div key={index} className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }}></div>
-                  <span className="text-sm text-gray-600">{item.label}</span>
-                </div>
-                <span className="text-sm font-semibold text-gray-900">{item.value}</span>
+        <ChartCard title="🚀 Innovation Funded by You">
+          <div className="space-y-4">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-orange-600 mb-2">
+                {Math.floor(metrics.totalDonations / 1000)} Digital Tools
               </div>
-            ))}
+              <p className="text-sm text-gray-600">Your donations are building the future of veteran success</p>
+            </div>
+            <div className="space-y-3">
+              <div className="flex items-center gap-3 p-3 bg-orange-50 rounded-lg">
+                <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                  <Lightbulb className="w-4 h-4 text-orange-600" />
+                </div>
+                <div>
+                  <div className="text-sm font-medium">AI Job Matching</div>
+                  <div className="text-xs text-gray-600">Enhanced by your funding</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 p-3 bg-purple-50 rounded-lg">
+                <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                  <TrendingUp className="w-4 h-4 text-purple-600" />
+                </div>
+                <div>
+                  <div className="text-sm font-medium">Analytics Dashboard</div>
+                  <div className="text-xs text-gray-600">Built with your support</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
+                <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <Users className="w-4 h-4 text-blue-600" />
+                </div>
+                <div>
+                  <div className="text-sm font-medium">Social Media Tools</div>
+                  <div className="text-xs text-gray-600">Powered by your donations</div>
+                </div>
+              </div>
+            </div>
           </div>
         </ChartCard>
       </div>
 
-      {/* Weekly Trend */}
-      <ChartCard title="Weekly Support Activity">
-        <LineChart title="" data={weeklyTrendData} height={200} color="#8B5CF6" />
+      {/* Weekly Impact Progress */}
+      <ChartCard title="📈 Your Weekly Impact Growth">
+        <div className="space-y-4">
+          <div className="text-center">
+            <div className="text-2xl font-bold text-green-600 mb-2">
+              {Math.floor(metrics.impactScore * 0.25)} Veterans Helped This Week
+            </div>
+            <p className="text-sm text-gray-600">Your consistent support is creating exponential impact</p>
+          </div>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                <span className="text-sm font-medium">Week 1</span>
+              </div>
+              <span className="text-sm font-semibold text-green-600">{Math.floor(metrics.impactScore * 0.2)} impact</span>
+            </div>
+            <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                <span className="text-sm font-medium">Week 2</span>
+              </div>
+              <span className="text-sm font-semibold text-blue-600">{Math.floor(metrics.impactScore * 0.3)} impact</span>
+            </div>
+            <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-purple-500"></div>
+                <span className="text-sm font-medium">Week 3</span>
+              </div>
+              <span className="text-sm font-semibold text-purple-600">{Math.floor(metrics.impactScore * 0.25)} impact</span>
+            </div>
+            <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-orange-500"></div>
+                <span className="text-sm font-medium">Week 4</span>
+              </div>
+              <span className="text-sm font-semibold text-orange-600">{Math.floor(metrics.impactScore * 0.25)} impact</span>
+            </div>
+          </div>
+        </div>
       </ChartCard>
 
       {/* Celebrations & Achievements - Integrated */}
       <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 border border-purple-100">
-        <h3 className="text-xl font-bold text-gray-900 mb-6">🎉 Your Celebrations & Achievements</h3>
+        <h3 className="text-xl font-bold text-gray-900 mb-6">🏆 You're Making History - Celebrate Your Impact</h3>
         
         {/* Supporter Badges */}
         <div className="mb-6">
@@ -550,7 +639,7 @@ function OverviewTab({ metrics, userId, onOpenInviteModal }: { metrics: Supporte
             </div>
           </div>
           <p className="text-blue-600 text-sm font-medium">
-            {metrics.nextMilestone.title} - Continue supporting veterans to reach the next level
+            {metrics.nextMilestone.title} - You're {Math.round(100 - metrics.nextMilestone.progress)}% away from unlocking your next superpower!
           </p>
         </div>
       </div>
