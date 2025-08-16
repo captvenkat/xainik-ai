@@ -51,7 +51,7 @@ export default function CommunitySuggestions({ userId }: { userId: string }) {
         .from('community_suggestions')
         .select(`
           *,
-          profiles:user_id(name)
+          users:user_id(name)
         `)
         .order('votes', { ascending: false })
         .order('created_at', { ascending: false })
@@ -60,7 +60,7 @@ export default function CommunitySuggestions({ userId }: { userId: string }) {
 
       const suggestionsWithNames = data?.map(suggestion => ({
         ...suggestion,
-        user_name: suggestion.profiles?.name || 'Anonymous'
+        user_name: suggestion.users?.name || 'Anonymous'
       })) || []
 
       setSuggestions(suggestionsWithNames)
