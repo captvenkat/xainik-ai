@@ -386,40 +386,40 @@ function OverviewTab({ metrics, userId, onOpenInviteModal }: { metrics: Supporte
       {/* Impact Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <MetricCard
-          title="Digital Network Impact"
-          value={`${Math.floor(metrics.totalDonations * 25)} veterans`}
-          change="+25%"
-          changeLabel="network growth"
+          title="Platform Hosting"
+          value="24/7 Uptime"
+          change="+100%"
+          changeLabel="reliability"
           icon={Users}
           color="blue"
-          description="Veterans reached through your funding"
+          description="Your funding keeps our platform running smoothly"
         />
         <MetricCard
-          title="Platform Upgrades"
-          value={`${Math.floor(metrics.totalDonations * 0.4)}%`}
+          title="AI Services"
+          value="Smart Matching"
           change="+40%"
-          changeLabel="AI improvement"
+          changeLabel="accuracy"
           icon={TrendingUp}
           color="purple"
-          description="AI matching enhanced by your donations"
+          description="Your donations power intelligent job matching"
         />
         <MetricCard
-          title="Digital Outreach"
-          value={`${Math.floor(metrics.totalDonations * 200)} reach`}
+          title="Digital Tools"
+          value="Essential Software"
           change="+200%"
-          changeLabel="social media"
+          changeLabel="capabilities"
           icon={Share2}
           color="green"
-          description="Veterans reached via digital campaigns"
+          description="Your contribution covers software subscriptions"
         />
         <MetricCard
-          title="Innovation Funded"
-          value={`${Math.floor(metrics.totalDonations / 1000)} tools`}
-          change="+3"
-          changeLabel="new features"
+          title="Outreach Campaigns"
+          value="Social Media"
+          change="+150%"
+          changeLabel="reach"
           icon={Lightbulb}
           color="orange"
-          description="Digital tools developed with your support"
+          description="Your funding reaches veterans through digital marketing"
         />
       </div>
 
@@ -476,47 +476,47 @@ function OverviewTab({ metrics, userId, onOpenInviteModal }: { metrics: Supporte
 
       {/* Impact Visualization Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <ChartCard title="🎯 Your Digital Impact Journey">
+        <ChartCard title="🎯 Your Funding Impact Journey">
           <div className="space-y-4">
             <div className="text-center">
               <div className="text-2xl font-bold text-blue-600 mb-2">
-                {Math.floor(metrics.totalDonations * 25)} Veterans Reached
+                Platform Reliability
               </div>
-              <p className="text-sm text-gray-600">Through your funding, we've expanded our digital network</p>
+              <p className="text-sm text-gray-600">Your donations keep our infrastructure running smoothly</p>
             </div>
             <div className="space-y-3">
               <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                  <span className="text-sm font-medium">Network Growth</span>
+                  <span className="text-sm font-medium">Server Hosting</span>
                 </div>
-                <span className="text-sm font-semibold text-blue-600">+{Math.floor(metrics.totalDonations * 25)}</span>
+                <span className="text-sm font-semibold text-blue-600">24/7 Uptime</span>
               </div>
               <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                  <span className="text-sm font-medium">Digital Outreach</span>
+                  <span className="text-sm font-medium">AI Services</span>
                 </div>
-                <span className="text-sm font-semibold text-green-600">+{Math.floor(metrics.totalDonations * 200)}</span>
+                <span className="text-sm font-semibold text-green-600">Smart Matching</span>
               </div>
               <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full bg-purple-500"></div>
-                  <span className="text-sm font-medium">Platform Upgrades</span>
+                  <span className="text-sm font-medium">Software Tools</span>
                 </div>
-                <span className="text-sm font-semibold text-purple-600">+{Math.floor(metrics.totalDonations * 0.4)}%</span>
+                <span className="text-sm font-semibold text-purple-600">Essential Apps</span>
               </div>
             </div>
           </div>
         </ChartCard>
         
-        <ChartCard title="🚀 Innovation Funded by You">
+        <ChartCard title="🚀 Operational Costs You Cover">
           <div className="space-y-4">
             <div className="text-center">
               <div className="text-2xl font-bold text-orange-600 mb-2">
-                {Math.floor(metrics.totalDonations / 1000)} Digital Tools
+                Essential Services
               </div>
-              <p className="text-sm text-gray-600">Your donations are building the future of veteran success</p>
+              <p className="text-sm text-gray-600">Your donations keep our platform operational and effective</p>
             </div>
             <div className="space-y-3">
               <div className="flex items-center gap-3 p-3 bg-orange-50 rounded-lg">
@@ -524,8 +524,8 @@ function OverviewTab({ metrics, userId, onOpenInviteModal }: { metrics: Supporte
                   <Lightbulb className="w-4 h-4 text-orange-600" />
                 </div>
                 <div>
-                  <div className="text-sm font-medium">AI Job Matching</div>
-                  <div className="text-xs text-gray-600">Enhanced by your funding</div>
+                  <div className="text-sm font-medium">AI API Services</div>
+                  <div className="text-xs text-gray-600">Powered by your funding</div>
                 </div>
               </div>
               <div className="flex items-center gap-3 p-3 bg-purple-50 rounded-lg">
@@ -533,8 +533,8 @@ function OverviewTab({ metrics, userId, onOpenInviteModal }: { metrics: Supporte
                   <TrendingUp className="w-4 h-4 text-purple-600" />
                 </div>
                 <div>
-                  <div className="text-sm font-medium">Analytics Dashboard</div>
-                  <div className="text-xs text-gray-600">Built with your support</div>
+                  <div className="text-sm font-medium">Software Subscriptions</div>
+                  <div className="text-xs text-gray-600">Covered by your support</div>
                 </div>
               </div>
               <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
@@ -542,8 +542,8 @@ function OverviewTab({ metrics, userId, onOpenInviteModal }: { metrics: Supporte
                   <Users className="w-4 h-4 text-blue-600" />
                 </div>
                 <div>
-                  <div className="text-sm font-medium">Social Media Tools</div>
-                  <div className="text-xs text-gray-600">Powered by your donations</div>
+                  <div className="text-sm font-medium">Digital Marketing</div>
+                  <div className="text-xs text-gray-600">Funded by your donations</div>
                 </div>
               </div>
             </div>
@@ -552,13 +552,13 @@ function OverviewTab({ metrics, userId, onOpenInviteModal }: { metrics: Supporte
       </div>
 
       {/* Weekly Impact Progress */}
-      <ChartCard title="📈 Your Weekly Impact Growth">
+      <ChartCard title="📈 Your Weekly Support Journey">
         <div className="space-y-4">
           <div className="text-center">
             <div className="text-2xl font-bold text-green-600 mb-2">
-              {Math.floor(metrics.impactScore * 0.25)} Veterans Helped This Week
+              Consistent Support
             </div>
-            <p className="text-sm text-gray-600">Your consistent support is creating exponential impact</p>
+            <p className="text-sm text-gray-600">Your regular contributions keep our platform running smoothly</p>
           </div>
           <div className="space-y-3">
             <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
@@ -566,28 +566,28 @@ function OverviewTab({ metrics, userId, onOpenInviteModal }: { metrics: Supporte
                 <div className="w-3 h-3 rounded-full bg-green-500"></div>
                 <span className="text-sm font-medium">Week 1</span>
               </div>
-              <span className="text-sm font-semibold text-green-600">{Math.floor(metrics.impactScore * 0.2)} impact</span>
+              <span className="text-sm font-semibold text-green-600">Platform Hosting</span>
             </div>
             <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-blue-500"></div>
                 <span className="text-sm font-medium">Week 2</span>
               </div>
-              <span className="text-sm font-semibold text-blue-600">{Math.floor(metrics.impactScore * 0.3)} impact</span>
+              <span className="text-sm font-semibold text-blue-600">AI Services</span>
             </div>
             <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-purple-500"></div>
                 <span className="text-sm font-medium">Week 3</span>
               </div>
-              <span className="text-sm font-semibold text-purple-600">{Math.floor(metrics.impactScore * 0.25)} impact</span>
+              <span className="text-sm font-semibold text-purple-600">Software Tools</span>
             </div>
             <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-orange-500"></div>
                 <span className="text-sm font-medium">Week 4</span>
               </div>
-              <span className="text-sm font-semibold text-orange-600">{Math.floor(metrics.impactScore * 0.25)} impact</span>
+              <span className="text-sm font-semibold text-orange-600">Digital Marketing</span>
             </div>
           </div>
         </div>
