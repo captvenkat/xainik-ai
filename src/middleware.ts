@@ -21,11 +21,25 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // Let client-side auth handle all protected routes
+  // Allow dashboard routes to be handled by client-side auth
+  if (pathname.startsWith('/dashboard/')) {
+    return NextResponse.next();
+  }
+
+  // Let client-side auth handle all other protected routes
   // This prevents middleware conflicts with client-side authentication
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ['/(.*)'],
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     */
+    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+  ],
 };
