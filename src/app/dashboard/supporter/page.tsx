@@ -383,45 +383,7 @@ function OverviewTab({ metrics, userId, onOpenInviteModal }: { metrics: Supporte
 
   return (
     <div className="space-y-8">
-      {/* Impact Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <MetricCard
-          title="Platform Hosting"
-          value="24/7 Uptime"
-          change="+100%"
-          changeLabel="reliability"
-          icon={Users}
-          color="blue"
-          description="Your funding keeps our platform running smoothly"
-        />
-        <MetricCard
-          title="AI Services"
-          value="Smart Matching"
-          change="+40%"
-          changeLabel="accuracy"
-          icon={TrendingUp}
-          color="purple"
-          description="Your donations power intelligent job matching"
-        />
-        <MetricCard
-          title="Digital Tools"
-          value="Essential Software"
-          change="+200%"
-          changeLabel="capabilities"
-          icon={Share2}
-          color="green"
-          description="Your contribution covers software subscriptions"
-        />
-        <MetricCard
-          title="Outreach Campaigns"
-          value="Social Media"
-          change="+150%"
-          changeLabel="reach"
-          icon={Lightbulb}
-          color="orange"
-          description="Your funding reaches veterans through digital marketing"
-        />
-      </div>
+
 
       {/* Quick Actions - Moved up for better visibility */}
       <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6 border border-green-100">
