@@ -452,6 +452,25 @@ function OverviewTab({ metrics, userId, onOpenInviteModal }: { metrics: Supporte
         </div>
       </div>
 
+      {/* Veterans You're Supporting - Moved up for prominence */}
+      <div className="bg-gradient-to-r from-red-50 to-rose-50 rounded-xl p-6 border border-red-100">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">🦅 Heroes You're Supporting - See Your Impact</h3>
+            <p className="text-gray-600">These are the veterans whose lives you're changing. Every like, share, and endorsement creates real opportunities.</p>
+          </div>
+          <div className="text-right">
+            <div className="text-2xl font-bold text-red-600">Active Support</div>
+            <div className="text-sm text-gray-600">Real-time impact</div>
+          </div>
+        </div>
+        
+        {/* Enhanced Veterans Section */}
+        <div className="bg-white rounded-lg p-4">
+          <VeteransSupporting userId={userId} />
+        </div>
+      </div>
+
       {/* Mission Invitations Section - Integrated into main dashboard */}
       <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100">
         <div className="flex items-center justify-between mb-6">
@@ -644,8 +663,6 @@ function OverviewTab({ metrics, userId, onOpenInviteModal }: { metrics: Supporte
         </div>
       </div>
 
-      {/* Veterans You're Supporting - Professional Impact Tracking */}
-      <VeteransSupporting userId={userId} />
     </div>
   )
 }

@@ -173,35 +173,32 @@ export default function VeteransSupporting({ userId }: VeteransSupportingProps) 
 
   return (
     <div className="space-y-6">
-      {/* Impact Overview */}
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-            <Users className="w-6 h-6 text-blue-600" />
-          </div>
-          <div>
-            <h3 className="text-xl font-bold text-gray-900">Veterans You're Supporting</h3>
-            <p className="text-gray-600">See the real impact of your support on veterans' success</p>
-          </div>
+      {/* Hero Impact Section */}
+      <div className="bg-gradient-to-r from-red-50 to-rose-50 rounded-xl p-6 border border-red-100">
+        <div className="text-center mb-6">
+          <div className="text-4xl mb-4">🦅</div>
+          <h3 className="text-2xl font-bold text-gray-900 mb-2">Your Veteran Impact Network</h3>
+          <p className="text-gray-600">Every interaction creates opportunities. See the heroes you're helping succeed.</p>
         </div>
         
+        {/* Impact Metrics Grid */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="text-center p-4 bg-white rounded-lg shadow-sm">
-            <div className="text-2xl font-bold text-blue-600 mb-1">{impact?.totalVeterans || 0}</div>
-            <div className="text-sm text-gray-600">Veterans Helped</div>
+          <div className="text-center p-4 bg-white rounded-lg shadow-sm border border-red-100">
+            <div className="text-2xl font-bold text-red-600 mb-1">{impact?.totalVeterans || 0}</div>
+            <div className="text-sm text-gray-600">Heroes Supported</div>
           </div>
           
-          <div className="text-center p-4 bg-white rounded-lg shadow-sm">
+          <div className="text-center p-4 bg-white rounded-lg shadow-sm border border-green-100">
             <div className="text-2xl font-bold text-green-600 mb-1">{impact?.totalViews || 0}</div>
-            <div className="text-sm text-gray-600">Views Generated</div>
+            <div className="text-sm text-gray-600">Pitches Viewed</div>
           </div>
           
-          <div className="text-center p-4 bg-white rounded-lg shadow-sm">
+          <div className="text-center p-4 bg-white rounded-lg shadow-sm border border-purple-100">
             <div className="text-2xl font-bold text-purple-600 mb-1">{impact?.totalLikes || 0}</div>
             <div className="text-sm text-gray-600">Likes Given</div>
           </div>
           
-          <div className="text-center p-4 bg-white rounded-lg shadow-sm">
+          <div className="text-center p-4 bg-white rounded-lg shadow-sm border border-orange-100">
             <div className="text-2xl font-bold text-orange-600 mb-1">{impact?.totalEndorsements || 0}</div>
             <div className="text-sm text-gray-600">Endorsements</div>
           </div>
@@ -211,21 +208,26 @@ export default function VeteransSupporting({ userId }: VeteransSupportingProps) 
       {/* Veterans List */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100">
         <div className="p-6 border-b border-gray-100">
-          <h4 className="text-lg font-semibold text-gray-900">Your Veteran Network</h4>
-          <p className="text-sm text-gray-600">Veterans you've endorsed, viewed, or engaged with</p>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
+              <Users className="w-5 h-5 text-red-600" />
+            </div>
+            <h4 className="text-lg font-semibold text-gray-900">Heroes You're Supporting</h4>
+          </div>
+          <p className="text-sm text-gray-600">These veterans are building their futures with your support. Every interaction matters.</p>
         </div>
         
         {veterans.length === 0 ? (
           <div className="text-center py-12">
-            <div className="text-4xl mb-4">🎯</div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Start Supporting Veterans</h3>
-            <p className="text-gray-600 mb-4">Browse veterans, endorse their pitches, and see your impact grow</p>
+            <div className="text-4xl mb-4">🦅</div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Ready to Support Heroes?</h3>
+            <p className="text-gray-600 mb-4">Your first endorsement could change a veteran's life. Start building your impact network today.</p>
             <a
               href="/browse"
-              className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              className="inline-flex items-center gap-2 bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors font-medium"
             >
               <Users className="w-4 h-4" />
-              Browse Veterans
+              Discover Veterans
             </a>
           </div>
         ) : (
@@ -276,11 +278,17 @@ export default function VeteransSupporting({ userId }: VeteransSupportingProps) 
                       </span>
                     </div>
                     
-                    {/* Pitch Info */}
+                    {/* Pitch Info - Enhanced */}
                     {veteran.pitch_title && (
-                      <div className="bg-gray-50 rounded-lg p-3 mt-3">
-                        <h6 className="font-medium text-gray-900 mb-1">{veteran.pitch_title}</h6>
-                        <p className="text-sm text-gray-600 line-clamp-2">{veteran.pitch_text}</p>
+                      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 mt-3 border border-blue-100">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="w-4 h-4 bg-blue-100 rounded-full flex items-center justify-center">
+                            <Target className="w-2.5 h-2.5 text-blue-600" />
+                          </div>
+                          <h6 className="font-semibold text-gray-900">Their Pitch</h6>
+                        </div>
+                        <h6 className="font-medium text-blue-900 mb-2">{veteran.pitch_title}</h6>
+                        <p className="text-sm text-gray-700 line-clamp-2">{veteran.pitch_text}</p>
                       </div>
                     )}
                     
@@ -306,20 +314,20 @@ export default function VeteransSupporting({ userId }: VeteransSupportingProps) 
                   </div>
                 </div>
                 
-                {/* Action Buttons */}
+                {/* Action Buttons - Enhanced */}
                 <div className="flex items-center gap-3 mt-4">
                   <a
                     href={`/pitch/${veteran.id}`}
-                    className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm font-medium"
+                    className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
                   >
                     <ExternalLink className="w-4 h-4" />
                     View Full Pitch
                   </a>
-                  <button className="inline-flex items-center gap-2 text-green-600 hover:text-green-700 text-sm font-medium">
+                  <button className="inline-flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm font-medium">
                     <Heart className="w-4 h-4" />
                     Endorse
                   </button>
-                  <button className="inline-flex items-center gap-2 text-purple-600 hover:text-purple-700 text-sm font-medium">
+                  <button className="inline-flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium">
                     <Share2 className="w-4 h-4" />
                     Share
                   </button>
