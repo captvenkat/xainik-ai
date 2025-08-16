@@ -541,14 +541,34 @@ function PitchesTab({ userId }: { userId: string }) {
         .limit(1)
       
       if (endorsementsCheck && (endorsementsCheck.message.includes('relation') || endorsementsCheck.message.includes('table'))) {
-        // Required tables don't exist yet
+        // Required tables don't exist yet - use simple query without relationships
         setDatabaseReady(false)
-        setError('Database tables not ready - please run the migration script first')
-        setPitches([])
+        
+        // Try to get just the basic pitches data without relationships
+        const { data: basicPitches, error: basicError } = await supabase
+          .from('pitches')
+          .select('*')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false })
+        
+        if (basicError) {
+          setError('Database tables not ready - please run the migration script first')
+          setPitches([])
+        } else {
+          // Set pitches with default counts since relationships don't exist
+          const pitchesWithDefaults = (basicPitches || []).map(pitch => ({
+            ...pitch,
+            endorsements_count: 0,
+            shares_count: 0,
+            likes_count: 0,
+            views_count: 0
+          }))
+          setPitches(pitchesWithDefaults)
+        }
         return
       }
 
-      // If we get here, the tables exist, so we can query pitches
+      // If we get here, the tables exist, so we can query pitches with relationships
       setDatabaseReady(true)
       
       const { data, error } = await supabase
