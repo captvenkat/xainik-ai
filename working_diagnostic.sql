@@ -1,5 +1,5 @@
 -- =====================================================
--- PROPER COMPREHENSIVE DIAGNOSTIC
+-- WORKING DIAGNOSTIC - USES CORRECT COLUMN NAMES
 -- This will show us EXACTLY what's in your database
 -- =====================================================
 
@@ -13,17 +13,25 @@ BEGIN
     RAISE NOTICE 'Current User: %', current_user;
 END $$;
 
--- 2. LIST ALL EXISTING TABLES AND VIEWS
+-- 2. LIST ALL EXISTING TABLES AND VIEWS (using correct column names)
 SELECT 
-    'EXISTING_OBJECTS' as check_type,
+    'EXISTING_TABLES' as check_type,
     schemaname,
-    tablename,
-    'TABLE' as object_type
+    tablename
 FROM pg_tables 
 WHERE schemaname = 'public'
 ORDER BY tablename;
 
--- 3. CHECK SPECIFIC REQUIRED TABLES
+-- 3. LIST ALL EXISTING VIEWS
+SELECT 
+    'EXISTING_VIEWS' as check_type,
+    schemaname,
+    viewname
+FROM pg_views 
+WHERE schemaname = 'public'
+ORDER BY viewname;
+
+-- 4. CHECK SPECIFIC REQUIRED TABLES
 DO $$
 DECLARE
     table_exists BOOLEAN;
@@ -62,7 +70,7 @@ BEGIN
     END IF;
 END $$;
 
--- 4. ANALYZE PITCHES TABLE STRUCTURE (CRITICAL)
+-- 5. ANALYZE PITCHES TABLE STRUCTURE (CRITICAL)
 DO $$
 DECLARE
     pitches_exists BOOLEAN;
@@ -103,7 +111,7 @@ WHERE table_schema = 'public'
 AND table_name = 'pitches'
 ORDER BY ordinal_position;
 
--- 5. ANALYZE USERS TABLE STRUCTURE (CRITICAL)
+-- 6. ANALYZE USERS TABLE STRUCTURE (CRITICAL)
 DO $$
 DECLARE
     users_exists BOOLEAN;
@@ -143,7 +151,7 @@ WHERE table_schema = 'public'
 AND table_name = 'users'
 ORDER BY ordinal_position;
 
--- 6. CHECK EXISTING FOREIGN KEY RELATIONSHIPS
+-- 7. CHECK EXISTING FOREIGN KEY RELATIONSHIPS
 SELECT 
     'EXISTING_FOREIGN_KEYS' as check_type,
     tc.table_name,
@@ -162,7 +170,7 @@ WHERE tc.constraint_type = 'FOREIGN KEY'
 AND tc.table_schema = 'public'
 ORDER BY tc.table_name, kcu.column_name;
 
--- 7. CHECK EXISTING RLS POLICIES
+-- 8. CHECK EXISTING RLS POLICIES
 SELECT 
     'EXISTING_RLS' as check_type,
     schemaname,
@@ -176,7 +184,7 @@ FROM pg_policies
 WHERE schemaname = 'public'
 ORDER BY tablename, policyname;
 
--- 8. CHECK EXISTING INDEXES
+-- 9. CHECK EXISTING INDEXES
 SELECT 
     'EXISTING_INDEXES' as check_type,
     schemaname,
@@ -187,7 +195,7 @@ FROM pg_indexes
 WHERE schemaname = 'public'
 ORDER BY tablename, indexname;
 
--- 9. CHECK FOR EXISTING DATA IN KEY TABLES
+-- 10. CHECK FOR EXISTING DATA IN KEY TABLES
 DO $$
 DECLARE
     table_name TEXT;
@@ -209,7 +217,7 @@ BEGIN
     END LOOP;
 END $$;
 
--- 10. CHECK SUPABASE AUTH SCHEMA
+-- 11. CHECK SUPABASE AUTH SCHEMA
 SELECT 
     'AUTH_SCHEMA' as check_type,
     table_name,
@@ -218,7 +226,7 @@ FROM information_schema.tables
 WHERE table_schema = 'auth'
 ORDER BY table_name;
 
--- 11. FINAL COMPREHENSIVE ASSESSMENT
+-- 12. FINAL COMPREHENSIVE ASSESSMENT
 DO $$
 DECLARE
     missing_count INTEGER;
