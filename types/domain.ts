@@ -17,9 +17,10 @@ export type User = Tables['users']['Row'];
 export type UserInsert = Tables['users']['Insert'];
 export type UserUpdate = Tables['users']['Update'];
 
-export type UserProfile = Tables['user_profiles']['Row'];
-export type UserProfileInsert = Tables['user_profiles']['Insert'];
-export type UserProfileUpdate = Tables['user_profiles']['Update'];
+// Note: user_profiles table doesn't exist, using users table instead
+export type UserProfile = Tables['users']['Row'];
+export type UserProfileInsert = Tables['users']['Insert'];
+export type UserProfileUpdate = Tables['users']['Update'];
 
 export type Pitch = Tables['pitches']['Row'];
 export type PitchInsert = Tables['pitches']['Insert'];
@@ -33,21 +34,24 @@ export type Referral = Tables['referrals']['Row'];
 export type ReferralInsert = Tables['referrals']['Insert'];
 export type ReferralUpdate = Tables['referrals']['Update'];
 
-export type ResumeRequest = Tables['resume_requests']['Row'];
-export type ResumeRequestInsert = Tables['resume_requests']['Insert'];
-export type ResumeRequestUpdate = Tables['resume_requests']['Update'];
+// Note: resume_requests table doesn't exist
+// export type ResumeRequest = Tables['resume_requests']['Row'];
+// export type ResumeRequestInsert = Tables['resume_requests']['Insert'];
+// export type ResumeRequestUpdate = Tables['resume_requests']['Update'];
 
 // =====================================================
 // BILLING SYSTEM TYPES
 // =====================================================
 
-export type ServicePlan = Tables['service_plans']['Row'];
-export type ServicePlanInsert = Tables['service_plans']['Insert'];
-export type ServicePlanUpdate = Tables['service_plans']['Update'];
+// Note: service_plans table doesn't exist
+// export type ServicePlan = Tables['service_plans']['Row'];
+// export type ServicePlanInsert = Tables['service_plans']['Insert'];
+// export type ServicePlanUpdate = Tables['service_plans']['Update'];
 
-export type UserSubscription = Tables['user_subscriptions']['Row'];
-export type UserSubscriptionInsert = Tables['user_subscriptions']['Insert'];
-export type UserSubscriptionUpdate = Tables['user_subscriptions']['Update'];
+// Note: user_subscriptions table doesn't exist
+// export type UserSubscription = Tables['user_subscriptions']['Row'];
+// export type UserSubscriptionInsert = Tables['user_subscriptions']['Insert'];
+// export type UserSubscriptionUpdate = Tables['user_subscriptions']['Update'];
 
 export type Invoice = Tables['invoices']['Row'];
 export type InvoiceInsert = Tables['invoices']['Insert'];
@@ -57,9 +61,10 @@ export type Receipt = Tables['receipts']['Row'];
 export type ReceiptInsert = Tables['receipts']['Insert'];
 export type ReceiptUpdate = Tables['receipts']['Update'];
 
-export type PaymentEvent = Tables['payment_events']['Row'];
-export type PaymentEventInsert = Tables['payment_events']['Insert'];
-export type PaymentEventUpdate = Tables['payment_events']['Update'];
+// Note: payment_events table doesn't exist
+// export type PaymentEvent = Tables['payment_events']['Row'];
+// export type PaymentEventInsert = Tables['payment_events']['Insert'];
+// export type PaymentEventUpdate = Tables['payment_events']['Update'];
 
 export type Donation = Tables['donations']['Row'];
 export type DonationInsert = Tables['donations']['Insert'];
@@ -73,24 +78,27 @@ export type DonationUpdate = Tables['donations']['Update'];
 // RECRUITER FEATURE TYPES
 // =====================================================
 
-export type RecruiterNote = Tables['recruiter_notes']['Row'];
-export type RecruiterNoteInsert = Tables['recruiter_notes']['Insert'];
-export type RecruiterNoteUpdate = Tables['recruiter_notes']['Update'];
+// Note: recruiter_notes table doesn't exist
+// export type RecruiterNote = Tables['recruiter_notes']['Row'];
+// export type RecruiterNoteInsert = Tables['recruiter_notes']['Insert'];
+// export type RecruiterNoteUpdate = Tables['recruiter_notes']['Update'];
 
 // =====================================================
 // ACTIVITY LOGGING TYPES
 // =====================================================
 
-export type UserActivityLog = Tables['user_activity_log']['Row'];
-export type UserActivityLogInsert = Tables['user_activity_log']['Insert'];
-export type UserActivityLogUpdate = Tables['user_activity_log']['Update'];
+// Note: user_activity_log table doesn't exist
+// export type UserActivityLog = Tables['user_activity_log']['Row'];
+// export type UserActivityLogInsert = Tables['user_activity_log']['Insert'];
+// export type UserActivityLogUpdate = Tables['user_activity_log']['Update'];
 
 // =====================================================
 // SYSTEM TYPES
 // =====================================================
 
-export type MigrationAudit = Tables['migration_audit']['Row'];
-export type UserPermission = Tables['user_permissions']['Row'];
+// Note: migration_audit and user_permissions tables don't exist
+// export type MigrationAudit = Tables['migration_audit']['Row'];
+// export type UserPermission = Tables['user_permissions']['Row'];
 
 // =====================================================
 // ENUM TYPES
@@ -204,16 +212,17 @@ export interface EndorsementWithUser extends Endorsement {
   endorser: User;
 }
 
-export interface ResumeRequestWithDetails extends ResumeRequest {
-  user: User;
-  recruiter: User;
-  pitch?: Pitch;
-}
+// Note: ResumeRequest type is commented out
+// export interface ResumeRequestWithDetails extends ResumeRequest {
+//   user: User;
+//   recruiter: User;
+//   pitch?: Pitch;
+// }
 
 export interface InvoiceWithDetails extends Invoice {
   user: User;
-  plan?: ServicePlan;
-  subscription?: UserSubscription;
+  // plan?: ServicePlan; // ServicePlan type is commented out
+  // subscription?: UserSubscription; // UserSubscription type is commented out
 }
 
 export interface ReceiptWithDetails extends Receipt {
