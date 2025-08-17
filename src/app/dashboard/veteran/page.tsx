@@ -571,22 +571,47 @@ function PitchesTab({ userId }: { userId: string }) {
       // If we get here, the tables exist, so we can query pitches with relationships
       setDatabaseReady(true)
       
-      const { data, error } = await supabase
+      // Get basic pitches data first
+      const { data: pitchesData, error: pitchesError } = await supabase
         .from('pitches')
-        .select(`
-          *,
-          endorsements(count),
-          shares(count),
-          likes(count)
-        `)
+        .select('*')
         .eq('user_id', userId)
         .order('created_at', { ascending: false })
 
-      if (error) {
-        throw error
-      } else {
-        setPitches(data || [])
+      if (pitchesError) {
+        throw pitchesError
       }
+
+      if (!pitchesData || pitchesData.length === 0) {
+        setPitches([])
+        return
+      }
+
+      // Get pitch IDs for separate queries
+      const pitchIds = pitchesData.map(pitch => pitch.id)
+
+      // Get engagement counts separately (this works with PostgREST)
+      const [endorsementsResult, likesResult, sharesResult] = await Promise.all([
+        supabase.from('endorsements').select('pitch_id').in('pitch_id', pitchIds),
+        supabase.from('likes').select('pitch_id').in('pitch_id', pitchIds),
+        supabase.from('shares').select('pitch_id').in('pitch_id', pitchIds)
+      ])
+
+      // Combine the data with counts
+      const pitchesWithCounts = pitchesData.map(pitch => {
+        const endorsementsCount = endorsementsResult.data?.filter(e => e.pitch_id === pitch.id).length || 0
+        const likesCount = likesResult.data?.filter(l => l.pitch_id === pitch.id).length || 0
+        const sharesCount = sharesResult.data?.filter(s => s.pitch_id === pitch.id).length || 0
+
+        return {
+          ...pitch,
+          endorsements_count: endorsementsCount,
+          likes_count: likesCount,
+          shares_count: sharesCount
+        }
+      })
+
+      setPitches(pitchesWithCounts)
     } catch (error) {
       console.error('Error fetching pitches:', error)
       setError('Failed to load pitches')
