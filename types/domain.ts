@@ -104,6 +104,64 @@ export type SubscriptionStatus = 'active' | 'expired' | 'cancelled' | 'suspended
 export type NotificationStatus = 'unread' | 'read' | 'archived';
 export type NotificationChannel = 'email' | 'in_app' | 'both';
 
+
+// =====================================================
+// MISSING TABLE TYPES (Added by sync fix)
+// =====================================================
+
+export type Veteran = Tables['veterans']['Row'];
+export type VeteranInsert = Tables['veterans']['Insert'];
+export type VeteranUpdate = Tables['veterans']['Update'];
+
+export type Recruiter = Tables['recruiters']['Row'];
+export type RecruiterInsert = Tables['recruiters']['Insert'];
+export type RecruiterUpdate = Tables['recruiters']['Update'];
+
+export type Supporter = Tables['supporters']['Row'];
+export type SupporterInsert = Tables['supporters']['Insert'];
+export type SupporterUpdate = Tables['supporters']['Update'];
+
+export type Like = Tables['likes']['Row'];
+export type LikeInsert = Tables['likes']['Insert'];
+export type LikeUpdate = Tables['likes']['Update'];
+
+export type Share = Tables['shares']['Row'];
+export type ShareInsert = Tables['shares']['Insert'];
+export type ShareUpdate = Tables['shares']['Update'];
+
+export type CommunitySuggestion = Tables['community_suggestions']['Row'];
+export type CommunitySuggestionInsert = Tables['community_suggestions']['Insert'];
+export type CommunitySuggestionUpdate = Tables['community_suggestions']['Update'];
+
+export type MissionInvitationSummary = Tables['mission_invitation_summary']['Row'];
+export type MissionInvitationSummaryInsert = Tables['mission_invitation_summary']['Insert'];
+export type MissionInvitationSummaryUpdate = Tables['mission_invitation_summary']['Update'];
+
+// =====================================================
+// UPDATED COMPOSITE TYPES
+// =====================================================
+
+export interface VeteranWithProfile extends User {
+  veteran: Veteran;
+}
+
+export interface RecruiterWithProfile extends User {
+  recruiter: Recruiter;
+}
+
+export interface SupporterWithProfile extends User {
+  supporter: Supporter;
+}
+
+export interface PitchWithLikes extends Pitch {
+  likes: Like[];
+  shares: Share[];
+}
+
+export interface PitchWithCommunity extends Pitch {
+  community_suggestions: CommunitySuggestion[];
+}
+
 // =====================================================
 // COMPOSITE TYPES
 // =====================================================

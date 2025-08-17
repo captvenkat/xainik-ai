@@ -7,13 +7,476 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "13.0.4"
   }
   public: {
     Tables: {
+      // Core user tables
+      users: {
+        Row: {
+          id: string
+          email: string
+          name: string | null
+          phone: string | null
+          role: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          email: string
+          name?: string | null
+          phone?: string | null
+          role?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          email?: string
+          name?: string | null
+          phone?: string | null
+          role?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      
+      // Profile tables
+      veterans: {
+        Row: {
+          user_id: string
+          rank: string | null
+          service_branch: string | null
+          years_experience: number | null
+          location_current: string | null
+          locations_preferred: string[] | null
+          created_at: string | null
+        }
+        Insert: {
+          user_id: string
+          rank?: string | null
+          service_branch?: string | null
+          years_experience?: number | null
+          location_current?: string | null
+          locations_preferred?: string[] | null
+          created_at?: string | null
+        }
+        Update: {
+          user_id?: string
+          rank?: string | null
+          service_branch?: string | null
+          years_experience?: number | null
+          location_current?: string | null
+          locations_preferred?: string[] | null
+          created_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "veterans_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      
+      recruiters: {
+        Row: {
+          user_id: string
+          company_name: string | null
+          industry: string | null
+          created_at: string | null
+        }
+        Insert: {
+          user_id: string
+          company_name?: string | null
+          industry?: string | null
+          created_at?: string | null
+        }
+        Update: {
+          user_id?: string
+          company_name?: string | null
+          industry?: string | null
+          created_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recruiters_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      
+      supporters: {
+        Row: {
+          user_id: string
+          intro: string | null
+          created_at: string | null
+        }
+        Insert: {
+          user_id: string
+          intro?: string | null
+          created_at?: string | null
+        }
+        Update: {
+          user_id?: string
+          intro?: string | null
+          created_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supporters_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      
+      // Core feature tables
+      pitches: {
+        Row: {
+          id: string
+          veteran_id: string
+          title: string
+          pitch_text: string
+          skills: string[]
+          job_type: string
+          location: string
+          availability: string
+          photo_url: string | null
+          phone: string
+          likes_count: number
+          is_active: boolean
+          plan_tier: string | null
+          plan_expires_at: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          veteran_id: string
+          title: string
+          pitch_text: string
+          skills: string[]
+          job_type: string
+          location: string
+          availability: string
+          photo_url?: string | null
+          phone: string
+          likes_count?: number
+          is_active?: boolean
+          plan_tier?: string | null
+          plan_expires_at?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          veteran_id?: string
+          title?: string
+          pitch_text?: string
+          skills?: string[]
+          job_type?: string
+          location?: string
+          availability?: string
+          photo_url?: string | null
+          phone?: string
+          likes_count?: number
+          is_active?: boolean
+          plan_tier?: string | null
+          plan_expires_at?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pitches_veteran_id_fkey"
+            columns: ["veteran_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      
+      endorsements: {
+        Row: {
+          id: string
+          veteran_id: string
+          endorser_id: string
+          text: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          veteran_id: string
+          endorser_id: string
+          text?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          veteran_id?: string
+          endorser_id?: string
+          text?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "endorsements_veteran_id_fkey"
+            columns: ["veteran_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "endorsements_endorser_id_fkey"
+            columns: ["endorser_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      
+      likes: {
+        Row: {
+          id: string
+          user_id: string
+          pitch_id: string
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          pitch_id: string
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          pitch_id?: string
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "likes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "likes_pitch_id_fkey"
+            columns: ["pitch_id"]
+            isOneToOne: false
+            referencedRelation: "pitches"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      
+      shares: {
+        Row: {
+          id: string
+          user_id: string
+          pitch_id: string
+          platform: string | null
+          share_link: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          pitch_id: string
+          platform?: string | null
+          share_link?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          pitch_id?: string
+          platform?: string | null
+          share_link?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shares_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shares_pitch_id_fkey"
+            columns: ["pitch_id"]
+            isOneToOne: false
+            referencedRelation: "pitches"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      
+      referrals: {
+        Row: {
+          id: string
+          supporter_id: string
+          pitch_id: string
+          share_link: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          supporter_id: string
+          pitch_id: string
+          share_link?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          supporter_id?: string
+          pitch_id?: string
+          share_link?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referrals_supporter_id_fkey"
+            columns: ["supporter_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referrals_pitch_id_fkey"
+            columns: ["pitch_id"]
+            isOneToOne: false
+            referencedRelation: "pitches"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      
+      community_suggestions: {
+        Row: {
+          id: string
+          user_id: string
+          suggestion_type: string
+          title: string
+          description: string | null
+          status: string | null
+          priority: string | null
+          votes: number | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          suggestion_type: string
+          title: string
+          description?: string | null
+          status?: string | null
+          priority?: string | null
+          votes?: number | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          suggestion_type?: string
+          title?: string
+          description?: string | null
+          status?: string | null
+          priority?: string | null
+          votes?: number | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_suggestions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      
+      mission_invitation_summary: {
+        Row: {
+          id: string
+          user_id: string
+          inviter_id: string | null
+          total_invitations_sent: number | null
+          total_invitations_accepted: number | null
+          total_invitations_declined: number | null
+          total_invitations_pending: number | null
+          last_invitation_sent: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          inviter_id?: string | null
+          total_invitations_sent?: number | null
+          total_invitations_accepted?: number | null
+          total_invitations_declined?: number | null
+          total_invitations_pending?: number | null
+          last_invitation_sent?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          inviter_id?: string | null
+          total_invitations_sent?: number | null
+          total_invitations_accepted?: number | null
+          total_invitations_declined?: number | null
+          total_invitations_pending?: number | null
+          last_invitation_sent?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_invitation_summary_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      
+      // Existing tables (keeping current structure)
       donations: {
         Row: {
           amount_cents: number
@@ -23,6 +486,7 @@ export type Database = {
           is_anonymous: boolean
           razorpay_payment_id: string | null
           user_id: string | null
+          updated_at: string | null
         }
         Insert: {
           amount_cents: number
@@ -32,6 +496,7 @@ export type Database = {
           is_anonymous?: boolean
           razorpay_payment_id?: string | null
           user_id?: string | null
+          updated_at?: string | null
         }
         Update: {
           amount_cents?: number
@@ -41,77 +506,11 @@ export type Database = {
           is_anonymous?: boolean
           razorpay_payment_id?: string | null
           user_id?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }
-      email_logs: {
-        Row: {
-          content: string | null
-          created_at: string | null
-          email_type: string
-          id: string
-          recipient_email: string
-          sent_at: string | null
-          status: string | null
-          subject: string | null
-          user_id: string | null
-        }
-        Insert: {
-          content?: string | null
-          created_at?: string | null
-          email_type: string
-          id?: string
-          recipient_email: string
-          sent_at?: string | null
-          status?: string | null
-          subject?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          content?: string | null
-          created_at?: string | null
-          email_type?: string
-          id?: string
-          recipient_email?: string
-          sent_at?: string | null
-          status?: string | null
-          subject?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "email_logs_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      endorsements: {
-        Row: {
-          created_at: string
-          endorser_user_id: string | null
-          id: string
-          text: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          endorser_user_id?: string | null
-          id?: string
-          text: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          endorser_user_id?: string | null
-          id?: string
-          text?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
+      
       invoices: {
         Row: {
           amount: number | null
@@ -184,205 +583,15 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "invoices_plan_id_fkey"
-            columns: ["plan_id"]
-            isOneToOne: false
-            referencedRelation: "service_plans"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "invoices_subscription_id_fkey"
-            columns: ["subscription_id"]
-            isOneToOne: false
-            referencedRelation: "user_subscriptions"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "invoices_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
-          },
+          }
         ]
       }
-      migration_audit: {
-        Row: {
-          created_at: string | null
-          id: string
-          migration_name: string
-          status: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          migration_name: string
-          status: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          migration_name?: string
-          status?: string
-        }
-        Relationships: []
-      }
-      numbering_state: {
-        Row: {
-          created_at: string | null
-          current_number: number
-          id: string
-          prefix: string
-          type: string
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          current_number: number
-          id?: string
-          prefix: string
-          type: string
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          current_number?: number
-          id?: string
-          prefix?: string
-          type?: string
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      payment_events: {
-        Row: {
-          amount_cents: number
-          created_at: string | null
-          event_type: string
-          id: string
-          metadata: Json | null
-          razorpay_payment_id: string | null
-          user_id: string
-        }
-        Insert: {
-          amount_cents: number
-          created_at?: string | null
-          event_type: string
-          id?: string
-          metadata?: Json | null
-          razorpay_payment_id?: string | null
-          user_id: string
-        }
-        Update: {
-          amount_cents?: number
-          created_at?: string | null
-          event_type?: string
-          id?: string
-          metadata?: Json | null
-          razorpay_payment_id?: string | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "payment_events_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      payment_events_archive: {
-        Row: {
-          amount_cents: number
-          archived_at: string | null
-          created_at: string | null
-          event_type: string
-          id: string
-          metadata: Json | null
-          original_id: string
-          razorpay_payment_id: string | null
-          user_id: string
-        }
-        Insert: {
-          amount_cents: number
-          archived_at?: string | null
-          created_at?: string | null
-          event_type: string
-          id?: string
-          metadata?: Json | null
-          original_id: string
-          razorpay_payment_id?: string | null
-          user_id: string
-        }
-        Update: {
-          amount_cents?: number
-          archived_at?: string | null
-          created_at?: string | null
-          event_type?: string
-          id?: string
-          metadata?: Json | null
-          original_id?: string
-          razorpay_payment_id?: string | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "payment_events_archive_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      pitches: {
-        Row: {
-          created_at: string | null
-          experience_years: number | null
-          id: string
-          linkedin_url: string | null
-          pitch_text: string
-          resume_url: string | null
-          skills: string[] | null
-          title: string
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          experience_years?: number | null
-          id?: string
-          linkedin_url?: string | null
-          pitch_text: string
-          resume_url?: string | null
-          skills?: string[] | null
-          title: string
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          created_at?: string | null
-          experience_years?: number | null
-          id?: string
-          linkedin_url?: string | null
-          pitch_text?: string
-          resume_url?: string | null
-          skills?: string[] | null
-          title?: string
-          updated_at?: string | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "pitches_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
+      
       receipts: {
         Row: {
           amount_cents: number
@@ -424,413 +633,74 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
-          },
+          }
         ]
       }
-      recruiter_notes: {
+      
+      email_logs: {
         Row: {
+          content: string | null
           created_at: string | null
+          email_type: string
           id: string
-          note_text: string
-          pitch_id: string
-          recruiter_user_id: string
+          recipient_email: string
+          sent_at: string | null
+          status: string | null
+          subject: string | null
+          user_id: string | null
           updated_at: string | null
         }
         Insert: {
+          content?: string | null
           created_at?: string | null
+          email_type: string
           id?: string
-          note_text: string
-          pitch_id: string
-          recruiter_user_id: string
+          recipient_email: string
+          sent_at?: string | null
+          status?: string | null
+          subject?: string | null
+          user_id?: string | null
           updated_at?: string | null
         }
         Update: {
+          content?: string | null
           created_at?: string | null
+          email_type?: string
           id?: string
-          note_text?: string
-          pitch_id?: string
-          recruiter_user_id?: string
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "recruiter_notes_pitch_id_fkey"
-            columns: ["pitch_id"]
-            isOneToOne: false
-            referencedRelation: "pitches"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "recruiter_notes_recruiter_user_id_fkey"
-            columns: ["recruiter_user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      referrals: {
-        Row: {
-          created_at: string | null
-          id: string
-          pitch_id: string
-          share_link: string | null
-          supporter_user_id: string
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          pitch_id: string
-          share_link?: string | null
-          supporter_user_id: string
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          pitch_id?: string
-          share_link?: string | null
-          supporter_user_id?: string
+          recipient_email?: string
+          sent_at?: string | null
+          status?: string | null
+          subject?: string | null
+          user_id?: string | null
           updated_at?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "referrals_pitch_id_fkey"
-            columns: ["pitch_id"]
-            isOneToOne: false
-            referencedRelation: "pitches"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "referrals_supporter_user_id_fkey"
-            columns: ["supporter_user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      referral_events: {
-        Row: {
-          created_at: string | null
-          event_type: string
-          id: string
-          metadata: Json | null
-          platform: string | null
-          referral_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          event_type: string
-          id?: string
-          metadata?: Json | null
-          platform?: string | null
-          referral_id: string
-        }
-        Update: {
-          created_at?: string | null
-          event_type?: string
-          id?: string
-          metadata?: Json | null
-          platform?: string | null
-          referral_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "referral_events_referral_id_fkey"
-            columns: ["referral_id"]
-            isOneToOne: false
-            referencedRelation: "referrals"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      resume_requests: {
-        Row: {
-          created_at: string | null
-          id: string
-          job_role: string | null
-          pitch_id: string
-          recruiter_user_id: string
-          responded_at: string | null
-          status: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          job_role?: string | null
-          pitch_id: string
-          recruiter_user_id: string
-          responded_at?: string | null
-          status: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          job_role?: string | null
-          pitch_id?: string
-          recruiter_user_id?: string
-          responded_at?: string | null
-          status?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "resume_requests_pitch_id_fkey"
-            columns: ["pitch_id"]
-            isOneToOne: false
-            referencedRelation: "pitches"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "resume_requests_recruiter_user_id_fkey"
-            columns: ["recruiter_user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "resume_requests_user_id_fkey"
+            foreignKeyName: "email_logs_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
-          },
+          }
         ]
-      }
-      service_plans: {
-        Row: {
-          created_at: string | null
-          description: string | null
-          id: string
-          name: string
-          price_cents: number
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          name: string
-          price_cents: number
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          name?: string
-          price_cents?: number
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      shared_pitches: {
-        Row: {
-          created_at: string | null
-          id: string
-          pitch_id: string
-          share_token: string
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          pitch_id: string
-          share_token: string
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          pitch_id?: string
-          share_token?: string
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "shared_pitches_pitch_id_fkey"
-            columns: ["pitch_id"]
-            isOneToOne: false
-            referencedRelation: "pitches"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      user_activity_log: {
-        Row: {
-          activity_type: string
-          created_at: string | null
-          id: string
-          metadata: Json | null
-          user_id: string
-        }
-        Insert: {
-          activity_type: string
-          created_at?: string | null
-          id?: string
-          metadata?: Json | null
-          user_id: string
-        }
-        Update: {
-          activity_type?: string
-          created_at?: string | null
-          id?: string
-          metadata?: Json | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_activity_log_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      user_permissions: {
-        Row: {
-          created_at: string | null
-          id: string
-          permission: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          permission: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          permission?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_permissions_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      user_profiles: {
-        Row: {
-          created_at: string | null
-          id: string
-          profile_data: Json | null
-          profile_type: string
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          profile_data?: Json | null
-          profile_type: string
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          profile_data?: Json | null
-          profile_type?: string
-          updated_at?: string | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_profiles_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      user_subscriptions: {
-        Row: {
-          created_at: string | null
-          id: string
-          plan_expires_at: string | null
-          plan_id: string
-          status: string
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          plan_expires_at?: string | null
-          plan_id: string
-          status: string
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          plan_expires_at?: string | null
-          plan_id?: string
-          status?: string
-          updated_at?: string | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_subscriptions_plan_id_fkey"
-            columns: ["plan_id"]
-            isOneToOne: false
-            referencedRelation: "service_plans"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_subscriptions_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      users: {
-        Row: {
-          created_at: string | null
-          email: string
-          id: string
-          name: string | null
-          role: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          email: string
-          id?: string
-          name?: string | null
-          role?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          email?: string
-          id?: string
-          name?: string | null
-          role?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
       }
     }
     Views: {
-      [_ in never]: never
+      community_suggestions_summary: {
+        Row: {
+          id: string | null
+          title: string | null
+          description: string | null
+          suggestion_type: string | null
+          status: string | null
+          priority: string | null
+          votes: number | null
+          user_name: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never
