@@ -1,10 +1,19 @@
 #!/usr/bin/env node
 
+// Load environment variables from .env file
+require('dotenv').config();
+
 const { createClient } = require('@supabase/supabase-js');
 
-// Environment variables
-const supabaseUrl = 'https://byleslhlkakxnsurzyzt.supabase.co';
-const supabaseServiceRoleKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ5bGVzbGhsa2FreG5zdXJ6eXp0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NDc2MDkyMywiZXhwIjoyMDcwMzM2OTIzfQ.a1c68T9xpuoPlJPUsZ4Z0X13gC2TdTMtwedGZujL7IE';
+// Environment variables - SECURE
+const supabaseUrl = process.env.SUPABASE_URL || 'https://byleslhlkakxnsurzyzt.supabase.co';
+const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+if (!supabaseServiceRoleKey) {
+  console.error('❌ ERROR: SUPABASE_SERVICE_ROLE_KEY environment variable is required');
+  console.error('Please set your Supabase service role key as an environment variable');
+  process.exit(1);
+}
 
 const supabase = createClient(supabaseUrl, supabaseServiceRoleKey, {
   auth: {
@@ -251,7 +260,7 @@ async function createTables() {
     console.log('========================');
     console.log('✅ All tables have been attempted to be created');
     console.log('ℹ️  If any tables failed, they may need to be created manually in the Supabase dashboard');
-    console.log('\n📋 Next Steps:');
+    console.log('\n�� Next Steps:');
     console.log('  1. Check the Supabase dashboard for any failed table creations');
     console.log('  2. Run the check-supporter-tables.js script to verify');
     console.log('  3. Test the supporter dashboard at /dashboard/supporter');
