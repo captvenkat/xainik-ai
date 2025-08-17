@@ -12,10 +12,8 @@ import {
   Pitch,
   Endorsement,
   Donation,
-  UserActivityLog,
   Invoice,
-  Receipt,
-  ServicePlan
+  Receipt
 } from '@/types/domain';
 import {
   USER_ROLES,

@@ -145,7 +145,7 @@ export type Database = {
       pitches: {
         Row: {
           id: string
-          veteran_id: string
+          user_id: string
           title: string
           pitch_text: string
           skills: string[]
@@ -163,7 +163,7 @@ export type Database = {
         }
         Insert: {
           id?: string
-          veteran_id: string
+          user_id: string
           title: string
           pitch_text: string
           skills: string[]
@@ -181,7 +181,7 @@ export type Database = {
         }
         Update: {
           id?: string
-          veteran_id?: string
+          user_id?: string
           title?: string
           pitch_text?: string
           skills?: string[]
@@ -199,8 +199,8 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "pitches_veteran_id_fkey"
-            columns: ["veteran_id"]
+            foreignKeyName: "pitches_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
@@ -211,39 +211,39 @@ export type Database = {
       endorsements: {
         Row: {
           id: string
-          veteran_id: string
-          endorser_id: string
+          user_id: string
+          endorser_user_id: string
           text: string | null
           created_at: string | null
           updated_at: string | null
         }
         Insert: {
           id?: string
-          veteran_id: string
-          endorser_id: string
+          user_id: string
+          endorser_user_id: string
           text?: string | null
           created_at?: string | null
           updated_at?: string | null
         }
         Update: {
           id?: string
-          veteran_id?: string
-          endorser_id?: string
+          user_id?: string
+          endorser_user_id?: string
           text?: string | null
           created_at?: string | null
           updated_at?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "endorsements_veteran_id_fkey"
-            columns: ["veteran_id"]
+            foreignKeyName: "endorsements_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "endorsements_endorser_id_fkey"
-            columns: ["endorser_id"]
+            foreignKeyName: "endorsements_endorser_user_id_fkey"
+            columns: ["endorser_user_id"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
