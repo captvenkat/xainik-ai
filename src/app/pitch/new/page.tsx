@@ -84,7 +84,7 @@ export default function NewPitchPage() {
           phone: formData.phone,
           linkedin_url: formData.linkedin_url,
           is_active: true,
-          end_date: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString() // 90 days from now
+          // Note: end_date column doesn't exist in current schema
         })
         .select()
         .single()
