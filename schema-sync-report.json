@@ -1,0 +1,1312 @@
+{
+  "timestamp": "2025-08-17T15:06:16.156Z",
+  "summary": {
+    "databaseTables": 0,
+    "typescriptTables": 3,
+    "codeFiles": 32,
+    "mismatches": {
+      "dbOnlyTables": 0,
+      "tsOnlyTables": 3,
+      "unusedTables": 2,
+      "missingTypes": 37
+    }
+  },
+  "details": {
+    "database": {
+      "tables": [],
+      "columns": {},
+      "relationships": []
+    },
+    "typescript": {
+      "tables": [
+        "Tables",
+        "users",
+        "Row"
+      ],
+      "columns": {
+        "key": "string]",
+        "__InternalSupabase": "{",
+        "PostgrestVersion": "\"13.0.4\"",
+        "public": "{",
+        "Tables": "{",
+        "users": "{",
+        "Row": "{",
+        "id": "string | null",
+        "email": "string",
+        "name": "string | null",
+        "phone": "string",
+        "role": "string | null",
+        "created_at": "string | null",
+        "updated_at": "string | null",
+        "Insert": "{",
+        "Update": "{",
+        "Relationships": "[]",
+        "veterans": "{",
+        "user_id": "string | null",
+        "rank": "string | null",
+        "service_branch": "string | null",
+        "years_experience": "number | null",
+        "location_current": "string | null",
+        "locations_preferred": "string[] | null",
+        "foreignKeyName": "\"email_logs_user_id_fkey\"",
+        "columns": "[\"user_id\"]",
+        "isOneToOne": "false",
+        "referencedRelation": "\"users\"",
+        "referencedColumns": "[\"id\"]",
+        "recruiters": "{",
+        "company_name": "string | null",
+        "industry": "string | null",
+        "supporters": "{",
+        "intro": "string | null",
+        "pitches": "{",
+        "veteran_id": "string",
+        "title": "string | null",
+        "pitch_text": "string",
+        "skills": "string[]",
+        "job_type": "string",
+        "location": "string",
+        "availability": "string",
+        "photo_url": "string | null",
+        "likes_count": "number",
+        "is_active": "boolean",
+        "plan_tier": "string | null",
+        "plan_expires_at": "string | null",
+        "endorsements": "{",
+        "endorser_id": "string",
+        "text": "string | null",
+        "likes": "{",
+        "pitch_id": "string",
+        "shares": "{",
+        "platform": "string | null",
+        "share_link": "string | null",
+        "referrals": "{",
+        "supporter_id": "string",
+        "community_suggestions": "{",
+        "suggestion_type": "string | null",
+        "description": "string | null",
+        "status": "string | null",
+        "priority": "string | null",
+        "votes": "number | null",
+        "mission_invitation_summary": "{",
+        "inviter_id": "string | null",
+        "total_invitations_sent": "number | null",
+        "total_invitations_accepted": "number | null",
+        "total_invitations_declined": "number | null",
+        "total_invitations_pending": "number | null",
+        "last_invitation_sent": "string | null",
+        "donations": "{",
+        "amount_cents": "number",
+        "currency": "string | null",
+        "is_anonymous": "boolean",
+        "razorpay_payment_id": "string | null",
+        "invoices": "{",
+        "amount": "number | null",
+        "due_date": "string | null",
+        "invoice_number": "string",
+        "metadata": "Json | null",
+        "notes": "string | null",
+        "number": "string | null",
+        "paid_at": "string | null",
+        "payment_method": "string | null",
+        "plan_id": "string | null",
+        "subscription_id": "string | null",
+        "tax_amount_cents": "number | null",
+        "total_amount_cents": "number",
+        "receipts": "{",
+        "receipt_number": "string",
+        "email_logs": "{",
+        "content": "string | null",
+        "email_type": "string",
+        "recipient_email": "string",
+        "sent_at": "string | null",
+        "subject": "string | null",
+        "Views": "{",
+        "community_suggestions_summary": "{",
+        "user_name": "string | null",
+        "Functions": "{",
+        "Enums": "{",
+        "CompositeTypes": "{"
+      },
+      "types": [
+        "Tables",
+        "Views",
+        "User",
+        "UserInsert",
+        "UserUpdate",
+        "UserProfile",
+        "UserProfileInsert",
+        "UserProfileUpdate",
+        "Pitch",
+        "PitchInsert",
+        "PitchUpdate",
+        "Endorsement",
+        "EndorsementInsert",
+        "EndorsementUpdate",
+        "Referral",
+        "ReferralInsert",
+        "ReferralUpdate",
+        "ResumeRequest",
+        "ResumeRequestInsert",
+        "ResumeRequestUpdate",
+        "ServicePlan",
+        "ServicePlanInsert",
+        "ServicePlanUpdate",
+        "UserSubscription",
+        "UserSubscriptionInsert",
+        "UserSubscriptionUpdate",
+        "Invoice",
+        "InvoiceInsert",
+        "InvoiceUpdate",
+        "Receipt",
+        "ReceiptInsert",
+        "ReceiptUpdate",
+        "PaymentEvent",
+        "PaymentEventInsert",
+        "PaymentEventUpdate",
+        "Donation",
+        "DonationInsert",
+        "DonationUpdate",
+        "RecruiterNote",
+        "RecruiterNoteInsert",
+        "RecruiterNoteUpdate",
+        "UserActivityLog",
+        "UserActivityLogInsert",
+        "UserActivityLogUpdate",
+        "MigrationAudit",
+        "UserPermission",
+        "UserRole",
+        "PitchStatus",
+        "ResumeRequestStatus",
+        "InvoiceStatus",
+        "SubscriptionStatus",
+        "NotificationStatus",
+        "NotificationChannel",
+        "Veteran",
+        "VeteranInsert",
+        "VeteranUpdate",
+        "Recruiter",
+        "RecruiterInsert",
+        "RecruiterUpdate",
+        "Supporter",
+        "SupporterInsert",
+        "SupporterUpdate",
+        "Like",
+        "LikeInsert",
+        "LikeUpdate",
+        "Share",
+        "ShareInsert",
+        "ShareUpdate",
+        "CommunitySuggestion",
+        "CommunitySuggestionInsert",
+        "CommunitySuggestionUpdate",
+        "MissionInvitationSummary",
+        "MissionInvitationSummaryInsert",
+        "MissionInvitationSummaryUpdate"
+      ]
+    },
+    "code": {
+      "imports": [
+        {
+          "file": "src/app/admin/page.tsx",
+          "type": "types"
+        },
+        {
+          "file": "src/app/api/razorpay/webhook/route.ts",
+          "type": "supabase-js"
+        },
+        {
+          "file": "src/app/api/razorpay/webhook/route.ts",
+          "type": "types"
+        },
+        {
+          "file": "src/components/FeaturedPitches.tsx",
+          "type": "types"
+        },
+        {
+          "file": "src/components/PitchCard.tsx",
+          "type": "types"
+        },
+        {
+          "file": "src/lib/actions/auth-server.ts",
+          "type": "types"
+        },
+        {
+          "file": "src/lib/actions/donations-server.ts",
+          "type": "types"
+        },
+        {
+          "file": "src/lib/actions/endorsements-server.ts",
+          "type": "types"
+        },
+        {
+          "file": "src/lib/actions/notifications-server.ts",
+          "type": "types"
+        },
+        {
+          "file": "src/lib/actions/pitches.ts",
+          "type": "types"
+        },
+        {
+          "file": "src/lib/actions/referrals-server.ts",
+          "type": "types"
+        },
+        {
+          "file": "src/lib/activity.ts",
+          "type": "types"
+        },
+        {
+          "file": "src/lib/auth-client.ts",
+          "type": "supabase-js"
+        },
+        {
+          "file": "src/lib/auth-client.ts",
+          "type": "types"
+        },
+        {
+          "file": "src/lib/auth.ts",
+          "type": "types"
+        },
+        {
+          "file": "src/lib/billing/invoices.ts",
+          "type": "types"
+        },
+        {
+          "file": "src/lib/db-client.ts",
+          "type": "supabase-js"
+        },
+        {
+          "file": "src/lib/db-client.ts",
+          "type": "types"
+        },
+        {
+          "file": "src/lib/donations.ts",
+          "type": "types"
+        },
+        {
+          "file": "src/lib/mappers/pitches.ts",
+          "type": "types"
+        },
+        {
+          "file": "src/lib/referrals-client.ts",
+          "type": "supabase-js"
+        },
+        {
+          "file": "src/lib/referrals-client.ts",
+          "type": "types"
+        },
+        {
+          "file": "src/lib/search.ts",
+          "type": "types"
+        },
+        {
+          "file": "src/lib/security/rateLimiter.ts",
+          "type": "supabase-js"
+        },
+        {
+          "file": "src/lib/supabase-server.ts",
+          "type": "supabase-js"
+        },
+        {
+          "file": "src/lib/supabase-server.ts",
+          "type": "types"
+        },
+        {
+          "file": "src/lib/supabaseAdmin.ts",
+          "type": "supabase-js"
+        },
+        {
+          "file": "src/lib/supabaseAdmin.ts",
+          "type": "types"
+        },
+        {
+          "file": "src/lib/supabaseBrowser.ts",
+          "type": "supabase-js"
+        },
+        {
+          "file": "src/lib/supabaseBrowser.ts",
+          "type": "types"
+        },
+        {
+          "file": "src/lib/supabaseServer.ts",
+          "type": "types"
+        },
+        {
+          "file": "src/lib/supabaseServerOnly.ts",
+          "type": "types"
+        }
+      ],
+      "usage": [
+        {
+          "file": "src/app/admin/page.tsx",
+          "tables": [
+            "users",
+            "pitches",
+            "endorsements",
+            "donations",
+            "user_subscriptions",
+            "donations",
+            "users",
+            "pitches",
+            "donations",
+            "invoices"
+          ]
+        },
+        {
+          "file": "src/app/api/admin/export/activity.csv/route.ts",
+          "tables": [
+            "user_activity_log"
+          ]
+        },
+        {
+          "file": "src/app/api/admin/export/donations.csv/route.ts",
+          "tables": [
+            "donations"
+          ]
+        },
+        {
+          "file": "src/app/api/admin/export/endorsements.csv/route.ts",
+          "tables": [
+            "endorsements"
+          ]
+        },
+        {
+          "file": "src/app/api/admin/export/invoices.csv/route.ts",
+          "tables": [
+            "users"
+          ]
+        },
+        {
+          "file": "src/app/api/admin/export/pitches.csv/route.ts",
+          "tables": [
+            "pitches"
+          ]
+        },
+        {
+          "file": "src/app/api/admin/export/receipts.csv/route.ts",
+          "tables": [
+            "users"
+          ]
+        },
+        {
+          "file": "src/app/api/admin/export/resume-requests.csv/route.ts",
+          "tables": [
+            "resume_requests"
+          ]
+        },
+        {
+          "file": "src/app/api/admin/export/users.csv/route.ts",
+          "tables": [
+            "users",
+            "users"
+          ]
+        },
+        {
+          "file": "src/app/api/apply-migration/route.ts",
+          "tables": [
+            "users"
+          ]
+        },
+        {
+          "file": "src/app/api/cron/expire/route.ts",
+          "tables": [
+            "user_subscriptions",
+            "user_subscriptions",
+            "user_subscriptions",
+            "user_subscriptions"
+          ]
+        },
+        {
+          "file": "src/app/api/debug/role/route.ts",
+          "tables": [
+            "users",
+            "users"
+          ]
+        },
+        {
+          "file": "src/app/api/dev/check/rls/route.ts",
+          "tables": [
+            "donations",
+            "payment_events_archive",
+            "user_activity_log"
+          ]
+        },
+        {
+          "file": "src/app/api/donations/verify/route.ts",
+          "tables": [
+            "donations"
+          ]
+        },
+        {
+          "file": "src/app/api/razorpay/webhook/route.ts",
+          "tables": [
+            "payment_events_archive",
+            "donations"
+          ]
+        },
+        {
+          "file": "src/app/api/recruiter/saved-filters/[id]/route.ts",
+          "tables": [
+            "users",
+            "recruiter_saved_filters"
+          ]
+        },
+        {
+          "file": "src/app/api/recruiter/saved-filters/route.ts",
+          "tables": [
+            "users",
+            "recruiter_saved_filters",
+            "users",
+            "recruiter_saved_filters"
+          ]
+        },
+        {
+          "file": "src/app/api/test-auth/route.ts",
+          "tables": [
+            "users"
+          ]
+        },
+        {
+          "file": "src/app/api/test-supabase/route.ts",
+          "tables": [
+            "users"
+          ]
+        },
+        {
+          "file": "src/app/api/user/create/route.ts",
+          "tables": [
+            "users",
+            "users"
+          ]
+        },
+        {
+          "file": "src/app/auth/callback/page.tsx",
+          "tables": [
+            "users"
+          ]
+        },
+        {
+          "file": "src/app/dashboard/admin/page.tsx",
+          "tables": [
+            "users",
+            "users",
+            "pitches",
+            "endorsements",
+            "donations",
+            "resume_requests",
+            "user_activity_log",
+            "user_activity_log",
+            "users",
+            "pitches"
+          ]
+        },
+        {
+          "file": "src/app/dashboard/page.tsx",
+          "tables": [
+            "users"
+          ]
+        },
+        {
+          "file": "src/app/dashboard/supporter/page.tsx",
+          "tables": [
+            "users",
+            "donations",
+            "endorsements",
+            "referrals",
+            "user_activity_log",
+            "ai_suggestions",
+            "supporter_celebrations",
+            "referral_events"
+          ]
+        },
+        {
+          "file": "src/app/dashboard/veteran/impact/page.tsx",
+          "tables": [
+            "pitches",
+            "users"
+          ]
+        },
+        {
+          "file": "src/app/dashboard/veteran/page.tsx",
+          "tables": [
+            "endorsements",
+            "endorsements",
+            "pitches",
+            "pitches",
+            "endorsements",
+            "likes",
+            "shares"
+          ]
+        },
+        {
+          "file": "src/app/endorse/[pitchId]/page.tsx",
+          "tables": [
+            "pitches",
+            "endorsements"
+          ]
+        },
+        {
+          "file": "src/app/pitch/[id]/edit/page.tsx",
+          "tables": [
+            "pitches",
+            "users"
+          ]
+        },
+        {
+          "file": "src/app/pitch/[id]/page.tsx",
+          "tables": [
+            "pitches",
+            "users",
+            "user_profiles",
+            "users"
+          ]
+        },
+        {
+          "file": "src/app/pitch/new/ai-first/page.tsx",
+          "tables": [
+            "pitches"
+          ]
+        },
+        {
+          "file": "src/app/pitch/new/optimized/page.tsx",
+          "tables": [
+            "users",
+            "veterans",
+            "pitches"
+          ]
+        },
+        {
+          "file": "src/app/pitch/new/page.tsx",
+          "tables": [
+            "pitches"
+          ]
+        },
+        {
+          "file": "src/app/pricing/page.tsx",
+          "tables": [
+            "pitches"
+          ]
+        },
+        {
+          "file": "src/app/refer/opened/page.tsx",
+          "tables": [
+            "referral_events",
+            "referral_events"
+          ]
+        },
+        {
+          "file": "src/app/role-selection/page.tsx",
+          "tables": [
+            "users"
+          ]
+        },
+        {
+          "file": "src/app/settings/profile/page.tsx",
+          "tables": [
+            "users",
+            "veterans",
+            "users",
+            "veterans",
+            "veterans",
+            "users",
+            "veterans"
+          ]
+        },
+        {
+          "file": "src/app/settings/role/page.tsx",
+          "tables": [
+            "users"
+          ]
+        },
+        {
+          "file": "src/app/shortlist/page.tsx",
+          "tables": [
+            "users",
+            "shared_pitches"
+          ]
+        },
+        {
+          "file": "src/app/sitemap.ts",
+          "tables": [
+            "pitches"
+          ]
+        },
+        {
+          "file": "src/app/supporter/refer/page.tsx",
+          "tables": [
+            "users",
+            "pitches"
+          ]
+        },
+        {
+          "file": "src/app/test-features/page.tsx",
+          "tables": [
+            "community_suggestions",
+            "mission_invitations",
+            "community_suggestions_summary",
+            "mission_invitation_analytics"
+          ]
+        },
+        {
+          "file": "src/components/AIContactSuggestions.tsx",
+          "tables": [
+            "pitches"
+          ]
+        },
+        {
+          "file": "src/components/ContactButtons.tsx",
+          "tables": [
+            "users"
+          ]
+        },
+        {
+          "file": "src/components/DonationSnapshot.tsx",
+          "tables": [
+            "donations"
+          ]
+        },
+        {
+          "file": "src/components/EndorsementsList.tsx",
+          "tables": [
+            "endorsements",
+            "pitches"
+          ]
+        },
+        {
+          "file": "src/components/FeaturedPitches.tsx",
+          "tables": [
+            "pitches"
+          ]
+        },
+        {
+          "file": "src/components/Navigation.tsx",
+          "tables": [
+            "users"
+          ]
+        },
+        {
+          "file": "src/components/NotificationBell.tsx",
+          "tables": [
+            "notifications",
+            "notifications",
+            "notifications"
+          ]
+        },
+        {
+          "file": "src/components/NotificationPreferencesForm.tsx",
+          "tables": [
+            "notification_prefs"
+          ]
+        },
+        {
+          "file": "src/components/NotificationsPanel.tsx",
+          "tables": [
+            "notifications",
+            "notifications",
+            "notifications",
+            "notifications"
+          ]
+        },
+        {
+          "file": "src/components/RecruiterNotes.tsx",
+          "tables": [
+            "users",
+            "recruiter_notes",
+            "recruiter_notes"
+          ]
+        },
+        {
+          "file": "src/components/ReferModal.tsx",
+          "tables": [
+            "users"
+          ]
+        },
+        {
+          "file": "src/components/RoleAwareLink.tsx",
+          "tables": [
+            "users",
+            "users"
+          ]
+        },
+        {
+          "file": "src/components/RoleSelectionModal.tsx",
+          "tables": [
+            "users"
+          ]
+        },
+        {
+          "file": "src/components/SmartNotifications.tsx",
+          "tables": [
+            "pitches"
+          ]
+        },
+        {
+          "file": "src/components/SocialShareButtons.tsx",
+          "tables": [
+            "referral_events"
+          ]
+        },
+        {
+          "file": "src/components/VeteranProfileTab.tsx",
+          "tables": [
+            "users"
+          ]
+        },
+        {
+          "file": "src/components/community/CommunitySuggestions.tsx",
+          "tables": [
+            "community_suggestions",
+            "community_suggestions_summary",
+            "community_suggestions"
+          ]
+        },
+        {
+          "file": "src/components/impact/SupporterAnalytics.tsx",
+          "tables": [
+            "referrals",
+            "endorsements",
+            "donations",
+            "user_activity_log",
+            "referral_events",
+            "users"
+          ]
+        },
+        {
+          "file": "src/components/mission/MissionInvitationAnalytics.tsx",
+          "tables": [
+            "mission_invitation_summary"
+          ]
+        },
+        {
+          "file": "src/components/mission/MissionInvitationModal.tsx",
+          "tables": [
+            "mission_invitations"
+          ]
+        },
+        {
+          "file": "src/components/supporter/VeteransSupporting.tsx",
+          "tables": [
+            "endorsements",
+            "users",
+            "user_activity_log",
+            "pitches",
+            "users"
+          ]
+        },
+        {
+          "file": "src/lib/actions/activity-server.ts",
+          "tables": [
+            "user_activity_log",
+            "user_activity_log",
+            "user_activity_log",
+            "user_activity_log"
+          ]
+        },
+        {
+          "file": "src/lib/actions/analytics-server.ts",
+          "tables": [
+            "user_activity_log",
+            "user_activity_log"
+          ]
+        },
+        {
+          "file": "src/lib/actions/analytics.ts",
+          "tables": [
+            "user_activity_log",
+            "user_activity_log",
+            "user_activity_log",
+            "user_activity_log"
+          ]
+        },
+        {
+          "file": "src/lib/actions/auth-server.ts",
+          "tables": [
+            "users",
+            "user_profiles",
+            "users",
+            "user_profiles",
+            "user_subscriptions"
+          ]
+        },
+        {
+          "file": "src/lib/actions/contact-suggestions.ts",
+          "tables": [
+            "pitches",
+            "recruiters",
+            "users"
+          ]
+        },
+        {
+          "file": "src/lib/actions/donations-server.ts",
+          "tables": [
+            "donations",
+            "donations",
+            "donations",
+            "donations",
+            "donations",
+            "donations",
+            "donations"
+          ]
+        },
+        {
+          "file": "src/lib/actions/email-reports.ts",
+          "tables": [
+            "users",
+            "pitches",
+            "referral_events",
+            "users",
+            "users",
+            "referral_events"
+          ]
+        },
+        {
+          "file": "src/lib/actions/endorsements-server.ts",
+          "tables": [
+            "endorsements",
+            "endorsements",
+            "endorsements"
+          ]
+        },
+        {
+          "file": "src/lib/actions/endorsements.ts",
+          "tables": [
+            "endorsements",
+            "endorsements",
+            "endorsements"
+          ]
+        },
+        {
+          "file": "src/lib/actions/impact/channels.ts",
+          "tables": [
+            "impact_channel_stats"
+          ]
+        },
+        {
+          "file": "src/lib/actions/impact/funnel.ts",
+          "tables": [
+            "impact_funnel"
+          ]
+        },
+        {
+          "file": "src/lib/actions/impact/keywords.ts",
+          "tables": [
+            "impact_keywords",
+            "impact_keywords",
+            "impact_keywords",
+            "impact_keywords"
+          ]
+        },
+        {
+          "file": "src/lib/actions/impact/kpis.ts",
+          "tables": [
+            "impact_funnel"
+          ]
+        },
+        {
+          "file": "src/lib/actions/impact/nudges.ts",
+          "tables": [
+            "impact_nudges",
+            "impact_nudges"
+          ]
+        },
+        {
+          "file": "src/lib/actions/impact/supporters.ts",
+          "tables": [
+            "impact_supporter_stats"
+          ]
+        },
+        {
+          "file": "src/lib/actions/likePitch.ts",
+          "tables": [
+            "pitches",
+            "pitches",
+            "user_activity_log",
+            "user_activity_log"
+          ]
+        },
+        {
+          "file": "src/lib/actions/notifications-server.ts",
+          "tables": [
+            "notifications",
+            "notifications",
+            "notifications"
+          ]
+        },
+        {
+          "file": "src/lib/actions/pitches.ts",
+          "tables": [
+            "pitches",
+            "pitches",
+            "pitches",
+            "pitches",
+            "user_subscriptions",
+            "pitches",
+            "pitches",
+            "pitches",
+            "endorsements",
+            "pitches",
+            "endorsements",
+            "referrals",
+            "referrals",
+            "pitches",
+            "pitches",
+            "endorsements",
+            "referrals"
+          ]
+        },
+        {
+          "file": "src/lib/actions/referral-events-server.ts",
+          "tables": [
+            "referral_events",
+            "referral_events",
+            "referral_events"
+          ]
+        },
+        {
+          "file": "src/lib/actions/referrals-server.ts",
+          "tables": [
+            "referrals",
+            "referrals",
+            "referral_events",
+            "referrals",
+            "referral_events"
+          ]
+        },
+        {
+          "file": "src/lib/actions/requestResume.ts",
+          "tables": [
+            "resume_requests",
+            "resume_requests",
+            "resume_requests",
+            "resume_requests",
+            "user_activity_log"
+          ]
+        },
+        {
+          "file": "src/lib/actions/resumeRequests.ts",
+          "tables": [
+            "resume_requests",
+            "resume_requests",
+            "resume_requests",
+            "resume_requests",
+            "user_activity_log"
+          ]
+        },
+        {
+          "file": "src/lib/actions/share-tracking.ts",
+          "tables": [
+            "referral_events",
+            "referral_events",
+            "referrals"
+          ]
+        },
+        {
+          "file": "src/lib/activity.ts",
+          "tables": [
+            "user_activity_log",
+            "user_activity_log",
+            "user_activity_log"
+          ]
+        },
+        {
+          "file": "src/lib/auth-client.ts",
+          "tables": [
+            "users",
+            "user_subscriptions",
+            "user_subscriptions"
+          ]
+        },
+        {
+          "file": "src/lib/auth.ts",
+          "tables": [
+            "users",
+            "user_profiles",
+            "users",
+            "user_profiles",
+            "user_profiles",
+            "users",
+            "users",
+            "users",
+            "users",
+            "user_subscriptions"
+          ]
+        },
+        {
+          "file": "src/lib/billing/invoices.ts",
+          "tables": [
+            "invoices",
+            "invoices",
+            "invoices",
+            "invoices",
+            "receipts",
+            "receipts",
+            "receipts",
+            "payment_events",
+            "invoices",
+            "payment_events",
+            "numbering_state",
+            "numbering_state",
+            "numbering_state",
+            "numbering_state",
+            "invoices",
+            "receipts"
+          ]
+        },
+        {
+          "file": "src/lib/billing/numbering.ts",
+          "tables": [
+            "numbering_state",
+            "numbering_state",
+            "numbering_state",
+            "numbering_state",
+            "numbering_state",
+            "numbering_state",
+            "numbering_state",
+            "numbering_state"
+          ]
+        },
+        {
+          "file": "src/lib/billing/receipts.ts",
+          "tables": [
+            "receipts",
+            "receipts",
+            "receipts",
+            "receipts",
+            "receipts",
+            "receipts"
+          ]
+        },
+        {
+          "file": "src/lib/donations.ts",
+          "tables": [
+            "donations",
+            "donations",
+            "donations",
+            "donations",
+            "donations",
+            "donations",
+            "donations",
+            "donations"
+          ]
+        },
+        {
+          "file": "src/lib/hooks/useAuth.ts",
+          "tables": [
+            "users"
+          ]
+        },
+        {
+          "file": "src/lib/metrics-cache.ts",
+          "tables": [
+            "user_activity_log",
+            "user_activity_log",
+            "user_activity_log"
+          ]
+        },
+        {
+          "file": "src/lib/metrics.ts",
+          "tables": [
+            "users",
+            "pitches",
+            "endorsements",
+            "donations",
+            "user_subscriptions",
+            "user_activity_log",
+            "pitches",
+            "endorsements",
+            "user_activity_log",
+            "recruiter_saved_filters",
+            "resume_requests",
+            "user_activity_log",
+            "user_activity_log",
+            "donations",
+            "endorsements",
+            "user_activity_log",
+            "pitches",
+            "endorsements",
+            "user_activity_log",
+            "user_activity_log",
+            "user_activity_log",
+            "user_activity_log",
+            "user_activity_log"
+          ]
+        },
+        {
+          "file": "src/lib/notifications.ts",
+          "tables": [
+            "user_activity_log",
+            "user_activity_log"
+          ]
+        },
+        {
+          "file": "src/lib/referralEvents.ts",
+          "tables": [
+            "referral_events",
+            "referral_events",
+            "referral_events"
+          ]
+        },
+        {
+          "file": "src/lib/referrals-client.ts",
+          "tables": [
+            "referrals",
+            "referrals",
+            "referral_events"
+          ]
+        },
+        {
+          "file": "src/lib/referrals.ts",
+          "tables": [
+            "referrals",
+            "referrals",
+            "referral_events",
+            "referrals",
+            "referral_events",
+            "referrals"
+          ]
+        },
+        {
+          "file": "src/lib/search.ts",
+          "tables": [
+            "pitches",
+            "pitches"
+          ]
+        },
+        {
+          "file": "src/lib/security/rateLimiter.ts",
+          "tables": [
+            "rate_limits",
+            "rate_limits",
+            "rate_limits",
+            "rate_limits",
+            "rate_limits",
+            "rate_limits"
+          ]
+        },
+        {
+          "file": "src/lib/supabaseAdmin.ts",
+          "tables": [
+            "users",
+            "users",
+            "users",
+            "users",
+            "pitches",
+            "pitches",
+            "pitches",
+            "pitches",
+            "donations",
+            "donations",
+            "invoices",
+            "invoices",
+            "invoices",
+            "receipts",
+            "receipts",
+            "endorsements",
+            "endorsements",
+            "resume_requests",
+            "resume_requests",
+            "user_activity_log",
+            "user_activity_log",
+            "email_logs",
+            "users",
+            "pitches",
+            "donations",
+            "invoices",
+            "receipts",
+            "endorsements",
+            "resume_requests"
+          ]
+        },
+        {
+          "file": "src/lib/supabaseBrowser.ts",
+          "tables": [
+            "users",
+            "users",
+            "user_profiles",
+            "pitches",
+            "pitches",
+            "donations",
+            "donations"
+          ]
+        },
+        {
+          "file": "src/lib/supabaseServerOnly.ts",
+          "tables": [
+            "users",
+            "users",
+            "users",
+            "users",
+            "pitches",
+            "pitches",
+            "pitches",
+            "donations",
+            "donations",
+            "donations",
+            "endorsements",
+            "invoices",
+            "invoices",
+            "receipts",
+            "receipts",
+            "resume_requests",
+            "resume_requests",
+            "user_activity_log"
+          ]
+        }
+      ]
+    },
+    "mismatches": {
+      "tables": {
+        "dbOnly": [],
+        "tsOnly": [
+          "Tables",
+          "users",
+          "Row"
+        ],
+        "unused": [
+          "Tables",
+          "Row"
+        ],
+        "missingTypes": [
+          "pitches",
+          "endorsements",
+          "donations",
+          "user_subscriptions",
+          "invoices",
+          "user_activity_log",
+          "resume_requests",
+          "payment_events_archive",
+          "recruiter_saved_filters",
+          "referrals",
+          "ai_suggestions",
+          "supporter_celebrations",
+          "referral_events",
+          "likes",
+          "shares",
+          "user_profiles",
+          "veterans",
+          "shared_pitches",
+          "community_suggestions",
+          "mission_invitations",
+          "community_suggestions_summary",
+          "mission_invitation_analytics",
+          "notifications",
+          "notification_prefs",
+          "recruiter_notes",
+          "mission_invitation_summary",
+          "recruiters",
+          "impact_channel_stats",
+          "impact_funnel",
+          "impact_keywords",
+          "impact_nudges",
+          "impact_supporter_stats",
+          "receipts",
+          "payment_events",
+          "numbering_state",
+          "rate_limits",
+          "email_logs"
+        ]
+      },
+      "columns": [],
+      "relationships": []
+    }
+  }
+}

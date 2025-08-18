@@ -1,0 +1,16 @@
+{
+  "timestamp": "2025-08-17T14:17:41.436Z",
+  "summary": {
+    "fixesApplied": 2,
+    "fixesSkipped": 0,
+    "errors": 0
+  },
+  "details": {
+    "applied": [
+      "Generated comprehensive TypeScript types",
+      "Updated domain types with missing table types"
+    ],
+    "skipped": [],
+    "errors": []
+  }
+}
