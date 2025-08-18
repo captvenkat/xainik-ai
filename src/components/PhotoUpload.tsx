@@ -200,45 +200,58 @@ export default function PhotoUpload({
 
       {/* Cropper Modal */}
       {showCropper && selectedPhoto && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">Crop Photo</h3>
+        <div className="cropper-modal">
+          <div className="cropper-modal-content">
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h3 className="text-xl font-bold text-gray-900">Crop Your Photo</h3>
               <button
                 onClick={() => setShowCropper(false)}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-gray-400 hover:text-gray-600 transition-colors"
               >
                 <X className="w-6 h-6" />
               </button>
             </div>
             
-            <div className="mb-4">
-              <ReactCrop
-                crop={crop}
-                onChange={(c) => setCrop(c)}
-                onComplete={handleCropComplete}
-                aspect={1}
-                circularCrop
-              >
-                <img
-                  ref={imgRef}
-                  src={selectedPhoto}
-                  alt="Crop preview"
-                  className="max-h-96 w-auto"
-                />
-              </ReactCrop>
+            {/* Cropper Content */}
+            <div className="p-6">
+              <div className="cropper-container">
+                <ReactCrop
+                  crop={crop}
+                  onChange={(c) => setCrop(c)}
+                  onComplete={handleCropComplete}
+                  aspect={1}
+                  circularCrop
+                  className="max-w-full"
+                >
+                  <img
+                    ref={imgRef}
+                    src={selectedPhoto}
+                    alt="Crop preview"
+                    className="cropper-image"
+                  />
+                </ReactCrop>
+              </div>
+              
+              {/* Instructions */}
+              <div className="text-center mt-6">
+                <p className="text-sm text-gray-600">
+                  Drag to adjust the crop area. The image will be cropped to a perfect circle.
+                </p>
+              </div>
             </div>
             
-            <div className="flex justify-end gap-2">
+            {/* Footer with Buttons */}
+            <div className="flex items-center justify-between p-6 border-t border-gray-200 bg-gray-50">
               <button
                 onClick={() => setShowCropper(false)}
-                className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                className="px-6 py-3 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
               >
                 Cancel
               </button>
               <button
                 onClick={handleCropSave}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
               >
                 <Check className="w-4 h-4" />
                 Save Crop
