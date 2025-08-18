@@ -22,6 +22,7 @@ import SimpleActionPlan from '@/components/analytics/SimpleActionPlan'
 import SupporterPerformanceList from '@/components/analytics/SupporterPerformanceList'
 import VeteranOutreachList from '@/components/analytics/VeteranOutreachList'
 import SimpleActivityFeed from '@/components/analytics/SimpleActivityFeed'
+import SharePitchModal from '@/components/SharePitchModal'
 import { 
   getSimpleHeroData, 
   getSimpleMetricsData, 
@@ -40,6 +41,7 @@ export default function VeteranDashboard() {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState<'analytics' | 'profile' | 'pitches' | 'mission' | 'community'>('analytics')
   const [showMissionModal, setShowMissionModal] = useState(false)
+  const [showShareModal, setShowShareModal] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [databaseStatus, setDatabaseStatus] = useState<'checking' | 'ready' | 'not-ready'>('checking')
@@ -177,7 +179,7 @@ export default function VeteranDashboard() {
 
         {/* Tab Content */}
         {activeTab === 'analytics' && (
-          <AnalyticsTab userId={user.id} />
+          <AnalyticsTab userId={user.id} onSharePitch={() => setShowShareModal(true)} />
         )}
         {activeTab === 'profile' && (
           <VeteranProfileTab />
@@ -203,12 +205,21 @@ export default function VeteranDashboard() {
           onClose={() => setShowMissionModal(false)}
         />
       )}
+
+      {/* Share Pitch Modal */}
+      {showShareModal && (
+        <SharePitchModal
+          isOpen={showShareModal}
+          onClose={() => setShowShareModal(false)}
+          userId={user.id}
+        />
+      )}
     </div>
   )
 }
 
 // Enhanced Analytics Tab Component
-function AnalyticsTab({ userId }: { userId: string }) {
+function AnalyticsTab({ userId, onSharePitch }: { userId: string; onSharePitch: () => void }) {
   const [heroData, setHeroData] = useState<any>(null)
   const [metricsData, setMetricsData] = useState<any>(null)
   const [actionsData, setActionsData] = useState<any>(null)
@@ -256,7 +267,7 @@ function AnalyticsTab({ userId }: { userId: string }) {
   return (
     <div className="space-y-6">
       {/* Hero Section */}
-      <SimpleHeroSection data={heroData} />
+      <SimpleHeroSection data={heroData} onSharePitch={onSharePitch} />
       
       {/* Simple Metrics */}
       <SimpleMetrics data={metricsData} />
