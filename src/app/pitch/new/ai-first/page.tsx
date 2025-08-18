@@ -17,8 +17,6 @@ interface AIPitchFormData {
   job_type: string
   availability: string
   photo_url?: string
-  resume_url?: string
-  resume_share_enabled: boolean
   web_link?: string  // Changed from linkedin_url to be more generic
 }
 
@@ -39,8 +37,7 @@ export default function AIFirstPitchPage() {
     pitch_text: '',
     skills: ['', '', ''],
     job_type: '',
-    availability: '',
-    resume_share_enabled: false
+    availability: ''
   })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
@@ -119,8 +116,6 @@ export default function AIFirstPitchPage() {
         location: profile.location, // Use profile location (already validated above)
         phone: profile.phone || '', // Add phone from profile
         photo_url: formData.photo_url,
-        resume_url: formData.resume_url,
-        resume_share_enabled: formData.resume_share_enabled,
         linkedin_url: formData.web_link, // Keep database field name as linkedin_url for compatibility
         is_active: true
       }
@@ -209,8 +204,6 @@ export default function AIFirstPitchPage() {
                 <ArrowLeft className="w-5 h-5 mr-2" />
                 Back to Dashboard
               </Link>
-              <div className="h-6 w-px bg-gray-300"></div>
-              <h1 className="text-xl font-semibold text-gray-900">Create Your Pitch</h1>
             </div>
             <div className="text-sm text-gray-500">
               Step {currentStep + 1} of 3
@@ -219,40 +212,9 @@ export default function AIFirstPitchPage() {
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        {/* Progress Bar */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            {['AI Pitch Generation', 'Additional Details', 'Review & Create'].map((step, index) => (
-              <div key={index} className="flex items-center">
-                <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
-                  index <= currentStep ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'
-                }`}>
-                  {index < currentStep ? (
-                    <CheckCircle className="w-5 h-5" />
-                  ) : (
-                    <span className="text-sm font-medium">{index + 1}</span>
-                  )}
-                </div>
-                <span className={`ml-2 text-sm font-medium ${
-                  index <= currentStep ? 'text-blue-600' : 'text-gray-500'
-                }`}>
-                  {step}
-                </span>
-                {index < 2 && (
-                  <div className={`w-16 h-0.5 mx-4 ${
-                    index < currentStep ? 'bg-blue-600' : 'bg-gray-200'
-                  }`} />
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Step Content */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          {renderStep()}
-        </div>
+      {/* Main Content */}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {renderStep()}
       </div>
     </div>
   )
@@ -369,51 +331,16 @@ function DetailsStep({ formData, updateFormData, onNext, onBack, profile }: any)
             Resume Upload (Optional)
           </label>
           <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
-            {formData.resume_url ? (
-              <div className="space-y-3">
-                <div className="flex items-center justify-center text-green-600">
-                  <CheckCircle className="w-8 h-8" />
-                </div>
-                <p className="text-sm text-gray-600">Resume uploaded successfully</p>
-                <button
-                  type="button"
-                  onClick={() => updateFormData({ resume_url: undefined })}
-                  className="text-sm text-red-600 hover:text-red-800 underline"
-                >
-                  Remove resume
-                </button>
+            {/* Removed resume upload functionality */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-center text-gray-400">
+                <FileText className="w-8 h-8" />
               </div>
-            ) : (
-              <div className="space-y-3">
-                <div className="flex items-center justify-center text-gray-400">
-                  <FileText className="w-8 h-8" />
-                </div>
-                <p className="text-sm text-gray-600">Upload your resume (PDF, DOC, DOCX)</p>
-                <input
-                  type="file"
-                  accept=".pdf,.doc,.docx"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0]
-                    if (file) {
-                      // For now, just store the file name
-                      // In production, you'd upload to storage and get URL
-                      updateFormData({ resume_url: file.name })
-                    }
-                  }}
-                  className="hidden"
-                  id="resume-upload"
-                />
-                <label
-                  htmlFor="resume-upload"
-                  className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 cursor-pointer transition-colors"
-                >
-                  Choose File
-                </label>
-              </div>
-            )}
+              <p className="text-sm text-gray-600">Resume upload is no longer available for this pitch.</p>
+            </div>
           </div>
           <p className="mt-1 text-xs text-gray-500">
-            Upload your resume to help recruiters understand your experience better
+            Resume request functionality is available for recruiters.
           </p>
         </div>
 
@@ -422,9 +349,10 @@ function DetailsStep({ formData, updateFormData, onNext, onBack, profile }: any)
           <input
             type="checkbox"
             id="resume_share"
-            checked={formData.resume_share_enabled}
-            onChange={(e) => updateFormData({ resume_share_enabled: e.target.checked })}
+            checked={false} // Resume share is no longer a user option
+            onChange={(e) => {}}
             className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            disabled
           />
           <label htmlFor="resume_share" className="ml-2 block text-sm text-gray-700">
             Allow recruiters to request my resume
