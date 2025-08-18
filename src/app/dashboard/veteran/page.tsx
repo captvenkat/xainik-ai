@@ -20,6 +20,7 @@ import SimpleHeroSection from '@/components/analytics/SimpleHeroSection'
 import SimpleMetrics from '@/components/analytics/SimpleMetrics'
 import SimpleActionPlan from '@/components/analytics/SimpleActionPlan'
 import SupporterPerformanceList from '@/components/analytics/SupporterPerformanceList'
+import VeteranOutreachList from '@/components/analytics/VeteranOutreachList'
 import SimpleActivityFeed from '@/components/analytics/SimpleActivityFeed'
 import { 
   getSimpleHeroData, 
@@ -262,6 +263,9 @@ function AnalyticsTab({ userId }: { userId: string }) {
       
       {/* Quick Actions */}
       <SimpleActionPlan data={actionsData} />
+      
+      {/* Your Outreach Efforts */}
+      <VeteranOutreachList veteranId={userId} />
       
       {/* Supporter Performance */}
       <SupporterPerformanceList veteranId={userId} />
