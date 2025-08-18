@@ -21,7 +21,7 @@ interface BrowsePageProps {
 
 export async function generateMetadata({ searchParams }: BrowsePageProps): Promise<Metadata> {
   const params = await searchParams
-  const hasFilters = Object.keys(params).some(key => 
+  const hasFilters = params && typeof params === 'object' && Object.keys(params || {}).some(key => 
     key !== 'page' && params[key as keyof typeof params]
   )
   
