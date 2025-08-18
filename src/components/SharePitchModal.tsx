@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { X, Share2, Mail, Link, Copy, Check, MessageCircle, Users, Briefcase, Heart, Globe, Smartphone, Send, Sparkles, Target, Zap, ExternalLink, MessageSquare, Linkedin, Twitter, Facebook, Instagram, Youtube, Github } from 'lucide-react'
+import { X, Mail, Copy, Check, MessageCircle, Users, Briefcase, Globe, Send, Sparkles, Target, Zap, ExternalLink, MessageSquare, Linkedin, Twitter, Facebook, Instagram, Youtube, Github } from 'lucide-react'
 
 interface SharePitchModalProps {
   isOpen: boolean
