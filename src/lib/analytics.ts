@@ -95,6 +95,81 @@ export async function getSimpleMetricsData(veteranId: string) {
   }
 }
 
+export async function getVeteranOutreachData(veteranId: string) {
+  try {
+    const supabaseAction = createSupabaseBrowser()
+    
+    // Get veteran's own outreach activities
+    const { data: veteranActivities } = await supabaseAction
+      .from('user_activity_log')
+      .select('*')
+      .eq('user_id', veteranId)
+      .in('activity_type', ['pitch_shared', 'direct_outreach', 'network_contact'])
+      .order('created_at', { ascending: false })
+      .limit(50)
+
+    // Mock data to show what veteran outreach tracking looks like
+    const mockVeteranOutreach = [
+      {
+        id: 'mock-1',
+        activity_type: 'pitch_shared',
+        platform: 'LinkedIn',
+        target: 'Tech Recruiters Group',
+        created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        result: '12 views, 3 connections'
+      },
+      {
+        id: 'mock-2',
+        activity_type: 'direct_outreach',
+        platform: 'Email',
+        target: 'Sarah Johnson (TechCorp)',
+        created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+        result: 'Replied, scheduled call'
+      },
+      {
+        id: 'mock-3',
+        activity_type: 'network_contact',
+        platform: 'WhatsApp',
+        target: 'Mike Chen (Startup.io)',
+        created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+        result: 'Shared pitch, 8 views'
+      },
+      {
+        id: 'mock-4',
+        activity_type: 'pitch_shared',
+        platform: 'Slack',
+        target: 'Veterans Network',
+        created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+        result: '15 views, 2 referrals'
+      }
+    ]
+
+    const displayData = veteranActivities?.length > 0 ? veteranActivities : mockVeteranOutreach
+    const isMockData = veteranActivities?.length === 0
+
+    return {
+      activities: displayData,
+      isMockData,
+      summary: {
+        totalOutreach: displayData.length,
+        platforms: displayData.reduce((acc: Record<string, number>, activity: any) => {
+          const platform = activity.platform || 'Unknown'
+          acc[platform] = (acc[platform] || 0) + 1
+          return acc
+        }, {}),
+        recentActivity: displayData.length > 0 ? displayData[0].created_at : null
+      }
+    }
+  } catch (error) {
+    console.error('Failed to get veteran outreach data:', error)
+    return {
+      activities: [],
+      isMockData: true,
+      summary: { totalOutreach: 0, platforms: {}, recentActivity: null }
+    }
+  }
+}
+
 export async function getSupporterPerformanceList(veteranId: string) {
   try {
     const supabaseAction = createSupabaseBrowser()
@@ -143,11 +218,11 @@ export async function getSupporterPerformanceList(veteranId: string) {
         }
         return acc
       }, {} as Record<string, number>)
-      
+
       // Conversion rate
       const totalActions = totalCalls + totalEmails
       const conversionRate = totalViews > 0 ? (totalActions / totalViews) * 100 : 0
-      
+
       return {
         supporterId: referral.supporter_id,
         supporterName: referral.users?.name || 'Unknown',
