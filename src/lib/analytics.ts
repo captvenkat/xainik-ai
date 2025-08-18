@@ -47,11 +47,11 @@ export async function getSimpleHeroData(veteranId: string) {
         description: 'potential job opportunities'
       },
       mainAction: {
-        text: 'Share Your Pitch',
+        text: 'Smart Share',
         onClick: () => {
           // This will be handled by the parent component
           // The actual share functionality is in SharePitchModal
-          console.log('Share pitch clicked - modal should open')
+          console.log('Smart share clicked - modal should open')
         }
       }
     }
