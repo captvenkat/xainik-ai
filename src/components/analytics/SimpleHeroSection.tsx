@@ -24,9 +24,10 @@ interface SimpleHeroSectionProps {
       onClick: () => void
     }
   } | null
+  onSharePitch?: () => void
 }
 
-export default function SimpleHeroSection({ data }: SimpleHeroSectionProps) {
+export default function SimpleHeroSection({ data, onSharePitch }: SimpleHeroSectionProps) {
   if (!data) return null
 
   return (
@@ -76,7 +77,7 @@ export default function SimpleHeroSection({ data }: SimpleHeroSectionProps) {
 
       {/* Main Action */}
       <button 
-        onClick={data.mainAction.onClick}
+        onClick={onSharePitch || data.mainAction.onClick}
         className="w-full bg-white text-blue-600 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center justify-center gap-2"
       >
         <Share2 className="w-5 h-5" />
