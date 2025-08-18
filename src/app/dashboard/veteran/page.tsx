@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 import LoadingSpinner from '@/components/LoadingSpinner'
@@ -24,6 +25,7 @@ import {
 
 export default function VeteranDashboard() {
   const { user, isLoading: authLoading } = useAuth()
+  const router = useRouter()
   const [activeTab, setActiveTab] = useState<'analytics' | 'profile' | 'pitches' | 'mission' | 'community'>('analytics')
   const [showMissionModal, setShowMissionModal] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -169,7 +171,7 @@ export default function VeteranDashboard() {
           <VeteranProfileTab />
         )}
         {activeTab === 'pitches' && (
-          <PitchesTab userId={user.id} />
+          <PitchesTab userId={user.id} router={router} />
         )}
         {activeTab === 'mission' && (
           <MissionTab userId={user.id} onOpenModal={() => setShowMissionModal(true)} />
@@ -517,7 +519,7 @@ function MissionTab({ userId, onOpenModal }: { userId: string; onOpenModal: () =
 }
 
 // Enhanced Pitches Tab Component
-function PitchesTab({ userId }: { userId: string }) {
+function PitchesTab({ userId, router }: { userId: string; router: any }) {
   const [pitches, setPitches] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -717,7 +719,10 @@ function PitchesTab({ userId }: { userId: string }) {
             <h2 className="text-3xl font-bold text-gray-900 mb-2">My Pitches</h2>
             <p className="text-lg text-gray-600">Your professional story, your career opportunities</p>
           </div>
-          <button className="bg-gradient-to-r from-purple-500 to-violet-500 text-white px-6 py-3 rounded-lg hover:from-purple-600 hover:to-violet-600 transition-all duration-200 flex items-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105">
+          <button 
+            onClick={() => router.push('/pitch/new/ai-first')}
+            className="bg-gradient-to-r from-purple-500 to-violet-500 text-white px-6 py-3 rounded-lg hover:from-purple-600 hover:to-violet-600 transition-all duration-200 flex items-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105"
+          >
             <Plus className="w-5 h-5" />
             Create New Pitch
           </button>
@@ -729,7 +734,10 @@ function PitchesTab({ userId }: { userId: string }) {
           <FileText className="w-20 h-20 text-gray-300 mx-auto mb-6" />
           <h3 className="text-2xl font-bold text-gray-900 mb-4">No pitches yet</h3>
           <p className="text-lg text-gray-600 mb-8">Create your first pitch to start your journey</p>
-          <button className="bg-gradient-to-r from-purple-500 to-violet-500 text-white px-8 py-4 rounded-lg hover:from-purple-600 hover:to-violet-600 transition-all duration-200 flex items-center gap-2 mx-auto text-lg font-semibold shadow-lg hover:shadow-xl transform hover:scale-105">
+          <button 
+            onClick={() => router.push('/pitch/new/ai-first')}
+            className="bg-gradient-to-r from-purple-500 to-violet-500 text-white px-8 py-4 rounded-lg hover:from-purple-600 hover:to-violet-600 transition-all duration-200 flex items-center gap-2 mx-auto text-lg font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
+          >
             <Plus className="w-6 h-6" />
             Create Your First Pitch
           </button>
@@ -744,11 +752,17 @@ function PitchesTab({ userId }: { userId: string }) {
                   <p className="text-gray-600 text-lg leading-relaxed">{pitch.pitch_text}</p>
                 </div>
                 <div className="flex space-x-3 ml-6">
-                  <button className="bg-blue-50 text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-100 transition-colors flex items-center gap-2">
+                  <button 
+                    onClick={() => router.push(`/pitch/${pitch.id}/edit`)}
+                    className="bg-blue-50 text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-100 transition-colors flex items-center gap-2"
+                  >
                     <Edit className="w-4 h-4" />
                     Edit
                   </button>
-                  <button className="bg-green-50 text-green-600 px-4 py-2 rounded-lg hover:bg-green-100 transition-colors flex items-center gap-2">
+                  <button 
+                    onClick={() => router.push(`/pitch/${pitch.id}`)}
+                    className="bg-green-50 text-green-600 px-4 py-2 rounded-lg hover:bg-green-100 transition-colors flex items-center gap-2"
+                  >
                     <Eye className="w-4 h-4" />
                     View
                   </button>
