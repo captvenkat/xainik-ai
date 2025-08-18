@@ -95,6 +95,47 @@ export default function RoleSelectionPage() {
         throw error;
       }
 
+      // Handle referral attribution if coming from supporter signup
+      const supporterData = sessionStorage.getItem('supporter_signup_data');
+      if (supporterData && selectedRole === 'supporter') {
+        try {
+          const { name, email, reason, referralId } = JSON.parse(supporterData);
+          
+          // Create supporter profile with the stored reason
+          const { error: supporterError } = await supabase
+            .from('supporters')
+            .insert({
+              user_id: user.id,
+              intro: reason || null
+            });
+
+          if (supporterError) {
+            console.error('Error creating supporter profile:', supporterError);
+          }
+
+          // Log SIGNUP_FROM_REFERRAL event if referralId exists
+          if (referralId) {
+            const { error: eventError } = await supabase
+              .from('referral_events')
+              .insert({
+                referral_id: referralId,
+                event_type: 'SIGNUP_FROM_REFERRAL',
+                platform: 'direct',
+                user_agent: navigator.userAgent
+              });
+
+            if (eventError) {
+              console.error('Error logging referral event:', eventError);
+            }
+          }
+
+          // Clear the stored data
+          sessionStorage.removeItem('supporter_signup_data');
+        } catch (parseError) {
+          console.error('Error parsing supporter data:', parseError);
+        }
+      }
+
       // Redirect to the appropriate dashboard
       router.push(`/dashboard/${selectedRole}`);
       
