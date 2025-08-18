@@ -59,10 +59,10 @@ export default function OptimizedNewPitchPage() {
     setFormData(prev => ({ ...prev, ...updates }))
   }, [])
 
-  const handlePhotoChange = useCallback((photoUrl: string, source: 'profile' | 'custom' | 'none') => {
+  const handlePhotoChange = useCallback((photoUrl: string) => {
     updateFormData({ 
       photo_url: photoUrl || undefined,
-      photo_source: source
+      photo_source: photoUrl ? 'custom' : 'none'
     })
   }, [updateFormData])
 
@@ -231,7 +231,7 @@ function Step1BasicInfo({ formData, updateFormData, profile, user, onPhotoChange
   updateFormData: (updates: Partial<OptimizedFormData>) => void
   profile: any
   user: any
-  onPhotoChange: (photoUrl: string, source: 'profile' | 'custom' | 'none') => void
+  onPhotoChange: (photoUrl: string) => void
   onNext: () => void
 }) {
   const isValid = formData.title.trim() && formData.job_type && formData.availability
