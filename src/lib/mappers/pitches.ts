@@ -1,4 +1,5 @@
 import type { Database } from '@/types/live-schema'
+import type { FullPitchData } from '@/types/domain'
 
 export type RawPitchRow = Database['public']['Tables']['pitches']['Row'] & {
   user?: Database['public']['Tables']['users']['Row']
@@ -11,9 +12,15 @@ export interface PitchCardData {
   title: string
   pitch_text: string
   skills: string[]
+  location: string | null
+  job_type: string | null
+  availability: string | null
+  photo_url: string | null
   experience_years: number | null
   linkedin_url: string | null
   resume_url: string | null
+  likes_count: number
+  views_count: number
   created_at: string
   user: {
     id: string
@@ -30,9 +37,15 @@ export function toPitchCardData(pitch: RawPitchRow): PitchCardData {
     title: pitch.title,
     pitch_text: pitch.pitch_text,
     skills: pitch.skills || [],
+    location: pitch.location,
+    job_type: pitch.job_type,
+    availability: pitch.availability,
+    photo_url: pitch.photo_url,
     experience_years: pitch.experience_years,
     linkedin_url: pitch.linkedin_url,
     resume_url: pitch.resume_url,
+    likes_count: pitch.likes_count || 0,
+    views_count: 0, // Not available in current schema
     created_at: pitch.created_at || new Date().toISOString(),
     user: pitch.user ? {
       id: pitch.user.id,
@@ -48,4 +61,30 @@ export function toPitchCardData(pitch: RawPitchRow): PitchCardData {
 
 export function toPitchCardDataArray(pitches: RawPitchRow[]): PitchCardData[] {
   return pitches.map(toPitchCardData)
+}
+
+export function toFullPitchData(pitch: RawPitchRow): FullPitchData {
+  return {
+    ...toPitchCardData(pitch),
+    phone: pitch.phone,
+    resume_share_enabled: pitch.resume_share_enabled || false,
+    plan_tier: pitch.plan_tier,
+    plan_expires_at: pitch.plan_expires_at,
+    updated_at: pitch.updated_at || new Date().toISOString(),
+    endorsements: pitch.endorsements?.filter(endorsement => endorsement.endorser_user_id).map(endorsement => ({
+      ...endorsement,
+      endorser_user_id: endorsement.endorser_user_id!, // Ensure it's not null
+      updated_at: (endorsement as any).updated_at || endorsement.created_at || new Date().toISOString(),
+      endorser: {
+        id: endorsement.endorser_user_id!,
+        email: '', // Would need to fetch endorser user data
+        name: null,
+        phone: null,
+        role: null,
+        created_at: null,
+        updated_at: null
+      }
+    })) || [],
+    metadata: (pitch as any).metadata || {}
+  }
 }
