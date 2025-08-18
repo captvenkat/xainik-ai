@@ -168,9 +168,10 @@ function PitchesLoadingSkeleton() {
   )
 }
 
-function EmptyState({ searchParams }: { searchParams: any }) {
-  const hasFilters = searchParams && typeof searchParams === 'object' && Object.keys(searchParams || {}).some(key => 
-    key !== 'page' && searchParams[key]
+async function EmptyState({ searchParams }: { searchParams: Promise<any> }) {
+  const params = await searchParams
+  const hasFilters = params && typeof params === 'object' && Object.keys(params || {}).some(key => 
+    key !== 'page' && params[key]
   )
 
   return (
@@ -197,19 +198,20 @@ function EmptyState({ searchParams }: { searchParams: any }) {
   )
 }
 
-function Pagination({ 
+async function Pagination({ 
   currentPage, 
   totalPages, 
   searchParams 
 }: { 
   currentPage: number
   totalPages: number
-  searchParams: any 
+  searchParams: Promise<any> 
 }) {
+  const params = await searchParams
   const createPageUrl = (page: number) => {
-    const params = new URLSearchParams(searchParams)
-    params.set('page', page.toString())
-    return `/browse?${params.toString()}`
+    const urlParams = new URLSearchParams(params)
+    urlParams.set('page', page.toString())
+    return `/browse?${urlParams.toString()}`
   }
 
   const pages = []
