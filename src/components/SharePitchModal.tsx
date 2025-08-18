@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { X, Share2, Mail, Link, Copy, Check, MessageCircle, Users, Briefcase, Heart, Globe, Smartphone, Send, Sparkles, Target, Zap } from 'lucide-react'
+import { X, Share2, Mail, Link, Copy, Check, MessageCircle, Users, Briefcase, Heart, Globe, Smartphone, Send, Sparkles, Target, Zap, ExternalLink, MessageSquare, Linkedin, Twitter, Facebook, Instagram, Youtube, Github, Slack, Discord } from 'lucide-react'
 
 interface SharePitchModalProps {
   isOpen: boolean
@@ -23,7 +23,7 @@ interface ShareTemplate {
   name: string
   icon: any
   description: string
-  channels: string[]
+  platforms: Platform[]
   autoMessage: (pitch: Pitch, userEmail: string) => string
   customFields?: {
     label: string
@@ -33,15 +33,125 @@ interface ShareTemplate {
   }[]
 }
 
+interface Platform {
+  id: string
+  name: string
+  icon: any
+  color: string
+  description: string
+  shareUrl?: string
+  characterLimit?: number
+  features: string[]
+}
+
 export default function SharePitchModal({ isOpen, onClose, userId }: SharePitchModalProps) {
   const [pitches, setPitches] = useState<Pitch[]>([])
   const [selectedPitch, setSelectedPitch] = useState<string>('')
   const [selectedTemplate, setSelectedTemplate] = useState<string>('')
+  const [selectedPlatform, setSelectedPlatform] = useState<string>('')
   const [customFields, setCustomFields] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [copied, setCopied] = useState(false)
   const [previewMessage, setPreviewMessage] = useState('')
+  const [platformMessage, setPlatformMessage] = useState('')
+
+  // Platform definitions
+  const platforms: Platform[] = [
+    {
+      id: 'linkedin',
+      name: 'LinkedIn',
+      icon: Linkedin,
+      color: 'bg-blue-600',
+      description: 'Professional networking platform',
+      shareUrl: 'https://www.linkedin.com/sharing/share-offsite/',
+      characterLimit: 3000,
+      features: ['Professional networking', 'Job opportunities', 'Industry connections', 'Company research']
+    },
+    {
+      id: 'email',
+      name: 'Email',
+      icon: Mail,
+      color: 'bg-gray-600',
+      description: 'Direct email communication',
+      characterLimit: 10000,
+      features: ['Direct communication', 'Professional tone', 'Detailed messaging', 'File attachments']
+    },
+    {
+      id: 'twitter',
+      name: 'Twitter/X',
+      icon: Twitter,
+      color: 'bg-black',
+      description: 'Social media platform',
+      shareUrl: 'https://twitter.com/intent/tweet',
+      characterLimit: 280,
+      features: ['Quick sharing', 'Hashtag reach', 'Industry conversations', 'Networking']
+    },
+    {
+      id: 'whatsapp',
+      name: 'WhatsApp',
+      icon: MessageSquare,
+      color: 'bg-green-500',
+      description: 'Instant messaging',
+      characterLimit: 1000,
+      features: ['Personal connections', 'Quick sharing', 'Group chats', 'Voice messages']
+    },
+    {
+      id: 'slack',
+      name: 'Slack',
+      icon: Slack,
+      color: 'bg-purple-500',
+      description: 'Team collaboration platform',
+      characterLimit: 4000,
+      features: ['Team communication', 'Professional groups', 'Industry channels', 'Direct messaging']
+    },
+    {
+      id: 'discord',
+      name: 'Discord',
+      icon: Discord,
+      color: 'bg-indigo-600',
+      description: 'Community platform',
+      characterLimit: 2000,
+      features: ['Community engagement', 'Interest groups', 'Networking', 'Real-time chat']
+    },
+    {
+      id: 'facebook',
+      name: 'Facebook',
+      icon: Facebook,
+      color: 'bg-blue-500',
+      description: 'Social networking',
+      shareUrl: 'https://www.facebook.com/sharer/sharer.php',
+      characterLimit: 63206,
+      features: ['Personal network', 'Professional groups', 'Community sharing', 'Visual content']
+    },
+    {
+      id: 'instagram',
+      name: 'Instagram',
+      icon: Instagram,
+      color: 'bg-pink-500',
+      description: 'Visual social platform',
+      characterLimit: 2200,
+      features: ['Visual storytelling', 'Professional branding', 'Industry hashtags', 'Story sharing']
+    },
+    {
+      id: 'github',
+      name: 'GitHub',
+      icon: Github,
+      color: 'bg-gray-800',
+      description: 'Developer community',
+      characterLimit: 65536,
+      features: ['Tech community', 'Portfolio sharing', 'Open source', 'Developer networking']
+    },
+    {
+      id: 'youtube',
+      name: 'YouTube',
+      icon: Youtube,
+      color: 'bg-red-600',
+      description: 'Video platform',
+      characterLimit: 5000,
+      features: ['Video content', 'Professional channels', 'Industry content', 'Educational sharing']
+    }
+  ]
 
   // World-class share templates
   const shareTemplates: ShareTemplate[] = [
@@ -50,7 +160,7 @@ export default function SharePitchModal({ isOpen, onClose, userId }: SharePitchM
       name: 'Direct to Recruiter',
       icon: Briefcase,
       description: 'Professional pitch for job opportunities',
-      channels: ['email', 'linkedin', 'direct'],
+      platforms: platforms.filter(p => ['linkedin', 'email', 'slack'].includes(p.id)),
       autoMessage: (pitch, userEmail) => `Hi there,
 
 I'm a military veteran with ${pitch.experience} of experience in ${pitch.skills?.slice(0, 3).join(', ')}. I recently created a professional pitch that showcases my unique background and transferable skills.
@@ -81,7 +191,7 @@ ${userEmail.split('@')[0]}`,
       name: 'Request References',
       icon: Users,
       description: 'Ask for professional references and recommendations',
-      channels: ['email', 'linkedin', 'whatsapp'],
+      platforms: platforms.filter(p => ['email', 'linkedin', 'whatsapp', 'slack'].includes(p.id)),
       autoMessage: (pitch, userEmail) => `Hi [Name],
 
 I hope you're doing well! I'm currently transitioning from military service and have created a professional pitch highlighting my experience in ${pitch.skills?.slice(0, 2).join(' and ')}.
@@ -115,7 +225,7 @@ ${userEmail.split('@')[0]}`,
       name: 'Network Expansion',
       icon: Globe,
       description: 'Expand your professional network',
-      channels: ['linkedin', 'email', 'twitter'],
+      platforms: platforms.filter(p => ['linkedin', 'email', 'twitter', 'discord'].includes(p.id)),
       autoMessage: (pitch, userEmail) => `Hello!
 
 I'm a military veteran transitioning to civilian career and would love to connect with professionals in ${pitch.skills?.slice(0, 2).join(' and ')}.
@@ -140,7 +250,7 @@ ${userEmail.split('@')[0]}`,
       name: 'Seek Mentorship',
       icon: Heart,
       description: 'Find mentors and career guidance',
-      channels: ['email', 'linkedin'],
+      platforms: platforms.filter(p => ['email', 'linkedin', 'slack'].includes(p.id)),
       autoMessage: (pitch, userEmail) => `Dear [Mentor Name],
 
 I'm a military veteran with ${pitch.experience} of experience, currently transitioning to civilian career. I've created a professional pitch that outlines my background and goals.
@@ -171,7 +281,7 @@ ${userEmail.split('@')[0]}`,
       name: 'Collaboration Opportunity',
       icon: Zap,
       description: 'Propose partnerships and collaborations',
-      channels: ['email', 'linkedin', 'direct'],
+      platforms: platforms.filter(p => ['email', 'linkedin', 'slack', 'discord'].includes(p.id)),
       autoMessage: (pitch, userEmail) => `Hi [Name],
 
 I'm a military veteran with expertise in ${pitch.skills?.slice(0, 3).join(', ')}. I've created a pitch that highlights my background and potential collaboration opportunities.
@@ -211,6 +321,12 @@ ${userEmail.split('@')[0]}`,
     }
   }, [selectedPitch, selectedTemplate, customFields])
 
+  useEffect(() => {
+    if (selectedPlatform && previewMessage) {
+      updatePlatformMessage(previewMessage)
+    }
+  }, [selectedPlatform, previewMessage])
+
   async function loadPitches() {
     try {
       const response = await fetch('/api/share-pitch')
@@ -244,6 +360,106 @@ ${userEmail.split('@')[0]}`,
       message = message.replace('[PITCH_LINK]', `${window.location.origin}/pitch/${selectedPitch}`)
       
       setPreviewMessage(message)
+      updatePlatformMessage(message)
+    }
+  }
+
+  function updatePlatformMessage(baseMessage: string) {
+    if (!selectedPlatform) return
+    
+    const platform = platforms.find(p => p.id === selectedPlatform)
+    if (!platform) return
+
+    let message = baseMessage
+
+    // Platform-specific formatting
+    switch (platform.id) {
+      case 'twitter':
+        // Shorten for Twitter's character limit
+        if (message.length > 280) {
+          message = message.substring(0, 277) + '...'
+        }
+        // Add relevant hashtags
+        message += '\n\n#VeteranTransition #MilitaryToCivilian #CareerChange #Networking'
+        break
+      
+      case 'linkedin':
+        // Add LinkedIn-specific formatting
+        message = message.replace(/\n\n/g, '\n\n---\n\n')
+        message += '\n\n#VeteranTransition #MilitaryLeadership #CareerDevelopment #Networking'
+        break
+      
+      case 'whatsapp':
+        // Keep it conversational for WhatsApp
+        message = message.replace(/Best regards,/g, 'Thanks!')
+        message = message.replace(/Looking forward to connecting!/g, 'Hope to connect soon!')
+        break
+      
+      case 'slack':
+        // Add Slack-friendly formatting
+        message = message.replace(/\n\n/g, '\n')
+        message = '📋 ' + message
+        break
+      
+      case 'discord':
+        // Add Discord-friendly formatting
+        message = '**Veteran Pitch Share**\n\n' + message
+        break
+      
+      case 'instagram':
+        // Instagram-friendly format
+        message = message.replace(/\n\n/g, '\n\n✨ ')
+        message += '\n\n#VeteranLife #MilitaryTransition #CareerGoals #ProfessionalDevelopment'
+        break
+      
+      case 'github':
+        // GitHub-friendly format
+        message = '## Veteran Pitch Share\n\n' + message
+        message += '\n\n---\n*Shared via Xainik - Supporting Veteran Transitions*'
+        break
+    }
+
+    setPlatformMessage(message)
+  }
+
+  function handlePlatformShare() {
+    if (!selectedPlatform || !platformMessage) return
+
+    const platform = platforms.find(p => p.id === selectedPlatform)
+    if (!platform) return
+
+    switch (platform.id) {
+      case 'linkedin':
+        const linkedinUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(`${window.location.origin}/pitch/${selectedPitch}`)}&title=${encodeURIComponent('Veteran Pitch')}&summary=${encodeURIComponent(platformMessage)}`
+        window.open(linkedinUrl, '_blank')
+        break
+      
+      case 'twitter':
+        const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(platformMessage)}&url=${encodeURIComponent(`${window.location.origin}/pitch/${selectedPitch}`)}`
+        window.open(twitterUrl, '_blank')
+        break
+      
+      case 'facebook':
+        const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`${window.location.origin}/pitch/${selectedPitch}`)}&quote=${encodeURIComponent(platformMessage)}`
+        window.open(facebookUrl, '_blank')
+        break
+      
+      case 'email':
+        const emailUrl = `mailto:?subject=${encodeURIComponent('Veteran Pitch - Professional Background')}&body=${encodeURIComponent(platformMessage)}`
+        window.open(emailUrl, '_blank')
+        break
+      
+      case 'whatsapp':
+        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(platformMessage)}`
+        window.open(whatsappUrl, '_blank')
+        break
+      
+      default:
+        // For platforms without direct share URLs, copy to clipboard
+        navigator.clipboard.writeText(platformMessage)
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+        break
     }
   }
 
@@ -406,22 +622,55 @@ ${userEmail.split('@')[0]}`,
                 </div>
               )}
 
-              {/* Share Channels */}
-              {currentTemplate && (
-                <div>
-                  <h3 className="text-sm font-medium text-gray-700 mb-3">Share via</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {currentTemplate.channels.map((channel) => (
-                      <span
-                        key={channel}
-                        className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm font-medium"
-                      >
-                        {channel.charAt(0).toUpperCase() + channel.slice(1)}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
+                             {/* Platform Selection */}
+               {currentTemplate && (
+                 <div>
+                   <h3 className="text-sm font-medium text-gray-700 mb-3">Choose Platform</h3>
+                   <div className="grid grid-cols-2 gap-2">
+                     {currentTemplate.platforms.map((platform) => {
+                       const Icon = platform.icon
+                       return (
+                         <button
+                           key={platform.id}
+                           onClick={() => setSelectedPlatform(platform.id)}
+                           className={`p-3 rounded-lg border-2 transition-all text-left ${
+                             selectedPlatform === platform.id
+                               ? 'border-blue-500 bg-blue-50 text-blue-700'
+                               : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                           }`}
+                         >
+                           <div className="flex items-center gap-2">
+                             <div className={`w-6 h-6 ${platform.color} rounded flex items-center justify-center`}>
+                               <Icon className="w-3 h-3 text-white" />
+                             </div>
+                             <div>
+                               <div className="text-sm font-medium">{platform.name}</div>
+                               <div className="text-xs opacity-75">{platform.description}</div>
+                             </div>
+                           </div>
+                         </button>
+                       )
+                     })}
+                   </div>
+                 </div>
+               )}
+
+               {/* Platform Features */}
+               {selectedPlatform && (
+                 <div className="bg-gray-50 rounded-lg p-3">
+                   <h4 className="text-sm font-medium text-gray-700 mb-2">Platform Features</h4>
+                   <div className="flex flex-wrap gap-1">
+                     {platforms.find(p => p.id === selectedPlatform)?.features.map((feature, index) => (
+                       <span
+                         key={index}
+                         className="px-2 py-1 bg-white text-gray-600 rounded text-xs border"
+                       >
+                         {feature}
+                       </span>
+                     ))}
+                   </div>
+                 </div>
+               )}
             </div>
 
             {/* Right Column - Preview */}
@@ -439,8 +688,13 @@ ${userEmail.split('@')[0]}`,
 
               <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                 <div className="whitespace-pre-wrap text-sm text-gray-700 font-mono">
-                  {previewMessage || 'Select a pitch and purpose to see your personalized message...'}
+                  {selectedPlatform ? platformMessage : previewMessage || 'Select a pitch and purpose to see your personalized message...'}
                 </div>
+                {selectedPlatform && (
+                  <div className="mt-2 text-xs text-gray-500">
+                    Character count: {platformMessage.length} / {platforms.find(p => p.id === selectedPlatform)?.characterLimit || '∞'}
+                  </div>
+                )}
               </div>
 
               {/* Smart Tips */}
@@ -481,18 +735,29 @@ ${userEmail.split('@')[0]}`,
             >
               Cancel
             </button>
-            <button
-              onClick={handleShare}
-              disabled={loading || !selectedPitch || !selectedTemplate}
-              className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
-            >
-              {loading ? (
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              ) : (
-                <Send className="w-4 h-4" />
-              )}
-              Generate & Share
-            </button>
+            {selectedPlatform ? (
+              <button
+                onClick={handlePlatformShare}
+                disabled={!selectedPitch || !selectedTemplate || !selectedPlatform}
+                className="flex-1 px-4 py-2 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-lg hover:from-green-700 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+              >
+                <ExternalLink className="w-4 h-4" />
+                Share on {platforms.find(p => p.id === selectedPlatform)?.name}
+              </button>
+            ) : (
+              <button
+                onClick={handleShare}
+                disabled={loading || !selectedPitch || !selectedTemplate}
+                className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+              >
+                {loading ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                  <Send className="w-4 h-4" />
+                )}
+                Generate Message
+              </button>
+            )}
           </div>
         </div>
       </div>
