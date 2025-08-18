@@ -1,5 +1,5 @@
 -- Fix user_subscriptions relationship issue
--- This script fixes the missing foreign key relationship that's causing search errors
+-- Run this in your Supabase SQL Editor to fix the database relationship error
 
 -- Check if user_subscriptions table exists and has the right structure
 DO $$

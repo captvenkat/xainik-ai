@@ -113,7 +113,7 @@ export default async function BrowsePage({ searchParams }: BrowsePageProps) {
         {/* Results Grid */}
         <Suspense fallback={<PitchesLoadingSkeleton />}>
           {pitches.length === 0 ? (
-            <EmptyState searchParams={searchParams} />
+            <EmptyState searchParams={params} />
           ) : (
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
@@ -168,10 +168,9 @@ function PitchesLoadingSkeleton() {
   )
 }
 
-async function EmptyState({ searchParams }: { searchParams: Promise<any> }) {
-  const params = await searchParams
-  const hasFilters = params && typeof params === 'object' && Object.keys(params || {}).some(key => 
-    key !== 'page' && params[key]
+function EmptyState({ searchParams }: { searchParams: any }) {
+  const hasFilters = searchParams && typeof searchParams === 'object' && Object.keys(searchParams || {}).some(key => 
+    key !== 'page' && searchParams[key]
   )
 
   return (
@@ -198,18 +197,17 @@ async function EmptyState({ searchParams }: { searchParams: Promise<any> }) {
   )
 }
 
-async function Pagination({ 
+function Pagination({ 
   currentPage, 
   totalPages, 
   searchParams 
 }: { 
   currentPage: number
   totalPages: number
-  searchParams: Promise<any> 
+  searchParams: any 
 }) {
-  const params = await searchParams
   const createPageUrl = (page: number) => {
-    const urlParams = new URLSearchParams(params)
+    const urlParams = new URLSearchParams(searchParams)
     urlParams.set('page', page.toString())
     return `/browse?${urlParams.toString()}`
   }
