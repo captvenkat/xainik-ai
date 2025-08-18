@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { X, Share2, Mail, Link, Copy, Check, MessageCircle, Users, Briefcase, Heart, Globe, Smartphone, Send, Sparkles, Target, Zap, ExternalLink, MessageSquare, Linkedin, Twitter, Facebook, Instagram, Youtube, Github, Slack, Discord } from 'lucide-react'
+import { X, Share2, Mail, Link, Copy, Check, MessageCircle, Users, Briefcase, Heart, Globe, Smartphone, Send, Sparkles, Target, Zap, ExternalLink, MessageSquare, Linkedin, Twitter, Facebook, Instagram, Youtube, Github } from 'lucide-react'
 
 interface SharePitchModalProps {
   isOpen: boolean
@@ -56,7 +56,7 @@ export default function SharePitchModal({ isOpen, onClose, userId }: SharePitchM
   const [previewMessage, setPreviewMessage] = useState('')
   const [platformMessage, setPlatformMessage] = useState('')
 
-  // Platform definitions
+  // Platform definitions - Veteran-focused platforms
   const platforms: Platform[] = [
     {
       id: 'linkedin',
@@ -78,16 +78,6 @@ export default function SharePitchModal({ isOpen, onClose, userId }: SharePitchM
       features: ['Direct communication', 'Professional tone', 'Detailed messaging', 'File attachments']
     },
     {
-      id: 'twitter',
-      name: 'Twitter/X',
-      icon: Twitter,
-      color: 'bg-black',
-      description: 'Social media platform',
-      shareUrl: 'https://twitter.com/intent/tweet',
-      characterLimit: 280,
-      features: ['Quick sharing', 'Hashtag reach', 'Industry conversations', 'Networking']
-    },
-    {
       id: 'whatsapp',
       name: 'WhatsApp',
       icon: MessageSquare,
@@ -97,22 +87,13 @@ export default function SharePitchModal({ isOpen, onClose, userId }: SharePitchM
       features: ['Personal connections', 'Quick sharing', 'Group chats', 'Voice messages']
     },
     {
-      id: 'slack',
-      name: 'Slack',
-      icon: Slack,
-      color: 'bg-purple-500',
-      description: 'Team collaboration platform',
-      characterLimit: 4000,
-      features: ['Team communication', 'Professional groups', 'Industry channels', 'Direct messaging']
-    },
-    {
-      id: 'discord',
-      name: 'Discord',
-      icon: Discord,
-      color: 'bg-indigo-600',
-      description: 'Community platform',
-      characterLimit: 2000,
-      features: ['Community engagement', 'Interest groups', 'Networking', 'Real-time chat']
+      id: 'telegram',
+      name: 'Telegram',
+      icon: MessageCircle,
+      color: 'bg-blue-500',
+      description: 'Secure messaging platform',
+      characterLimit: 4096,
+      features: ['Secure messaging', 'Group channels', 'File sharing', 'Professional groups']
     },
     {
       id: 'facebook',
@@ -123,6 +104,16 @@ export default function SharePitchModal({ isOpen, onClose, userId }: SharePitchM
       shareUrl: 'https://www.facebook.com/sharer/sharer.php',
       characterLimit: 63206,
       features: ['Personal network', 'Professional groups', 'Community sharing', 'Visual content']
+    },
+    {
+      id: 'twitter',
+      name: 'Twitter/X',
+      icon: Twitter,
+      color: 'bg-black',
+      description: 'Social media platform',
+      shareUrl: 'https://twitter.com/intent/tweet',
+      characterLimit: 280,
+      features: ['Quick sharing', 'Hashtag reach', 'Industry conversations', 'Networking']
     },
     {
       id: 'instagram',
@@ -160,7 +151,7 @@ export default function SharePitchModal({ isOpen, onClose, userId }: SharePitchM
       name: 'Direct to Recruiter',
       icon: Briefcase,
       description: 'Professional pitch for job opportunities',
-      platforms: platforms.filter(p => ['linkedin', 'email', 'slack'].includes(p.id)),
+      platforms: platforms.filter(p => ['linkedin', 'email', 'telegram'].includes(p.id)),
       autoMessage: (pitch, userEmail) => `Hi there,
 
 I'm a military veteran with ${pitch.experience} of experience in ${pitch.skills?.slice(0, 3).join(', ')}. I recently created a professional pitch that showcases my unique background and transferable skills.
@@ -191,7 +182,7 @@ ${userEmail.split('@')[0]}`,
       name: 'Request References',
       icon: Users,
       description: 'Ask for professional references and recommendations',
-      platforms: platforms.filter(p => ['email', 'linkedin', 'whatsapp', 'slack'].includes(p.id)),
+      platforms: platforms.filter(p => ['email', 'linkedin', 'whatsapp', 'telegram'].includes(p.id)),
       autoMessage: (pitch, userEmail) => `Hi [Name],
 
 I hope you're doing well! I'm currently transitioning from military service and have created a professional pitch highlighting my experience in ${pitch.skills?.slice(0, 2).join(' and ')}.
@@ -225,7 +216,7 @@ ${userEmail.split('@')[0]}`,
       name: 'Network Expansion',
       icon: Globe,
       description: 'Expand your professional network',
-      platforms: platforms.filter(p => ['linkedin', 'email', 'twitter', 'discord'].includes(p.id)),
+      platforms: platforms.filter(p => ['linkedin', 'email', 'twitter', 'facebook'].includes(p.id)),
       autoMessage: (pitch, userEmail) => `Hello!
 
 I'm a military veteran transitioning to civilian career and would love to connect with professionals in ${pitch.skills?.slice(0, 2).join(' and ')}.
@@ -250,7 +241,7 @@ ${userEmail.split('@')[0]}`,
       name: 'Seek Mentorship',
       icon: Heart,
       description: 'Find mentors and career guidance',
-      platforms: platforms.filter(p => ['email', 'linkedin', 'slack'].includes(p.id)),
+      platforms: platforms.filter(p => ['email', 'linkedin', 'telegram'].includes(p.id)),
       autoMessage: (pitch, userEmail) => `Dear [Mentor Name],
 
 I'm a military veteran with ${pitch.experience} of experience, currently transitioning to civilian career. I've created a professional pitch that outlines my background and goals.
@@ -281,7 +272,7 @@ ${userEmail.split('@')[0]}`,
       name: 'Collaboration Opportunity',
       icon: Zap,
       description: 'Propose partnerships and collaborations',
-      platforms: platforms.filter(p => ['email', 'linkedin', 'slack', 'discord'].includes(p.id)),
+      platforms: platforms.filter(p => ['email', 'linkedin', 'telegram', 'facebook'].includes(p.id)),
       autoMessage: (pitch, userEmail) => `Hi [Name],
 
 I'm a military veteran with expertise in ${pitch.skills?.slice(0, 3).join(', ')}. I've created a pitch that highlights my background and potential collaboration opportunities.
@@ -395,15 +386,10 @@ ${userEmail.split('@')[0]}`,
         message = message.replace(/Looking forward to connecting!/g, 'Hope to connect soon!')
         break
       
-      case 'slack':
-        // Add Slack-friendly formatting
+      case 'telegram':
+        // Add Telegram-friendly formatting
         message = message.replace(/\n\n/g, '\n')
         message = '📋 ' + message
-        break
-      
-      case 'discord':
-        // Add Discord-friendly formatting
-        message = '**Veteran Pitch Share**\n\n' + message
         break
       
       case 'instagram':
@@ -452,6 +438,11 @@ ${userEmail.split('@')[0]}`,
       case 'whatsapp':
         const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(platformMessage)}`
         window.open(whatsappUrl, '_blank')
+        break
+      
+      case 'telegram':
+        const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(`${window.location.origin}/pitch/${selectedPitch}`)}&text=${encodeURIComponent(platformMessage)}`
+        window.open(telegramUrl, '_blank')
         break
       
       default:
