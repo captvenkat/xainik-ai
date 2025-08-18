@@ -1,20 +1,64 @@
 'use client'
 
-import { useState, Suspense } from 'react'
+import { useState, Suspense, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
-import { CheckCircle, ThumbsUp, ThumbsDown, MessageSquare } from 'lucide-react'
+import { CheckCircle, ThumbsUp, ThumbsDown, MessageSquare, User, Mail, Heart, Share2 } from 'lucide-react'
 import Link from 'next/link'
 
 function ReferralOpenedPageContent() {
   const [feedback, setFeedback] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+  const [showSupporterForm, setShowSupporterForm] = useState(false)
+  const [supporterForm, setSupporterForm] = useState({
+    name: '',
+    email: '',
+    reason: ''
+  })
+  const [supporterSubmitting, setSupporterSubmitting] = useState(false)
+  const [supporterSubmitted, setSupporterSubmitted] = useState(false)
+  const [pitchData, setPitchData] = useState<any>(null)
+  const [referralData, setReferralData] = useState<any>(null)
   const searchParams = useSearchParams()
   const supabase = createSupabaseBrowser()
 
   const referralId = searchParams.get('ref')
   const pitchId = searchParams.get('pitch')
+
+  useEffect(() => {
+    if (referralId) {
+      loadReferralData()
+    }
+  }, [referralId])
+
+  async function loadReferralData() {
+    try {
+      // Get referral and pitch data
+      const { data: referral } = await supabase
+        .from('referrals')
+        .select(`
+          *,
+          pitches (
+            id,
+            title,
+            pitch_text,
+            users (
+              name
+            )
+          )
+        `)
+        .eq('id', referralId)
+        .single()
+
+      if (referral) {
+        setReferralData(referral)
+        setPitchData(referral.pitches)
+      }
+    } catch (error) {
+      console.error('Error loading referral data:', error)
+    }
+  }
 
   const handleFeedback = async (type: string) => {
     if (!referralId) return
@@ -61,6 +105,104 @@ function ReferralOpenedPageContent() {
     }
   }
 
+  const handleSupporterSignup = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!referralId || !supporterForm.name || !supporterForm.email) return
+
+    setSupporterSubmitting(true)
+
+    try {
+      // Create user account
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: supporterForm.email,
+        password: Math.random().toString(36).slice(-12), // Generate random password
+        options: {
+          data: {
+            name: supporterForm.name,
+            role: 'supporter'
+          }
+        }
+      })
+
+      if (authError) throw authError
+
+      // Create user profile
+      if (authData.user) {
+        const { error: profileError } = await supabase
+          .from('users')
+          .insert({
+            id: authData.user.id,
+            email: supporterForm.email,
+            name: supporterForm.name,
+            role: 'supporter'
+          })
+
+        if (profileError) throw profileError
+
+        // Create supporter profile
+        const { error: supporterError } = await supabase
+          .from('supporters')
+          .insert({
+            user_id: authData.user.id,
+            intro: supporterForm.reason || null
+          })
+
+        if (supporterError) throw supporterError
+
+        // Log SIGNUP_FROM_REFERRAL event
+        const { error: eventError } = await supabase
+          .from('referral_events')
+          .insert({
+            referral_id: referralId,
+            event_type: 'SIGNUP_FROM_REFERRAL',
+            platform: 'direct',
+            user_agent: navigator.userAgent
+          })
+
+        if (eventError) console.error('Event logging error:', eventError)
+
+        setSupporterSubmitted(true)
+      }
+    } catch (error) {
+      console.error('Supporter signup error:', error)
+    } finally {
+      setSupporterSubmitting(false)
+    }
+  }
+
+  if (supporterSubmitted) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12">
+        <div className="max-w-md w-full text-center">
+          <div className="bg-white rounded-2xl p-8 shadow-lg">
+            <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-6" />
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">
+              Welcome to Xainik!
+            </h1>
+            <p className="text-gray-600 mb-6">
+              Thank you for becoming a supporter. You can now help refer veterans to opportunities.
+            </p>
+            
+            <div className="space-y-4">
+              <Link 
+                href="/dashboard/supporter"
+                className="block w-full btn-primary"
+              >
+                Go to Supporter Dashboard
+              </Link>
+              <Link 
+                href="/browse"
+                className="block w-full btn-secondary"
+              >
+                Browse Veterans
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   if (submitted) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12">
@@ -103,10 +245,113 @@ function ReferralOpenedPageContent() {
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
               Thanks for Checking Out This Veteran!
             </h1>
+            {pitchData && (
+              <div className="bg-blue-50 rounded-lg p-4 mb-4">
+                <p className="text-sm font-medium text-blue-900 mb-1">
+                  {pitchData.title}
+                </p>
+                <p className="text-xs text-blue-700">
+                  by {pitchData.users?.name || 'Veteran'}
+                </p>
+              </div>
+            )}
             <p className="text-gray-600">
               We'd love to hear your thoughts about this veteran's pitch.
             </p>
           </div>
+
+          {/* Supporter Signup Section */}
+          {!showSupporterForm ? (
+            <div className="mb-8 p-6 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200">
+              <div className="text-center">
+                <Heart className="h-8 w-8 text-green-600 mx-auto mb-3" />
+                <h3 className="text-lg font-semibold text-green-900 mb-2">
+                  Help This Veteran Succeed
+                </h3>
+                <p className="text-sm text-green-700 mb-4">
+                  Become a supporter and help refer this veteran's pitch to your network. It only takes 30 seconds!
+                </p>
+                <button
+                  onClick={() => setShowSupporterForm(true)}
+                  className="inline-flex items-center gap-2 bg-green-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-green-700 transition-colors"
+                >
+                  <Share2 className="h-4 w-4" />
+                  Yes, I'll Help Refer This Veteran
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="mb-8">
+              <form onSubmit={handleSupporterSignup} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Your Name *
+                  </label>
+                  <input
+                    type="text"
+                    value={supporterForm.name}
+                    onChange={(e) => setSupporterForm(prev => ({ ...prev, name: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    placeholder="Enter your full name"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Email Address *
+                  </label>
+                  <input
+                    type="email"
+                    value={supporterForm.email}
+                    onChange={(e) => setSupporterForm(prev => ({ ...prev, email: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    placeholder="Enter your email"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Why you want to help (Optional)
+                  </label>
+                  <textarea
+                    value={supporterForm.reason}
+                    onChange={(e) => setSupporterForm(prev => ({ ...prev, reason: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    placeholder="Share why you want to help veterans find opportunities..."
+                    rows={3}
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={supporterSubmitting || !supporterForm.name || !supporterForm.email}
+                  className="w-full bg-green-600 text-white py-3 rounded-lg font-medium hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {supporterSubmitting ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      Creating Account...
+                    </>
+                  ) : (
+                    <>
+                      <User className="h-4 w-4" />
+                      Become a Supporter
+                    </>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setShowSupporterForm(false)}
+                  className="w-full text-gray-600 py-2 text-sm hover:text-gray-800 transition-colors"
+                >
+                  Maybe later
+                </button>
+              </form>
+            </div>
+          )}
 
           <div className="space-y-6">
             <div>
