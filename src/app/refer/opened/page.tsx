@@ -107,65 +107,24 @@ function ReferralOpenedPageContent() {
 
   const handleSupporterSignup = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!referralId || !supporterForm.name || !supporterForm.email) return
+    if (!supporterForm.name || !supporterForm.email) return
 
     setSupporterSubmitting(true)
 
     try {
-      // Create user account
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      // Store supporter data in sessionStorage for the registration flow
+      sessionStorage.setItem('supporter_signup_data', JSON.stringify({
+        name: supporterForm.name,
         email: supporterForm.email,
-        password: Math.random().toString(36).slice(-12), // Generate random password
-        options: {
-          data: {
-            name: supporterForm.name,
-            role: 'supporter'
-          }
-        }
-      })
+        reason: supporterForm.reason,
+        referralId: referralId
+      }))
 
-      if (authError) throw authError
-
-      // Create user profile
-      if (authData.user) {
-        const { error: profileError } = await supabase
-          .from('users')
-          .insert({
-            id: authData.user.id,
-            email: supporterForm.email,
-            name: supporterForm.name,
-            role: 'supporter'
-          })
-
-        if (profileError) throw profileError
-
-        // Create supporter profile
-        const { error: supporterError } = await supabase
-          .from('supporters')
-          .insert({
-            user_id: authData.user.id,
-            intro: supporterForm.reason || null
-          })
-
-        if (supporterError) throw supporterError
-
-        // Log SIGNUP_FROM_REFERRAL event
-        const { error: eventError } = await supabase
-          .from('referral_events')
-          .insert({
-            referral_id: referralId,
-            event_type: 'SIGNUP_FROM_REFERRAL',
-            platform: 'direct',
-            user_agent: navigator.userAgent
-          })
-
-        if (eventError) console.error('Event logging error:', eventError)
-
-        setSupporterSubmitted(true)
-      }
+      // Redirect to auth with supporter role preselected
+      window.location.href = `/auth?role=supporter&redirectTo=/role-selection&email=${encodeURIComponent(supporterForm.email)}&name=${encodeURIComponent(supporterForm.name)}`
+      
     } catch (error) {
       console.error('Supporter signup error:', error)
-    } finally {
       setSupporterSubmitting(false)
     }
   }
