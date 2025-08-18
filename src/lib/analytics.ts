@@ -43,7 +43,7 @@ export async function getSimpleHeroData(veteranId: string) {
       },
       potentialOpportunities: {
         count: Math.max((views?.length || 0) * 2, 10), // Each view can lead to 2 opportunities
-        quality: views?.length > 100 ? 'High' : views?.length > 50 ? 'Medium' : 'Growing',
+        quality: (views?.length || 0) > 100 ? 'High' : (views?.length || 0) > 50 ? 'Medium' : 'Growing',
         description: 'potential job opportunities'
       },
       mainAction: {
