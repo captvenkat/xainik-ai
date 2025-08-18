@@ -144,24 +144,23 @@ export default function SharePitchModal({ isOpen, onClose, userId }: SharePitchM
     }
   ]
 
-  // Fast-response share templates - focused on immediate opportunities
+  // Strategic share templates - balanced urgency with confidence
   const shareTemplates: ShareTemplate[] = [
     {
-      id: 'urgent-hiring',
-      name: 'Urgent Hiring Need',
+      id: 'direct-recruiter',
+      name: 'Direct to Recruiter',
       icon: Briefcase,
-      description: 'For immediate job openings and urgent hiring',
-      platforms: platforms.filter(p => ['linkedin', 'email', 'whatsapp', 'telegram'].includes(p.id)),
-      autoMessage: (pitch, userEmail) => `URGENT: Hiring Opportunity
+      description: 'Professional approach to recruiters with immediate availability',
+      platforms: platforms.filter(p => ['linkedin', 'email', 'telegram'].includes(p.id)),
+      autoMessage: (pitch, userEmail) => `Hi [Recruiter Name],
 
-Hi [Recruiter Name],
+I'm a military veteran with ${pitch.experience} of experience in ${pitch.skills?.slice(0, 3).join(', ')}. My background in leadership, strategic planning, and crisis management has prepared me to deliver immediate value to your organization.
 
-I'm a military veteran with ${pitch.experience} of experience in ${pitch.skills?.slice(0, 3).join(', ')}. I can start immediately and bring proven leadership, problem-solving, and strategic thinking to your team.
+I'm currently available and can start within 2 weeks. My pitch demonstrates how my military experience translates to civilian success: [PITCH_LINK]
 
-My pitch shows exactly how my military background translates to civilian success: [PITCH_LINK]
+Would you be interested in discussing how I can contribute to your team?
 
-Available for immediate interview. Can we connect today?
-
+Best regards,
 ${userEmail.split('@')[0]}`,
       customFields: [
         {
@@ -177,39 +176,6 @@ ${userEmail.split('@')[0]}`,
           required: true
         },
         {
-          label: 'Urgency Level',
-          type: 'text',
-          placeholder: 'e.g., Immediate, This week, ASAP',
-          required: false
-        }
-      ]
-    },
-    {
-      id: 'quick-referral',
-      name: 'Quick Referral Request',
-      icon: Users,
-      description: 'Ask for immediate referrals to hiring managers',
-      platforms: platforms.filter(p => ['whatsapp', 'telegram', 'email', 'linkedin'].includes(p.id)),
-      autoMessage: (pitch, userEmail) => `Quick Referral Needed
-
-Hi [Contact Name],
-
-I'm a military veteran with ${pitch.experience} of experience in ${pitch.skills?.slice(0, 2).join(' and ')}. I'm actively seeking opportunities and would appreciate a quick referral to any hiring managers you know.
-
-My pitch: [PITCH_LINK]
-
-Can you forward this to someone who might be hiring? I'm ready to start immediately.
-
-Thanks!
-${userEmail.split('@')[0]}`,
-      customFields: [
-        {
-          label: 'Contact Name',
-          type: 'text',
-          placeholder: 'Enter contact name',
-          required: true
-        },
-        {
           label: 'Target Role',
           type: 'text',
           placeholder: 'e.g., Project Manager, Team Lead, Consultant',
@@ -218,85 +184,75 @@ ${userEmail.split('@')[0]}`,
       ]
     },
     {
-      id: 'immediate-opportunity',
-      name: 'Immediate Opportunity',
-      icon: Zap,
-      description: 'For contract work, freelance, or immediate projects',
-      platforms: platforms.filter(p => ['linkedin', 'email', 'whatsapp', 'telegram', 'facebook'].includes(p.id)),
-      autoMessage: (pitch, userEmail) => `Immediate Opportunity Available
+      id: 'direct-supporter',
+      name: 'Direct to Supporter',
+      icon: Users,
+      description: 'Ask supporters to share your pitch with their network',
+      platforms: platforms.filter(p => ['whatsapp', 'telegram', 'email', 'linkedin'].includes(p.id)),
+      autoMessage: (pitch, userEmail) => `Hi [Supporter Name],
 
-Hi [Contact Name],
+I hope you're doing well! I'm a military veteran with ${pitch.experience} of experience in ${pitch.skills?.slice(0, 2).join(' and ')}. I've created a professional pitch that showcases my background and I'm actively seeking opportunities.
 
-I'm a military veteran with ${pitch.experience} of experience in ${pitch.skills?.slice(0, 3).join(', ')}. I'm available immediately for:
-• Contract work
-• Project-based roles
-• Freelance opportunities
-• Interim positions
+I would greatly appreciate if you could share this with your professional network: [PITCH_LINK]
 
-My pitch: [PITCH_LINK]
-
-Can we discuss any immediate needs you or your network might have?
+I'm available to start within 2 weeks and bring proven leadership skills to any organization. Thank you for your support!
 
 ${userEmail.split('@')[0]}`,
       customFields: [
         {
-          label: 'Contact Name',
+          label: 'Supporter Name',
           type: 'text',
-          placeholder: 'Enter contact name',
+          placeholder: 'Enter supporter name',
           required: true
         },
         {
-          label: 'Opportunity Type',
+          label: 'Your Relationship',
           type: 'text',
-          placeholder: 'e.g., Contract, Freelance, Project, Interim',
+          placeholder: 'e.g., Former colleague, mentor, friend',
           required: false
         }
       ]
     },
     {
-      id: 'fast-connection',
-      name: 'Fast Connection',
+      id: 'open-ended',
+      name: 'Open Ended',
       icon: Globe,
-      description: 'Quick networking for immediate opportunities',
-      platforms: platforms.filter(p => ['linkedin', 'twitter', 'whatsapp', 'telegram'].includes(p.id)),
-      autoMessage: (pitch, userEmail) => `Quick Connection Request
+      description: 'General networking message for broad reach',
+      platforms: platforms.filter(p => ['linkedin', 'twitter', 'whatsapp', 'telegram', 'facebook'].includes(p.id)),
+      autoMessage: (pitch, userEmail) => `Hello!
 
-Hi there!
+I'm a military veteran with ${pitch.experience} of experience in ${pitch.skills?.slice(0, 2).join(' and ')}. I'm currently exploring opportunities and would love to connect with professionals in my field.
 
-I'm a military veteran with ${pitch.experience} of experience in ${pitch.skills?.slice(0, 2).join(' and ')}. I'm actively seeking opportunities and would love to connect quickly.
+My pitch highlights my background and how military experience translates to civilian success: [PITCH_LINK]
 
-My pitch: [PITCH_LINK]
+I'm available to start within 2 weeks and bring strategic thinking, leadership, and problem-solving skills to any team.
 
-Do you know anyone hiring right now? I'm ready to start immediately.
-
+Looking forward to connecting!
 ${userEmail.split('@')[0]}`,
       customFields: [
         {
           label: 'Industry Focus',
           type: 'text',
-          placeholder: 'e.g., Tech, Healthcare, Finance, Consulting',
+          placeholder: 'e.g., Technology, Healthcare, Finance, Consulting',
           required: false
         }
       ]
     },
     {
-      id: 'emergency-hire',
-      name: 'Emergency Hire',
+      id: 'corporate-message',
+      name: 'Message to Corporates',
       icon: Target,
-      description: 'For urgent staffing needs and emergency hiring',
-      platforms: platforms.filter(p => ['whatsapp', 'telegram', 'email', 'linkedin'].includes(p.id)),
-      autoMessage: (pitch, userEmail) => `EMERGENCY HIRING NEED
+      description: 'Professional approach to corporate hiring managers',
+      platforms: platforms.filter(p => ['linkedin', 'email', 'telegram'].includes(p.id)),
+      autoMessage: (pitch, userEmail) => `Dear [Hiring Manager],
 
-Hi [Hiring Manager],
+I'm a military veteran with ${pitch.experience} of experience in ${pitch.skills?.slice(0, 3).join(', ')}. My military background has equipped me with exceptional leadership, strategic planning, and crisis management skills that are highly valuable in corporate environments.
 
-I'm a military veteran with ${pitch.experience} of experience in ${pitch.skills?.slice(0, 3).join(', ')}. I can start immediately and solve your urgent staffing needs.
+I'm available to start within 2 weeks and can immediately contribute to your organization's success. My pitch demonstrates my capabilities: [PITCH_LINK]
 
-My background in leadership, crisis management, and strategic thinking makes me perfect for emergency situations.
+I would welcome the opportunity to discuss how my experience aligns with your team's needs.
 
-My pitch: [PITCH_LINK]
-
-Available for immediate interview and start. Let's connect right away.
-
+Best regards,
 ${userEmail.split('@')[0]}`,
       customFields: [
         {
@@ -306,10 +262,52 @@ ${userEmail.split('@')[0]}`,
           required: true
         },
         {
-          label: 'Urgency',
+          label: 'Company',
           type: 'text',
-          placeholder: 'e.g., Today, This week, Immediate',
+          placeholder: 'Enter company name',
           required: true
+        },
+        {
+          label: 'Department',
+          type: 'text',
+          placeholder: 'e.g., Operations, Strategy, Project Management',
+          required: false
+        }
+      ]
+    },
+    {
+      id: 'contract-opportunity',
+      name: 'Contract Opportunity',
+      icon: Zap,
+      description: 'For contract, freelance, or project-based work',
+      platforms: platforms.filter(p => ['linkedin', 'email', 'whatsapp', 'telegram', 'facebook'].includes(p.id)),
+      autoMessage: (pitch, userEmail) => `Hi [Contact Name],
+
+I'm a military veteran with ${pitch.experience} of experience in ${pitch.skills?.slice(0, 3).join(', ')}. I'm currently available for contract work, project-based roles, or interim positions.
+
+My military background in leadership and strategic execution makes me ideal for:
+• Project management
+• Process improvement
+• Team leadership
+• Strategic planning
+
+My pitch: [PITCH_LINK]
+
+I can start within 2 weeks and deliver immediate value. Would you like to discuss any current or upcoming project needs?
+
+${userEmail.split('@')[0]}`,
+      customFields: [
+        {
+          label: 'Contact Name',
+          type: 'text',
+          placeholder: 'Enter contact name',
+          required: true
+        },
+        {
+          label: 'Project Type',
+          type: 'text',
+          placeholder: 'e.g., Contract, Freelance, Project, Interim',
+          required: false
         }
       ]
     }
@@ -531,8 +529,8 @@ ${userEmail.split('@')[0]}`,
               <Sparkles className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">Fast Response Share</h2>
-              <p className="text-sm text-gray-600">Generate urgent, action-oriented messages for immediate opportunities</p>
+              <h2 className="text-2xl font-bold text-gray-900">Strategic Share</h2>
+              <p className="text-sm text-gray-600">Professional messages that maximize hiring opportunities with balanced urgency</p>
             </div>
           </div>
           <button
@@ -569,7 +567,7 @@ ${userEmail.split('@')[0]}`,
               {/* Share Purpose */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-3">
-                  What's your urgent need?
+                  What's your target approach?
                 </label>
                 <div className="grid grid-cols-1 gap-3">
                   {shareTemplates.map((template) => {
@@ -703,18 +701,18 @@ ${userEmail.split('@')[0]}`,
                 )}
               </div>
 
-              {/* Fast Response Tips */}
+              {/* Strategic Tips */}
               {currentTemplate && (
-                <div className="bg-orange-50 rounded-lg p-4 border border-orange-200">
+                <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
                   <div className="flex items-center gap-2 mb-2">
-                    <Zap className="w-4 h-4 text-orange-600" />
-                    <span className="text-sm font-medium text-orange-800">Fast Response Tips</span>
+                    <Target className="w-4 h-4 text-blue-600" />
+                    <span className="text-sm font-medium text-blue-800">Strategic Tips</span>
                   </div>
-                  <ul className="text-sm text-orange-700 space-y-1">
-                    <li>• Emphasizes immediate availability</li>
-                    <li>• Creates urgency for quick responses</li>
-                    <li>• Highlights military crisis management skills</li>
-                    <li>• Direct call-to-action for immediate contact</li>
+                  <ul className="text-sm text-blue-700 space-y-1">
+                    <li>• Balances urgency with confidence</li>
+                    <li>• Emphasizes value and capabilities</li>
+                    <li>• Professional yet approachable tone</li>
+                    <li>• Clear availability timeline (2 weeks)</li>
                   </ul>
                 </div>
               )}
