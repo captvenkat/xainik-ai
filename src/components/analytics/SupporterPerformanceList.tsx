@@ -37,27 +37,96 @@ export default function SupporterPerformanceList({ veteranId }: SupporterPerform
     )
   }
 
-  if (supporterData.length === 0) {
-    return (
-      <div className="text-center py-8">
-        <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-        <p className="text-gray-600">No supporters have shared your pitch yet.</p>
-        <p className="text-sm text-gray-500 mt-2">Share your pitch to get started!</p>
-      </div>
-    )
-  }
+  // Mock data to show what supporter tracking looks like
+  const mockSupporterData = [
+    {
+      supporterId: 'mock-1',
+      supporterName: 'Sarah Johnson',
+      supporterEmail: 'sarah.j@techcorp.com',
+      pitchTitle: 'Senior Software Engineer',
+      sharedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+      lastActivity: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+      metrics: {
+        totalViews: 45,
+        totalCalls: 3,
+        totalEmails: 2,
+        totalShares: 8,
+        totalActions: 5,
+        conversionRate: 11.1
+      },
+      platforms: {
+        'LinkedIn': 25,
+        'Email': 15,
+        'WhatsApp': 5
+      }
+    },
+    {
+      supporterId: 'mock-2',
+      supporterName: 'Mike Chen',
+      supporterEmail: 'mike.chen@startup.io',
+      pitchTitle: 'Senior Software Engineer',
+      sharedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+      lastActivity: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+      metrics: {
+        totalViews: 32,
+        totalCalls: 1,
+        totalEmails: 4,
+        totalShares: 6,
+        totalActions: 5,
+        conversionRate: 15.6
+      },
+      platforms: {
+        'LinkedIn': 20,
+        'Slack': 8,
+        'Email': 4
+      }
+    },
+    {
+      supporterId: 'mock-3',
+      supporterName: 'Lisa Rodriguez',
+      supporterEmail: 'lisa.r@enterprise.com',
+      pitchTitle: 'Senior Software Engineer',
+      sharedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+      lastActivity: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
+      metrics: {
+        totalViews: 28,
+        totalCalls: 2,
+        totalEmails: 1,
+        totalShares: 4,
+        totalActions: 3,
+        conversionRate: 10.7
+      },
+      platforms: {
+        'LinkedIn': 18,
+        'Teams': 6,
+        'Email': 4
+      }
+    }
+  ]
+
+  const displayData = supporterData.length > 0 ? supporterData : mockSupporterData
+  const isMockData = supporterData.length === 0
 
   return (
     <div className="bg-white rounded-xl shadow-sm border">
       <div className="p-6 border-b">
-        <h3 className="text-lg font-semibold text-gray-900">Supporter Performance</h3>
-        <p className="text-sm text-gray-600 mt-1">
-          {supporterData.length} supporter{supporterData.length !== 1 ? 's' : ''} sharing your pitch
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900">Supporter Performance</h3>
+            <p className="text-sm text-gray-600 mt-1">
+              {displayData.length} supporter{displayData.length !== 1 ? 's' : ''} sharing your pitch
+            </p>
+          </div>
+          {isMockData && (
+            <div className="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-xs font-medium">
+              Demo Data
+            </div>
+          )}
+        </div>
       </div>
       
       <div className="divide-y divide-gray-200">
-        {supporterData.map((supporter, index) => (
+        {displayData.map((supporter, index) => (
           <div key={supporter.supporterId} className="p-6">
             <div className="flex items-center justify-between mb-4">
               <div>
