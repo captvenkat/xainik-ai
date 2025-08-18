@@ -169,7 +169,7 @@ function PitchesLoadingSkeleton() {
 }
 
 function EmptyState({ searchParams }: { searchParams: any }) {
-  const hasFilters = Object.keys(searchParams).some(key => 
+  const hasFilters = searchParams && typeof searchParams === 'object' && Object.keys(searchParams || {}).some(key => 
     key !== 'page' && searchParams[key]
   )
 
