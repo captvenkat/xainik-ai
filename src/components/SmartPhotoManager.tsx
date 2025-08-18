@@ -7,7 +7,7 @@ import { Camera, User, Info } from 'lucide-react'
 interface SmartPhotoManagerProps {
   profilePhotoUrl?: string | null
   pitchPhotoUrl?: string | null
-  onPhotoChange: (photoUrl: string, source: 'profile' | 'custom' | 'none') => void
+  onPhotoChange: (photoUrl: string) => void
   className?: string
   size?: 'sm' | 'md' | 'lg'
 }
@@ -40,7 +40,8 @@ export default function SmartPhotoManager({
     setCurrentPhoto(photoUrl || null)
     const source = photoUrl ? (isCustom ? 'custom' : 'profile') : 'none'
     setPhotoSource(source)
-    onPhotoChange(photoUrl, source)
+    // Only pass the photoUrl to the parent
+    onPhotoChange(photoUrl)
   }
 
   const getPhotoSourceInfo = () => {
