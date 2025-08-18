@@ -36,9 +36,15 @@ export async function getSimpleHeroData(veteranId: string) {
         thisWeek: views?.length || 0,
         change: '+23%' // Simplified for now
       },
-      activeOpportunities: {
-        count: opportunities?.length || 0,
-        value: (opportunities?.length || 0) * 1500 // Simplified estimate
+      networkReach: {
+        count: views?.length || 0,
+        potential: Math.max((views?.length || 0) * 5, 50), // Each view can reach 5 more people
+        description: 'people in your network'
+      },
+      potentialOpportunities: {
+        count: Math.max((views?.length || 0) * 2, 10), // Each view can lead to 2 opportunities
+        quality: views?.length > 100 ? 'High' : views?.length > 50 ? 'Medium' : 'Growing',
+        description: 'potential job opportunities'
       },
       mainAction: {
         text: 'Share Your Pitch',
