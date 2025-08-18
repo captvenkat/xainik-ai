@@ -1,6 +1,6 @@
 'use client'
 
-import { Share2, TrendingUp, Target } from 'lucide-react'
+import { Share2, TrendingUp, Target, Sparkles } from 'lucide-react'
 
 interface SimpleHeroSectionProps {
   data: {
@@ -80,7 +80,7 @@ export default function SimpleHeroSection({ data, onSharePitch }: SimpleHeroSect
         onClick={onSharePitch || data.mainAction.onClick}
         className="w-full bg-white text-blue-600 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center justify-center gap-2"
       >
-        <Share2 className="w-5 h-5" />
+        <Sparkles className="w-5 h-5" />
         {data.mainAction.text}
       </button>
     </div>

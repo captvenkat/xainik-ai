@@ -3,7 +3,7 @@ import { createSupabaseServer } from '@/lib/supabaseServer'
 
 export async function POST(request: NextRequest) {
   try {
-    const { pitchId, shareType, targetEmail, message } = await request.json()
+    const { pitchId, shareType, message, customFields } = await request.json()
     
     if (!pitchId) {
       return NextResponse.json({ error: 'Pitch ID is required' }, { status: 400 })
@@ -29,15 +29,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Pitch not found' }, { status: 404 })
     }
 
-    // Create share record
+    // Create share record with enhanced data
     const { data: shareRecord, error: shareError } = await supabase
       .from('shared_pitches')
       .insert({
         pitch_id: pitchId,
         shared_by: user.id,
-        share_type: shareType || 'direct',
-        target_email: targetEmail,
+        share_type: shareType || 'smart_share',
         message: message,
+        custom_fields: customFields || {},
         shared_at: new Date().toISOString()
       })
       .select()
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to record share' }, { status: 500 })
     }
 
-    // Log activity
+    // Log activity with enhanced data
     await supabase
       .from('user_activity_log')
       .insert({
@@ -57,7 +57,8 @@ export async function POST(request: NextRequest) {
         activity_data: {
           pitch_id: pitchId,
           share_type: shareType,
-          target_email: targetEmail
+          custom_fields: customFields,
+          message_preview: message?.substring(0, 100) + '...'
         },
         created_at: new Date().toISOString()
       })
@@ -65,7 +66,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ 
       success: true, 
       shareId: shareRecord.id,
-      message: 'Pitch shared successfully' 
+      message: 'Smart share generated successfully',
+      shareData: {
+        pitchId,
+        shareType,
+        messageLength: message?.length || 0,
+        customFieldsCount: Object.keys(customFields || {}).length
+      }
     })
 
   } catch (error) {
@@ -84,10 +91,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
 
-    // Get user's pitches that can be shared
+    // Get user's pitches that can be shared with enhanced data
     const { data: pitches, error: pitchesError } = await supabase
       .from('pitches')
-      .select('id, title, created_at')
+      .select('id, title, content, skills, experience, created_at')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
 
