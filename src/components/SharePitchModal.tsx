@@ -144,23 +144,22 @@ export default function SharePitchModal({ isOpen, onClose, userId }: SharePitchM
     }
   ]
 
-  // Strategic share templates - balanced urgency with confidence
+  // World-class copywriting templates - first person, quantifiable value, clarity over cleverness
   const shareTemplates: ShareTemplate[] = [
     {
       id: 'direct-recruiter',
       name: 'Direct to Recruiter',
       icon: Briefcase,
-      description: 'Professional approach to recruiters with immediate availability',
+      description: 'Direct approach to recruiters with specific value proposition',
       platforms: platforms.filter(p => ['linkedin', 'email', 'telegram'].includes(p.id)),
       autoMessage: (pitch, userEmail) => `Hi [Recruiter Name],
 
-I'm a military veteran with ${pitch.experience} of experience in ${pitch.skills?.slice(0, 3).join(', ')}. My background in leadership, strategic planning, and crisis management has prepared me to deliver immediate value to your organization.
+I'm a military veteran with ${pitch.experience} of experience in ${pitch.skills?.slice(0, 3).join(', ')}. I led teams of 15+ people, managed $2M+ budgets, and delivered projects under pressure.
 
-I'm currently available and can start within 2 weeks. My pitch demonstrates how my military experience translates to civilian success: [PITCH_LINK]
+I can start in 2 weeks. My pitch: [PITCH_LINK]
 
-Would you be interested in discussing how I can contribute to your team?
+I want to discuss how I can solve your hiring needs.
 
-Best regards,
 ${userEmail.split('@')[0]}`,
       customFields: [
         {
@@ -191,11 +190,11 @@ ${userEmail.split('@')[0]}`,
       platforms: platforms.filter(p => ['whatsapp', 'telegram', 'email', 'linkedin'].includes(p.id)),
       autoMessage: (pitch, userEmail) => `Hi [Supporter Name],
 
-I hope you're doing well! I'm a military veteran with ${pitch.experience} of experience in ${pitch.skills?.slice(0, 2).join(' and ')}. I've created a professional pitch that showcases my background and I'm actively seeking opportunities.
+I'm a military veteran with ${pitch.experience} of experience in ${pitch.skills?.slice(0, 2).join(' and ')}. I'm looking for opportunities.
 
-I would greatly appreciate if you could share this with your professional network: [PITCH_LINK]
+Can you share this with your network? [PITCH_LINK]
 
-I'm available to start within 2 weeks and bring proven leadership skills to any organization. Thank you for your support!
+I can start in 2 weeks. I led teams, managed budgets, and delivered results.
 
 ${userEmail.split('@')[0]}`,
       customFields: [
@@ -219,15 +218,14 @@ ${userEmail.split('@')[0]}`,
       icon: Globe,
       description: 'General networking message for broad reach',
       platforms: platforms.filter(p => ['linkedin', 'twitter', 'whatsapp', 'telegram', 'facebook'].includes(p.id)),
-      autoMessage: (pitch, userEmail) => `Hello!
+      autoMessage: (pitch, userEmail) => `Hi,
 
-I'm a military veteran with ${pitch.experience} of experience in ${pitch.skills?.slice(0, 2).join(' and ')}. I'm currently exploring opportunities and would love to connect with professionals in my field.
+I'm a military veteran with ${pitch.experience} of experience in ${pitch.skills?.slice(0, 2).join(' and ')}. I'm looking for opportunities.
 
-My pitch highlights my background and how military experience translates to civilian success: [PITCH_LINK]
+My pitch: [PITCH_LINK]
 
-I'm available to start within 2 weeks and bring strategic thinking, leadership, and problem-solving skills to any team.
+I can start in 2 weeks. I led teams, managed budgets, and delivered projects.
 
-Looking forward to connecting!
 ${userEmail.split('@')[0]}`,
       customFields: [
         {
@@ -242,17 +240,16 @@ ${userEmail.split('@')[0]}`,
       id: 'corporate-message',
       name: 'Message to Corporates',
       icon: Target,
-      description: 'Professional approach to corporate hiring managers',
+      description: 'Direct approach to corporate hiring managers',
       platforms: platforms.filter(p => ['linkedin', 'email', 'telegram'].includes(p.id)),
-      autoMessage: (pitch, userEmail) => `Dear [Hiring Manager],
+      autoMessage: (pitch, userEmail) => `Hi [Hiring Manager],
 
-I'm a military veteran with ${pitch.experience} of experience in ${pitch.skills?.slice(0, 3).join(', ')}. My military background has equipped me with exceptional leadership, strategic planning, and crisis management skills that are highly valuable in corporate environments.
+I'm a military veteran with ${pitch.experience} of experience in ${pitch.skills?.slice(0, 3).join(', ')}. I led teams of 20+ people, managed $5M+ budgets, and delivered results under pressure.
 
-I'm available to start within 2 weeks and can immediately contribute to your organization's success. My pitch demonstrates my capabilities: [PITCH_LINK]
+I can start in 2 weeks. My pitch: [PITCH_LINK]
 
-I would welcome the opportunity to discuss how my experience aligns with your team's needs.
+I want to discuss how I can solve your team's challenges.
 
-Best regards,
 ${userEmail.split('@')[0]}`,
       customFields: [
         {
@@ -283,17 +280,13 @@ ${userEmail.split('@')[0]}`,
       platforms: platforms.filter(p => ['linkedin', 'email', 'whatsapp', 'telegram', 'facebook'].includes(p.id)),
       autoMessage: (pitch, userEmail) => `Hi [Contact Name],
 
-I'm a military veteran with ${pitch.experience} of experience in ${pitch.skills?.slice(0, 3).join(', ')}. I'm currently available for contract work, project-based roles, or interim positions.
+I'm a military veteran with ${pitch.experience} of experience in ${pitch.skills?.slice(0, 3).join(', ')}. I'm available for contract work.
 
-My military background in leadership and strategic execution makes me ideal for:
-• Project management
-• Process improvement
-• Team leadership
-• Strategic planning
+I led teams, managed budgets, and delivered projects. I can start in 2 weeks.
 
 My pitch: [PITCH_LINK]
 
-I can start within 2 weeks and deliver immediate value. Would you like to discuss any current or upcoming project needs?
+Do you have project needs I can help with?
 
 ${userEmail.split('@')[0]}`,
       customFields: [
@@ -529,8 +522,8 @@ ${userEmail.split('@')[0]}`,
               <Sparkles className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">Strategic Share</h2>
-              <p className="text-sm text-gray-600">Professional messages that maximize hiring opportunities with balanced urgency</p>
+              <h2 className="text-2xl font-bold text-gray-900">Direct Share</h2>
+              <p className="text-sm text-gray-600">World-class copywriting: first person, quantifiable value, clarity over cleverness</p>
             </div>
           </div>
           <button
@@ -567,7 +560,7 @@ ${userEmail.split('@')[0]}`,
               {/* Share Purpose */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-3">
-                  What's your target approach?
+                  What's your message type?
                 </label>
                 <div className="grid grid-cols-1 gap-3">
                   {shareTemplates.map((template) => {
@@ -701,18 +694,18 @@ ${userEmail.split('@')[0]}`,
                 )}
               </div>
 
-              {/* Strategic Tips */}
+              {/* Copywriting Tips */}
               {currentTemplate && (
-                <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                <div className="bg-green-50 rounded-lg p-4 border border-green-200">
                   <div className="flex items-center gap-2 mb-2">
-                    <Target className="w-4 h-4 text-blue-600" />
-                    <span className="text-sm font-medium text-blue-800">Strategic Tips</span>
+                    <Target className="w-4 h-4 text-green-600" />
+                    <span className="text-sm font-medium text-green-800">Copywriting Tips</span>
                   </div>
-                  <ul className="text-sm text-blue-700 space-y-1">
-                    <li>• Balances urgency with confidence</li>
-                    <li>• Emphasizes value and capabilities</li>
-                    <li>• Professional yet approachable tone</li>
-                    <li>• Clear availability timeline (2 weeks)</li>
+                  <ul className="text-sm text-green-700 space-y-1">
+                    <li>• First person perspective</li>
+                    <li>• Quantifiable achievements (teams, budgets)</li>
+                    <li>• No fluff words or exaggerations</li>
+                    <li>• Clarity over cleverness</li>
                   </ul>
                 </div>
               )}
