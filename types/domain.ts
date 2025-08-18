@@ -195,9 +195,15 @@ export interface PitchCardData {
   title: string;
   pitch_text: string;
   skills: string[];
+  location: string | null;
+  job_type: string | null;
+  availability: string | null;
+  photo_url: string | null;
   experience_years: number | null;
   linkedin_url: string | null;
   resume_url: string | null;
+  likes_count: number;
+  views_count: number;
   created_at: string;
   user: {
     id: string;
@@ -206,6 +212,16 @@ export interface PitchCardData {
   } | null;
   endorsements_count: number;
   is_subscription_active: boolean;
+}
+
+export interface FullPitchData extends PitchCardData {
+  phone: string | null;
+  resume_share_enabled: boolean;
+  plan_tier: string | null;
+  plan_expires_at: string | null;
+  updated_at: string;
+  endorsements: EndorsementWithUser[];
+  metadata: any;
 }
 
 export interface EndorsementWithUser extends Endorsement {

@@ -5,8 +5,9 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 import AIPitchHelper from '@/components/AIPitchHelper'
-import { Shield, CheckCircle, AlertCircle, User, MapPin, Calendar, Phone, Mail, ArrowLeft, Save } from 'lucide-react'
+import { Shield, CheckCircle, AlertCircle, User, MapPin, Calendar, Phone, Mail, ArrowLeft, Save, FileText } from 'lucide-react'
 import Link from 'next/link'
+import SmartPhotoManager from '@/components/SmartPhotoManager'
 
 interface AIPitchFormData {
   // Unique to pitch (not duplicated from profile)
@@ -116,6 +117,7 @@ export default function AIFirstPitchPage() {
         job_type: formData.job_type,
         availability: formData.availability,
         location: profile.location, // Use profile location (already validated above)
+        phone: profile.phone || '', // Add phone from profile
         photo_url: formData.photo_url,
         resume_url: formData.resume_url,
         resume_share_enabled: formData.resume_share_enabled,
@@ -174,7 +176,7 @@ export default function AIFirstPitchPage() {
       case 0:
         return <AIStep formData={formData} updateFormData={updateFormData} onNext={nextStep} />
       case 1:
-        return <DetailsStep formData={formData} updateFormData={updateFormData} onNext={nextStep} onBack={prevStep} />
+        return <DetailsStep formData={formData} updateFormData={updateFormData} onNext={nextStep} onBack={prevStep} profile={profile} />
       case 2:
         return <ReviewStep formData={formData} profile={profile} onNext={nextStep} onBack={prevStep} isLoading={isLoading} error={error} success={success} />
       default:
@@ -279,7 +281,7 @@ function AIStep({ formData, updateFormData, onNext }: any) {
 }
 
 // Details Step Component
-function DetailsStep({ formData, updateFormData, onNext, onBack }: any) {
+function DetailsStep({ formData, updateFormData, onNext, onBack, profile }: any) {
   const [isValid, setIsValid] = useState(false)
 
   useEffect(() => {
@@ -342,6 +344,76 @@ function DetailsStep({ formData, updateFormData, onNext, onBack }: any) {
           />
           <p className="mt-1 text-xs text-gray-500">
             Can be LinkedIn, GitHub, YouTube, portfolio website, or any professional link
+          </p>
+        </div>
+
+        {/* Photo Upload */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Profile Photo (Optional)
+          </label>
+                         <SmartPhotoManager
+                 profilePhotoUrl={profile?.avatar_url || profile?.photo_url}
+                 pitchPhotoUrl={formData.photo_url}
+                 onPhotoChange={(photoUrl) => updateFormData({ photo_url: photoUrl })}
+                 className="w-full"
+               />
+          <p className="mt-1 text-xs text-gray-500">
+            Add a professional photo to make your pitch stand out
+          </p>
+        </div>
+
+        {/* Resume Upload */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Resume Upload (Optional)
+          </label>
+          <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
+            {formData.resume_url ? (
+              <div className="space-y-3">
+                <div className="flex items-center justify-center text-green-600">
+                  <CheckCircle className="w-8 h-8" />
+                </div>
+                <p className="text-sm text-gray-600">Resume uploaded successfully</p>
+                <button
+                  type="button"
+                  onClick={() => updateFormData({ resume_url: undefined })}
+                  className="text-sm text-red-600 hover:text-red-800 underline"
+                >
+                  Remove resume
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="flex items-center justify-center text-gray-400">
+                  <FileText className="w-8 h-8" />
+                </div>
+                <p className="text-sm text-gray-600">Upload your resume (PDF, DOC, DOCX)</p>
+                <input
+                  type="file"
+                  accept=".pdf,.doc,.docx"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (file) {
+                      // For now, just store the file name
+                      // In production, you'd upload to storage and get URL
+                      updateFormData({ resume_url: file.name })
+                    }
+                  }}
+                  className="hidden"
+                  id="resume-upload"
+                />
+                <label
+                  htmlFor="resume-upload"
+                  className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 cursor-pointer transition-colors"
+                >
+                  Choose File
+                </label>
+              </div>
+            )}
+          </div>
+          <p className="mt-1 text-xs text-gray-500">
+            Upload your resume to help recruiters understand your experience better
           </p>
         </div>
 

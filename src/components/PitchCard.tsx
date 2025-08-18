@@ -23,10 +23,13 @@ export default function PitchCard({ data, variant = 'default' }: Props) {
     title,
     pitch_text,
     skills = [],
-    // location removed - not available in current schema
-    // job_type removed - not available in current schema
-    // availability removed - not available in current schema
-    // likes_count removed - not available in current schema
+    location,
+    job_type,
+    availability,
+    photo_url,
+    likes_count,
+    views_count,
+    endorsements_count,
     user
   } = data
 
@@ -44,9 +47,17 @@ export default function PitchCard({ data, variant = 'default' }: Props) {
         {/* Header */}
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center shadow-lg">
-              <Shield className="h-6 w-6 text-white" />
-            </div>
+            {photo_url ? (
+              <img 
+                src={photo_url} 
+                alt={veteranName}
+                className="w-12 h-12 rounded-xl object-cover shadow-lg"
+              />
+            ) : (
+              <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center shadow-lg">
+                <Shield className="h-6 w-6 text-white" />
+              </div>
+            )}
             <div>
               <div className="font-bold text-gray-900">{veteranName}</div>
               <div className="text-sm text-gray-600 font-medium">
@@ -79,33 +90,49 @@ export default function PitchCard({ data, variant = 'default' }: Props) {
 
         {/* Location & Availability */}
         <div className="flex items-center gap-4 text-xs text-gray-500 mb-4">
-          <div className="flex items-center gap-1">
-            <MapPin className="h-4 w-4" />
-            <span className="font-medium">Location not specified</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <Clock className="h-4 w-4" />
-            <span className="font-medium">Availability not specified</span>
-          </div>
+          {location && (
+            <div className="flex items-center gap-1">
+              <MapPin className="h-4 w-4" />
+              <span className="font-medium">{location}</span>
+            </div>
+          )}
+          {availability && (
+            <div className="flex items-center gap-1">
+              <Clock className="h-4 w-4" />
+              <span className="font-medium">{availability}</span>
+            </div>
+          )}
         </div>
 
         {/* Job Type */}
-        <div className="flex items-center gap-4 text-xs text-gray-500 mb-4">
-          <div className="flex items-center gap-1">
-            <span className="font-medium">Job type not specified</span>
+        {job_type && (
+          <div className="flex items-center gap-4 text-xs text-gray-500 mb-4">
+            <div className="flex items-center gap-1">
+              <span className="font-medium">Job Type: {job_type.charAt(0).toUpperCase() + job_type.slice(1)}</span>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Stats */}
         <div className="flex items-center gap-4 text-xs text-gray-500 mb-4 p-3 bg-gray-50 rounded-lg">
           <div className="flex items-center gap-1">
-            <Heart className="h-3 w-3" />
-            <span className="font-medium">0 likes</span>
+            <Eye className="h-4 w-4 text-blue-500" />
+            <span className="font-medium">{views_count} views</span>
           </div>
+          <div className="flex items-center gap-1">
+            <Heart className="h-4 w-4 text-red-500" />
+            <span className="font-medium">{likes_count} likes</span>
+          </div>
+          {endorsements_count > 0 && (
+            <div className="flex items-center gap-1">
+              <Award className="h-4 w-4 text-green-500" />
+              <span className="font-medium">{endorsements_count} endorsements</span>
+            </div>
+          )}
           <LikeButton 
             pitchId={id} 
-            initialCount={0}
-            userId={user?.id} // Use user.id instead of veteran.id
+            initialCount={likes_count}
+            userId={user?.id}
           />
         </div>
 
