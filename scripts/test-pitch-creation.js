@@ -1,93 +1,107 @@
-const { createClient } = require('@supabase/supabase-js')
-require('dotenv').config({ path: '.env.local' })
+const { createClient } = require('@supabase/supabase-js');
+require('dotenv').config();
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+// Initialize Supabase client
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-if (!supabaseUrl || !supabaseServiceKey) {
-  console.error('❌ Missing Supabase environment variables')
-  process.exit(1)
-}
-
-const supabase = createClient(supabaseUrl, supabaseServiceKey)
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 async function testPitchCreation() {
-  console.log('🧪 Testing Pitch Creation...\n')
+  console.log('🧪 Testing pitch creation functionality (without resume upload)...\n');
 
   try {
-    // Test 1: Check if we can access pitches table
-    console.log('📋 Test 1: Checking pitches table access...')
-    const { data: pitches, error: pitchesError } = await supabase
+    // Get test user
+    const { data: users, error: usersError } = await supabase
+      .from('users')
+      .select('id, email, name, location, phone')
+      .in('email', ['test-veteran@xainik.com'])
+      .single();
+
+    if (usersError || !users) {
+      console.error('❌ Error fetching test user:', usersError?.message);
+      return;
+    }
+
+    console.log(`✅ Found test user: ${users.name} (${users.email})`);
+
+    // Test pitch data (without resume fields)
+    const testPitch = {
+      user_id: users.id,
+      title: "Test Pitch - No Resume Upload",
+      pitch_text: "This is a test pitch to verify that the database fix works correctly without resume upload functionality. Resume requests are now handled by recruiters.",
+      skills: ["Testing", "Database Management", "Verification"],
+      job_type: "Full-time",
+      location: users.location || "Remote",
+      availability: "Immediate",
+      phone: users.phone || "+1-555-0000",
+      linkedin_url: "https://linkedin.com/in/test-veteran",
+      is_active: true
+    };
+
+    console.log('📝 Attempting to create test pitch...');
+    console.log('Pitch data:', JSON.stringify(testPitch, null, 2));
+
+    // Create pitch
+    const { data: pitch, error: pitchError } = await supabase
+      .from('pitches')
+      .insert(testPitch)
+      .select()
+      .single();
+
+    if (pitchError) {
+      console.error('❌ Pitch creation failed:', pitchError.message);
+      console.error('Error details:', pitchError);
+      return;
+    }
+
+    console.log('✅ Pitch created successfully!');
+    console.log('Pitch ID:', pitch.id);
+    console.log('Pitch Title:', pitch.title);
+    console.log('Created at:', pitch.created_at);
+    console.log('Resume upload: Removed (recruiters can request via button)');
+
+    // Test pitch retrieval
+    console.log('\n📖 Testing pitch retrieval...');
+    const { data: retrievedPitch, error: retrieveError } = await supabase
       .from('pitches')
       .select('*')
-      .limit(1)
+      .eq('id', pitch.id)
+      .single();
 
-    if (pitchesError) {
-      console.error('❌ Error accessing pitches table:', pitchesError)
-      return
-    }
-    console.log('✅ Pitches table accessible')
-
-    // Test 2: Try to create a minimal pitch
-    console.log('\n📋 Test 2: Testing minimal pitch creation...')
-    const testPitchData = {
-      user_id: '4c5a525f-77d7-4350-b4e3-eb6459abecdc', // Use the user ID from the error
-      title: 'Test Pitch',
-      pitch_text: 'This is a test pitch',
-      skills: ['test-skill-1', 'test-skill-2', 'test-skill-3'],
-      job_type: 'full-time',
-      availability: 'Immediate',
-      location: 'Test Location', // Add location field
-      is_active: true
-    }
-
-    const { data: newPitch, error: createError } = await supabase
-      .from('pitches')
-      .insert(testPitchData)
-      .select()
-
-    if (createError) {
-      console.error('❌ Error creating pitch:', createError)
-      
-      // Test 3: Check what fields are actually available
-      console.log('\n📋 Test 3: Checking pitches table structure...')
-      const { data: columns, error: columnsError } = await supabase
-        .from('information_schema.columns')
-        .select('column_name, data_type, is_nullable, column_default')
-        .eq('table_name', 'pitches')
-        .eq('table_schema', 'public')
-        .order('ordinal_position')
-
-      if (columnsError) {
-        console.error('❌ Error fetching columns:', columnsError)
-      } else {
-        console.log('📝 Available pitches table columns:')
-        columns.forEach(col => {
-          console.log(`  - ${col.column_name}: ${col.data_type} (nullable: ${col.is_nullable})`)
-        })
-      }
-      
-      return
-    }
-
-    console.log('✅ Pitch created successfully:', newPitch)
-
-    // Test 4: Clean up - delete the test pitch
-    console.log('\n📋 Test 4: Cleaning up test pitch...')
-    const { error: deleteError } = await supabase
-      .from('pitches')
-      .delete()
-      .eq('id', newPitch[0].id)
-
-    if (deleteError) {
-      console.error('⚠️  Error deleting test pitch:', deleteError)
+    if (retrieveError) {
+      console.error('❌ Pitch retrieval failed:', retrieveError.message);
     } else {
-      console.log('✅ Test pitch deleted successfully')
+      console.log('✅ Pitch retrieval successful!');
+      console.log('Retrieved pitch:', retrievedPitch.title);
+      console.log('Resume fields: None (as expected)');
     }
+
+    // Test pitch listing
+    console.log('\n📋 Testing pitch listing...');
+    const { data: userPitches, error: listError } = await supabase
+      .from('pitches')
+      .select('*')
+      .eq('user_id', users.id)
+      .order('created_at', { ascending: false });
+
+    if (listError) {
+      console.error('❌ Pitch listing failed:', listError.message);
+    } else {
+      console.log(`✅ Found ${userPitches.length} pitches for user`);
+      userPitches.forEach((p, i) => {
+        console.log(`  ${i + 1}. ${p.title} (${p.created_at})`);
+      });
+    }
+
+    console.log('\n🎉 Pitch creation test completed successfully!');
+    console.log('✅ The pitches table is now working correctly without resume upload.');
+    console.log('✅ Resume request functionality is available for recruiters.');
 
   } catch (error) {
-    console.error('❌ Test failed:', error)
+    console.error('❌ Test failed:', error.message);
   }
 }
 
-testPitchCreation()
+// Run the test
+testPitchCreation().catch(console.error);

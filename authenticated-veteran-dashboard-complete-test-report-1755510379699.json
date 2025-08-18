@@ -1,0 +1,110 @@
+{
+  "timestamp": "2025-08-18T09:45:50.164Z",
+  "totalTests": 16,
+  "passedTests": 3,
+  "failedTests": 13,
+  "errors": [
+    {
+      "test": "Login process",
+      "error": "No element found for selector: input[type=\"email\"]"
+    },
+    {
+      "test": "Profile management",
+      "error": "SyntaxError: Failed to execute 'querySelector' on 'Document': 'button:has-text(\"Profile\")' is not a valid selector."
+    },
+    {
+      "test": "Pitch management",
+      "error": "SyntaxError: Failed to execute 'querySelector' on 'Document': 'button:has-text(\"My Pitches\")' is not a valid selector."
+    },
+    {
+      "test": "Mission invitation system",
+      "error": "SyntaxError: Failed to execute 'querySelector' on 'Document': 'button:has-text(\"Mission\")' is not a valid selector."
+    },
+    {
+      "test": "Community features",
+      "error": "SyntaxError: Failed to execute 'querySelector' on 'Document': 'button:has-text(\"Community\")' is not a valid selector."
+    },
+    {
+      "test": "Analytics dashboard",
+      "error": "SyntaxError: Failed to execute 'querySelector' on 'Document': 'button:has-text(\"Analytics\")' is not a valid selector."
+    }
+  ],
+  "details": {
+    "Auth page loads": {
+      "passed": true,
+      "details": {
+        "title": "Xainik - Veteran Hiring Platform"
+      }
+    },
+    "Sign in form exists": {
+      "passed": false,
+      "details": {}
+    },
+    "Login process": {
+      "passed": false,
+      "error": "No element found for selector: input[type=\"email\"]",
+      "details": {}
+    },
+    "Analytics tab exists and clickable": {
+      "passed": false,
+      "details": {}
+    },
+    "Profile tab exists and clickable": {
+      "passed": false,
+      "details": {}
+    },
+    "My Pitches tab exists and clickable": {
+      "passed": false,
+      "details": {}
+    },
+    "Mission tab exists and clickable": {
+      "passed": false,
+      "details": {}
+    },
+    "Community tab exists and clickable": {
+      "passed": false,
+      "details": {}
+    },
+    "Profile management": {
+      "passed": false,
+      "error": "SyntaxError: Failed to execute 'querySelector' on 'Document': 'button:has-text(\"Profile\")' is not a valid selector.",
+      "details": {}
+    },
+    "Pitch management": {
+      "passed": false,
+      "error": "SyntaxError: Failed to execute 'querySelector' on 'Document': 'button:has-text(\"My Pitches\")' is not a valid selector.",
+      "details": {}
+    },
+    "Mission invitation system": {
+      "passed": false,
+      "error": "SyntaxError: Failed to execute 'querySelector' on 'Document': 'button:has-text(\"Mission\")' is not a valid selector.",
+      "details": {}
+    },
+    "Community features": {
+      "passed": false,
+      "error": "SyntaxError: Failed to execute 'querySelector' on 'Document': 'button:has-text(\"Community\")' is not a valid selector.",
+      "details": {}
+    },
+    "Analytics dashboard": {
+      "passed": false,
+      "error": "SyntaxError: Failed to execute 'querySelector' on 'Document': 'button:has-text(\"Analytics\")' is not a valid selector.",
+      "details": {}
+    },
+    "Mobile dashboard navigation works": {
+      "passed": true,
+      "details": {
+        "viewport": "mobile"
+      }
+    },
+    "Tablet dashboard navigation works": {
+      "passed": true,
+      "details": {
+        "viewport": "tablet"
+      }
+    },
+    "User menu or logout button exists": {
+      "passed": false,
+      "details": {}
+    }
+  }
+}

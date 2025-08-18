@@ -16,6 +16,17 @@ import {
   ChevronRight, ExternalLink, Bell, Settings, Download, Filter, Activity, 
   MessageCircle, Award, Phone, Mail, Gift, Rocket, Shield, Globe, Briefcase
 } from 'lucide-react'
+import SimpleHeroSection from '@/components/analytics/SimpleHeroSection'
+import SimpleMetrics from '@/components/analytics/SimpleMetrics'
+import SimpleActionPlan from '@/components/analytics/SimpleActionPlan'
+import SupporterPerformanceList from '@/components/analytics/SupporterPerformanceList'
+import SimpleActivityFeed from '@/components/analytics/SimpleActivityFeed'
+import { 
+  getSimpleHeroData, 
+  getSimpleMetricsData, 
+  getSimpleActionsData, 
+  getSimpleActivityData 
+} from '@/lib/analytics'
 
 // =====================================================
 // ENHANCED VETERAN DASHBOARD - INSPIRED BY SUPPORTERS
@@ -165,7 +176,7 @@ export default function VeteranDashboard() {
 
         {/* Tab Content */}
         {activeTab === 'analytics' && (
-          <AnalyticsTab />
+          <AnalyticsTab userId={user.id} />
         )}
         {activeTab === 'profile' && (
           <VeteranProfileTab />
@@ -196,267 +207,67 @@ export default function VeteranDashboard() {
 }
 
 // Enhanced Analytics Tab Component
-function AnalyticsTab() {
-  const [analyticsData, setAnalyticsData] = useState<any>(null)
+function AnalyticsTab({ userId }: { userId: string }) {
+  const [heroData, setHeroData] = useState<any>(null)
+  const [metricsData, setMetricsData] = useState<any>(null)
+  const [actionsData, setActionsData] = useState<any>(null)
+  const [activityData, setActivityData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    // Simulate loading analytics data
-    const timer = setTimeout(() => {
-      setLoading(false)
-      // For now, use mock data until database is ready
-      setAnalyticsData({
-        totalViews: 0,
-        totalEndorsements: 0,
-        totalShares: 0,
-        responseRate: 0
-      })
-    }, 1000)
+    async function loadSimpleAnalytics() {
+      try {
+        setLoading(true)
+        
+        // Load simple data
+        const [hero, metrics, actions, activity] = await Promise.all([
+          getSimpleHeroData(userId),
+          getSimpleMetricsData(userId),
+          getSimpleActionsData(userId),
+          getSimpleActivityData(userId)
+        ])
 
-    return () => clearTimeout(timer)
-  }, [])
+        setHeroData(hero)
+        setMetricsData(metrics)
+        setActionsData(actions)
+        setActivityData(activity)
+      } catch (error) {
+        console.error('Failed to load analytics:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (userId) {
+      loadSimpleAnalytics()
+    }
+  }, [userId])
 
   if (loading) {
     return (
-      <div className="space-y-8">
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-8 border border-blue-100">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Loading Analytics...</h2>
-            <p className="text-gray-600">Preparing your performance insights</p>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  if (!analyticsData) {
-    return (
-      <div className="space-y-8">
-        <div className="bg-gradient-to-r from-yellow-50 to-amber-50 rounded-xl p-8 border border-yellow-100">
-          <div className="text-center">
-            <div className="text-6xl mb-4">⚠️</div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Database Setup Required</h2>
-            <p className="text-lg text-gray-600 mb-6">
-              Your veteran dashboard is waiting for database setup. The required tables need to be created.
-            </p>
-            <div className="bg-white rounded-lg p-6 max-w-2xl mx-auto text-left">
-              <h3 className="font-semibold text-gray-900 mb-3">Required Actions:</h3>
-              <ol className="list-decimal list-inside space-y-2 text-gray-600">
-                <li>Run the database migration script in Supabase SQL Editor</li>
-                <li>Create missing tables: endorsements, likes, shares, community_suggestions</li>
-                <li>Set up proper RLS policies and permissions</li>
-              </ol>
-              <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-                <p className="text-sm text-blue-800">
-                  <strong>File:</strong> completely_safe_fix.sql<br/>
-                  <strong>Location:</strong> Your project root directory
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
+      <div className="text-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+        <p className="text-gray-600">Loading your performance...</p>
       </div>
     )
   }
 
   return (
-    <div className="space-y-8">
-      {/* Hero Analytics Section */}
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-8 border border-blue-100">
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">📊 Your Pitch Performance Analytics</h2>
-          <p className="text-lg text-gray-600">
-            Track how your pitches are performing and understand your audience engagement
-          </p>
-        </div>
-        
-        {/* Quick Stats Row */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <MetricCard
-            title="Total Views"
-            value={analyticsData.totalViews || "0"}
-            change="+0%"
-            changeLabel="vs last month"
-            icon={Eye}
-            color="blue"
-            description="Ready to track views"
-          />
-          <MetricCard
-            title="Endorsements"
-            value={analyticsData.totalEndorsements || "0"}
-            change="+0%"
-            changeLabel="vs last month"
-            icon={Heart}
-            color="red"
-            description="Ready to track endorsements"
-          />
-          <MetricCard
-            title="Shares"
-            value={analyticsData.totalShares || "0"}
-            change="+0%"
-            changeLabel="vs last month"
-            icon={Share}
-            color="green"
-            description="Ready to track shares"
-          />
-          <MetricCard
-            title="Response Rate"
-            value={analyticsData.responseRate || "0%"}
-            change="+0%"
-            changeLabel="vs last month"
-            icon={TrendingUp}
-            color="purple"
-            description="Ready to track responses"
-          />
-        </div>
-      </div>
-
-      {/* Performance Insights Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <ChartCard title="🚀 Your Success Journey">
-          <div className="space-y-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600 mb-2">
-                Career Transition Progress
-              </div>
-              <p className="text-sm text-gray-600">Your journey from military to civilian success</p>
-            </div>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                  <span className="text-sm font-medium">Skill Assessment</span>
-                </div>
-                <span className="text-sm font-semibold text-blue-600">Completed</span>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                  <span className="text-sm font-medium">Pitch Creation</span>
-                </div>
-                <span className="text-sm font-semibold text-green-600">Active</span>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-purple-500"></div>
-                  <span className="text-sm font-medium">Network Building</span>
-                </div>
-                <span className="text-sm font-semibold text-purple-600">Growing</span>
-              </div>
-            </div>
-          </div>
-        </ChartCard>
-        
-        <ChartCard title="🎯 Engagement Metrics">
-          <div className="space-y-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-orange-600 mb-2">
-                Audience Interaction
-              </div>
-              <p className="text-sm text-gray-600">How recruiters and supporters engage with your content</p>
-            </div>
-            <div className="space-y-3">
-              <div className="flex items-center gap-3 p-3 bg-orange-50 rounded-lg">
-                <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
-                  <Eye className="w-4 h-4 text-orange-600" />
-                </div>
-                <div>
-                  <div className="text-sm font-medium">Profile Views</div>
-                  <div className="text-xs text-gray-600">Recruiter interest</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 p-3 bg-purple-50 rounded-lg">
-                <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-                  <Heart className="w-4 h-4 text-purple-600" />
-                </div>
-                <div>
-                  <div className="text-sm font-medium">Endorsements</div>
-                  <div className="text-xs text-gray-600">Community support</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
-                <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <Share className="w-4 h-4 text-blue-600" />
-                </div>
-                <div>
-                  <div className="text-sm font-medium">Shares</div>
-                  <div className="text-xs text-gray-600">Viral potential</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </ChartCard>
-      </div>
-
-      {/* Weekly Performance Trends */}
-      <ChartCard title="📈 Your Weekly Performance Trends">
-        <div className="space-y-4">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-green-600 mb-2">
-              Ready to Track Progress
-            </div>
-            <p className="text-sm text-gray-600">Once database is set up, you'll see your weekly engagement patterns</p>
-          </div>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-gray-400"></div>
-                <span className="text-sm font-medium text-gray-500">Week 1</span>
-              </div>
-              <span className="text-sm font-semibold text-gray-400">Waiting for data</span>
-            </div>
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-gray-400"></div>
-                <span className="text-sm font-medium text-gray-500">Week 2</span>
-              </div>
-              <span className="text-sm font-semibold text-gray-400">Waiting for data</span>
-            </div>
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-gray-400"></div>
-                <span className="text-sm font-medium text-gray-500">Week 3</span>
-              </div>
-              <span className="text-sm font-semibold text-gray-400">Waiting for data</span>
-            </div>
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-gray-400"></div>
-                <span className="text-sm font-medium text-gray-500">Week 4</span>
-              </div>
-              <span className="text-sm font-semibold text-gray-400">Waiting for data</span>
-            </div>
-          </div>
-        </div>
-      </ChartCard>
-
-      {/* Career Insights */}
-      <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-8 border border-green-100">
-        <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">💡 Career Transition Insights</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white rounded-lg p-6 shadow-sm">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                <Lightbulb className="w-5 h-5 text-green-600" />
-              </div>
-              <div className="text-lg font-medium text-gray-900">Peak Engagement Times</div>
-            </div>
-            <p className="text-gray-600">Your pitches receive 40% more views during weekday mornings when recruiters are actively searching for talent.</p>
-          </div>
-          
-          <div className="bg-white rounded-lg p-6 shadow-sm">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Target className="w-5 h-5 text-blue-600" />
-              </div>
-              <div className="text-lg font-medium text-gray-900">Optimization Opportunity</div>
-            </div>
-            <p className="text-gray-600">Consider posting new pitches on Tuesdays and Thursdays when recruiter response rates are 25% higher.</p>
-          </div>
-        </div>
-      </div>
+    <div className="space-y-6">
+      {/* Hero Section */}
+      <SimpleHeroSection data={heroData} />
+      
+      {/* Simple Metrics */}
+      <SimpleMetrics data={metricsData} />
+      
+      {/* Quick Actions */}
+      <SimpleActionPlan data={actionsData} />
+      
+      {/* Supporter Performance */}
+      <SupporterPerformanceList veteranId={userId} />
+      
+      {/* Recent Activity */}
+      <SimpleActivityFeed data={activityData} />
     </div>
   )
 }
