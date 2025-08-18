@@ -144,20 +144,20 @@ export async function getVeteranOutreachData(veteranId: string) {
       }
     ]
 
-    const displayData = veteranActivities?.length > 0 ? veteranActivities : mockVeteranOutreach
-    const isMockData = veteranActivities?.length === 0
+    const displayData = (veteranActivities?.length || 0) > 0 ? veteranActivities : mockVeteranOutreach
+    const isMockData = (veteranActivities?.length || 0) === 0
 
     return {
-      activities: displayData,
+      activities: displayData || [],
       isMockData,
       summary: {
-        totalOutreach: displayData.length,
-        platforms: displayData.reduce((acc: Record<string, number>, activity: any) => {
+        totalOutreach: displayData?.length || 0,
+        platforms: (displayData || []).reduce((acc: Record<string, number>, activity: any) => {
           const platform = activity.platform || 'Unknown'
           acc[platform] = (acc[platform] || 0) + 1
           return acc
         }, {}),
-        recentActivity: displayData.length > 0 ? displayData[0].created_at : null
+        recentActivity: (displayData?.length || 0) > 0 ? displayData?.[0]?.created_at : null
       }
     }
   } catch (error) {
