@@ -96,7 +96,9 @@ export default function CommunitySuggestions({ userId }: { userId: string }) {
           user_id: userId,
           title: newSuggestion.trim(),
           description: newSuggestion.trim(),
-          category: selectedCategory
+          category: selectedCategory,
+          suggestion_type: selectedCategory,
+          priority: 'medium'
         })
 
       if (error) throw error

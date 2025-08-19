@@ -36,9 +36,12 @@ CREATE TABLE IF NOT EXISTS public.community_suggestions (
   title text NOT NULL,
   description text,
   category text,
+  suggestion_type text NOT NULL DEFAULT 'feature',
   status text DEFAULT 'pending',
+  priority text DEFAULT 'medium',
   votes int DEFAULT 0,
-  created_at timestamptz DEFAULT now()
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
 );
 
 -- MISSION INVITATION SUMMARY TABLE (with proper structure)
@@ -68,6 +71,7 @@ FROM public.community_suggestions;
 CREATE INDEX IF NOT EXISTS idx_community_suggestions_user_id ON public.community_suggestions(user_id);
 CREATE INDEX IF NOT EXISTS idx_community_suggestions_status ON public.community_suggestions(status);
 CREATE INDEX IF NOT EXISTS idx_community_suggestions_category ON public.community_suggestions(category);
+CREATE INDEX IF NOT EXISTS idx_community_suggestions_suggestion_type ON public.community_suggestions(suggestion_type);
 CREATE INDEX IF NOT EXISTS idx_mission_invitation_summary_user_id ON public.mission_invitation_summary(user_id);
 
 -- 5. Enable RLS (safe - won't error if already enabled)
@@ -95,34 +99,40 @@ GRANT ALL ON public.community_suggestions TO authenticated;
 GRANT ALL ON public.mission_invitation_summary TO authenticated;
 GRANT SELECT ON public.community_suggestions_summary TO authenticated;
 
--- 8. Add sample data only if tables are empty
-INSERT INTO public.community_suggestions (user_id, title, description, category, status, votes)
+-- 8. Add sample data only if tables are empty (with all required fields)
+INSERT INTO public.community_suggestions (user_id, title, description, category, suggestion_type, status, priority, votes)
 SELECT 
   '00000000-0000-0000-0000-000000000000'::uuid, 
   'Add LinkedIn Integration', 
   'Allow veterans to connect their LinkedIn profiles', 
   'feature', 
+  'feature',
   'pending', 
+  'medium',
   5
 WHERE NOT EXISTS (SELECT 1 FROM public.community_suggestions LIMIT 1);
 
-INSERT INTO public.community_suggestions (user_id, title, description, category, status, votes)
+INSERT INTO public.community_suggestions (user_id, title, description, category, suggestion_type, status, priority, votes)
 SELECT 
   '00000000-0000-0000-0000-000000000000'::uuid, 
   'Improve Mobile Experience', 
   'Make the platform more mobile-friendly', 
   'ui', 
+  'ui',
   'approved', 
+  'high',
   12
 WHERE NOT EXISTS (SELECT 1 FROM public.community_suggestions WHERE title = 'Improve Mobile Experience');
 
-INSERT INTO public.community_suggestions (user_id, title, description, category, status, votes)
+INSERT INTO public.community_suggestions (user_id, title, description, category, suggestion_type, status, priority, votes)
 SELECT 
   '00000000-0000-0000-0000-000000000000'::uuid, 
   'Add Resume Builder', 
   'Help veterans create professional resumes', 
   'feature', 
+  'feature',
   'pending', 
+  'medium',
   8
 WHERE NOT EXISTS (SELECT 1 FROM public.community_suggestions WHERE title = 'Add Resume Builder');
 
