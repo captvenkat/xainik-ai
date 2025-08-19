@@ -49,46 +49,57 @@ CREATE TABLE public.community_suggestions (
   updated_at timestamptz DEFAULT now()
 );
 
--- 5. Update PITCHES table to include proper foreign key
-ALTER TABLE public.pitches 
-ADD CONSTRAINT IF NOT EXISTS pitches_user_id_fkey 
-FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+-- 5. Update PITCHES table to include proper foreign key (if not exists)
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'pitches_user_id_fkey') THEN
+        ALTER TABLE public.pitches ADD CONSTRAINT pitches_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+    END IF;
+END $$;
 
--- 6. Update ENDORSEMENTS table to include proper foreign keys
-ALTER TABLE public.endorsements 
-ADD CONSTRAINT IF NOT EXISTS endorsements_user_id_fkey 
-FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+-- 6. Update ENDORSEMENTS table to include proper foreign keys (if not exists)
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'endorsements_user_id_fkey') THEN
+        ALTER TABLE public.endorsements ADD CONSTRAINT endorsements_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'endorsements_pitch_id_fkey') THEN
+        ALTER TABLE public.endorsements ADD CONSTRAINT endorsements_pitch_id_fkey FOREIGN KEY (pitch_id) REFERENCES public.pitches(id) ON DELETE CASCADE;
+    END IF;
+END $$;
 
-ALTER TABLE public.endorsements 
-ADD CONSTRAINT IF NOT EXISTS endorsements_pitch_id_fkey 
-FOREIGN KEY (pitch_id) REFERENCES public.pitches(id) ON DELETE CASCADE;
+-- 7. Update LIKES table to include proper foreign keys (if not exists)
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'likes_user_id_fkey') THEN
+        ALTER TABLE public.likes ADD CONSTRAINT likes_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'likes_pitch_id_fkey') THEN
+        ALTER TABLE public.likes ADD CONSTRAINT likes_pitch_id_fkey FOREIGN KEY (pitch_id) REFERENCES public.pitches(id) ON DELETE CASCADE;
+    END IF;
+END $$;
 
--- 7. Update LIKES table to include proper foreign keys
-ALTER TABLE public.likes 
-ADD CONSTRAINT IF NOT EXISTS likes_user_id_fkey 
-FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+-- 8. Update SHARES table to include proper foreign keys (if not exists)
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'shares_user_id_fkey') THEN
+        ALTER TABLE public.shares ADD CONSTRAINT shares_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'shares_pitch_id_fkey') THEN
+        ALTER TABLE public.shares ADD CONSTRAINT shares_pitch_id_fkey FOREIGN KEY (pitch_id) REFERENCES public.pitches(id) ON DELETE CASCADE;
+    END IF;
+END $$;
 
-ALTER TABLE public.likes 
-ADD CONSTRAINT IF NOT EXISTS likes_pitch_id_fkey 
-FOREIGN KEY (pitch_id) REFERENCES public.pitches(id) ON DELETE CASCADE;
-
--- 8. Update SHARES table to include proper foreign keys
-ALTER TABLE public.shares 
-ADD CONSTRAINT IF NOT EXISTS shares_user_id_fkey 
-FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
-
-ALTER TABLE public.shares 
-ADD CONSTRAINT IF NOT EXISTS shares_pitch_id_fkey 
-FOREIGN KEY (pitch_id) REFERENCES public.pitches(id) ON DELETE CASCADE;
-
--- 9. Update MISSION_INVITATION_SUMMARY table to include proper foreign keys
-ALTER TABLE public.mission_invitation_summary 
-ADD CONSTRAINT IF NOT EXISTS mission_invitation_summary_user_id_fkey 
-FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
-
-ALTER TABLE public.mission_invitation_summary 
-ADD CONSTRAINT IF NOT EXISTS mission_invitation_summary_inviter_id_fkey 
-FOREIGN KEY (inviter_id) REFERENCES public.users(id) ON DELETE CASCADE;
+-- 9. Update MISSION_INVITATION_SUMMARY table to include proper foreign keys (if not exists)
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'mission_invitation_summary_user_id_fkey') THEN
+        ALTER TABLE public.mission_invitation_summary ADD CONSTRAINT mission_invitation_summary_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'mission_invitation_summary_inviter_id_fkey') THEN
+        ALTER TABLE public.mission_invitation_summary ADD CONSTRAINT mission_invitation_summary_inviter_id_fkey FOREIGN KEY (inviter_id) REFERENCES public.users(id) ON DELETE CASCADE;
+    END IF;
+END $$;
 
 -- 10. Create indexes for optimal performance
 CREATE INDEX IF NOT EXISTS idx_users_email ON public.users(email);
