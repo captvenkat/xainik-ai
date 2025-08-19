@@ -134,9 +134,9 @@ export default function ProfileSettingsPage() {
     setErrors({});
 
     // Validate form
-    const validationErrors = validateProfileForm(formData);
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
+    const validationResult = validateProfileForm(formData);
+    if (!validationResult.isValid) {
+      setErrors(validationResult.errors);
       setIsSaving(false);
       return;
     }
@@ -420,12 +420,12 @@ export default function ProfileSettingsPage() {
                     }`}
                   >
                     <option value="">Select Rank</option>
-                    {formData.service_branch && ALL_MILITARY_RANKS[formData.service_branch] ? (
-                      ALL_MILITARY_RANKS[formData.service_branch].map(rank => (
+                    {formData.service_branch && ALL_MILITARY_RANKS[formData.service_branch as keyof typeof ALL_MILITARY_RANKS] ? (
+                      Object.values(ALL_MILITARY_RANKS[formData.service_branch as keyof typeof ALL_MILITARY_RANKS]).flat().map(rank => (
                         <option key={rank} value={rank}>{rank}</option>
                       ))
                     ) : (
-                      ALL_MILITARY_RANKS['Indian Army'].map(rank => (
+                      Object.values(ALL_MILITARY_RANKS['Indian Army']).flat().map(rank => (
                         <option key={rank} value={rank}>{rank}</option>
                       ))
                     )}
