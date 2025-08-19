@@ -50,10 +50,9 @@ export interface ProfileValidationResult {
   errors: Record<string, string>;
 }
 
-// Military Ranks - Organized by category without duplication
+// Military Ranks - Current Indian Armed Forces Structure
 export const MILITARY_RANKS = {
   OFFICERS: [
-    'Field Marshal',
     'General',
     'Lieutenant General', 
     'Major General',
@@ -75,12 +74,14 @@ export const MILITARY_RANKS = {
     'Naik',
     'Lance Naik',
     'Sepoy'
+  ],
+  AGNIVEERS: [
+    'Agniveer'
   ]
 } as const;
 
 export const NAVY_RANKS = {
   OFFICERS: [
-    'Admiral of the Fleet',
     'Admiral',
     'Vice Admiral',
     'Rear Admiral',
@@ -102,12 +103,14 @@ export const NAVY_RANKS = {
     'Leading Seaman',
     'Seaman 1st Class',
     'Seaman 2nd Class'
+  ],
+  AGNIVEERS: [
+    'Agniveer (Navy)'
   ]
 } as const;
 
 export const AIR_FORCE_RANKS = {
   OFFICERS: [
-    'Marshal of the Indian Air Force',
     'Air Chief Marshal',
     'Air Marshal',
     'Air Vice Marshal',
@@ -130,6 +133,9 @@ export const AIR_FORCE_RANKS = {
     'Leading Aircraftman',
     'Aircraftman 1st Class',
     'Aircraftman 2nd Class'
+  ],
+  AGNIVEERS: [
+    'Agniveer (Air Force)'
   ]
 } as const;
 
