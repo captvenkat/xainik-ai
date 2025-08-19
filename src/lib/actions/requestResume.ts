@@ -8,6 +8,7 @@ export interface CreateResumeRequestData {
   recruiter_user_id: string
   user_id: string
   job_role?: string | null
+  message?: string | null
 }
 
 export async function createResumeRequest(data: CreateResumeRequestData) {
@@ -18,9 +19,10 @@ export async function createResumeRequest(data: CreateResumeRequestData) {
       .from('resume_requests')
       .insert({
         pitch_id: data.pitch_id,
-        recruiter_user_id: data.recruiter_user_id,
-        user_id: data.user_id,
+        recruiter_user_id: data.recruiter_user_id, // Using user_id as common identifier 
+        user_id: data.user_id, // Using user_id as common identifier
         job_role: data.job_role || null,
+        message: data.message || null, // Add message field
         status: 'pending'
       })
       .select()
@@ -50,7 +52,7 @@ export async function createResumeRequest(data: CreateResumeRequestData) {
       const { data: veteranData } = await supabase
         .from('users')
         .select('name')
-        .eq('id', pitchData?.user_id)
+        .eq('id', pitchData?.user_id || '')
         .single()
 
       const { data: recruiterData } = await supabase
@@ -65,18 +67,19 @@ export async function createResumeRequest(data: CreateResumeRequestData) {
         .eq('user_id', data.recruiter_user_id)
         .single()
 
-      await supabase
-        .from('activity_log')
-        .insert({
-          event: 'resume_request_received',
-          meta: {
-            veteran_name: veteranData?.name || 'Unknown Veteran',
-            recruiter_name: recruiterData?.name || 'Unknown Recruiter',
-            company_name: recruiterProfile?.company_name,
-            pitch_title: pitchData?.title || 'Unknown Pitch',
-            job_role: data.job_role
-          }
-        })
+      // Note: activity_log table doesn't exist in live database
+      // await supabase
+      //   .from('activity_log')
+      //   .insert({
+      //     event: 'resume_request_received',
+      //     meta: {
+      //       veteran_name: veteranData?.name || 'Unknown Veteran',
+      //       recruiter_name: recruiterData?.name || 'Unknown Recruiter',
+      //       company_name: recruiterProfile?.company_name,
+      //       pitch_title: pitchData?.title || 'Unknown Pitch',
+      //       job_role: data.job_role
+      //     }
+      //   })
     } catch (error) {
       console.error('Error logging to activity_log:', error)
     }
@@ -102,7 +105,7 @@ export async function approveResumeRequest(requestId: string, veteranUserId: str
         responded_at: new Date().toISOString()
       })
       .eq('id', requestId)
-      .eq('user_id', veteranUserId)
+      .eq('user_id', veteranUserId) // Using user_id as common identifier
       .select()
       .single()
 
@@ -115,7 +118,7 @@ export async function approveResumeRequest(requestId: string, veteranUserId: str
     await logResumeRequestActivity('resume_request_approved', {
       resume_request_id: requestId,
       pitch_id: resumeRequest.pitch_id,
-      recruiter_user_id: resumeRequest.recruiter_user_id,
+      recruiter_user_id: resumeRequest.recruiter_user_id, // Map recruiter_user_id back to recruiter_user_id
       user_id: veteranUserId
     })
 
@@ -124,13 +127,13 @@ export async function approveResumeRequest(requestId: string, veteranUserId: str
       const { data: pitchData } = await supabase
         .from('pitches')
         .select('title, user_id')
-        .eq('id', resumeRequest.pitch_id)
+        .eq('id', resumeRequest.pitch_id || '')
         .single()
 
       const { data: veteranData } = await supabase
         .from('users')
         .select('name')
-        .eq('id', pitchData?.user_id)
+        .eq('id', pitchData?.user_id || '')
         .single()
 
       const { data: recruiterData } = await supabase
@@ -145,17 +148,18 @@ export async function approveResumeRequest(requestId: string, veteranUserId: str
         .eq('user_id', resumeRequest.recruiter_user_id)
         .single()
 
-      await supabase
-        .from('activity_log')
-        .insert({
-          event: 'resume_request_approved',
-          meta: {
-            veteran_name: veteranData?.name || 'Unknown Veteran',
-            recruiter_name: recruiterData?.name || 'Unknown Recruiter',
-            company_name: recruiterProfile?.company_name,
-            pitch_title: pitchData?.title || 'Unknown Pitch'
-          }
-        })
+      // Note: activity_log table doesn't exist in live database
+      // await supabase
+      //   .from('activity_log')
+      //   .insert({
+      //     event: 'resume_request_approved',
+      //     meta: {
+      //       veteran_name: veteranData?.name || 'Unknown Veteran',
+      //       recruiter_name: recruiterData?.name || 'Unknown Recruiter',
+      //       company_name: recruiterProfile?.company_name,
+      //       pitch_title: pitchData?.title || 'Unknown Pitch'
+      //     }
+      //   })
     } catch (error) {
       console.error('Error logging to activity_log:', error)
     }
@@ -203,13 +207,13 @@ export async function declineResumeRequest(requestId: string, veteranUserId: str
       const { data: pitchData } = await supabase
         .from('pitches')
         .select('title, user_id')
-        .eq('id', resumeRequest.pitch_id)
+        .eq('id', resumeRequest.pitch_id || '')
         .single()
 
       const { data: veteranData } = await supabase
         .from('users')
         .select('name')
-        .eq('id', pitchData?.user_id)
+        .eq('id', pitchData?.user_id || '')
         .single()
 
       const { data: recruiterData } = await supabase
@@ -224,17 +228,18 @@ export async function declineResumeRequest(requestId: string, veteranUserId: str
         .eq('user_id', resumeRequest.recruiter_user_id)
         .single()
 
-      await supabase
-        .from('activity_log')
-        .insert({
-          event: 'resume_request_declined',
-          meta: {
-            veteran_name: veteranData?.name || 'Unknown Veteran',
-            recruiter_name: recruiterData?.name || 'Unknown Recruiter',
-            company_name: recruiterProfile?.company_name,
-            pitch_title: pitchData?.title || 'Unknown Pitch'
-          }
-        })
+      // Note: activity_log table doesn't exist in live database
+      // await supabase
+      //   .from('activity_log')
+      //   .insert({
+      //     event: 'resume_request_declined',
+      //     meta: {
+      //       veteran_name: veteranData?.name || 'Unknown Veteran',
+      //       recruiter_name: recruiterData?.name || 'Unknown Recruiter',
+      //       company_name: recruiterProfile?.company_name,
+      //       pitch_title: pitchData?.title || 'Unknown Pitch'
+      //     }
+      //   })
     } catch (error) {
       console.error('Error logging to activity_log:', error)
     }
@@ -263,7 +268,7 @@ export async function getResumeRequests(userId: string, role: string) {
           pitch_text,
           user_id
         ),
-        users!resume_requests_recruiter_user_id_fkey (
+        users!resume_requests_recruiter_id_fkey (
           id,
           name,
           email
@@ -271,9 +276,9 @@ export async function getResumeRequests(userId: string, role: string) {
       `)
 
     if (role === 'recruiter') {
-      query = query.eq('recruiter_user_id', userId)
+      query = query.eq('recruiter_id', userId) // Using user_id as common identifier
     } else if (role === 'veteran') {
-      query = query.eq('user_id', userId)
+      query = query.eq('veteran_id', userId) // Using user_id as common identifier
     }
 
     const { data: resumeRequests, error } = await query
@@ -295,13 +300,14 @@ async function logResumeRequestActivity(activityType: string, metadata: any) {
   try {
     const supabase = await createActionClient()
     
-    await supabase
-      .from('user_activity_log')
-      .insert({
-        activity_type: activityType,
-        activity_data: metadata,
-        user_id: metadata.user_id
-      })
+    // Note: user_activity_log table doesn't exist in live database
+    // await supabase
+    //   .from('user_activity_log')
+    //   .insert({
+    //     activity_type: activityType,
+    //     activity_data: metadata,
+    //     user_id: metadata.user_id
+    //   })
   } catch (error) {
     console.error('Error logging resume request activity:', error)
   }

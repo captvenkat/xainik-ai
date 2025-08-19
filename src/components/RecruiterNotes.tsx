@@ -45,17 +45,17 @@ export default function RecruiterNotes({ pitchId, veteranName, initialNote = '' 
 
   const loadExistingNote = async (recruiterId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('recruiter_notes')
-        .select('note_text, updated_at')
-        .eq('pitch_id', pitchId)
-        .eq('user_id', recruiterId) // Changed from recruiter_id
-        .single()
+      // Note: recruiter_notes table doesn't exist in live schema
+      // Skip loading notes until table is created
+      const data = null
+      const error = new Error('recruiter_notes table not in live schema')
 
-      if (!error && data) {
-        setNote((data.note_text as string) || '')
-        setLastSaved(new Date(data.updated_at as string))
-      }
+      // Note: recruiter_notes table doesn't exist in live schema
+      // Skip loading notes until table is created
+      // if (!error && data) {
+      //   setNote((data.note_text as string) || '')
+      //   setLastSaved(new Date(data.updated_at as string))
+      // }
     } catch (error) {
     }
   }
@@ -67,16 +67,9 @@ export default function RecruiterNotes({ pitchId, veteranName, initialNote = '' 
     setError('')
 
     try {
-      const { error } = await supabase
-        .from('recruiter_notes')
-        .upsert({
-          pitch_id: pitchId,
-          user_id: userId, // Changed from recruiter_id
-          note_text: noteText,
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'pitch_id,user_id' // Changed from pitch_id,recruiter_id
-        })
+      // Note: recruiter_notes table doesn't exist in live schema
+      // Skip saving notes until table is created
+      const error = new Error('recruiter_notes table not in live schema')
 
       if (error) throw error
 

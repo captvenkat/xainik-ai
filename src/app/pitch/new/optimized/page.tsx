@@ -109,10 +109,16 @@ export default function OptimizedNewPitchPage() {
           experience_years: veteranProfile?.years_experience || 0,
           phone: userProfile?.phone || '',
           // Custom pitch data
-          photo_url: formData.photo_url,
-          resume_url: formData.resume_url,
-          resume_share_enabled: formData.resume_share_enabled,
-          availability: formData.availability,
+          photo_url: formData.photo_url || '',
+          linkedin_url: '',
+          likes_count: 0,
+          shares_count: 0,
+          views_count: 0,
+          endorsements_count: 0,
+          availability: formData.availability || '',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          allow_resume_requests: formData.resume_share_enabled || false,
           is_active: true,
           plan_tier: 'free' // Default to free plan
         })

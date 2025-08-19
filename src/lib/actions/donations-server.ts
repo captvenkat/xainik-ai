@@ -80,11 +80,15 @@ export async function getDonationStats(): Promise<{
     .from('donations')
     .select('*', { count: 'exact', head: true })
   
-  const { data: amountData } = await supabase
-    .from('donations')
-    .select('amount_cents')
+  // Note: donations table has limited schema in live database
+  // Skip calculating total amount until schema is properly migrated
+  // const { data: amountData } = await supabase
+  //   .from('donations')
+  //   .select('amount_cents')
+  // 
+  // const totalAmount = amountData?.reduce((sum, donation) => sum + (donation.amount_cents || 0), 0) || 0
   
-  const totalAmount = amountData?.reduce((sum, donation) => sum + (donation.amount_cents || 0), 0) || 0
+  const totalAmount = 0 // Placeholder until schema is migrated
   
   const { data: recentDonations } = await supabase
     .from('donations')

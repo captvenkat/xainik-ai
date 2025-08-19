@@ -72,7 +72,7 @@ export default function ProfileSettingsPage() {
           bio: veteranData?.bio || '',
           location_current: veteranData?.location_current || '',
           locations_preferred: veteranData?.locations_preferred || [],
-          web_links: veteranData?.web_links || [],
+          web_links: (veteranData?.web_links as any) || [],
           retirement_date: veteranData?.retirement_date || ''
         });
         
@@ -163,16 +163,18 @@ export default function ProfileSettingsPage() {
       // Update or create veteran profile
       const veteranData = {
         user_id: user.id,
+        rank: formData.military_rank,
         military_rank: formData.military_rank,
         service_branch: formData.service_branch,
-        years_experience: formData.years_experience ? parseInt(formData.years_experience) : null,
+        years_experience: formData.years_experience ? parseInt(formData.years_experience) : 0,
         bio: formData.bio,
         location_current: formData.location_current,
         location_current_city: locationCurrentParsed.city,
         location_current_country: locationCurrentParsed.country,
         locations_preferred: formData.locations_preferred.filter(loc => loc.trim()),
-        locations_preferred_structured: locationsPreferredParsed,
-        web_links: formData.web_links
+        locations_preferred_structured: locationsPreferredParsed as any,
+        web_links: formData.web_links as any,
+        retirement_date: null
       };
 
       if (veteranProfile) {

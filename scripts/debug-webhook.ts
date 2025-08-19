@@ -33,20 +33,9 @@ async function debugWebhook() {
       archived_at: new Date().toISOString()
     };
 
-    console.log('📝 Inserting test webhook event...');
+    console.log('📝 Skipping webhook event insertion - payment_events_archive table not in live schema');
 
-    const { data: paymentEvent, error } = await adminClient
-      .from('payment_events_archive')
-      .insert(testEvent)
-      .select('id')
-      .single();
-
-    if (error) {
-      console.error('❌ Failed to insert webhook event:', error);
-      return;
-    }
-
-    console.log('✅ Webhook event inserted successfully:', paymentEvent);
+    console.log('✅ Webhook event test skipped');
 
     // Test donation creation
     const testDonation = {

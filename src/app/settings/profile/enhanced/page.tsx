@@ -63,7 +63,22 @@ export default function EnhancedProfileSettingsPage() {
           .eq('user_id', user.id)
           .single();
         
-        setVeteranProfile(veteranData);
+        setVeteranProfile(veteranData ? {
+          ...veteranData,
+          military_rank: veteranData.military_rank || '',
+          service_branch: veteranData.service_branch || '',
+          bio: veteranData.bio || '',
+          location_current: veteranData.location_current || '',
+          location_current_city: veteranData.location_current_city || '',
+          location_current_country: veteranData.location_current_country || '',
+          locations_preferred: veteranData.locations_preferred || [],
+          locations_preferred_structured: (veteranData.locations_preferred_structured as any) || [],
+          web_links: (veteranData.web_links as any) || [],
+          years_experience: veteranData.years_experience || 0,
+          created_at: veteranData.created_at || new Date().toISOString(),
+          updated_at: veteranData.updated_at || new Date().toISOString(),
+          retirement_date: veteranData.retirement_date || undefined
+        } : null);
         
         // Initialize form data with existing values
         setFormData({
@@ -75,7 +90,7 @@ export default function EnhancedProfileSettingsPage() {
           bio: veteranData?.bio || '',
           location_current: veteranData?.location_current || '',
           locations_preferred: veteranData?.locations_preferred || [],
-          web_links: veteranData?.web_links || [],
+          web_links: (veteranData?.web_links as any) || [],
           retirement_date: veteranData?.retirement_date || ''
         });
         
@@ -159,23 +174,29 @@ export default function EnhancedProfileSettingsPage() {
       // Update or create veteran profile
       const veteranData = {
         user_id: user.id,
-        military_rank: data.military_rank,
+        rank: data.military_rank,
         service_branch: data.service_branch,
-        years_experience: data.years_experience ? parseInt(data.years_experience) : null,
-        bio: data.bio,
+        years_experience: data.years_experience ? parseInt(data.years_experience) : 0,
         location_current: data.location_current,
+        locations_preferred: data.locations_preferred,
+        bio: data.bio,
+        military_rank: data.military_rank,
+        web_links: data.web_links,
         location_current_city: currentLocationParsed.city,
         location_current_country: currentLocationParsed.country,
-        locations_preferred: data.locations_preferred,
         locations_preferred_structured: preferredLocationsStructured,
-        web_links: data.web_links
+        retirement_date: null
       };
 
       if (veteranProfile) {
         // Update existing veteran profile
         const { error: veteranError } = await supabase
           .from('veterans')
-          .update(veteranData)
+          .update({
+            ...veteranData,
+            locations_preferred_structured: veteranData.locations_preferred_structured as any,
+            web_links: veteranData.web_links as any
+          })
           .eq('user_id', user.id);
 
         if (veteranError) throw veteranError;
@@ -183,7 +204,11 @@ export default function EnhancedProfileSettingsPage() {
         // Create new veteran profile
         const { error: veteranError } = await supabase
           .from('veterans')
-          .insert(veteranData);
+          .insert({
+            ...veteranData,
+            locations_preferred_structured: veteranData.locations_preferred_structured as any,
+            web_links: veteranData.web_links as any
+          });
 
         if (veteranError) throw veteranError;
       }

@@ -52,34 +52,39 @@ export async function getUserProfile(userId: string) {
 }
 
 export async function isSubscriptionActive(userId: string): Promise<boolean> {
-  const { data, error } = await supabase
-    .from('user_subscriptions')
-    .select('end_date')
-    .eq('user_id', userId)
-    .eq('status', 'active')
-    .gte('end_date', new Date().toISOString())
-    .single()
-  
-  if (error && error.code !== 'PGRST116') {
-    throw new Error(`Failed to check subscription: ${error.message}`)
-  }
-  
-  return !!data
+  // Commented out due to user_subscriptions table not existing in live schema
+  // const { data, error } = await supabase
+  //   .from('user_subscriptions')
+  //   .select('end_date')
+  //   .eq('user_id', userId)
+  //   .eq('status', 'active')
+  //   .gte('end_date', new Date().toISOString())
+  //   .single()
+  // 
+  // if (error && error.code !== 'PGRST116') {
+  //   throw new Error(`Failed to check subscription: ${error.message}`)
+  // }
+  // 
+  // return !!data
+  return false // Default to no active subscription
 }
 
 export async function getSubscriptionDetails(userId: string) {
-  const { data, error } = await supabase
-    .from('user_subscriptions')
-    .select('*')
-    .eq('user_id', userId)
-    .eq('status', 'active')
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .single()
+  // Commented out due to user_subscriptions table not existing in live schema
+  // const { data, error } = await supabase
+  //   .from('user_subscriptions')
+  //   .select('*')
+  const data = null
+  const error = null
+  //   .eq('user_id', userId)
+  //   .eq('status', 'active')
+  //   .order('created_at', { ascending: false })
+  //   .limit(1)
+  //   .single()
   
-  if (error && error.code !== 'PGRST116') {
-    throw new Error(`Failed to get subscription details: ${error.message}`)
-  }
+  // if (error && error.code !== 'PGRST116') {
+  //   throw new Error(`Failed to get subscription details: ${error.message}`)
+  // }
   
   return data
 }

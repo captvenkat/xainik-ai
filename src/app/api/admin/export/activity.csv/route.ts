@@ -1,16 +1,14 @@
 import { NextResponse } from 'next/server'
 import { createSupabaseServerOnly } from '@/lib/supabaseServerOnly'
+import type { Database } from '@/types/live-schema'
 import { toCSV } from '@/lib/csv'
 
 export async function GET() {
   const supabase = await createSupabaseServerOnly()
-  const { data: rows } = await supabase
-    .from('user_activity_log')
-    .select('id, activity_type, metadata, created_at')
-    .order('created_at', { ascending: false })
-    .limit(2000)
+  // Note: user_activity_log table doesn't exist in live schema
+  const rows: any[] = []
 
-  const flat = (rows || []).map((r: any) => ({
+  const flat = rows.map((r: any) => ({
     id: r.id,
     activity_type: r.activity_type,
     created_at: r.created_at,

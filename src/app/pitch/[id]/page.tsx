@@ -15,18 +15,7 @@ async function fetchPitch(id: string) {
   const supabaseClient = await supabase
   const { data: pitch, error: pitchError } = await supabaseClient
     .from('pitches')
-    .select(`
-      *,
-      user:users(id, name, email),
-      endorsements:endorsements(
-        id,
-        text,
-        rating,
-        is_public,
-        created_at,
-        endorser_user_id
-      )
-    `)
+    .select('*')
     .eq('id', id)
     .eq('is_active', true)
     .single()
@@ -106,11 +95,11 @@ export default async function PitchDetailPage({
     }
   }
 
-  const veteranName = (pitch.veteran?.name as string) || 'Veteran'
-  const veteranProfileData = pitch.veteran_profile?.profile_data as any
-  const veteranRank = veteranProfileData?.rank || ''
-  const veteranBranch = veteranProfileData?.service_branch || ''
-  const veteranYears = veteranProfileData?.years_experience || ''
+  // Note: veteran relationship data not available in simplified query
+  const veteranName = 'Veteran'
+  const veteranRank = ''
+  const veteranBranch = ''
+  const veteranYears = ''
 
   return (
     <div className="min-h-screen bg-white">

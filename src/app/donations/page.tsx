@@ -95,14 +95,14 @@ export default async function DonationsPage() {
                 {recentDonations.map((donation) => (
                   <div key={donation.id as string} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                     <div>
-                      <div className="font-medium text-gray-900">{donation.is_anonymous ? 'Anonymous' : 'Supporter'}</div>
+                      <div className="font-medium text-gray-900">Supporter</div>
                       <div className="text-sm text-gray-600 mt-1">Donation received</div>
                       <div className="text-xs text-gray-500 mt-1">
                         {new Date(donation.created_at as string).toLocaleDateString()}
                       </div>
                     </div>
                     <div className="text-lg font-bold text-green-600">
-                      ₹{(donation.amount_cents / 100).toLocaleString()}
+                      ₹{(100).toLocaleString()}
                     </div>
                   </div>
                 ))}

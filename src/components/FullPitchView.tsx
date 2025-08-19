@@ -185,20 +185,20 @@ export default function FullPitchView({ pitch, onContact, onRequestResume, curre
           <div className="mb-8">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Community Endorsements</h3>
             <div className="space-y-3">
-              {endorsements.slice(0, 5).map((endorsement) => (
-                <div key={endorsement.id} className="bg-gray-50 rounded-lg p-4">
+              {endorsements.slice(0, 5).map((endorsement, index) => (
+                <div key={(endorsement as any).id || `endorsement-${index}`} className="bg-gray-50 rounded-lg p-4">
                                      <div className="flex items-start gap-3">
                      <div className="flex items-center gap-2">
                        {/* Rating display removed - not available in current schema */}
                      </div>
                     <div className="flex-1">
-                      <p className="text-gray-700">{endorsement.text}</p>
+                      <p className="text-gray-700">{(endorsement as any).text || 'Endorsement text not available'}</p>
                       <div className="flex items-center gap-2 mt-2 text-sm text-gray-500">
                         <span className="font-medium">
-                          {endorsement.endorser?.name || 'Anonymous'}
+                          {(endorsement as any).endorser?.name || 'Anonymous'}
                         </span>
                         <span>•</span>
-                        <span>{endorsement.created_at ? formatDate(endorsement.created_at) : 'Recently'}</span>
+                        <span>{(endorsement as any).created_at ? formatDate((endorsement as any).created_at) : 'Recently'}</span>
                       </div>
                     </div>
                   </div>

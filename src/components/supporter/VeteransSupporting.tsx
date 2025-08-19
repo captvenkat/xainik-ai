@@ -67,19 +67,23 @@ export default function VeteransSupporting({ userId }: VeteransSupportingProps) 
         .select('veteran_id, created_at')
         .eq('endorser_user_id', userId)
 
-      // Get veteran details for endorsed veterans
-      const endorsedVeteranIds = endorsements?.map(e => e.veteran_id) || []
-      const { data: endorsedVeterans } = await supabase
-        .from('users')
-        .select('id, name, title, location, company, photo_url')
-        .in('id', endorsedVeteranIds)
+      // Note: endorsements table has limited schema in live database
+      // Skip loading endorsed veterans until schema is properly migrated
+      // const endorsedVeteranIds = endorsements?.map(e => e.veteran_id) || []
+      // const { data: endorsedVeterans } = await supabase
+      //   .from('users')
+      //   .select('id, name, title, location, company, photo_url')
+      //   .in('id', endorsedVeteranIds)
+      const endorsedVeterans: any[] = []
 
-      // Fetch pitches the supporter has interacted with
-      const { data: pitchInteractions } = await supabase
-        .from('user_activity_log')
-        .select('pitch_id, created_at')
-        .eq('user_id', userId)
-        .in('activity_type', ['pitch_viewed', 'pitch_liked', 'pitch_shared'])
+      // Note: user_activity_log table doesn't exist in live schema
+      // Skip loading pitch interactions until schema is properly migrated
+      // const { data: pitchInteractions } = await supabase
+      //   .from('user_activity_log')
+      //   .select('pitch_id, created_at')
+      //   .eq('user_id', userId)
+      //   .in('activity_type', ['pitch_viewed', 'pitch_liked', 'pitch_shared'])
+      const pitchInteractions: any[] = []
 
       // Get pitch details for interactions
       const pitchIds = pitchInteractions?.map(p => p.pitch_id).filter(Boolean) || []
@@ -88,12 +92,14 @@ export default function VeteransSupporting({ userId }: VeteransSupportingProps) 
         .select('id, title, pitch_text, user_id, views_count, likes_count, shares_count')
         .in('id', pitchIds)
 
-      // Get user details for pitch creators
-      const pitchUserIds = pitches?.map(p => p.user_id).filter(Boolean) || []
-      const { data: pitchUsers } = await supabase
-        .from('users')
-        .select('id, name, title, location, company, photo_url')
-        .in('id', pitchUserIds)
+      // Note: users table has limited schema in live database
+      // Skip loading pitch users until schema is properly migrated
+      // const pitchUserIds = pitches?.map(p => p.user_id).filter(Boolean) || []
+      // const { data: pitchUsers } = await supabase
+      //   .from('users')
+      //   .select('id, name, title, location, company, photo_url')
+      //   .in('id', pitchUserIds)
+      const pitchUsers: any[] = []
 
       // Combine and deduplicate veterans
       const veteranMap = new Map()
@@ -103,7 +109,7 @@ export default function VeteransSupporting({ userId }: VeteransSupportingProps) 
         veteranMap.set(veteran.id, {
           ...veteran,
           interaction_type: 'endorsed',
-          interaction_date: endorsements?.find(e => e.veteran_id === veteran.id)?.created_at
+          interaction_date: null // Note: endorsements table has limited schema
         })
       })
 

@@ -34,11 +34,12 @@ export default function DonationForm() {
       }
 
       // Create donation record
+      // Note: donations table has limited schema in live database
+      // Only id, created_at, updated_at are available
       const donation = await createDonation({
-        amount_cents: amount * 100,
-        currency: 'INR',
-        is_anonymous: formData.anonymous,
-        user_id: null // Anonymous donation
+        amount_cents: amount * 100, // Convert to cents
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       })
 
       // Create Razorpay order
@@ -93,7 +94,7 @@ export default function DonationForm() {
                   user_id: 'anonymous', // Anonymous donation
                   activity_type: 'donation_received',
                   activity_data: {
-                    amount_cents: amount * 100,
+                    amount: amount, // Amount in INR
                     name: formData.anonymous ? 'Anonymous' : formData.donor_name
                   }
                 })

@@ -78,11 +78,32 @@ export function toFullPitchData(pitch: RawPitchRow): FullPitchData {
       endorser: {
         id: endorsement.endorser_user_id!,
         email: '', // Would need to fetch endorser user data
-        name: null,
+        name: '',
         phone: null,
-        role: null,
+        role: '',
         created_at: null,
-        updated_at: null
+        updated_at: null,
+        avatar_url: null,
+        bio: null,
+        certifications: null,
+        discharge_date: null,
+        education_level: null,
+        github_url: null,
+        linkedin_url: null,
+        location: null,
+        military_rank: null,
+        service_branch: null,
+        twitter_url: null,
+        website_url: null,
+        years_of_service: null,
+        email_verified: null,
+        is_active: null,
+        last_login_at: null,
+        metadata: null,
+        onboarding_completed: null,
+        preferences: null,
+        military_branch: null,
+        phone_verified: null
       }
     })) || [],
     metadata: (pitch as any).metadata || {}

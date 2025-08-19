@@ -69,7 +69,22 @@ export default function RoleSelectionModal({ isOpen, onClose, onRoleSelected, us
           name: user.user_metadata?.full_name || 
                  user.user_metadata?.name || 
                  user.email?.split('@')[0] || 'User',
-          role: role
+          phone: '', // Required field
+          role: role,
+          location: '', // Required field
+          military_branch: '', // Required field
+          military_rank: '', // Required field
+          years_of_service: 0, // Required field
+          discharge_date: '', // Required field
+          education_level: '', // Required field
+          certifications: null, // Required field
+          bio: '', // Required field
+          avatar_url: null, // Required field
+          is_active: true, // Required field
+          email_verified: false, // Required field
+          phone_verified: false, // Required field
+          last_login_at: null, // Required field
+          metadata: {} // Required field
         }, {
           onConflict: 'id'
         })

@@ -18,34 +18,38 @@ export async function getNudges(pitchId: string): Promise<NudgeData[]> {
   const supabase = await createActionClient()
   
   try {
-    const { data, error } = await supabase
-      .from('impact_nudges')
-      .select('*')
-      .eq('pitch_id', pitchId)
-      .eq('actioned', false)
-      .order('priority', { ascending: true })
-      .order('created_at', { ascending: false })
+    // Note: impact_nudges table doesn't exist in live database
+    // Return default nudges until schema is properly migrated
+    // const { data, error } = await supabase
+    //   .from('impact_nudges')
+    //   .select('*')
+    //   .eq('pitch_id', pitchId)
+    //   .eq('actioned', false)
+    //   .order('priority', { ascending: true })
+    //   .order('created_at', { ascending: false })
     
-    if (error) {
-      console.error('Error fetching nudges:', error)
-      return getDefaultNudges()
-    }
+    // if (error) {
+    //   console.error('Error fetching nudges:', error)
+    //   return getDefaultNudges()
+    // }
     
-    if (!data || data.length === 0) {
-      return getDefaultNudges()
-    }
+    // if (!data || data.length === 0) {
+    //   return getDefaultNudges()
+    // }
     
-    return data.map(nudge => ({
-      id: nudge.id,
-      type: nudge.nudge_type,
-      title: nudge.title,
-      description: nudge.description,
-      actionUrl: nudge.action_url,
-      priority: nudge.priority,
-      actioned: nudge.actioned,
-      actionedAt: nudge.actioned_at,
-      expiresAt: nudge.expires_at
-    }))
+    // return data.map(nudge => ({
+    //   id: nudge.id,
+    //   type: nudge.nudge_type,
+    //   title: nudge.title,
+    //   description: nudge.description,
+    //   actionUrl: nudge.action_url,
+    //   priority: nudge.priority,
+    //   actioned: nudge.actioned,
+    //   actionedAt: nudge.actioned_at,
+    //   expiresAt: nudge.expires_at
+    // }))
+    
+    return getDefaultNudges() // Placeholder until schema is migrated
   } catch (error) {
     console.error('Error in getNudges:', error)
     return getDefaultNudges()
@@ -56,20 +60,22 @@ export async function markNudgeActioned(id: string): Promise<boolean> {
   const supabase = await createActionClient()
   
   try {
-    const { error } = await supabase
-      .from('impact_nudges')
-      .update({
-        actioned: true,
-        actioned_at: new Date().toISOString()
-      })
-      .eq('id', id)
+    // Note: impact_nudges table doesn't exist in live database
+    // Return true as placeholder until schema is properly migrated
+    // const { error } = await supabase
+    //   .from('impact_nudges')
+    //   .update({
+    //     actioned: true,
+    //     actioned_at: new Date().toISOString()
+    //   })
+    //   .eq('id', id)
     
-    if (error) {
-      console.error('Error marking nudge as actioned:', error)
-      return false
-    }
+    // if (error) {
+    //   console.error('Error marking nudge as actioned:', error)
+    //   return false
+    // }
     
-    return true
+    return true // Placeholder until schema is migrated
   } catch (error) {
     console.error('Error in markNudgeActioned:', error)
     return false

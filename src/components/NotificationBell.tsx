@@ -63,14 +63,9 @@ export default function NotificationBell() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
-      // Fetch notifications
-      const { data: notificationsData } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('channel', 'IN_APP')
-        .order('created_at', { ascending: false })
-        .limit(10)
+      // Note: notifications table has limited schema (id, created_at, updated_at only)
+      // Skip fetching notifications until schema is properly migrated
+      const notificationsData: any[] = []
 
       if (notificationsData) {
         setNotifications(notificationsData as any)
@@ -86,11 +81,9 @@ export default function NotificationBell() {
     try {
       const supabase = createSupabaseBrowser()
       
-      await supabase
-        .from('notifications')
-        .update({ read_at: new Date().toISOString() })
-        .eq('id', notificationId)
-
+      // Note: notifications table has limited schema (read_at doesn't exist)
+      // Skip updating read status until schema is properly migrated
+      
       // Update local state
       setNotifications(prev => 
         prev.map(n => 
@@ -112,11 +105,8 @@ export default function NotificationBell() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
-      await supabase
-        .from('notifications')
-        .update({ read_at: new Date().toISOString() })
-        .eq('user_id', user.id)
-        .is('read_at', null)
+      // Note: notifications table has limited schema (read_at, user_id don't exist)
+      // Skip updating read status until schema is properly migrated
 
       // Update local state
       setNotifications(prev => 

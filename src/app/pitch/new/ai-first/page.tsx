@@ -113,9 +113,18 @@ export default function AIFirstPitchPage() {
         skills: formData.skills.filter(skill => skill.trim()),
         job_type: formData.job_type,
         availability: formData.availability,
-        location: profile.location, // Use profile location (already validated above)
+        location: profile.location || '', // Use profile location (already validated above)
         phone: profile.phone || '', // Add phone from profile
-        photo_url: formData.photo_url,
+        photo_url: formData.photo_url || '',
+        linkedin_url: '',
+        likes_count: 0,
+        shares_count: 0,
+        views_count: 0,
+        endorsements_count: 0,
+        plan_tier: '',
+        experience_years: 0,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
         allow_resume_requests: formData.allow_resume_requests || false,
         is_active: true
       }

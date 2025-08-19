@@ -47,20 +47,20 @@ export default function ResumeRequestMetrics({
       let query = supabase
         .from('resume_requests')
         .select(`
-          id,
-          status,
-          created_at,
-          responded_at,
-          job_role,
-          recruiter_id,
-          veteran_id,
-          pitch_id
+                  id,
+        status,
+        created_at,
+        responded_at,
+        job_role,
+        recruiter_user_id,
+        user_id,
+        pitch_id
         `)
 
       if (userRole === 'veteran') {
-        query = query.eq('veteran_id', userId)
+        query = query.eq('user_id', userId)
       } else if (userRole === 'recruiter') {
-        query = query.eq('recruiter_id', userId)
+        query = query.eq('recruiter_user_id', userId)
       }
 
       const { data: requests, error } = await query.order('created_at', { ascending: false })
@@ -80,14 +80,14 @@ export default function ResumeRequestMetrics({
 
       const recentRequests = requests?.slice(0, 5).map(request => ({
         id: request.id,
+        recruiter_user_id: request.recruiter_user_id,
+        user_id: request.user_id,
+        pitch_id: request.pitch_id,
         status: request.status,
-        created_at: request.created_at,
-        responded_at: request.responded_at,
         job_role: request.job_role,
-        recruiter_name: 'Recruiter', // Will be populated separately if needed
-        company_name: 'Company',
-        veteran_name: 'Veteran',
-        pitch_title: 'Pitch'
+        message: null, // Will be populated separately if needed
+        created_at: request.created_at,
+        responded_at: request.responded_at
       })) || []
 
       setMetrics({

@@ -84,31 +84,35 @@ export async function checkIfLiked(pitchId: string, userId: string): Promise<boo
   try {
     const supabaseAction = await createActionClient()
     
-    // Check if user has liked this pitch by looking at activity logs
-    const { data: activity } = await supabaseAction
-      .from('user_activity_log')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('activity_type', 'pitch_liked')
-      .eq('activity_data->pitch_id', pitchId)
-      .order('created_at', { ascending: false })
-      .limit(1)
+    // Note: user_activity_log table doesn't exist in live database
+    // Return false as placeholder until schema is properly migrated
+    // // Check if user has liked this pitch by looking at activity logs
+    // const { data: activity } = await supabaseAction
+    //   .from('user_activity_log')
+    //   .select('*')
+    //   .eq('user_id', userId)
+    //   .eq('activity_type', 'pitch_liked')
+    //   .eq('activity_data->pitch_id', pitchId)
+    //   .order('created_at', { ascending: false })
+    //   .limit(1)
 
-    if (!activity || activity.length === 0) {
-      return false
-    }
+    // if (!activity || activity.length === 0) {
+    //   return false
+    // }
 
-    // Check if there's a more recent unlike activity
-    const { data: unlikeActivity } = await supabaseAction
-      .from('user_activity_log')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('activity_type', 'pitch_unliked')
-      .eq('activity_data->pitch_id', pitchId)
-      .gt('created_at', activity[0]?.created_at || '')
-      .limit(1)
+    // // Check if there's a more recent unlike activity
+    // const { data: unlikeActivity } = await supabaseAction
+    //   .from('user_activity_log')
+    //   .select('*')
+    //   .eq('user_id', userId)
+    //   .eq('activity_type', 'pitch_unliked')
+    //   .eq('activity_data->pitch_id', pitchId)
+    //   .gt('created_at', activity[0]?.created_at || '')
+    //   .limit(1)
 
-    return !unlikeActivity || unlikeActivity.length === 0
+    // return !unlikeActivity || unlikeActivity.length === 0
+    
+    return false // Placeholder until schema is migrated
   } catch (error) {
     console.error('Error checking if pitch is liked:', error)
     return false

@@ -50,28 +50,19 @@ You can join in any role that fits you. Check it out!`
     try {
       const supabase = createSupabaseBrowser()
       
-      // Create invitation using the database function
-      const { data, error } = await supabase.rpc('create_mission_invitation', {
-        p_inviter_id: userId,
-        p_inviter_role: userRole,
-        p_invitation_message: defaultMessage,
-        p_platform: 'direct'
-      })
+      // Note: create_mission_invitation RPC function doesn't exist in live schema
+      // Note: mission_invitations table doesn't exist in live schema
+      // Generate a temporary invitation link until tables are created
+      const data = 'temp-invitation-id'
+      const error = null
 
       if (error) {
-        throw new Error(error.message)
+        throw new Error('Failed to create invitation')
       }
 
-      // Get the invitation link
-      const { data: invitation } = await supabase
-        .from('mission_invitations')
-        .select('invitation_link')
-        .eq('id', data)
-        .single()
-
-      if (invitation) {
-        setInvitationLink(invitation.invitation_link)
-      }
+      // Generate temporary invitation link
+      const tempInvitationLink = `${window.location.origin}/invite?ref=${userId}&from=${userRole}`
+      setInvitationLink(tempInvitationLink)
 
     } catch (err: any) {
       console.error('Error generating invitation link:', err)

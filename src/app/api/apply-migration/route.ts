@@ -162,8 +162,9 @@ export async function POST(request: NextRequest) {
       ON CONFLICT (plan_code) DO NOTHING;
     `;
     
-    // Execute the migration
-    const { error } = await supabase.rpc('exec_sql', { sql: migrationSQL });
+    // Note: exec_sql RPC function doesn't exist in live database
+    // Migration should be applied manually in Supabase SQL Editor
+    const error = new Error('exec_sql RPC function not available - apply migration manually in SQL Editor');
     
     if (error) {
       console.error('Migration error:', error);

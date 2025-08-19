@@ -106,7 +106,8 @@ export default function RoleSelectionPage() {
             .from('supporters')
             .insert({
               user_id: user.id,
-              intro: reason || null
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
             });
 
           if (supporterError) {
@@ -118,10 +119,9 @@ export default function RoleSelectionPage() {
             const { error: eventError } = await supabase
               .from('referral_events')
               .insert({
-                referral_id: referralId,
                 event_type: 'SIGNUP_FROM_REFERRAL',
-                platform: 'direct',
-                user_agent: navigator.userAgent
+                created_at: new Date().toISOString(),
+                occurred_at: new Date().toISOString()
               });
 
             if (eventError) {

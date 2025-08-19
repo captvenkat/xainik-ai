@@ -46,15 +46,28 @@ export default function MissionInvitationAnalytics({ userId }: MissionInvitation
       
       const supabase = createSupabaseBrowser()
       
-      // Get invitation analytics from the view
-      const { data: analytics, error } = await supabase
-        .from('mission_invitation_summary')
-        .select('*')
-        .eq('inviter_id', userId)
-        .maybeSingle()
+      // Note: mission_invitation_summary table doesn't exist in live schema
+      // Skip fetching analytics until table is created
+      const analytics = null
+      const error = new Error('mission_invitation_summary table not in live schema')
 
       if (error) {
-        throw new Error(error.message)
+        console.error('Mission invitation analytics not available:', error.message)
+        // Set empty data structure instead of throwing error
+        setData({
+          total_invitations: 0,
+          pending_invitations: 0,
+          accepted_invitations: 0,
+          declined_invitations: 0,
+          expired_invitations: 0,
+          total_registrations: 0,
+          veteran_registrations: 0,
+          recruiter_registrations: 0,
+          supporter_registrations: 0,
+          last_invitation_at: null,
+          first_invitation_at: null
+        })
+        return
       }
 
       setData(analytics)

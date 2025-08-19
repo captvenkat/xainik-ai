@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid role' }, { status: 400 })
     }
 
-    // Create user record
+    // Create user record with all required fields matching live schema
     const { data: newUser, error: createError } = await supabase
       .from('users')
       .insert({
@@ -45,7 +45,22 @@ export async function POST(request: NextRequest) {
               user.user_metadata?.full_name || 
               user.user_metadata?.name || 
               user.email?.split('@')[0] || 'User',
-        role: role
+        phone: '',
+        role: role,
+        location: '',
+        military_branch: '',
+        military_rank: '',
+        years_of_service: 0,
+        discharge_date: '',
+        education_level: '',
+        certifications: null,
+        bio: '',
+        avatar_url: null,
+        is_active: true,
+        email_verified: false,
+        phone_verified: false,
+        last_login_at: null,
+        metadata: {} as any
       })
       .select()
       .single()
