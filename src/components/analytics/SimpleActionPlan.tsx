@@ -47,9 +47,9 @@ export default function SimpleActionPlan({ data }: SimpleActionPlanProps) {
   return (
     <div className="bg-white rounded-xl shadow-sm border">
       <div className="p-6 border-b">
-        <h3 className="text-lg font-semibold text-gray-900">Intelligent Actions</h3>
+        <h3 className="text-lg font-semibold text-gray-900">Your Mentor's Advice</h3>
         <p className="text-sm text-gray-600 mt-1">
-          Data-driven insights to get you hired faster
+          Simple steps to get you hired faster
         </p>
       </div>
       
@@ -77,8 +77,8 @@ export default function SimpleActionPlan({ data }: SimpleActionPlanProps) {
                   </div>
                 </div>
                 
-                <p className="text-sm text-gray-700 bg-gray-50 rounded-lg p-3 border-l-4 border-blue-400">
-                  <strong>Why this matters:</strong> {action.reason}
+                <p className="text-sm text-gray-700 bg-blue-50 rounded-lg p-3 border-l-4 border-blue-400">
+                  💡 {action.reason}
                 </p>
               </div>
               
@@ -87,7 +87,7 @@ export default function SimpleActionPlan({ data }: SimpleActionPlanProps) {
                 className="ml-4 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors flex items-center gap-2 whitespace-nowrap"
               >
                 <CheckCircle className="w-4 h-4" />
-                Take Action
+                Let's Do This
               </button>
             </div>
           </div>
@@ -97,7 +97,7 @@ export default function SimpleActionPlan({ data }: SimpleActionPlanProps) {
       {data.summary && (
         <div className="p-4 bg-gray-50 border-t border-gray-200">
           <div className="text-xs text-gray-600">
-            <strong>Your current stats:</strong> {data.summary.totalViews} views • {data.summary.conversionRate}% conversion • {data.summary.supporterCount} supporters • {data.summary.endorsementCount} endorsements
+            <strong>Quick check:</strong> {data.summary.totalViews} people have seen your pitch • {data.summary.supporterCount} supporter{data.summary.supporterCount === 1 ? '' : 's'} in your network
           </div>
         </div>
       )}
