@@ -51,7 +51,7 @@ export default function MissionInvitationAnalytics({ userId }: MissionInvitation
         .from('mission_invitation_summary')
         .select('*')
         .eq('inviter_id', userId)
-        .single()
+        .maybeSingle()
 
       if (error) {
         throw new Error(error.message)
@@ -94,7 +94,7 @@ export default function MissionInvitationAnalytics({ userId }: MissionInvitation
     )
   }
 
-  if (!data || data.total_invitations === 0) {
+  if (!data) {
     return (
       <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
         <div className="text-center py-8">
