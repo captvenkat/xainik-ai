@@ -12,11 +12,14 @@ export interface CommunitySuggestionVote {
 export interface CommunitySuggestionWithVotes {
   id: string
   user_id: string
-  suggestion: string
+  title: string
+  description?: string
   suggestion_type: 'feature' | 'improvement' | 'bug'
-  status: 'active' | 'implemented' | 'rejected'
+  status: 'active' | 'implemented' | 'rejected' | 'pending'
+  priority: 'low' | 'medium' | 'high'
   votes: number
   created_at: string
+  updated_at: string
   user_name?: string
   user_vote?: 'upvote' | 'downvote' | null
   upvote_count: number
