@@ -23,11 +23,11 @@ export async function getSimpleHeroData(veteranId: string) {
         referrals!referral_events_referral_id_fkey (
           pitch_id,
           pitches!referrals_pitch_id_fkey (
-            veteran_id
+            user_id
           )
         )
       `)
-      .eq('referrals.pitches.veteran_id', veteranId)
+      .eq('referrals.pitches.user_id', veteranId)
       .gte('occurred_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
 
     return {
@@ -183,17 +183,18 @@ export async function getSupporterPerformanceList(veteranId: string) {
       .from('referrals')
       .select(`
         id,
-        supporter_id,
+        user_id,
         pitch_id,
         created_at,
-        users!referrals_supporter_id_fkey (
+        users!referrals_user_id_fkey (
           id,
           name,
           email
         ),
-        pitches (
+        pitches!referrals_pitch_id_fkey (
           id,
-          title
+          title,
+          user_id
         ),
         referral_events (
           id,
@@ -202,7 +203,7 @@ export async function getSupporterPerformanceList(veteranId: string) {
           occurred_at
         )
       `)
-      .eq('pitches.veteran_id', veteranId)
+      .eq('pitches.user_id', veteranId)
       .order('created_at', { ascending: false })
 
     // Process supporter performance data
@@ -228,7 +229,7 @@ export async function getSupporterPerformanceList(veteranId: string) {
       const conversionRate = totalViews > 0 ? (totalActions / totalViews) * 100 : 0
 
       return {
-        supporterId: referral.supporter_id,
+        supporterId: referral.user_id,
         supporterName: referral.users?.name || 'Unknown',
         supporterEmail: referral.users?.email || '',
         pitchId: referral.pitch_id,
@@ -268,7 +269,7 @@ export async function getSimpleActionsData(veteranId: string) {
     ] = await Promise.all([
       supabaseAction
         .from('pitches')
-        .select('id, title, content, skills, experience, views_count, likes_count, shares_count, created_at, updated_at')
+        .select('id, title, pitch_text, skills, experience_years, likes_count, created_at, updated_at')
         .eq('user_id', veteranId)
         .order('created_at', { ascending: false }),
       supabaseAction
@@ -279,8 +280,15 @@ export async function getSimpleActionsData(veteranId: string) {
         .limit(50),
       supabaseAction
         .from('referrals')
-        .select('*')
-        .eq('veteran_id', veteranId),
+        .select(`
+          *,
+          pitches!referrals_pitch_id_fkey (
+            id,
+            title,
+            user_id
+          )
+        `)
+        .eq('pitches.user_id', veteranId),
       supabaseAction
         .from('endorsements')
         .select('*')
@@ -304,20 +312,20 @@ export async function getSimpleActionsData(veteranId: string) {
     }
 
     // Analyze pitch performance
-    const totalViews = currentPitch.views_count || 0
+    const totalViews = 0 // views_count doesn't exist in schema, will be calculated from activity
     const totalLikes = currentPitch.likes_count || 0
-    const totalShares = currentPitch.shares_count || 0
+    const totalShares = 0 // shares_count doesn't exist in schema
     const conversionRate = totalViews > 0 ? (totalLikes / totalViews) * 100 : 0
     
-    // Check for photo (simplified - would need actual photo field)
-    const hasPhoto = false // This would check actual photo field
+    // Check for photo
+    const hasPhoto = !!currentPitch.photo_url
     
     // Analyze skills completeness
     const skills = currentPitch.skills || []
     const hasSpecificSkills = skills.length >= 3 && skills.some((skill: string) => skill.length > 10)
     
     // Analyze content quality
-    const contentLength = currentPitch.content?.length || 0
+    const contentLength = currentPitch.pitch_text?.length || 0
     const hasDetailedContent = contentLength > 200
     
     // Analyze recent activity

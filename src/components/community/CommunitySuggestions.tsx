@@ -94,7 +94,8 @@ export default function CommunitySuggestions({ userId }: { userId: string }) {
         .from('community_suggestions')
         .insert({
           user_id: userId,
-          suggestion: newSuggestion.trim(),
+          title: newSuggestion.trim(),
+          description: newSuggestion.trim(),
           category: selectedCategory
         })
 
