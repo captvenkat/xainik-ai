@@ -61,8 +61,7 @@ export const MILITARY_RANKS = {
     'Lieutenant Colonel',
     'Major',
     'Captain',
-    'Lieutenant',
-    'Second Lieutenant'
+    'Lieutenant'
   ],
   JCOs: [
     'Subedar Major',
@@ -90,8 +89,7 @@ export const NAVY_RANKS = {
     'Commander',
     'Lieutenant Commander',
     'Lieutenant',
-    'Sub Lieutenant',
-    'Acting Sub Lieutenant'
+    'Sub Lieutenant'
   ],
   JCOs: [
     'Master Chief Petty Officer 1st Class',
@@ -119,8 +117,7 @@ export const AIR_FORCE_RANKS = {
     'Wing Commander',
     'Squadron Leader',
     'Flight Lieutenant',
-    'Flying Officer',
-    'Pilot Officer'
+    'Flying Officer'
   ],
   JCOs: [
     'Master Warrant Officer',
