@@ -196,7 +196,7 @@ export default function VeteranProfileTab() {
 
   const getMilitaryRanksForBranch = (branch: string) => {
     if (!branch || !ALL_MILITARY_RANKS[branch as keyof typeof ALL_MILITARY_RANKS]) {
-      return { OFFICERS: [], JCOs: [], NCOs: [] };
+      return { OFFICERS: [], JCOs: [], NCOs: [], AGNIVEERS: [] };
     }
     
     return ALL_MILITARY_RANKS[branch as keyof typeof ALL_MILITARY_RANKS];
@@ -424,11 +424,16 @@ export default function VeteranProfileTab() {
                               <option key={rank} value={rank}>{rank}</option>
                             ))}
                           </optgroup>
-                          <optgroup label="NCOs">
-                            {ranks.NCOs.map(rank => (
-                              <option key={rank} value={rank}>{rank}</option>
-                            ))}
-                          </optgroup>
+                                                     <optgroup label="NCOs">
+                             {ranks.NCOs.map(rank => (
+                               <option key={rank} value={rank}>{rank}</option>
+                             ))}
+                           </optgroup>
+                           <optgroup label="Agniveers">
+                             {ranks.AGNIVEERS.map(rank => (
+                               <option key={rank} value={rank}>{rank}</option>
+                             ))}
+                           </optgroup>
                         </>
                       );
                     })()}
