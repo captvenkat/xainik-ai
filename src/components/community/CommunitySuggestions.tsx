@@ -125,6 +125,8 @@ export default function CommunitySuggestions({ userId }: { userId: string }) {
         return 'Implemented'
       case 'rejected':
         return 'Rejected'
+      case 'pending':
+        return 'Pending Review'
       default:
         return 'Under Review'
     }
@@ -281,7 +283,12 @@ export default function CommunitySuggestions({ userId }: { userId: string }) {
                 </div>
               </div>
 
-              <p className="text-gray-900 mb-4">{suggestion.suggestion}</p>
+              <div className="mb-4">
+                <h5 className="font-semibold text-gray-900 mb-2">{suggestion.title}</h5>
+                {suggestion.description && (
+                  <p className="text-gray-700">{suggestion.description}</p>
+                )}
+              </div>
 
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
