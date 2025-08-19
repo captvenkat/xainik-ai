@@ -1,0 +1,111 @@
+{
+  "timestamp": "2025-08-19T03:55:31.343Z",
+  "totalTests": 21,
+  "passedTests": 8,
+  "failedTests": 13,
+  "errors": [],
+  "details": {
+    "Redirects to auth when not authenticated": {
+      "passed": false,
+      "details": {
+        "currentUrl": "http://localhost:3000/dashboard/veteran"
+      }
+    },
+    "Auth page loads": {
+      "passed": true,
+      "details": {
+        "title": "Xainik - Veteran Hiring Platform"
+      }
+    },
+    "Google OAuth button exists": {
+      "passed": true,
+      "details": {}
+    },
+    "Google sign-in button displays correctly": {
+      "passed": false,
+      "details": {}
+    },
+    "Google OAuth button is available for login": {
+      "passed": false,
+      "details": {}
+    },
+    "Dashboard redirects to auth when not authenticated": {
+      "passed": false,
+      "details": {
+        "currentUrl": "http://localhost:3000/dashboard/veteran"
+      }
+    },
+    "Dashboard tabs require authentication": {
+      "passed": true,
+      "details": {
+        "note": "Analytics, Profile, My Pitches, Mission, and Community tabs require authenticated user session"
+      }
+    },
+    "Manual testing required for tab navigation": {
+      "passed": true,
+      "details": {
+        "note": "Please test tab navigation manually after OAuth login"
+      }
+    },
+    "Analytics features require authentication": {
+      "passed": true,
+      "details": {
+        "note": "Analytics dashboard features require authenticated user session"
+      }
+    },
+    "Manual testing required for analytics": {
+      "passed": true,
+      "details": {
+        "note": "Please test analytics features manually after OAuth login"
+      }
+    },
+    "Name field exists in profile": {
+      "passed": false,
+      "details": {}
+    },
+    "Email field exists in profile": {
+      "passed": false,
+      "details": {}
+    },
+    "Edit Profile button exists": {
+      "passed": false,
+      "details": {}
+    },
+    "Create New Pitch button exists": {
+      "passed": false,
+      "details": {}
+    },
+    "Mission invitation button exists": {
+      "passed": false,
+      "details": {}
+    },
+    "Community suggestions section loads": {
+      "passed": false,
+      "details": {}
+    },
+    "New Suggestion button exists": {
+      "passed": false,
+      "details": {}
+    },
+    "Mobile dashboard navigation works": {
+      "passed": true,
+      "details": {
+        "viewport": "mobile"
+      }
+    },
+    "Tablet dashboard navigation works": {
+      "passed": true,
+      "details": {
+        "viewport": "tablet"
+      }
+    },
+    "Database status indicator displays": {
+      "passed": false,
+      "details": {}
+    },
+    "Database setup instructions display when needed": {
+      "passed": false,
+      "details": {}
+    }
+  }
+}
