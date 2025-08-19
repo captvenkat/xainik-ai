@@ -2,23 +2,17 @@
 
 import { useState, useEffect } from 'react'
 import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
-import { Lightbulb, Plus, ThumbsUp, CheckCircle, XCircle, Clock } from 'lucide-react'
+import { Lightbulb, Plus, CheckCircle, XCircle, Clock } from 'lucide-react'
+import VoteButtons from '@/components/voting/VoteButtons'
+import { getCommunitySuggestionsWithVotes } from '@/lib/services/voting'
+import { CommunitySuggestionWithVotes } from '@/types/voting'
 
 // =====================================================
 // MINIMALISTIC COMMUNITY SUGGESTIONS COMPONENT
 // Professional, Simple, Append-Only to Existing System
 // =====================================================
 
-interface CommunitySuggestion {
-  id: string
-  user_id: string
-  suggestion: string
-  suggestion_type: 'feature' | 'improvement' | 'bug'
-  status: 'active' | 'implemented' | 'rejected'
-  votes: number
-  created_at: string
-  user_name?: string
-}
+// Using the imported type from voting.ts
 
 interface CommunitySuggestionsSummary {
   total_suggestions: number
@@ -30,7 +24,7 @@ interface CommunitySuggestionsSummary {
 }
 
 export default function CommunitySuggestions({ userId }: { userId: string }) {
-  const [suggestions, setSuggestions] = useState<CommunitySuggestion[]>([])
+  const [suggestions, setSuggestions] = useState<CommunitySuggestionWithVotes[]>([])
   const [summary, setSummary] = useState<CommunitySuggestionsSummary | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
@@ -47,24 +41,8 @@ export default function CommunitySuggestions({ userId }: { userId: string }) {
 
   async function fetchSuggestions() {
     try {
-      const { data, error } = await supabase
-        .from('community_suggestions')
-        .select(`
-          *,
-          users:user_id(name)
-        `)
-        .order('votes', { ascending: false })
-        .order('created_at', { ascending: false })
-
-      if (error) throw error
-
-      const suggestionsWithNames = data?.map(suggestion => ({
-        ...suggestion,
-        suggestion: suggestion.title || suggestion.description || 'No description',
-        user_name: suggestion.users?.name || 'Anonymous'
-      })) || []
-
-      setSuggestions(suggestionsWithNames)
+      const suggestionsWithVotes = await getCommunitySuggestionsWithVotes()
+      setSuggestions(suggestionsWithVotes)
     } catch (error) {
       console.error('Error fetching suggestions:', error)
     } finally {
@@ -122,20 +100,12 @@ export default function CommunitySuggestions({ userId }: { userId: string }) {
     }
   }
 
-  async function voteOnSuggestion(suggestionId: string, voteType: 'upvote' | 'downvote') {
-    try {
-      const { error } = await supabase.rpc('vote_on_suggestion', {
-        p_suggestion_id: suggestionId,
-        p_vote_type: voteType
-      })
-
-      if (error) throw error
-
-      // Refresh suggestions to show updated votes
-      await fetchSuggestions()
-    } catch (error) {
-      console.error('Error voting on suggestion:', error)
-    }
+  const handleVoteChange = (suggestionId: string, newVotes: number, userVote: 'upvote' | 'downvote' | null) => {
+    setSuggestions(prev => prev.map(suggestion => 
+      suggestion.id === suggestionId 
+        ? { ...suggestion, votes: newVotes, user_vote: userVote }
+        : suggestion
+    ))
   }
 
   function getStatusIcon(status: string) {
@@ -315,13 +285,12 @@ export default function CommunitySuggestions({ userId }: { userId: string }) {
 
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <button
-                    onClick={() => voteOnSuggestion(suggestion.id, 'upvote')}
-                    className="flex items-center gap-2 text-gray-600 hover:text-blue-600 transition-colors"
-                  >
-                    <ThumbsUp className="w-4 h-4" />
-                    <span className="font-medium">{suggestion.votes}</span>
-                  </button>
+                  <VoteButtons
+                    suggestionId={suggestion.id}
+                    initialVotes={suggestion.votes}
+                    initialUserVote={suggestion.user_vote}
+                    onVoteChange={(newVotes, userVote) => handleVoteChange(suggestion.id, newVotes, userVote)}
+                  />
                   <span className="text-sm text-gray-500">
                     by {suggestion.user_name}
                   </span>
