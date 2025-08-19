@@ -1,63 +1,45 @@
-// =====================================================
-// ENHANCED PROFILE SYSTEM TYPES
-// TypeScript definitions for intelligent profile features
-// =====================================================
+// Enhanced Profile System Types
+// Comprehensive types for intelligent profile features
 
-// Web link types
-export type WebLinkType = 'linkedin' | 'twitter' | 'youtube' | 'github' | 'website';
-
-// Web link interface
 export interface WebLink {
-  type: WebLinkType;
+  id: string;
+  type: 'linkedin' | 'twitter' | 'youtube' | 'github' | 'website';
   url: string;
   label?: string;
-  icon?: string;
+  isActive: boolean;
 }
 
-// Location interface for structured location data
-export interface LocationData {
-  city: string | null;
-  country: string | null;
+export interface LocationStructured {
+  city: string;
+  country: string;
   full: string;
 }
 
-// Military rank options
-export type MilitaryRank = 
-  | 'General' | 'Lieutenant General' | 'Major General' | 'Brigadier' | 'Colonel' | 'Lieutenant Colonel' | 'Major' | 'Captain' | 'Lieutenant' | 'Second Lieutenant'
-  | 'Admiral' | 'Vice Admiral' | 'Rear Admiral' | 'Commodore' | 'Captain' | 'Commander' | 'Lieutenant Commander' | 'Lieutenant' | 'Sub Lieutenant' | 'Acting Sub Lieutenant'
-  | 'Air Chief Marshal' | 'Air Marshal' | 'Air Vice Marshal' | 'Air Commodore' | 'Group Captain' | 'Wing Commander' | 'Squadron Leader' | 'Flight Lieutenant' | 'Flying Officer' | 'Pilot Officer'
-  | 'Retired' | 'Veteran' | 'Ex-Serviceman';
-
-// Service branch options
-export type ServiceBranch = 'Indian Army' | 'Indian Navy' | 'Indian Air Force' | 'Coast Guard' | 'Other';
-
-// Enhanced veteran profile interface
 export interface EnhancedVeteranProfile {
   user_id: string;
   name: string;
   email: string;
-  phone: string | null;
-  military_rank: MilitaryRank | null;
-  service_branch: ServiceBranch | null;
-  years_experience: number | null;
-  bio: string | null; // Max 600 characters
-  location_current_city: string | null;
-  location_current_country: string | null;
-  location_current: string | null;
-  locations_preferred: string[]; // Legacy array format
-  locations_preferred_structured: LocationData[]; // New structured format
-  web_links: WebLink[]; // JSONB array of web links
-  legacy_rank: string | null; // Backward compatibility
-  created_at: string;
-  updated_at: string;
+  phone?: string;
+  military_rank?: string;
+  service_branch?: string;
+  years_experience?: number;
+  bio?: string;
+  location_current_city?: string;
+  location_current_country?: string;
+  location_current?: string;
+  locations_preferred?: string[];
+  locations_preferred_structured?: LocationStructured[];
+  web_links?: WebLink[];
+  rank?: string; // Legacy field
+  created_at?: string;
+  updated_at?: string;
 }
 
-// Form data interface for profile editing
 export interface ProfileFormData {
   name: string;
   phone: string;
-  military_rank: MilitaryRank | '';
-  service_branch: ServiceBranch | '';
+  military_rank: string;
+  service_branch: string;
   years_experience: string;
   bio: string;
   location_current: string;
@@ -65,7 +47,245 @@ export interface ProfileFormData {
   web_links: WebLink[];
 }
 
-// Google Places API response interface
+// Military Rank Options
+export const MILITARY_RANKS = {
+  GENERAL: [
+    'Field Marshal',
+    'General',
+    'Lieutenant General',
+    'Major General',
+    'Brigadier',
+    'Colonel',
+    'Lieutenant Colonel',
+    'Major',
+    'Captain',
+    'Lieutenant',
+    'Second Lieutenant'
+  ],
+  RETIRED: [
+    'Retired General',
+    'Retired Lieutenant General',
+    'Retired Major General',
+    'Retired Brigadier',
+    'Retired Colonel',
+    'Retired Lieutenant Colonel',
+    'Retired Major',
+    'Retired Captain',
+    'Retired Lieutenant',
+    'Retired Second Lieutenant'
+  ],
+  VETERAN: [
+    'Veteran General',
+    'Veteran Lieutenant General',
+    'Veteran Major General',
+    'Veteran Brigadier',
+    'Veteran Colonel',
+    'Veteran Lieutenant Colonel',
+    'Veteran Major',
+    'Veteran Captain',
+    'Veteran Lieutenant',
+    'Veteran Second Lieutenant'
+  ],
+  EX_SERVICEMAN: [
+    'Ex-Serviceman General',
+    'Ex-Serviceman Lieutenant General',
+    'Ex-Serviceman Major General',
+    'Ex-Serviceman Brigadier',
+    'Ex-Serviceman Colonel',
+    'Ex-Serviceman Lieutenant Colonel',
+    'Ex-Serviceman Major',
+    'Ex-Serviceman Captain',
+    'Ex-Serviceman Lieutenant',
+    'Ex-Serviceman Second Lieutenant'
+  ]
+} as const;
+
+// Navy Ranks
+export const NAVY_RANKS = {
+  GENERAL: [
+    'Admiral of the Fleet',
+    'Admiral',
+    'Vice Admiral',
+    'Rear Admiral',
+    'Commodore',
+    'Captain',
+    'Commander',
+    'Lieutenant Commander',
+    'Lieutenant',
+    'Sub Lieutenant',
+    'Acting Sub Lieutenant'
+  ],
+  RETIRED: [
+    'Retired Admiral',
+    'Retired Vice Admiral',
+    'Retired Rear Admiral',
+    'Retired Commodore',
+    'Retired Captain',
+    'Retired Commander',
+    'Retired Lieutenant Commander',
+    'Retired Lieutenant',
+    'Retired Sub Lieutenant',
+    'Retired Acting Sub Lieutenant'
+  ],
+  VETERAN: [
+    'Veteran Admiral',
+    'Veteran Vice Admiral',
+    'Veteran Rear Admiral',
+    'Veteran Commodore',
+    'Veteran Captain',
+    'Veteran Commander',
+    'Veteran Lieutenant Commander',
+    'Veteran Lieutenant',
+    'Veteran Sub Lieutenant',
+    'Veteran Acting Sub Lieutenant'
+  ],
+  EX_SERVICEMAN: [
+    'Ex-Serviceman Admiral',
+    'Ex-Serviceman Vice Admiral',
+    'Ex-Serviceman Rear Admiral',
+    'Ex-Serviceman Commodore',
+    'Ex-Serviceman Captain',
+    'Ex-Serviceman Commander',
+    'Ex-Serviceman Lieutenant Commander',
+    'Ex-Serviceman Lieutenant',
+    'Ex-Serviceman Sub Lieutenant',
+    'Ex-Serviceman Acting Sub Lieutenant'
+  ]
+} as const;
+
+// Air Force Ranks
+export const AIR_FORCE_RANKS = {
+  GENERAL: [
+    'Marshal of the Indian Air Force',
+    'Air Chief Marshal',
+    'Air Marshal',
+    'Air Vice Marshal',
+    'Air Commodore',
+    'Group Captain',
+    'Wing Commander',
+    'Squadron Leader',
+    'Flight Lieutenant',
+    'Flying Officer',
+    'Pilot Officer'
+  ],
+  RETIRED: [
+    'Retired Air Chief Marshal',
+    'Retired Air Marshal',
+    'Retired Air Vice Marshal',
+    'Retired Air Commodore',
+    'Retired Group Captain',
+    'Retired Wing Commander',
+    'Retired Squadron Leader',
+    'Retired Flight Lieutenant',
+    'Retired Flying Officer',
+    'Retired Pilot Officer'
+  ],
+  VETERAN: [
+    'Veteran Air Chief Marshal',
+    'Veteran Air Marshal',
+    'Veteran Air Vice Marshal',
+    'Veteran Air Commodore',
+    'Veteran Group Captain',
+    'Veteran Wing Commander',
+    'Veteran Squadron Leader',
+    'Veteran Flight Lieutenant',
+    'Veteran Flying Officer',
+    'Veteran Pilot Officer'
+  ],
+  EX_SERVICEMAN: [
+    'Ex-Serviceman Air Chief Marshal',
+    'Ex-Serviceman Air Marshal',
+    'Ex-Serviceman Air Vice Marshal',
+    'Ex-Serviceman Air Commodore',
+    'Ex-Serviceman Group Captain',
+    'Ex-Serviceman Wing Commander',
+    'Ex-Serviceman Squadron Leader',
+    'Ex-Serviceman Flight Lieutenant',
+    'Ex-Serviceman Flying Officer',
+    'Ex-Serviceman Pilot Officer'
+  ]
+} as const;
+
+// All Military Ranks Combined
+export const ALL_MILITARY_RANKS = {
+  'Indian Army': MILITARY_RANKS,
+  'Indian Navy': NAVY_RANKS,
+  'Indian Air Force': AIR_FORCE_RANKS
+} as const;
+
+// Service Branch Options
+export const SERVICE_BRANCHES = [
+  'Indian Army',
+  'Indian Navy',
+  'Indian Air Force',
+  'Coast Guard',
+  'Other'
+] as const;
+
+// Web Link Types
+export const WEB_LINK_TYPES = [
+  { value: 'linkedin', label: 'LinkedIn', icon: 'linkedin', placeholder: 'https://linkedin.com/in/username' },
+  { value: 'twitter', label: 'Twitter/X', icon: 'twitter', placeholder: 'https://twitter.com/username' },
+  { value: 'youtube', label: 'YouTube', icon: 'youtube', placeholder: 'https://youtube.com/@channel' },
+  { value: 'github', label: 'GitHub', icon: 'github', placeholder: 'https://github.com/username' },
+  { value: 'website', label: 'Website', icon: 'globe', placeholder: 'https://yourwebsite.com' }
+] as const;
+
+// Validation Functions
+export const validateWebLink = (link: WebLink): { isValid: boolean; error?: string } => {
+  if (!link.url || link.url.trim() === '') {
+    return { isValid: false, error: 'URL is required' };
+  }
+
+  if (!link.url.startsWith('http://') && !link.url.startsWith('https://')) {
+    return { isValid: false, error: 'URL must start with http:// or https://' };
+  }
+
+  // Platform-specific validation
+  switch (link.type) {
+    case 'linkedin':
+      if (!link.url.includes('linkedin.com')) {
+        return { isValid: false, error: 'Invalid LinkedIn URL' };
+      }
+      break;
+    case 'twitter':
+      if (!link.url.includes('twitter.com') && !link.url.includes('x.com')) {
+        return { isValid: false, error: 'Invalid Twitter/X URL' };
+      }
+      break;
+    case 'youtube':
+      if (!link.url.includes('youtube.com')) {
+        return { isValid: false, error: 'Invalid YouTube URL' };
+      }
+      break;
+    case 'github':
+      if (!link.url.includes('github.com')) {
+        return { isValid: false, error: 'Invalid GitHub URL' };
+      }
+      break;
+    case 'website':
+      // Website URLs are more flexible
+      break;
+  }
+
+  return { isValid: true };
+};
+
+export const validateBio = (bio: string): { isValid: boolean; error?: string } => {
+  if (bio.length > 600) {
+    return { isValid: false, error: 'Bio must be 600 characters or less' };
+  }
+  return { isValid: true };
+};
+
+export const validateLocation = (location: string): { isValid: boolean; error?: string } => {
+  if (location.length > 100) {
+    return { isValid: false, error: 'Location must be 100 characters or less' };
+  }
+  return { isValid: true };
+};
+
+// Google Places Types
 export interface GooglePlace {
   place_id: string;
   description: string;
@@ -76,195 +296,137 @@ export interface GooglePlace {
   types: string[];
 }
 
-// Google Places API response
 export interface GooglePlacesResponse {
   predictions: GooglePlace[];
   status: string;
 }
 
-// Location autocomplete result
-export interface LocationAutocompleteResult {
-  place_id: string;
-  city: string;
-  country: string;
-  full_address: string;
-  display_text: string;
+// Location Parsing Functions
+export const parseLocationString = (locationString: string): LocationStructured => {
+  const parts = locationString.split(',').map(part => part.trim());
+  
+  if (parts.length >= 2) {
+    return {
+      city: parts[0],
+      country: parts[1],
+      full: locationString
+    };
+  } else if (parts.length === 1) {
+    return {
+      city: parts[0],
+      country: '',
+      full: locationString
+    };
+  }
+  
+  return {
+    city: '',
+    country: '',
+    full: locationString
+  };
+};
+
+export const formatLocationDisplay = (location: LocationStructured): string => {
+  if (location.city && location.country) {
+    return `${location.city}, ${location.country}`;
+  } else if (location.city) {
+    return location.city;
+  }
+  return location.full || '';
+};
+
+// Profile Validation
+export interface ProfileValidationResult {
+  isValid: boolean;
+  errors: Record<string, string>;
 }
 
-// Profile validation errors
-export interface ProfileValidationErrors {
+export const validateProfileForm = (formData: ProfileFormData): ProfileValidationResult => {
+  const errors: Record<string, string> = {};
+
+  // Name validation
+  if (!formData.name.trim()) {
+    errors.name = 'Name is required';
+  }
+
+  // Phone validation (optional but if provided, validate format)
+  if (formData.phone && !/^\+?[\d\s\-\(\)]+$/.test(formData.phone)) {
+    errors.phone = 'Invalid phone number format';
+  }
+
+  // Bio validation
+  const bioValidation = validateBio(formData.bio);
+  if (!bioValidation.isValid) {
+    errors.bio = bioValidation.error!;
+  }
+
+  // Location validation
+  const locationValidation = validateLocation(formData.location_current);
+  if (!locationValidation.isValid) {
+    errors.location_current = locationValidation.error!;
+  }
+
+  // Web links validation
+  formData.web_links.forEach((link, index) => {
+    const linkValidation = validateWebLink(link);
+    if (!linkValidation.isValid) {
+      errors[`web_links.${index}`] = linkValidation.error!;
+    }
+  });
+
+  // Preferred locations validation
+  formData.locations_preferred.forEach((location, index) => {
+    const locationValidation = validateLocation(location);
+    if (!locationValidation.isValid) {
+      errors[`locations_preferred.${index}`] = locationValidation.error!;
+    }
+  });
+
+  return {
+    isValid: Object.keys(errors).length === 0,
+    errors
+  };
+};
+
+// Default Profile Form Data
+export const getDefaultProfileFormData = (): ProfileFormData => ({
+  name: '',
+  phone: '',
+  military_rank: '',
+  service_branch: '',
+  years_experience: '',
+  bio: '',
+  location_current: '',
+  locations_preferred: [],
+  web_links: []
+});
+
+// Profile Update Types
+export interface ProfileUpdateData {
   name?: string;
   phone?: string;
   military_rank?: string;
   service_branch?: string;
-  years_experience?: string;
+  years_experience?: number;
   bio?: string;
   location_current?: string;
-  locations_preferred?: string;
-  web_links?: string;
+  location_current_city?: string;
+  location_current_country?: string;
+  locations_preferred?: string[];
+  locations_preferred_structured?: LocationStructured[];
+  web_links?: WebLink[];
 }
 
-// Profile update response
+// API Response Types
 export interface ProfileUpdateResponse {
   success: boolean;
   message: string;
   profile?: EnhancedVeteranProfile;
-  errors?: ProfileValidationErrors;
+  errors?: Record<string, string>;
 }
 
-// Web link validation result
-export interface WebLinkValidationResult {
-  isValid: boolean;
+export interface ProfileFetchResponse {
+  success: boolean;
+  profile?: EnhancedVeteranProfile;
   error?: string;
-  normalizedUrl?: string;
 }
-
-// Constants
-export const MILITARY_RANKS: MilitaryRank[] = [
-  // Army Ranks
-  'General', 'Lieutenant General', 'Major General', 'Brigadier', 'Colonel', 
-  'Lieutenant Colonel', 'Major', 'Captain', 'Lieutenant', 'Second Lieutenant',
-  // Navy Ranks
-  'Admiral', 'Vice Admiral', 'Rear Admiral', 'Commodore', 'Captain', 
-  'Commander', 'Lieutenant Commander', 'Lieutenant', 'Sub Lieutenant', 'Acting Sub Lieutenant',
-  // Air Force Ranks
-  'Air Chief Marshal', 'Air Marshal', 'Air Vice Marshal', 'Air Commodore', 'Group Captain', 
-  'Wing Commander', 'Squadron Leader', 'Flight Lieutenant', 'Flying Officer', 'Pilot Officer',
-  // General
-  'Retired', 'Veteran', 'Ex-Serviceman'
-];
-
-export const SERVICE_BRANCHES: ServiceBranch[] = [
-  'Indian Army',
-  'Indian Navy', 
-  'Indian Air Force',
-  'Coast Guard',
-  'Other'
-];
-
-export const WEB_LINK_TYPES: { type: WebLinkType; label: string; icon: string; placeholder: string }[] = [
-  {
-    type: 'linkedin',
-    label: 'LinkedIn',
-    icon: 'linkedin',
-    placeholder: 'https://linkedin.com/in/your-profile'
-  },
-  {
-    type: 'twitter',
-    label: 'Twitter/X',
-    icon: 'twitter',
-    placeholder: 'https://twitter.com/your-handle'
-  },
-  {
-    type: 'youtube',
-    label: 'YouTube',
-    icon: 'youtube',
-    placeholder: 'https://youtube.com/@your-channel'
-  },
-  {
-    type: 'github',
-    label: 'GitHub',
-    icon: 'github',
-    placeholder: 'https://github.com/your-username'
-  },
-  {
-    type: 'website',
-    label: 'Website',
-    icon: 'globe',
-    placeholder: 'https://your-website.com'
-  }
-];
-
-// Validation constants
-export const PROFILE_CONSTRAINTS = {
-  BIO_MAX_LENGTH: 600,
-  LOCATIONS_MAX_COUNT: 3,
-  WEB_LINKS_MAX_COUNT: 5,
-  YEARS_EXPERIENCE_MIN: 0,
-  YEARS_EXPERIENCE_MAX: 50
-} as const;
-
-// Utility functions
-export const validateBio = (bio: string): boolean => {
-  return bio.length <= PROFILE_CONSTRAINTS.BIO_MAX_LENGTH;
-};
-
-export const validateWebLink = (link: WebLink): WebLinkValidationResult => {
-  const { type, url } = link;
-  
-  if (!url || url.trim() === '') {
-    return { isValid: false, error: 'URL is required' };
-  }
-  
-  // Ensure URL starts with http:// or https://
-  let normalizedUrl = url.trim();
-  if (!normalizedUrl.startsWith('http://') && !normalizedUrl.startsWith('https://')) {
-    normalizedUrl = `https://${normalizedUrl}`;
-  }
-  
-  // Validate URL format
-  try {
-    new URL(normalizedUrl);
-  } catch {
-    return { isValid: false, error: 'Invalid URL format' };
-  }
-  
-  // Validate specific link types
-  switch (type) {
-    case 'linkedin':
-      if (!normalizedUrl.includes('linkedin.com')) {
-        return { isValid: false, error: 'Must be a LinkedIn URL' };
-      }
-      break;
-    case 'twitter':
-      if (!normalizedUrl.includes('twitter.com') && !normalizedUrl.includes('x.com')) {
-        return { isValid: false, error: 'Must be a Twitter/X URL' };
-      }
-      break;
-    case 'youtube':
-      if (!normalizedUrl.includes('youtube.com')) {
-        return { isValid: false, error: 'Must be a YouTube URL' };
-      }
-      break;
-    case 'github':
-      if (!normalizedUrl.includes('github.com')) {
-        return { isValid: false, error: 'Must be a GitHub URL' };
-      }
-      break;
-    case 'website':
-      // Website URLs are more flexible
-      break;
-    default:
-      return { isValid: false, error: 'Invalid link type' };
-  }
-  
-  return { isValid: true, normalizedUrl };
-};
-
-export const validateLocations = (locations: string[]): boolean => {
-  return locations.length <= PROFILE_CONSTRAINTS.LOCATIONS_MAX_COUNT;
-};
-
-export const validateWebLinks = (links: WebLink[]): boolean => {
-  return links.length <= PROFILE_CONSTRAINTS.WEB_LINKS_MAX_COUNT;
-};
-
-export const validateYearsExperience = (years: string): boolean => {
-  const num = parseInt(years);
-  return !isNaN(num) && num >= PROFILE_CONSTRAINTS.YEARS_EXPERIENCE_MIN && num <= PROFILE_CONSTRAINTS.YEARS_EXPERIENCE_MAX;
-};
-
-// Format functions for display
-export const formatLocationDisplay = (location: LocationData): string => {
-  return location.city || location.full;
-};
-
-export const formatWebLinkDisplay = (link: WebLink): string => {
-  const linkType = WEB_LINK_TYPES.find(lt => lt.type === link.type);
-  return link.label || linkType?.label || link.type;
-};
-
-export const getWebLinkIcon = (type: WebLinkType): string => {
-  const linkType = WEB_LINK_TYPES.find(lt => lt.type === type);
-  return linkType?.icon || 'link';
-};
