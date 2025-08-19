@@ -269,7 +269,7 @@ export async function getSimpleActionsData(veteranId: string) {
     ] = await Promise.all([
       supabaseAction
         .from('pitches')
-        .select('id, title, pitch_text, skills, experience_years, likes_count, created_at, updated_at')
+        .select('id, title, pitch_text, skills, experience_years, likes_count, photo_url, created_at, updated_at')
         .eq('user_id', veteranId)
         .order('created_at', { ascending: false }),
       supabaseAction
