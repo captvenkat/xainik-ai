@@ -23,7 +23,7 @@ export default function EditPitchPage({ params }: { params: Promise<{ id: string
         .from('pitches')
         .select('*')
         .eq('id', pitchId)
-        .eq('veteran_id', userId)
+        .eq('user_id', userId)
         .single()
 
       if (pitchError || !pitchData) {
