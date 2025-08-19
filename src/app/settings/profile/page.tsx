@@ -72,7 +72,8 @@ export default function ProfileSettingsPage() {
           bio: veteranData?.bio || '',
           location_current: veteranData?.location_current || '',
           locations_preferred: veteranData?.locations_preferred || [],
-          web_links: veteranData?.web_links || []
+          web_links: veteranData?.web_links || [],
+          retirement_date: veteranData?.retirement_date || ''
         });
         
       } catch (error) {

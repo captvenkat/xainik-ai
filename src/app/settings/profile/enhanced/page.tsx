@@ -71,7 +71,8 @@ export default function EnhancedProfileSettingsPage() {
           bio: veteranData?.bio || '',
           location_current: veteranData?.location_current || '',
           locations_preferred: veteranData?.locations_preferred || [],
-          web_links: veteranData?.web_links || []
+          web_links: veteranData?.web_links || [],
+          retirement_date: veteranData?.retirement_date || ''
         });
         
       } catch (error) {
@@ -219,16 +220,10 @@ export default function EnhancedProfileSettingsPage() {
 
   const getMilitaryRanksForBranch = (branch: string) => {
     if (!branch || !ALL_MILITARY_RANKS[branch as keyof typeof ALL_MILITARY_RANKS]) {
-      return [];
+      return { OFFICERS: [], JCOs: [], NCOs: [] };
     }
     
-    const branchRanks = ALL_MILITARY_RANKS[branch as keyof typeof ALL_MILITARY_RANKS];
-    return [
-      ...branchRanks.GENERAL,
-      ...branchRanks.RETIRED,
-      ...branchRanks.VETERAN,
-      ...branchRanks.EX_SERVICEMAN
-    ];
+    return ALL_MILITARY_RANKS[branch as keyof typeof ALL_MILITARY_RANKS];
   };
 
   if (isLoading) {
@@ -419,11 +414,28 @@ export default function EnhancedProfileSettingsPage() {
                     disabled={!formData.service_branch}
                   >
                     <option value="">Select Rank</option>
-                    {formData.service_branch && getMilitaryRanksForBranch(formData.service_branch).map((rank) => (
-                      <option key={rank} value={rank}>
-                        {rank}
-                      </option>
-                    ))}
+                    {formData.service_branch && (() => {
+                      const ranks = getMilitaryRanksForBranch(formData.service_branch);
+                      return (
+                        <>
+                          <optgroup label="Officers">
+                            {ranks.OFFICERS.map(rank => (
+                              <option key={rank} value={rank}>{rank}</option>
+                            ))}
+                          </optgroup>
+                          <optgroup label="JCOs">
+                            {ranks.JCOs.map(rank => (
+                              <option key={rank} value={rank}>{rank}</option>
+                            ))}
+                          </optgroup>
+                          <optgroup label="NCOs">
+                            {ranks.NCOs.map(rank => (
+                              <option key={rank} value={rank}>{rank}</option>
+                            ))}
+                          </optgroup>
+                        </>
+                      );
+                    })()}
                   </select>
                 </div>
                 <div>

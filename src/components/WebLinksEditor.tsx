@@ -66,8 +66,8 @@ export default function WebLinksEditor({
     if (!editingLink) return;
 
     const validation = validateWebLink(editingLink);
-    if (!validation.isValid) {
-      alert(validation.error);
+    if (validation) {
+      alert(validation);
       return;
     }
 

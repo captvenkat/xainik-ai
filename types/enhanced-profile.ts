@@ -1,5 +1,5 @@
 // Enhanced Profile System Types
-// Comprehensive types for intelligent profile features
+// Comprehensive type definitions for intelligent profile features
 
 export interface WebLink {
   id: string;
@@ -17,22 +17,19 @@ export interface LocationStructured {
 
 export interface EnhancedVeteranProfile {
   user_id: string;
-  name: string;
-  email: string;
-  phone?: string;
-  military_rank?: string;
-  service_branch?: string;
-  years_experience?: number;
-  bio?: string;
-  location_current_city?: string;
-  location_current_country?: string;
-  location_current?: string;
-  locations_preferred?: string[];
-  locations_preferred_structured?: LocationStructured[];
-  web_links?: WebLink[];
-  rank?: string; // Legacy field
-  created_at?: string;
-  updated_at?: string;
+  military_rank: string;
+  service_branch: string;
+  years_experience: number;
+  bio: string;
+  location_current: string;
+  location_current_city: string;
+  location_current_country: string;
+  locations_preferred: string[];
+  locations_preferred_structured: LocationStructured[];
+  web_links: WebLink[];
+  retirement_date?: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface ProfileFormData {
@@ -45,14 +42,20 @@ export interface ProfileFormData {
   location_current: string;
   locations_preferred: string[];
   web_links: WebLink[];
+  retirement_date: string;
 }
 
-// Military Rank Options
+export interface ProfileValidationResult {
+  isValid: boolean;
+  errors: Record<string, string>;
+}
+
+// Military Ranks - Organized by category without duplication
 export const MILITARY_RANKS = {
-  GENERAL: [
+  OFFICERS: [
     'Field Marshal',
     'General',
-    'Lieutenant General',
+    'Lieutenant General', 
     'Major General',
     'Brigadier',
     'Colonel',
@@ -62,47 +65,21 @@ export const MILITARY_RANKS = {
     'Lieutenant',
     'Second Lieutenant'
   ],
-  RETIRED: [
-    'Retired General',
-    'Retired Lieutenant General',
-    'Retired Major General',
-    'Retired Brigadier',
-    'Retired Colonel',
-    'Retired Lieutenant Colonel',
-    'Retired Major',
-    'Retired Captain',
-    'Retired Lieutenant',
-    'Retired Second Lieutenant'
+  JCOs: [
+    'Subedar Major',
+    'Subedar',
+    'Naib Subedar'
   ],
-  VETERAN: [
-    'Veteran General',
-    'Veteran Lieutenant General',
-    'Veteran Major General',
-    'Veteran Brigadier',
-    'Veteran Colonel',
-    'Veteran Lieutenant Colonel',
-    'Veteran Major',
-    'Veteran Captain',
-    'Veteran Lieutenant',
-    'Veteran Second Lieutenant'
-  ],
-  EX_SERVICEMAN: [
-    'Ex-Serviceman General',
-    'Ex-Serviceman Lieutenant General',
-    'Ex-Serviceman Major General',
-    'Ex-Serviceman Brigadier',
-    'Ex-Serviceman Colonel',
-    'Ex-Serviceman Lieutenant Colonel',
-    'Ex-Serviceman Major',
-    'Ex-Serviceman Captain',
-    'Ex-Serviceman Lieutenant',
-    'Ex-Serviceman Second Lieutenant'
+  NCOs: [
+    'Havildar',
+    'Naik',
+    'Lance Naik',
+    'Sepoy'
   ]
 } as const;
 
-// Navy Ranks
 export const NAVY_RANKS = {
-  GENERAL: [
+  OFFICERS: [
     'Admiral of the Fleet',
     'Admiral',
     'Vice Admiral',
@@ -115,47 +92,21 @@ export const NAVY_RANKS = {
     'Sub Lieutenant',
     'Acting Sub Lieutenant'
   ],
-  RETIRED: [
-    'Retired Admiral',
-    'Retired Vice Admiral',
-    'Retired Rear Admiral',
-    'Retired Commodore',
-    'Retired Captain',
-    'Retired Commander',
-    'Retired Lieutenant Commander',
-    'Retired Lieutenant',
-    'Retired Sub Lieutenant',
-    'Retired Acting Sub Lieutenant'
+  JCOs: [
+    'Master Chief Petty Officer 1st Class',
+    'Master Chief Petty Officer 2nd Class',
+    'Chief Petty Officer'
   ],
-  VETERAN: [
-    'Veteran Admiral',
-    'Veteran Vice Admiral',
-    'Veteran Rear Admiral',
-    'Veteran Commodore',
-    'Veteran Captain',
-    'Veteran Commander',
-    'Veteran Lieutenant Commander',
-    'Veteran Lieutenant',
-    'Veteran Sub Lieutenant',
-    'Veteran Acting Sub Lieutenant'
-  ],
-  EX_SERVICEMAN: [
-    'Ex-Serviceman Admiral',
-    'Ex-Serviceman Vice Admiral',
-    'Ex-Serviceman Rear Admiral',
-    'Ex-Serviceman Commodore',
-    'Ex-Serviceman Captain',
-    'Ex-Serviceman Commander',
-    'Ex-Serviceman Lieutenant Commander',
-    'Ex-Serviceman Lieutenant',
-    'Ex-Serviceman Sub Lieutenant',
-    'Ex-Serviceman Acting Sub Lieutenant'
+  NCOs: [
+    'Petty Officer',
+    'Leading Seaman',
+    'Seaman 1st Class',
+    'Seaman 2nd Class'
   ]
 } as const;
 
-// Air Force Ranks
 export const AIR_FORCE_RANKS = {
-  GENERAL: [
+  OFFICERS: [
     'Marshal of the Indian Air Force',
     'Air Chief Marshal',
     'Air Marshal',
@@ -168,45 +119,20 @@ export const AIR_FORCE_RANKS = {
     'Flying Officer',
     'Pilot Officer'
   ],
-  RETIRED: [
-    'Retired Air Chief Marshal',
-    'Retired Air Marshal',
-    'Retired Air Vice Marshal',
-    'Retired Air Commodore',
-    'Retired Group Captain',
-    'Retired Wing Commander',
-    'Retired Squadron Leader',
-    'Retired Flight Lieutenant',
-    'Retired Flying Officer',
-    'Retired Pilot Officer'
+  JCOs: [
+    'Master Warrant Officer',
+    'Warrant Officer',
+    'Junior Warrant Officer'
   ],
-  VETERAN: [
-    'Veteran Air Chief Marshal',
-    'Veteran Air Marshal',
-    'Veteran Air Vice Marshal',
-    'Veteran Air Commodore',
-    'Veteran Group Captain',
-    'Veteran Wing Commander',
-    'Veteran Squadron Leader',
-    'Veteran Flight Lieutenant',
-    'Veteran Flying Officer',
-    'Veteran Pilot Officer'
-  ],
-  EX_SERVICEMAN: [
-    'Ex-Serviceman Air Chief Marshal',
-    'Ex-Serviceman Air Marshal',
-    'Ex-Serviceman Air Vice Marshal',
-    'Ex-Serviceman Air Commodore',
-    'Ex-Serviceman Group Captain',
-    'Ex-Serviceman Wing Commander',
-    'Ex-Serviceman Squadron Leader',
-    'Ex-Serviceman Flight Lieutenant',
-    'Ex-Serviceman Flying Officer',
-    'Ex-Serviceman Pilot Officer'
+  NCOs: [
+    'Sergeant',
+    'Corporal',
+    'Leading Aircraftman',
+    'Aircraftman 1st Class',
+    'Aircraftman 2nd Class'
   ]
 } as const;
 
-// All Military Ranks Combined
 export const ALL_MILITARY_RANKS = {
   'Indian Army': MILITARY_RANKS,
   'Indian Navy': NAVY_RANKS,
@@ -230,201 +156,204 @@ export const WEB_LINK_TYPES = [
 ] as const;
 
 // Validation Functions
-export const validateWebLink = (link: WebLink): { isValid: boolean; error?: string } => {
+export function validateWebLink(link: WebLink): string | null {
   if (!link.url || link.url.trim() === '') {
-    return { isValid: false, error: 'URL is required' };
+    return 'URL is required';
   }
-
+  
   if (!link.url.startsWith('http://') && !link.url.startsWith('https://')) {
-    return { isValid: false, error: 'URL must start with http:// or https://' };
+    return 'URL must start with http:// or https://';
   }
-
-  // Platform-specific validation
+  
+  // Type-specific validation
   switch (link.type) {
     case 'linkedin':
       if (!link.url.includes('linkedin.com')) {
-        return { isValid: false, error: 'Invalid LinkedIn URL' };
+        return 'Must be a valid LinkedIn URL';
       }
       break;
     case 'twitter':
       if (!link.url.includes('twitter.com') && !link.url.includes('x.com')) {
-        return { isValid: false, error: 'Invalid Twitter/X URL' };
+        return 'Must be a valid Twitter/X URL';
       }
       break;
     case 'youtube':
       if (!link.url.includes('youtube.com')) {
-        return { isValid: false, error: 'Invalid YouTube URL' };
+        return 'Must be a valid YouTube URL';
       }
       break;
     case 'github':
       if (!link.url.includes('github.com')) {
-        return { isValid: false, error: 'Invalid GitHub URL' };
+        return 'Must be a valid GitHub URL';
       }
       break;
-    case 'website':
-      // Website URLs are more flexible
-      break;
   }
+  
+  return null;
+}
 
-  return { isValid: true };
-};
-
-export const validateBio = (bio: string): { isValid: boolean; error?: string } => {
+export function validateBio(bio: string): string | null {
   if (bio.length > 600) {
-    return { isValid: false, error: 'Bio must be 600 characters or less' };
+    return 'Bio must be 600 characters or less';
   }
-  return { isValid: true };
-};
+  return null;
+}
 
-export const validateLocation = (location: string): { isValid: boolean; error?: string } => {
-  if (location.length > 100) {
-    return { isValid: false, error: 'Location must be 100 characters or less' };
+export function validateLocation(location: string): string | null {
+  if (location && location.length > 100) {
+    return 'Location must be 100 characters or less';
   }
-  return { isValid: true };
-};
+  return null;
+}
 
-// Google Places Types
-export interface GooglePlace {
-  place_id: string;
-  description: string;
-  structured_formatting: {
-    main_text: string;
-    secondary_text: string;
+export function validateProfileForm(data: ProfileFormData): ProfileValidationResult {
+  const errors: Record<string, string> = {};
+  
+  // Name validation
+  if (!data.name || data.name.trim() === '') {
+    errors.name = 'Full name is required';
+  }
+  
+  // Bio validation
+  const bioError = validateBio(data.bio);
+  if (bioError) {
+    errors.bio = bioError;
+  }
+  
+  // Location validation
+  const locationError = validateLocation(data.location_current);
+  if (locationError) {
+    errors.location_current = locationError;
+  }
+  
+  // Web links validation
+  if (data.web_links && data.web_links.length > 0) {
+    for (let i = 0; i < data.web_links.length; i++) {
+      const link = data.web_links[i];
+      if (link && link.isActive) {
+        const linkError = validateWebLink(link);
+        if (linkError) {
+          errors[`web_links.${i}`] = linkError;
+        }
+      }
+    }
+  }
+  
+  return {
+    isValid: Object.keys(errors).length === 0,
+    errors
   };
-  types: string[];
 }
 
-export interface GooglePlacesResponse {
-  predictions: GooglePlace[];
-  status: string;
-}
-
-// Location Parsing Functions
-export const parseLocationString = (locationString: string): LocationStructured => {
-  const parts = locationString.split(',').map(part => part.trim());
+// Utility Functions
+export function parseLocationString(location: string): LocationStructured {
+  if (!location || location.trim() === '') {
+    return { city: '', country: '', full: '' };
+  }
+  
+  const parts = location.split(',').map(part => part.trim());
   
   if (parts.length >= 2) {
     return {
       city: parts[0] || '',
       country: parts[1] || '',
-      full: locationString
+      full: location
     };
-  } else if (parts.length === 1) {
+  } else {
     return {
       city: parts[0] || '',
       country: '',
-      full: locationString
+      full: location
     };
   }
-  
-  return {
-    city: '',
-    country: '',
-    full: locationString
-  };
-};
+}
 
-export const formatLocationDisplay = (location: LocationStructured): string => {
+export function formatLocationDisplay(location: LocationStructured): string {
   if (location.city && location.country) {
     return `${location.city}, ${location.country}`;
-  } else if (location.city) {
-    return location.city;
   }
-  return location.full || '';
-};
-
-// Profile Validation
-export interface ProfileValidationResult {
-  isValid: boolean;
-  errors: Record<string, string>;
+  return location.city || location.full || '';
 }
 
-export const validateProfileForm = (formData: ProfileFormData): ProfileValidationResult => {
-  const errors: Record<string, string> = {};
-
-  // Name validation
-  if (!formData.name.trim()) {
-    errors.name = 'Name is required';
-  }
-
-  // Phone validation (optional but if provided, validate format)
-  if (formData.phone && !/^\+?[\d\s\-\(\)]+$/.test(formData.phone)) {
-    errors.phone = 'Invalid phone number format';
-  }
-
-  // Bio validation
-  const bioValidation = validateBio(formData.bio);
-  if (!bioValidation.isValid) {
-    errors.bio = bioValidation.error!;
-  }
-
-  // Location validation
-  const locationValidation = validateLocation(formData.location_current);
-  if (!locationValidation.isValid) {
-    errors.location_current = locationValidation.error!;
-  }
-
-  // Web links validation
-  formData.web_links.forEach((link, index) => {
-    const linkValidation = validateWebLink(link);
-    if (!linkValidation.isValid) {
-      errors[`web_links.${index}`] = linkValidation.error!;
-    }
-  });
-
-  // Preferred locations validation
-  formData.locations_preferred.forEach((location, index) => {
-    const locationValidation = validateLocation(location);
-    if (!locationValidation.isValid) {
-      errors[`locations_preferred.${index}`] = locationValidation.error!;
-    }
-  });
-
+export function getDefaultProfileFormData(): ProfileFormData {
   return {
-    isValid: Object.keys(errors).length === 0,
-    errors
+    name: '',
+    phone: '',
+    military_rank: '',
+    service_branch: '',
+    years_experience: '',
+    bio: '',
+    location_current: '',
+    locations_preferred: [],
+    web_links: [],
+    retirement_date: ''
   };
-};
-
-// Default Profile Form Data
-export const getDefaultProfileFormData = (): ProfileFormData => ({
-  name: '',
-  phone: '',
-  military_rank: '',
-  service_branch: '',
-  years_experience: '',
-  bio: '',
-  location_current: '',
-  locations_preferred: [],
-  web_links: []
-});
-
-// Profile Update Types
-export interface ProfileUpdateData {
-  name?: string;
-  phone?: string;
-  military_rank?: string;
-  service_branch?: string;
-  years_experience?: number;
-  bio?: string;
-  location_current?: string;
-  location_current_city?: string;
-  location_current_country?: string;
-  locations_preferred?: string[];
-  locations_preferred_structured?: LocationStructured[];
-  web_links?: WebLink[];
 }
 
-// API Response Types
-export interface ProfileUpdateResponse {
-  success: boolean;
-  message: string;
-  profile?: EnhancedVeteranProfile;
-  errors?: Record<string, string>;
+// Retirement Date Calculation Functions
+export function calculateRetirementStatus(retirementDate: string): {
+  status: 'retired' | 'active' | 'upcoming';
+  timeAgo: string;
+  timeUntil: string;
+} {
+  if (!retirementDate) {
+    return { status: 'active', timeAgo: '', timeUntil: '' };
+  }
+  
+  const retirement = new Date(retirementDate);
+  const now = new Date();
+  const diffTime = retirement.getTime() - now.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  
+  if (diffDays < 0) {
+    // Retired
+    const yearsAgo = Math.abs(Math.floor(diffDays / 365));
+    const monthsAgo = Math.abs(Math.floor((diffDays % 365) / 30));
+    
+    let timeAgo = '';
+    if (yearsAgo > 0) {
+      timeAgo = `${yearsAgo} year${yearsAgo > 1 ? 's' : ''}`;
+      if (monthsAgo > 0) {
+        timeAgo += ` ${monthsAgo} month${monthsAgo > 1 ? 's' : ''}`;
+      }
+    } else {
+      timeAgo = `${monthsAgo} month${monthsAgo > 1 ? 's' : ''}`;
+    }
+    
+    return { status: 'retired', timeAgo, timeUntil: '' };
+  } else if (diffDays > 0) {
+    // Upcoming retirement
+    const yearsUntil = Math.floor(diffDays / 365);
+    const monthsUntil = Math.floor((diffDays % 365) / 30);
+    
+    let timeUntil = '';
+    if (yearsUntil > 0) {
+      timeUntil = `${yearsUntil} year${yearsUntil > 1 ? 's' : ''}`;
+      if (monthsUntil > 0) {
+        timeUntil += ` ${monthsUntil} month${monthsUntil > 1 ? 's' : ''}`;
+      }
+    } else {
+      timeUntil = `${monthsUntil} month${monthsUntil > 1 ? 's' : ''}`;
+    }
+    
+    return { status: 'upcoming', timeAgo: '', timeUntil };
+  } else {
+    // Retiring today
+    return { status: 'upcoming', timeAgo: '', timeUntil: 'today' };
+  }
 }
 
-export interface ProfileFetchResponse {
-  success: boolean;
-  profile?: EnhancedVeteranProfile;
-  error?: string;
+export function formatRetirementDisplay(retirementDate: string): string {
+  const status = calculateRetirementStatus(retirementDate);
+  
+  switch (status.status) {
+    case 'retired':
+      return `Retired ${status.timeAgo} ago`;
+    case 'upcoming':
+      return `Retiring in ${status.timeUntil}`;
+    case 'active':
+      return 'Active Service';
+    default:
+      return 'Active Service';
+  }
 }

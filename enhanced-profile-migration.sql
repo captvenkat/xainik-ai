@@ -80,6 +80,17 @@ DO $$ BEGIN
     ALTER TABLE public.veterans ADD COLUMN updated_at timestamptz DEFAULT now();
     RAISE NOTICE 'Added updated_at field to veterans table';
   END IF;
+  
+  -- Add retirement_date field
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name = 'veterans' 
+    AND column_name = 'retirement_date'
+    AND table_schema = 'public'
+  ) THEN
+    ALTER TABLE public.veterans ADD COLUMN retirement_date date;
+    RAISE NOTICE 'Added retirement_date field to veterans table';
+  END IF;
 END $$;
 
 -- 2. Create indexes for better performance
@@ -245,6 +256,7 @@ SELECT
   v.locations_preferred,
   v.locations_preferred_structured,
   v.web_links,
+  v.retirement_date,
   v.rank as legacy_rank, -- Keep for backward compatibility
   v.created_at,
   v.updated_at
