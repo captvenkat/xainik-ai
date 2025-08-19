@@ -17,7 +17,7 @@ interface AIPitchFormData {
   job_type: string
   availability: string
   photo_url?: string
-  web_link?: string  // Changed from linkedin_url to be more generic
+  allow_resume_requests?: boolean
 }
 
 const JOB_TYPES = [
@@ -116,7 +116,7 @@ export default function AIFirstPitchPage() {
         location: profile.location, // Use profile location (already validated above)
         phone: profile.phone || '', // Add phone from profile
         photo_url: formData.photo_url,
-        linkedin_url: formData.web_link, // Keep database field name as linkedin_url for compatibility
+        allow_resume_requests: formData.allow_resume_requests || false,
         is_active: true
       }
 
@@ -292,22 +292,7 @@ function DetailsStep({ formData, updateFormData, onNext, onBack, profile }: any)
           </select>
         </div>
 
-        {/* Web Link */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Share a Web Link (Optional)
-          </label>
-          <input
-            type="url"
-            value={formData.web_link || ''}
-            onChange={(e) => updateFormData({ web_link: e.target.value })}
-            placeholder="https://linkedin.com/in/yourprofile, https://github.com/username, https://youtube.com/channel, or your website"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <p className="mt-1 text-xs text-gray-500">
-            Can be LinkedIn, GitHub, YouTube, portfolio website, or any professional link
-          </p>
-        </div>
+
 
         {/* Photo Upload */}
         <div>
@@ -325,39 +310,22 @@ function DetailsStep({ formData, updateFormData, onNext, onBack, profile }: any)
           </p>
         </div>
 
-        {/* Resume Upload */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Resume Upload (Optional)
-          </label>
-          <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
-            {/* Removed resume upload functionality */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-center text-gray-400">
-                <FileText className="w-8 h-8" />
-              </div>
-              <p className="text-sm text-gray-600">Resume upload is no longer available for this pitch.</p>
-            </div>
-          </div>
-          <p className="mt-1 text-xs text-gray-500">
-            Resume request functionality is available for recruiters.
-          </p>
-        </div>
-
-        {/* Resume Share */}
+        {/* Resume Request */}
         <div className="flex items-center">
           <input
             type="checkbox"
-            id="resume_share"
-            checked={false} // Resume share is no longer a user option
-            onChange={(e) => {}}
+            id="allow_resume_requests"
+            checked={formData.allow_resume_requests || false}
+            onChange={(e) => updateFormData({ allow_resume_requests: e.target.checked })}
             className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-            disabled
           />
-          <label htmlFor="resume_share" className="ml-2 block text-sm text-gray-700">
+          <label htmlFor="allow_resume_requests" className="ml-2 block text-sm text-gray-700">
             Allow recruiters to request my resume
           </label>
         </div>
+        <p className="mt-1 text-xs text-gray-500">
+          When enabled, recruiters can click a button to request your resume and add a note explaining why they need it.
+        </p>
       </div>
 
       {/* Navigation */}
@@ -460,22 +428,11 @@ function ReviewStep({ formData, profile, onNext, onBack, isLoading, error, succe
               </div>
             </div>
             
-            {/* Web Link */}
-            {formData.web_link && (
-              <div>
-                <span className="text-gray-600 text-sm">Web Link:</span>
-                <div className="mt-1">
-                  <a 
-                    href={formData.web_link} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-blue-600 hover:text-blue-800 underline break-all"
-                  >
-                    {formData.web_link}
-                  </a>
-                </div>
-              </div>
-            )}
+            {/* Resume Requests */}
+            <div>
+              <span className="text-gray-600 text-sm">Resume Requests:</span>
+              <p className="font-medium">{formData.allow_resume_requests ? 'Enabled' : 'Disabled'}</p>
+            </div>
           </div>
         </div>
       </div>
