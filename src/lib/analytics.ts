@@ -334,7 +334,7 @@ export async function getSimpleActionsData(veteranId: string) {
     const supporterCount = referrals?.length || 0
     const endorsementCount = endorsements?.length || 0
 
-    // INTELLIGENT ACTION GENERATION BASED ON REAL DATA
+    // MENTOR-LIKE ACTION GENERATION - Simple, conversational, helpful
 
     // 1. CRITICAL: No photo (huge impact)
     if (!hasPhoto) {
@@ -343,7 +343,7 @@ export async function getSimpleActionsData(veteranId: string) {
         impact: 'Get 3x more views and 2x more contacts',
         time: '5 minutes',
         priority: 'critical',
-        reason: `Your pitch has ${totalViews} views but no photo. Profiles with photos get 300% more engagement.`,
+        reason: `Hey! I noticed your pitch doesn't have a photo yet. Trust me, this is the easiest way to get more attention. People are 3x more likely to click on profiles with photos.`,
         action: () => window.location.href = `/pitch/${currentPitch.id}/edit`
       })
     }
@@ -355,7 +355,7 @@ export async function getSimpleActionsData(veteranId: string) {
         impact: 'Reach 50+ recruiters in 24 hours',
         time: '10 minutes',
         priority: 'critical',
-        reason: `Your pitch has only ${totalViews} views. Each supporter can reach 10+ recruiters.`,
+        reason: `I see your pitch has only been viewed ${totalViews} times. Here's the thing - each supporter you invite can reach 10+ recruiters. It's like having a personal sales team!`,
         action: () => window.location.href = '/dashboard/veteran?tab=analytics'
       })
     }
@@ -367,7 +367,7 @@ export async function getSimpleActionsData(veteranId: string) {
         impact: 'Increase contact rate by 200%',
         time: '8 minutes',
         priority: 'critical',
-        reason: `Your conversion rate is ${conversionRate.toFixed(1)}%. Top performers achieve 15%+.`,
+        reason: `You're getting views (${totalViews} so far), but not enough contacts. This usually means your title or skills aren't catching recruiters' attention. Let's fix that!`,
         action: () => window.location.href = `/pitch/${currentPitch.id}/edit`
       })
     }
@@ -379,7 +379,7 @@ export async function getSimpleActionsData(veteranId: string) {
         impact: 'Get 2x more recruiter matches',
         time: '5 minutes',
         priority: 'high',
-        reason: 'Generic skills like "leadership" don\'t help recruiters find you. Be specific.',
+        reason: `Quick tip: Instead of "leadership," try "Led 15-person team to 40% efficiency improvement." Recruiters search for specific skills, not generic ones.`,
         action: () => window.location.href = `/pitch/${currentPitch.id}/edit`
       })
     }
@@ -391,7 +391,7 @@ export async function getSimpleActionsData(veteranId: string) {
         impact: 'Multiply your reach by 10x',
         time: '15 minutes',
         priority: 'high',
-        reason: `You have ${supporterCount} supporters. Each supporter can share with 10+ recruiters.`,
+        reason: `You have ${supporterCount} supporter${supporterCount === 1 ? '' : 's'}. Think of each supporter as a bridge to 10+ recruiters. More bridges = more opportunities!`,
         action: () => window.location.href = '/dashboard/veteran?tab=mission'
       })
     }
@@ -403,7 +403,7 @@ export async function getSimpleActionsData(veteranId: string) {
         impact: 'Get 20+ new views today',
         time: '3 minutes',
         priority: 'medium',
-        reason: 'Your pitch hasn\'t been shared recently. Active sharing increases visibility.',
+        reason: `Your pitch is great, but it's been quiet lately. A quick LinkedIn share can bring in 20+ new views today. It's like giving your pitch a fresh start!`,
         action: () => window.location.href = '/dashboard/veteran?tab=analytics'
       })
     }
@@ -415,7 +415,7 @@ export async function getSimpleActionsData(veteranId: string) {
         impact: 'Build credibility and trust',
         time: '10 minutes',
         priority: 'medium',
-        reason: 'Endorsements increase recruiter confidence by 150%.',
+        reason: `Endorsements are like having someone vouch for you. They make recruiters 150% more confident about contacting you. It's social proof!`,
         action: () => window.location.href = '/dashboard/veteran?tab=community'
       })
     }
@@ -427,7 +427,7 @@ export async function getSimpleActionsData(veteranId: string) {
         impact: 'Show concrete value to recruiters',
         time: '12 minutes',
         priority: 'medium',
-        reason: 'Your pitch is ${contentLength} characters. Detailed pitches get 2x more contacts.',
+        reason: `Your pitch is good, but it could be great! Add specific achievements and numbers. Recruiters love seeing concrete results - it shows you can deliver.`,
         action: () => window.location.href = `/pitch/${currentPitch.id}/edit`
       })
     }
