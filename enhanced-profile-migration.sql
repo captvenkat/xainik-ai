@@ -104,45 +104,7 @@ CREATE TRIGGER trigger_veterans_updated_at
   FOR EACH ROW
   EXECUTE FUNCTION update_veterans_updated_at();
 
--- 5. Create a view for enhanced profile display
-CREATE OR REPLACE VIEW public.veteran_profiles_enhanced AS
-SELECT 
-  v.user_id,
-  u.name,
-  u.email,
-  u.phone,
-  v.military_rank,
-  v.service_branch,
-  v.years_experience,
-  v.bio,
-  v.location_current_city,
-  v.location_current_country,
-  v.location_current,
-  v.locations_preferred,
-  v.locations_preferred_structured,
-  v.web_links,
-  v.rank as legacy_rank, -- Keep for backward compatibility
-  v.created_at,
-  v.updated_at
-FROM public.veterans v
-JOIN public.users u ON v.user_id = u.id;
-
--- 6. Grant permissions on the view
-DO $$ BEGIN 
-  BEGIN 
-    GRANT SELECT ON public.veteran_profiles_enhanced TO authenticated;
-  EXCEPTION WHEN OTHERS THEN NULL; 
-  END; 
-END $$;
-
--- 7. Create RLS policy for the view
-DO $$ BEGIN 
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'veteran_profiles_enhanced' AND policyname = 'Users can view enhanced profiles') THEN
-    CREATE POLICY "Users can view enhanced profiles" ON public.veteran_profiles_enhanced FOR SELECT USING (true);
-  END IF;
-END $$;
-
--- 8. Create a function to validate web links
+-- 5. Create a function to validate web links
 CREATE OR REPLACE FUNCTION validate_web_link(link_data jsonb)
 RETURNS boolean AS $$
 DECLARE
@@ -197,7 +159,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- 9. Create a function to parse location string into city and country
+-- 6. Create a function to parse location string into city and country
 CREATE OR REPLACE FUNCTION parse_location(location_text text)
 RETURNS jsonb AS $$
 DECLARE
@@ -207,7 +169,7 @@ DECLARE
   result jsonb;
 BEGIN
   IF location_text IS NULL OR location_text = '' THEN
-    RETURN '{"city": null, "country": null}'::jsonb;
+    RETURN '{"city": null, "country": null, "full": null}'::jsonb;
   END IF;
   
   -- Split by comma and trim whitespace
@@ -234,17 +196,21 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- 10. Create a function to update location fields
+-- 7. Create a function to update location fields
 CREATE OR REPLACE FUNCTION update_location_fields()
 RETURNS TRIGGER AS $$
+DECLARE
+  parsed_location jsonb;
 BEGIN
   -- Parse current location
-  IF NEW.location_current IS NOT NULL AND NEW.location_current != OLD.location_current THEN
-    SELECT parse_location(NEW.location_current) INTO NEW.location_current_city, NEW.location_current_country;
+  IF NEW.location_current IS NOT NULL AND (OLD.location_current IS NULL OR NEW.location_current != OLD.location_current) THEN
+    parsed_location := parse_location(NEW.location_current);
+    NEW.location_current_city := parsed_location->>'city';
+    NEW.location_current_country := parsed_location->>'country';
   END IF;
   
   -- Parse preferred locations
-  IF NEW.locations_preferred IS NOT NULL AND NEW.locations_preferred != OLD.locations_preferred THEN
+  IF NEW.locations_preferred IS NOT NULL AND (OLD.locations_preferred IS NULL OR NEW.locations_preferred != OLD.locations_preferred) THEN
     NEW.locations_preferred_structured := (
       SELECT jsonb_agg(parse_location(loc))
       FROM unnest(NEW.locations_preferred) AS loc
@@ -255,12 +221,59 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- 11. Create trigger to automatically parse locations
+-- 8. Create trigger to automatically parse locations
 DROP TRIGGER IF EXISTS trigger_update_location_fields ON public.veterans;
 CREATE TRIGGER trigger_update_location_fields
   BEFORE INSERT OR UPDATE ON public.veterans
   FOR EACH ROW
   EXECUTE FUNCTION update_location_fields();
+
+-- 9. Create a view for enhanced profile display
+CREATE OR REPLACE VIEW public.veteran_profiles_enhanced AS
+SELECT 
+  v.user_id,
+  u.name,
+  u.email,
+  u.phone,
+  v.military_rank,
+  v.service_branch,
+  v.years_experience,
+  v.bio,
+  v.location_current_city,
+  v.location_current_country,
+  v.location_current,
+  v.locations_preferred,
+  v.locations_preferred_structured,
+  v.web_links,
+  v.rank as legacy_rank, -- Keep for backward compatibility
+  v.created_at,
+  v.updated_at
+FROM public.veterans v
+JOIN public.users u ON v.user_id = u.id;
+
+-- 10. Grant permissions on the view
+DO $$ BEGIN 
+  BEGIN 
+    GRANT SELECT ON public.veteran_profiles_enhanced TO authenticated;
+  EXCEPTION WHEN OTHERS THEN NULL; 
+  END; 
+END $$;
+
+-- 11. Update existing RLS policies for veterans table to include new fields
+DO $$ BEGIN 
+  -- Update existing policies to include new fields
+  IF EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'veterans' AND policyname = 'Users can update own veteran profile') THEN
+    DROP POLICY "Users can update own veteran profile" ON public.veterans;
+  END IF;
+  
+  CREATE POLICY "Users can update own veteran profile" ON public.veterans 
+    FOR UPDATE USING (auth.uid() = user_id);
+    
+  -- Ensure veterans can view all profiles
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'veterans' AND policyname = 'Veterans can view all veteran profiles') THEN
+    CREATE POLICY "Veterans can view all veteran profiles" ON public.veterans FOR SELECT USING (true);
+  END IF;
+END $$;
 
 -- 12. Test the migration
 SELECT 
@@ -268,5 +281,6 @@ SELECT
   COUNT(*) as total_veterans,
   COUNT(CASE WHEN bio IS NOT NULL THEN 1 END) as veterans_with_bio,
   COUNT(CASE WHEN military_rank IS NOT NULL THEN 1 END) as veterans_with_rank,
-  COUNT(CASE WHEN web_links IS NOT NULL AND web_links != '[]'::jsonb THEN 1 END) as veterans_with_links
+  COUNT(CASE WHEN web_links IS NOT NULL AND web_links != '[]'::jsonb THEN 1 END) as veterans_with_links,
+  COUNT(CASE WHEN location_current_city IS NOT NULL THEN 1 END) as veterans_with_structured_location
 FROM public.veterans;
