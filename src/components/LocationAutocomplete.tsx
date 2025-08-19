@@ -75,17 +75,8 @@ export default function LocationAutocomplete({
     setShowSuggestions(true);
 
     try {
-      const apiKey = process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY;
-      if (!apiKey) {
-        console.error('Google Places API key not found');
-        setSuggestions([]);
-        return;
-      }
-
       const response = await fetch(
-        `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(
-          query
-        )}&types=(cities)&key=${apiKey}`
+        `/api/places/autocomplete?input=${encodeURIComponent(query)}&types=(cities)`
       );
 
       if (!response.ok) {
