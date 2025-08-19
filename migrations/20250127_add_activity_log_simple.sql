@@ -27,6 +27,9 @@ SELECT
     WHEN event = 'endorsement_added' THEN (meta->>'endorser_name') || ' endorsed ' || (meta->>'veteran_name')
     WHEN event = 'like_added' THEN 'Someone liked "' || (meta->>'pitch_title') || '"'
     WHEN event = 'donation_received' THEN '₹' || (meta->>'amount')::text || ' donation received'
+    WHEN event = 'resume_request_received' THEN (meta->>'recruiter_name') || ' requested resume from ' || (meta->>'veteran_name')
+    WHEN event = 'resume_request_approved' THEN (meta->>'veteran_name') || ' approved resume request from ' || (meta->>'recruiter_name')
+    WHEN event = 'resume_request_declined' THEN (meta->>'veteran_name') || ' declined resume request from ' || (meta->>'recruiter_name')
     ELSE event
   END as display_text
 FROM public.activity_log 

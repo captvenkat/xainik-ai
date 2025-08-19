@@ -31,13 +31,55 @@ export async function createResumeRequest(data: CreateResumeRequestData) {
       throw new Error('Failed to create resume request')
     }
 
-    // Log activity
+    // Log activity for FOMO ticker
     await logResumeRequestActivity('resume_request_created', {
       resume_request_id: resumeRequest.id,
       pitch_id: data.pitch_id,
       recruiter_user_id: data.recruiter_user_id,
       user_id: data.user_id
     })
+
+    // Also log to activity_log for dashboard display
+    try {
+      const { data: pitchData } = await supabase
+        .from('pitches')
+        .select('title, user_id')
+        .eq('id', data.pitch_id)
+        .single()
+
+      const { data: veteranData } = await supabase
+        .from('users')
+        .select('name')
+        .eq('id', pitchData?.user_id)
+        .single()
+
+      const { data: recruiterData } = await supabase
+        .from('users')
+        .select('name')
+        .eq('id', data.recruiter_user_id)
+        .single()
+
+      const { data: recruiterProfile } = await supabase
+        .from('recruiters')
+        .select('company_name')
+        .eq('user_id', data.recruiter_user_id)
+        .single()
+
+      await supabase
+        .from('activity_log')
+        .insert({
+          event: 'resume_request_received',
+          meta: {
+            veteran_name: veteranData?.name || 'Unknown Veteran',
+            recruiter_name: recruiterData?.name || 'Unknown Recruiter',
+            company_name: recruiterProfile?.company_name,
+            pitch_title: pitchData?.title || 'Unknown Pitch',
+            job_role: data.job_role
+          }
+        })
+    } catch (error) {
+      console.error('Error logging to activity_log:', error)
+    }
 
     revalidatePath('/dashboard/recruiter')
     revalidatePath('/dashboard/veteran')
@@ -69,13 +111,54 @@ export async function approveResumeRequest(requestId: string, veteranUserId: str
       throw new Error('Failed to approve resume request')
     }
 
-    // Log activity
+    // Log activity for FOMO ticker
     await logResumeRequestActivity('resume_request_approved', {
       resume_request_id: requestId,
       pitch_id: resumeRequest.pitch_id,
       recruiter_user_id: resumeRequest.recruiter_user_id,
       user_id: veteranUserId
     })
+
+    // Also log to activity_log for dashboard display
+    try {
+      const { data: pitchData } = await supabase
+        .from('pitches')
+        .select('title, user_id')
+        .eq('id', resumeRequest.pitch_id)
+        .single()
+
+      const { data: veteranData } = await supabase
+        .from('users')
+        .select('name')
+        .eq('id', pitchData?.user_id)
+        .single()
+
+      const { data: recruiterData } = await supabase
+        .from('users')
+        .select('name')
+        .eq('id', resumeRequest.recruiter_user_id)
+        .single()
+
+      const { data: recruiterProfile } = await supabase
+        .from('recruiters')
+        .select('company_name')
+        .eq('user_id', resumeRequest.recruiter_user_id)
+        .single()
+
+      await supabase
+        .from('activity_log')
+        .insert({
+          event: 'resume_request_approved',
+          meta: {
+            veteran_name: veteranData?.name || 'Unknown Veteran',
+            recruiter_name: recruiterData?.name || 'Unknown Recruiter',
+            company_name: recruiterProfile?.company_name,
+            pitch_title: pitchData?.title || 'Unknown Pitch'
+          }
+        })
+    } catch (error) {
+      console.error('Error logging to activity_log:', error)
+    }
 
     revalidatePath('/dashboard/recruiter')
     revalidatePath('/dashboard/veteran')
@@ -107,13 +190,54 @@ export async function declineResumeRequest(requestId: string, veteranUserId: str
       throw new Error('Failed to decline resume request')
     }
 
-    // Log activity
+    // Log activity for FOMO ticker
     await logResumeRequestActivity('resume_request_declined', {
       resume_request_id: requestId,
       pitch_id: resumeRequest.pitch_id,
       recruiter_user_id: resumeRequest.recruiter_user_id,
       user_id: veteranUserId
     })
+
+    // Also log to activity_log for dashboard display
+    try {
+      const { data: pitchData } = await supabase
+        .from('pitches')
+        .select('title, user_id')
+        .eq('id', resumeRequest.pitch_id)
+        .single()
+
+      const { data: veteranData } = await supabase
+        .from('users')
+        .select('name')
+        .eq('id', pitchData?.user_id)
+        .single()
+
+      const { data: recruiterData } = await supabase
+        .from('users')
+        .select('name')
+        .eq('id', resumeRequest.recruiter_user_id)
+        .single()
+
+      const { data: recruiterProfile } = await supabase
+        .from('recruiters')
+        .select('company_name')
+        .eq('user_id', resumeRequest.recruiter_user_id)
+        .single()
+
+      await supabase
+        .from('activity_log')
+        .insert({
+          event: 'resume_request_declined',
+          meta: {
+            veteran_name: veteranData?.name || 'Unknown Veteran',
+            recruiter_name: recruiterData?.name || 'Unknown Recruiter',
+            company_name: recruiterProfile?.company_name,
+            pitch_title: pitchData?.title || 'Unknown Pitch'
+          }
+        })
+    } catch (error) {
+      console.error('Error logging to activity_log:', error)
+    }
 
     revalidatePath('/dashboard/recruiter')
     revalidatePath('/dashboard/veteran')

@@ -1,4 +1,5 @@
 import { createAdminClient } from '../src/lib/supabaseAdmin'
+import type { Database } from '../types/live-schema'
 
 async function checkBillingData() {
   console.log('🔍 Checking Billing Data...')
@@ -7,22 +8,7 @@ async function checkBillingData() {
   const adminClient = createAdminClient()
 
   // Check payment events archive
-  try {
-    const { data: paymentEvents, error } = await adminClient.from('payment_events_archive').select('*').order('created_at', { ascending: false }).limit(5)
-    if (error) {
-      console.log(`❌ Payment Events Archive Error: ${error.message}`)
-    } else {
-      console.log(`📋 Payment Events Archive: ${paymentEvents?.length || 0} found`)
-      if (paymentEvents && paymentEvents.length > 0) {
-        console.log('   Latest payment events:')
-        paymentEvents.forEach((event, index) => {
-          console.log(`   ${index + 1}. ${event.event_id} - ${event.payment_id} - ${event.created_at}`)
-        })
-      }
-    }
-  } catch (error) {
-    console.log(`❌ Payment Events Archive Error: ${error}`)
-  }
+  console.log(`⏭️  Payment Events Archive: Table not in live schema (skipped)`)
 
   // Check donations
   try {
