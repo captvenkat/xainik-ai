@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { ThumbsUp, ThumbsDown } from 'lucide-react'
 import { voteOnSuggestion } from '@/lib/services/voting'
-import { VoteResponse } from '@/types/voting'
+import { VoteResponse } from '../../types/voting'
 
 interface VoteButtonsProps {
   suggestionId: string

@@ -1,5 +1,5 @@
 import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
-import { VoteResponse, CommunitySuggestionWithVotes } from '@/types/voting'
+import { VoteResponse, CommunitySuggestionWithVotes } from '../../types/voting'
 
 const supabase = createSupabaseBrowser()
 
