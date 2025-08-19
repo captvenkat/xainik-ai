@@ -35,9 +35,21 @@ CREATE TABLE public.referral_events (
 );
 
 -- 4. Clean up existing data and recreate COMMUNITY_SUGGESTIONS table
--- First, backup any existing data
+-- First, backup any existing data with explicit columns
 CREATE TEMP TABLE temp_community_suggestions AS 
-SELECT * FROM public.community_suggestions WHERE user_id IS NOT NULL AND user_id != '00000000-0000-0000-0000-000000000000';
+SELECT 
+  id,
+  user_id,
+  suggestion_type,
+  title,
+  description,
+  status,
+  priority,
+  votes,
+  created_at,
+  updated_at
+FROM public.community_suggestions 
+WHERE user_id IS NOT NULL AND user_id != '00000000-0000-0000-0000-000000000000';
 
 -- Drop and recreate the table
 DROP TABLE IF EXISTS public.community_suggestions CASCADE;
@@ -54,9 +66,31 @@ CREATE TABLE public.community_suggestions (
   updated_at timestamptz DEFAULT now()
 );
 
--- Restore valid data
-INSERT INTO public.community_suggestions 
-SELECT * FROM temp_community_suggestions;
+-- Restore valid data with explicit columns
+INSERT INTO public.community_suggestions (
+  id,
+  user_id,
+  suggestion_type,
+  title,
+  description,
+  status,
+  priority,
+  votes,
+  created_at,
+  updated_at
+)
+SELECT 
+  id,
+  user_id,
+  suggestion_type,
+  title,
+  description,
+  status,
+  priority,
+  votes,
+  created_at,
+  updated_at
+FROM temp_community_suggestions;
 
 -- Drop temporary table
 DROP TABLE temp_community_suggestions;
