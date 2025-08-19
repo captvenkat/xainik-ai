@@ -250,7 +250,7 @@ export default function ProfileSettingsPage() {
             </h1>
           </div>
           <p className="text-gray-600">
-            Update your profile information and military service details
+            Update your profile information and military service details - Enhanced Form v2.0
           </p>
         </div>
 
