@@ -17,7 +17,7 @@ interface AIPitchFormData {
   job_type: string
   availability: string
   photo_url?: string
-  // allow_resume_requests?: boolean // TODO: Add after migration
+  allow_resume_requests?: boolean
 }
 
 const JOB_TYPES = [
@@ -116,7 +116,7 @@ export default function AIFirstPitchPage() {
         location: profile.location, // Use profile location (already validated above)
         phone: profile.phone || '', // Add phone from profile
         photo_url: formData.photo_url,
-        // allow_resume_requests: formData.allow_resume_requests || false, // TODO: Add after migration
+        allow_resume_requests: formData.allow_resume_requests || false,
         is_active: true
       }
 
@@ -310,21 +310,21 @@ function DetailsStep({ formData, updateFormData, onNext, onBack, profile }: any)
           </p>
         </div>
 
-        {/* Resume Request - Temporarily disabled until migration */}
-        <div className="flex items-center opacity-50">
+        {/* Resume Request */}
+        <div className="flex items-center">
           <input
             type="checkbox"
             id="allow_resume_requests"
-            checked={false}
-            disabled
+            checked={formData.allow_resume_requests || false}
+            onChange={(e) => updateFormData({ allow_resume_requests: e.target.checked })}
             className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
           />
           <label htmlFor="allow_resume_requests" className="ml-2 block text-sm text-gray-700">
-            Allow recruiters to request my resume (Coming Soon)
+            Allow recruiters to request my resume
           </label>
         </div>
         <p className="mt-1 text-xs text-gray-500">
-          This feature will be available after database migration.
+          When enabled, recruiters can click a button to request your resume and add a note explaining why they need it.
         </p>
       </div>
 
@@ -442,10 +442,10 @@ function ReviewStep({ formData, profile, onNext, onBack, isLoading, error, succe
               </div>
             </div>
             
-            {/* Resume Requests - Temporarily disabled */}
+            {/* Resume Requests */}
             <div>
               <span className="text-gray-600 text-sm">Resume Requests:</span>
-              <p className="font-medium text-gray-400">Coming Soon</p>
+              <p className="font-medium">{formData.allow_resume_requests ? 'Enabled' : 'Disabled'}</p>
             </div>
           </div>
         </div>
