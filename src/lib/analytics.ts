@@ -1,5 +1,6 @@
 
 import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
+import type { Database } from '@/types/live-schema'
 
 // NEW: Enhanced Veteran Analytics Functions
 
@@ -73,6 +74,17 @@ export async function getSimpleMetricsData(veteranId: string) {
       .order('created_at', { ascending: false })
       .limit(100)
 
+    // Get resume request metrics
+    const { data: resumeRequests } = await supabaseAction
+      .from('resume_requests')
+      .select('id, status, created_at')
+      .eq('veteran_id', veteranId)
+
+    const totalResumeRequests = resumeRequests?.length || 0
+    const pendingRequests = resumeRequests?.filter(r => r.status === 'PENDING').length || 0
+    const approvedRequests = resumeRequests?.filter(r => r.status === 'APPROVED').length || 0
+    const responseRate = totalResumeRequests > 0 ? Math.round(((approvedRequests + (resumeRequests?.filter(r => r.status === 'DECLINED').length || 0)) / totalResumeRequests) * 100) : 0
+
     return {
       engagement: {
         value: '75%',
@@ -91,6 +103,12 @@ export async function getSimpleMetricsData(veteranId: string) {
         subtitle: 'times your pitch was shared',
         actionText: 'Ask for More',
         action: () => console.log('Ask for shares')
+      },
+      resumeRequests: {
+        value: totalResumeRequests.toString(),
+        subtitle: `resume requests (${responseRate}% response rate)`,
+        actionText: pendingRequests > 0 ? `${pendingRequests} pending` : 'View All',
+        action: () => console.log('View resume requests')
       }
     }
   } catch (error) {

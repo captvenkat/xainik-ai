@@ -1,6 +1,6 @@
 'use client'
 
-import { TrendingUp, Phone, Share2 } from 'lucide-react'
+import { TrendingUp, Phone, Share2, FileText } from 'lucide-react'
 
 interface SimpleMetricsProps {
   data: {
@@ -22,6 +22,12 @@ interface SimpleMetricsProps {
       actionText: string
       action: () => void
     }
+    resumeRequests?: {
+      value: string
+      subtitle: string
+      actionText: string
+      action: () => void
+    }
   } | null
 }
 
@@ -29,7 +35,7 @@ export default function SimpleMetrics({ data }: SimpleMetricsProps) {
   if (!data) return null
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       {/* Engagement */}
       <div className="bg-white rounded-xl p-4 shadow-sm border">
         <div className="flex items-center gap-3 mb-3">
@@ -98,6 +104,31 @@ export default function SimpleMetrics({ data }: SimpleMetricsProps) {
           {data.shares.actionText}
         </button>
       </div>
+
+      {/* Resume Requests */}
+      {data.resumeRequests && (
+        <div className="bg-white rounded-xl p-4 shadow-sm border">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+              <FileText className="w-5 h-5 text-orange-600" />
+            </div>
+            <div>
+              <div className="text-2xl font-bold text-gray-900">
+                {data.resumeRequests.value}
+              </div>
+              <div className="text-sm text-gray-600">
+                {data.resumeRequests.subtitle}
+              </div>
+            </div>
+          </div>
+          <button 
+            onClick={data.resumeRequests.action}
+            className="text-orange-600 text-sm font-medium hover:text-orange-700 transition-colors"
+          >
+            {data.resumeRequests.actionText}
+          </button>
+        </div>
+      )}
     </div>
   )
 }

@@ -23,6 +23,7 @@ import SupporterPerformanceList from '@/components/analytics/SupporterPerformanc
 import VeteranOutreachList from '@/components/analytics/VeteranOutreachList'
 import SimpleActivityFeed from '@/components/analytics/SimpleActivityFeed'
 import SharePitchModal from '@/components/SharePitchModal'
+import ResumeRequestMetrics from '@/components/ResumeRequestMetrics'
 import { 
   getSimpleHeroData, 
   getSimpleMetricsData, 
@@ -277,6 +278,14 @@ function AnalyticsTab({ userId, onSharePitch }: { userId: string; onSharePitch: 
       
       {/* Your Outreach Efforts */}
       <VeteranOutreachList veteranId={userId} />
+      
+      {/* Resume Request Metrics */}
+      <ResumeRequestMetrics 
+        userId={userId} 
+        userRole="veteran" 
+        showDetails={true}
+        className="mb-6"
+      />
       
       {/* Supporter Performance */}
       <SupporterPerformanceList veteranId={userId} />
