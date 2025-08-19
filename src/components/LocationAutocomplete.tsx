@@ -2,7 +2,21 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { MapPin, Search, X } from 'lucide-react';
-import { GooglePlace, GooglePlacesResponse } from '@/types/enhanced-profile';
+// Google Places Types
+interface GooglePlace {
+  place_id: string;
+  description: string;
+  structured_formatting: {
+    main_text: string;
+    secondary_text: string;
+  };
+  types: string[];
+}
+
+interface GooglePlacesResponse {
+  predictions: GooglePlace[];
+  status: string;
+}
 
 interface LocationAutocompleteProps {
   value: string;
