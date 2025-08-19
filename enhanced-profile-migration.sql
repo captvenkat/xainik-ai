@@ -240,7 +240,8 @@ CREATE TRIGGER trigger_update_location_fields
   EXECUTE FUNCTION update_location_fields();
 
 -- 9. Create a view for enhanced profile display
-CREATE OR REPLACE VIEW public.veteran_profiles_enhanced AS
+DROP VIEW IF EXISTS public.veteran_profiles_enhanced;
+CREATE VIEW public.veteran_profiles_enhanced AS
 SELECT 
   v.user_id,
   u.name,
