@@ -1,0 +1,141 @@
+{
+  "timestamp": "2025-08-19T03:50:47.397Z",
+  "totalTests": 29,
+  "passedTests": 5,
+  "failedTests": 24,
+  "errors": [
+    {
+      "test": "Login process",
+      "error": "No element found for selector: input[type=\"email\"]"
+    }
+  ],
+  "details": {
+    "Redirects to auth when not authenticated": {
+      "passed": false,
+      "details": {
+        "currentUrl": "http://localhost:3000/dashboard/veteran"
+      }
+    },
+    "Auth page loads": {
+      "passed": true,
+      "details": {
+        "title": "Xainik - Veteran Hiring Platform"
+      }
+    },
+    "Email input field exists": {
+      "passed": false,
+      "details": {}
+    },
+    "Password input field exists": {
+      "passed": false,
+      "details": {}
+    },
+    "Submit button exists": {
+      "passed": false,
+      "details": {}
+    },
+    "Login process": {
+      "passed": false,
+      "error": "No element found for selector: input[type=\"email\"]",
+      "details": {}
+    },
+    "Welcome message displays": {
+      "passed": false,
+      "details": {
+        "welcomeText": ""
+      }
+    },
+    "Veteran badge displays": {
+      "passed": false,
+      "details": {}
+    },
+    "Mission ready badge displays": {
+      "passed": false,
+      "details": {}
+    },
+    "Navigation tabs container exists": {
+      "passed": true,
+      "details": {}
+    },
+    "Analytics tab exists": {
+      "passed": false,
+      "details": {}
+    },
+    "Profile tab exists": {
+      "passed": false,
+      "details": {}
+    },
+    "My Pitches tab exists": {
+      "passed": false,
+      "details": {}
+    },
+    "Mission tab exists": {
+      "passed": false,
+      "details": {}
+    },
+    "Community tab exists": {
+      "passed": false,
+      "details": {}
+    },
+    "Analytics metrics cards display": {
+      "passed": true,
+      "details": {}
+    },
+    "Performance insights section loads": {
+      "passed": false,
+      "details": {}
+    },
+    "Success journey section loads": {
+      "passed": false,
+      "details": {}
+    },
+    "Name field exists in profile": {
+      "passed": false,
+      "details": {}
+    },
+    "Email field exists in profile": {
+      "passed": false,
+      "details": {}
+    },
+    "Edit Profile button exists": {
+      "passed": false,
+      "details": {}
+    },
+    "Create New Pitch button exists": {
+      "passed": false,
+      "details": {}
+    },
+    "Mission invitation button exists": {
+      "passed": false,
+      "details": {}
+    },
+    "Community suggestions section loads": {
+      "passed": false,
+      "details": {}
+    },
+    "New Suggestion button exists": {
+      "passed": false,
+      "details": {}
+    },
+    "Mobile dashboard navigation works": {
+      "passed": true,
+      "details": {
+        "viewport": "mobile"
+      }
+    },
+    "Tablet dashboard navigation works": {
+      "passed": true,
+      "details": {
+        "viewport": "tablet"
+      }
+    },
+    "Database status indicator displays": {
+      "passed": false,
+      "details": {}
+    },
+    "Database setup instructions display when needed": {
+      "passed": false,
+      "details": {}
+    }
+  }
+}
