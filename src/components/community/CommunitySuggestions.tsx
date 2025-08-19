@@ -5,7 +5,7 @@ import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 import { Lightbulb, Plus, CheckCircle, XCircle, Clock } from 'lucide-react'
 import VoteButtons from '@/components/voting/VoteButtons'
 import { getCommunitySuggestionsWithVotes } from '@/lib/services/voting'
-import { CommunitySuggestionWithVotes } from '@/types/voting'
+import { CommunitySuggestionWithVotes } from '../../types/voting'
 
 // =====================================================
 // MINIMALISTIC COMMUNITY SUGGESTIONS COMPONENT
