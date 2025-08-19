@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createSupabaseBrowser } from '@/lib/supabaseBrowser';
-import { Shield, ArrowLeft, Save, User, MapPin, Star, Link, FileText, Globe } from 'lucide-react';
+import { Shield, ArrowLeft, Save, User, MapPin, Star, Link as LinkIcon, FileText, Globe } from 'lucide-react';
 import Link from 'next/link';
 import LocationAutocomplete from '@/components/LocationAutocomplete';
 import WebLinksEditor from '@/components/WebLinksEditor';
@@ -505,10 +505,10 @@ export default function EnhancedProfileSettingsPage() {
 
             {/* Web Links */}
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
-                <Link className="h-5 w-5 text-gray-400" />
-                Web Links
-              </h3>
+                          <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
+              <LinkIcon className="h-5 w-5 text-gray-400" />
+              Web Links
+            </h3>
               <WebLinksEditor
                 links={formData.web_links}
                 onChange={(links) => handleInputChange('web_links', links)}
