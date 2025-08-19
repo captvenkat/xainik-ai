@@ -26,9 +26,10 @@ interface FullPitchViewProps {
   pitch: FullPitchData
   onContact?: () => void
   onRequestResume?: () => void
+  currentUserId?: string
 }
 
-export default function FullPitchView({ pitch, onContact, onRequestResume }: FullPitchViewProps) {
+export default function FullPitchView({ pitch, onContact, onRequestResume, currentUserId }: FullPitchViewProps) {
   const [showContactInfo, setShowContactInfo] = useState(false)
   
   const {
@@ -210,6 +211,17 @@ export default function FullPitchView({ pitch, onContact, onRequestResume }: Ful
         {/* Contact & Actions */}
         <div className="border-t border-gray-200 pt-8">
           <div className="flex flex-col md:flex-row gap-4">
+            
+            {/* Edit Button (only for pitch owner) */}
+            {currentUserId && user?.id === currentUserId && (
+              <Link
+                href={`/pitch/${id}/edit`}
+                className="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+              >
+                <Eye className="h-5 w-5" />
+                Edit Pitch
+              </Link>
+            )}
             {/* Contact Button */}
             <button
               onClick={() => setShowContactInfo(!showContactInfo)}

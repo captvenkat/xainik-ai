@@ -80,8 +80,8 @@ export default async function PitchDetailPage({
 
   // Fetch endorsements and community verification status
   const [endorsements, isVerified] = await Promise.all([
-    getVeteranEndorsements(pitch.user_id as string),
-    isCommunityVerified(pitch.user_id as string)
+    getVeteranEndorsements(pitch.veteran_id as string),
+    isCommunityVerified(pitch.veteran_id as string)
   ])
 
   // Transform pitch data for FullPitchView
@@ -127,6 +127,7 @@ export default async function PitchDetailPage({
         {/* Full Pitch View */}
         <FullPitchView 
           pitch={fullPitchData}
+          currentUserId={user?.id}
           onContact={() => {
             // Handle contact action
           }}
