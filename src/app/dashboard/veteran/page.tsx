@@ -537,7 +537,7 @@ function PitchesTab({ userId, router }: { userId: string; router: any }) {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 max-w-6xl mx-auto">
       {/* Hero Pitches Section */}
       <div className="bg-gradient-to-r from-purple-50 to-violet-50 rounded-xl p-8 border border-purple-100">
         <div className="flex justify-between items-center">
@@ -572,22 +572,22 @@ function PitchesTab({ userId, router }: { userId: string; router: any }) {
         <div className="grid gap-6">
           {pitches.map((pitch) => (
             <div key={pitch.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 hover:shadow-lg transition-all duration-200">
-              <div className="flex justify-between items-start mb-6">
-                <div className="flex-1">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-3">{pitch.title}</h3>
-                  <p className="text-gray-600 text-lg leading-relaxed">{pitch.pitch_text}</p>
+              <div className="flex flex-col lg:flex-row justify-between items-start gap-6 mb-6">
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-3 break-words">{pitch.title}</h3>
+                  <p className="text-gray-600 text-lg leading-relaxed break-words">{pitch.pitch_text}</p>
                 </div>
-                <div className="flex space-x-3 ml-6">
+                <div className="flex space-x-3 flex-shrink-0">
                   <button 
                     onClick={() => router.push(`/pitch/${pitch.id}/edit`)}
-                    className="bg-blue-50 text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-100 transition-colors flex items-center gap-2"
+                    className="bg-blue-50 text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-100 transition-colors flex items-center gap-2 whitespace-nowrap"
                   >
                     <Edit className="w-4 h-4" />
                     Edit
                   </button>
                   <button 
                     onClick={() => router.push(`/pitch/${pitch.id}`)}
-                    className="bg-green-50 text-green-600 px-4 py-2 rounded-lg hover:bg-green-100 transition-colors flex items-center gap-2"
+                    className="bg-green-50 text-green-600 px-4 py-2 rounded-lg hover:bg-green-100 transition-colors flex items-center gap-2 whitespace-nowrap"
                   >
                     <Eye className="w-4 h-4" />
                     View
