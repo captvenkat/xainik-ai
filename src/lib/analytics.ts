@@ -314,7 +314,7 @@ export async function getSimpleActionsData(veteranId: string) {
     
     // Analyze skills completeness
     const skills = currentPitch.skills || []
-    const hasSpecificSkills = skills.length >= 3 && skills.some(skill => skill.length > 10)
+    const hasSpecificSkills = skills.length >= 3 && skills.some((skill: string) => skill.length > 10)
     
     // Analyze content quality
     const contentLength = currentPitch.content?.length || 0
@@ -433,8 +433,8 @@ export async function getSimpleActionsData(veteranId: string) {
     }
 
     // Sort by priority and limit to top 5 most impactful
-    const priorityOrder = { critical: 3, high: 2, medium: 1 }
-    actions.sort((a, b) => priorityOrder[b.priority] - priorityOrder[a.priority])
+    const priorityOrder: Record<string, number> = { critical: 3, high: 2, medium: 1 }
+    actions.sort((a, b) => (priorityOrder[b.priority] || 0) - (priorityOrder[a.priority] || 0))
     
     return {
       actions: actions.slice(0, 5),
