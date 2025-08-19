@@ -351,7 +351,7 @@ function DetailsStep({ formData, updateFormData, onNext, onBack, profile }: any)
 // Review Step Component
 function ReviewStep({ formData, profile, onNext, onBack, isLoading, error, success }: any) {
   return (
-    <div>
+    <div className="max-w-4xl mx-auto">
       <h2 className="text-2xl font-bold text-gray-900 mb-6">Review Your Pitch</h2>
       
       {error && (
@@ -389,9 +389,23 @@ function ReviewStep({ formData, profile, onNext, onBack, isLoading, error, succe
         </div>
 
         {/* Pitch Info */}
-        <div>
+        <div className="bg-gray-50 p-4 rounded-lg">
           <h3 className="font-semibold text-gray-900 mb-2">Pitch Information</h3>
           <div className="space-y-4">
+            
+            {/* Photo Preview */}
+            {formData.photo_url && (
+              <div>
+                <span className="text-gray-600 text-sm">Profile Photo:</span>
+                <div className="mt-2">
+                  <img 
+                    src={formData.photo_url} 
+                    alt="Profile preview" 
+                    className="w-20 h-20 rounded-lg object-cover border-2 border-gray-200"
+                  />
+                </div>
+              </div>
+            )}
             <div>
               <span className="text-gray-600 text-sm">Title:</span>
               <p className="font-medium">{formData.title || 'Not set'}</p>
