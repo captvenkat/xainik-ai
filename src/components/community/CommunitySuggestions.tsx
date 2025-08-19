@@ -60,6 +60,7 @@ export default function CommunitySuggestions({ userId }: { userId: string }) {
 
       const suggestionsWithNames = data?.map(suggestion => ({
         ...suggestion,
+        suggestion: suggestion.title || suggestion.description || 'No description',
         user_name: suggestion.users?.name || 'Anonymous'
       })) || []
 
@@ -98,7 +99,9 @@ export default function CommunitySuggestions({ userId }: { userId: string }) {
           description: newSuggestion.trim(),
           category: selectedCategory,
           suggestion_type: selectedCategory,
-          priority: 'medium'
+          priority: 'medium',
+          status: 'active',
+          votes: 0
         })
 
       if (error) throw error
