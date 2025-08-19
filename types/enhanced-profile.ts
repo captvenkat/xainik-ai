@@ -217,9 +217,7 @@ export const ALL_MILITARY_RANKS = {
 export const SERVICE_BRANCHES = [
   'Indian Army',
   'Indian Navy',
-  'Indian Air Force',
-  'Coast Guard',
-  'Other'
+  'Indian Air Force'
 ] as const;
 
 // Web Link Types
