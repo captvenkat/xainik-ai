@@ -2,12 +2,11 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { MapPin, Search, X } from 'lucide-react';
-import { GooglePlace, LocationAutocompleteResult } from '../../types/enhanced-profile';
+import { GooglePlace, GooglePlacesResponse } from '@/types/enhanced-profile';
 
 interface LocationAutocompleteProps {
   value: string;
   onChange: (value: string) => void;
-  onLocationSelect?: (location: LocationAutocompleteResult) => void;
   placeholder?: string;
   className?: string;
   disabled?: boolean;
@@ -17,72 +16,93 @@ interface LocationAutocompleteProps {
 export default function LocationAutocomplete({
   value,
   onChange,
-  onLocationSelect,
   placeholder = "Search for a location...",
   className = "",
   disabled = false,
   error
 }: LocationAutocompleteProps) {
-  const [predictions, setPredictions] = useState<GooglePlace[]>([]);
+  const [suggestions, setSuggestions] = useState<GooglePlace[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [selectedIndex, setSelectedIndex] = useState(-1);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [inputValue, setInputValue] = useState(value);
   const inputRef = useRef<HTMLInputElement>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const timeoutRef = useRef<NodeJS.Timeout>();
+  const suggestionsRef = useRef<HTMLDivElement>(null);
 
-  // Google Places API key - should be in environment variables
-  const GOOGLE_PLACES_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY;
-
+  // Debounce search
   useEffect(() => {
-    // Load Google Places API script
-    const loadGooglePlacesScript = () => {
-      if (window.google && window.google.maps) {
-        return Promise.resolve();
+    const timer = setTimeout(() => {
+      if (inputValue.trim() && inputValue !== value) {
+        searchPlaces(inputValue);
+      } else {
+        setSuggestions([]);
+        setShowSuggestions(false);
       }
+    }, 300);
 
-      return new Promise<void>((resolve, reject) => {
-        const script = document.createElement('script');
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_PLACES_API_KEY}&libraries=places`;
-        script.async = true;
-        script.defer = true;
-        script.onload = () => resolve();
-        script.onerror = () => reject(new Error('Failed to load Google Places API'));
-        document.head.appendChild(script);
-      });
+    return () => clearTimeout(timer);
+  }, [inputValue]);
+
+  // Update input value when prop changes
+  useEffect(() => {
+    setInputValue(value);
+  }, [value]);
+
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        suggestionsRef.current &&
+        !suggestionsRef.current.contains(event.target as Node) &&
+        inputRef.current &&
+        !inputRef.current.contains(event.target as Node)
+      ) {
+        setShowSuggestions(false);
+      }
     };
 
-    loadGooglePlacesScript().catch(console.error);
-  }, [GOOGLE_PLACES_API_KEY]);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
-  const searchPlaces = async (input: string) => {
-    if (!input.trim() || !GOOGLE_PLACES_API_KEY) {
-      setPredictions([]);
+  const searchPlaces = async (query: string) => {
+    if (!query.trim()) {
+      setSuggestions([]);
+      setShowSuggestions(false);
       return;
     }
 
     setIsLoading(true);
+    setShowSuggestions(true);
 
     try {
+      const apiKey = process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY;
+      if (!apiKey) {
+        console.error('Google Places API key not found');
+        setSuggestions([]);
+        return;
+      }
+
       const response = await fetch(
-        `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(input)}&types=(cities)&key=${GOOGLE_PLACES_API_KEY}`
+        `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(
+          query
+        )}&types=(cities)&key=${apiKey}`
       );
 
       if (!response.ok) {
         throw new Error('Failed to fetch places');
       }
 
-      const data = await response.json();
-      
+      const data: GooglePlacesResponse = await response.json();
+
       if (data.status === 'OK') {
-        setPredictions(data.predictions || []);
+        setSuggestions(data.predictions);
       } else {
-        console.warn('Google Places API error:', data.status);
-        setPredictions([]);
+        console.error('Google Places API error:', data.status);
+        setSuggestions([]);
       }
     } catch (error) {
       console.error('Error searching places:', error);
-      setPredictions([]);
+      setSuggestions([]);
     } finally {
       setIsLoading(false);
     }
@@ -90,107 +110,62 @@ export default function LocationAutocomplete({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
-    onChange(newValue);
-    setSelectedIndex(-1);
-
-    // Clear previous timeout
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
+    setInputValue(newValue);
+    
+    if (!newValue.trim()) {
+      onChange('');
+      setSuggestions([]);
+      setShowSuggestions(false);
     }
-
-    // Debounce the API call
-    timeoutRef.current = setTimeout(() => {
-      searchPlaces(newValue);
-    }, 300);
   };
 
-  const handleLocationSelect = (place: GooglePlace) => {
-    const location: LocationAutocompleteResult = {
-      place_id: place.place_id,
-      city: place.structured_formatting.main_text,
-      country: place.structured_formatting.secondary_text,
-      full_address: place.description,
-      display_text: `${place.structured_formatting.main_text}, ${place.structured_formatting.secondary_text}`
-    };
+  const handleSuggestionClick = (suggestion: GooglePlace) => {
+    const displayText = suggestion.description;
+    setInputValue(displayText);
+    onChange(displayText);
+    setShowSuggestions(false);
+    setSuggestions([]);
+  };
 
-    onChange(location.display_text);
-    onLocationSelect?.(location);
-    setShowDropdown(false);
-    setPredictions([]);
-    inputRef.current?.blur();
+  const handleClear = () => {
+    setInputValue('');
+    onChange('');
+    setSuggestions([]);
+    setShowSuggestions(false);
+    inputRef.current?.focus();
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (!showDropdown || predictions.length === 0) return;
-
-    switch (e.key) {
-      case 'ArrowDown':
-        e.preventDefault();
-        setSelectedIndex(prev => 
-          prev < predictions.length - 1 ? prev + 1 : prev
-        );
-        break;
-      case 'ArrowUp':
-        e.preventDefault();
-        setSelectedIndex(prev => prev > 0 ? prev - 1 : -1);
-        break;
-      case 'Enter':
-        e.preventDefault();
-        if (selectedIndex >= 0 && selectedIndex < predictions.length) {
-          handleLocationSelect(predictions[selectedIndex]);
-        }
-        break;
-      case 'Escape':
-        setShowDropdown(false);
-        setSelectedIndex(-1);
-        inputRef.current?.blur();
-        break;
+    if (e.key === 'Escape') {
+      setShowSuggestions(false);
+      inputRef.current?.blur();
     }
-  };
-
-  const handleFocus = () => {
-    if (predictions.length > 0) {
-      setShowDropdown(true);
-    }
-  };
-
-  const handleBlur = () => {
-    // Delay hiding dropdown to allow for clicks
-    setTimeout(() => {
-      setShowDropdown(false);
-      setSelectedIndex(-1);
-    }, 200);
-  };
-
-  const clearInput = () => {
-    onChange('');
-    setPredictions([]);
-    setShowDropdown(false);
-    setSelectedIndex(-1);
-    inputRef.current?.focus();
   };
 
   return (
     <div className={`relative ${className}`}>
       <div className="relative">
         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <MapPin className="h-5 w-5 text-gray-400" />
+          <Search className="h-4 w-4 text-gray-400" />
         </div>
         
         <input
           ref={inputRef}
           type="text"
-          value={value}
+          value={inputValue}
           onChange={handleInputChange}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
           onKeyDown={handleKeyDown}
+          onFocus={() => {
+            if (suggestions.length > 0) {
+              setShowSuggestions(true);
+            }
+          }}
           placeholder={placeholder}
           disabled={disabled}
           className={`
             block w-full pl-10 pr-10 py-2 border rounded-md shadow-sm
             focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-            disabled:bg-gray-50 disabled:text-gray-500
+            disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed
             ${error 
               ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
               : 'border-gray-300'
@@ -198,20 +173,14 @@ export default function LocationAutocomplete({
           `}
         />
         
-        {value && !disabled && (
+        {inputValue && !disabled && (
           <button
             type="button"
-            onClick={clearInput}
+            onClick={handleClear}
             className="absolute inset-y-0 right-0 pr-3 flex items-center"
           >
-            <X className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+            <X className="h-4 w-4 text-gray-400 hover:text-gray-600" />
           </button>
-        )}
-        
-        {isLoading && (
-          <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-          </div>
         )}
       </div>
 
@@ -220,43 +189,50 @@ export default function LocationAutocomplete({
         <p className="mt-1 text-sm text-red-600">{error}</p>
       )}
 
-      {/* Dropdown */}
-      {showDropdown && predictions.length > 0 && (
+      {/* Suggestions dropdown */}
+      {showSuggestions && (suggestions.length > 0 || isLoading) && (
         <div
-          ref={dropdownRef}
-          className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto"
+          ref={suggestionsRef}
+          className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto"
         >
-          {predictions.map((place, index) => (
-            <button
-              key={place.place_id}
-              type="button"
-              onClick={() => handleLocationSelect(place)}
-              className={`
-                w-full px-4 py-2 text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none
-                ${selectedIndex === index ? 'bg-gray-50' : ''}
-              `}
-            >
-              <div className="flex items-center">
-                <MapPin className="h-4 w-4 text-gray-400 mr-2 flex-shrink-0" />
-                <div>
-                  <div className="font-medium text-gray-900">
-                    {place.structured_formatting.main_text}
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    {place.structured_formatting.secondary_text}
-                  </div>
-                </div>
-              </div>
-            </button>
-          ))}
+          {isLoading ? (
+            <div className="px-4 py-3 text-sm text-gray-500 flex items-center">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+              Searching locations...
+            </div>
+          ) : (
+            <ul className="py-1">
+              {suggestions.map((suggestion, index) => (
+                <li key={suggestion.place_id}>
+                  <button
+                    type="button"
+                    onClick={() => handleSuggestionClick(suggestion)}
+                    className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 focus:bg-gray-100 focus:outline-none flex items-center"
+                  >
+                    <MapPin className="h-4 w-4 text-gray-400 mr-2 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-gray-900 truncate">
+                        {suggestion.structured_formatting.main_text}
+                      </div>
+                      {suggestion.structured_formatting.secondary_text && (
+                        <div className="text-gray-500 truncate">
+                          {suggestion.structured_formatting.secondary_text}
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       )}
 
       {/* No results message */}
-      {showDropdown && !isLoading && predictions.length === 0 && value.trim() && (
-        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg">
-          <div className="px-4 py-2 text-sm text-gray-500">
-            No locations found
+      {showSuggestions && !isLoading && suggestions.length === 0 && inputValue.trim() && (
+        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg">
+          <div className="px-4 py-3 text-sm text-gray-500">
+            No locations found. Try a different search term.
           </div>
         </div>
       )}
