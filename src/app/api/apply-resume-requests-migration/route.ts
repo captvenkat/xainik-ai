@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createSupabaseServerOnly } from '@/lib/supabaseServerOnly';
+import { createRouteClient } from '@/lib/supabase-server';
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createSupabaseServerOnly();
+    const supabase = await createRouteClient();
     
     // Check if user is admin
     const { data: { user } } = await supabase.auth.getUser();
@@ -23,52 +23,27 @@ export async function POST(request: NextRequest) {
     
     console.log('Applying allow_resume_requests migration...');
     
-    // Add the allow_resume_requests column to pitches table
-    const { error: alterError } = await supabase.rpc('exec_sql', {
-      sql: `
-        ALTER TABLE public.pitches ADD COLUMN IF NOT EXISTS allow_resume_requests boolean DEFAULT false;
-      `
-    });
+    // Complete migration SQL
+    const migrationSQL = `
+      -- Add the allow_resume_requests column to pitches table
+      ALTER TABLE public.pitches ADD COLUMN IF NOT EXISTS allow_resume_requests boolean DEFAULT false;
+      
+      -- Update existing records to have allow_resume_requests = false
+      UPDATE public.pitches SET allow_resume_requests = false WHERE allow_resume_requests IS NULL;
+      
+      -- Add comment for documentation
+      COMMENT ON COLUMN public.pitches.allow_resume_requests IS 'Whether recruiters can request resume for this pitch';
+      
+      -- Create index for better query performance
+      CREATE INDEX IF NOT EXISTS idx_pitches_allow_resume_requests ON public.pitches(allow_resume_requests);
+    `;
     
-    if (alterError) {
-      console.error('Error adding column:', alterError);
-      return NextResponse.json({ error: 'Failed to add column', details: alterError }, { status: 500 });
-    }
+    // Execute the migration
+    const { error } = await supabase.rpc('exec_sql', { sql: migrationSQL });
     
-    // Update existing records to have allow_resume_requests = false
-    const { error: updateError } = await supabase.rpc('exec_sql', {
-      sql: `
-        UPDATE public.pitches SET allow_resume_requests = false WHERE allow_resume_requests IS NULL;
-      `
-    });
-    
-    if (updateError) {
-      console.error('Error updating existing records:', updateError);
-      return NextResponse.json({ error: 'Failed to update records', details: updateError }, { status: 500 });
-    }
-    
-    // Add comment for documentation
-    const { error: commentError } = await supabase.rpc('exec_sql', {
-      sql: `
-        COMMENT ON COLUMN public.pitches.allow_resume_requests IS 'Whether recruiters can request resume for this pitch';
-      `
-    });
-    
-    if (commentError) {
-      console.error('Error adding comment:', commentError);
-      // Don't fail the migration for this
-    }
-    
-    // Create index for better query performance
-    const { error: indexError } = await supabase.rpc('exec_sql', {
-      sql: `
-        CREATE INDEX IF NOT EXISTS idx_pitches_allow_resume_requests ON public.pitches(allow_resume_requests);
-      `
-    });
-    
-    if (indexError) {
-      console.error('Error creating index:', indexError);
-      // Don't fail the migration for this
+    if (error) {
+      console.error('Migration error:', error);
+      return NextResponse.json({ error: 'Migration failed', details: error.message }, { status: 500 });
     }
     
     console.log('✅ Migration applied successfully!');
@@ -76,12 +51,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ 
       success: true, 
       message: 'allow_resume_requests migration applied successfully',
-      details: {
-        columnAdded: true,
-        recordsUpdated: true,
-        commentAdded: !commentError,
-        indexCreated: !indexError
-      }
+      column_added: 'allow_resume_requests',
+      table: 'pitches',
+      index_created: 'idx_pitches_allow_resume_requests'
     });
     
   } catch (error) {
