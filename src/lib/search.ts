@@ -49,7 +49,8 @@ export async function searchPitches(
 
     // Filter to only show pitches from users with active subscriptions
     const activePitches = (pitches || []).filter(pitch => {
-      const subscription = pitch.user_subscriptions?.[0]
+      const subscriptions = pitch.user_subscriptions as any
+      const subscription = subscriptions?.[0]
       return subscription && 
              subscription.status === 'active' &&
              new Date(subscription.end_date) > new Date()

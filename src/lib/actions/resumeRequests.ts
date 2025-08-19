@@ -8,6 +8,7 @@ export interface CreateResumeRequestData {
   recruiter_user_id: string
   user_id: string
   job_role?: string | null
+  message?: string | null
 }
 
 export async function createResumeRequest(data: CreateResumeRequestData) {
@@ -21,6 +22,7 @@ export async function createResumeRequest(data: CreateResumeRequestData) {
         recruiter_user_id: data.recruiter_user_id,
         user_id: data.user_id,
         job_role: data.job_role || null,
+        message: data.message || null,
         status: 'pending'
       })
       .select()
@@ -169,15 +171,16 @@ export async function getResumeRequests(userId: string, role: string) {
 
 async function logResumeRequestActivity(activityType: string, metadata: any) {
   try {
-    const supabase = await createActionClient()
-    
-    await supabase
-      .from('user_activity_log')
-      .insert({
-        activity_type: activityType,
-        activity_data: metadata,
-        user_id: metadata.user_id
-      })
+    // Commented out due to user_activity_log table not existing in live schema
+    // const supabase = await createActionClient()
+    // 
+    // await supabase
+    //   .from('user_activity_log')
+    //   .insert({
+    //     activity_type: activityType,
+    //     activity_data: metadata,
+    //     user_id: metadata.user_id
+    //   })
   } catch (error) {
     console.error('Error logging resume request activity:', error)
   }

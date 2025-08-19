@@ -52,11 +52,11 @@ export default function CommunitySuggestions({ userId }: { userId: string }) {
 
   async function fetchSummary() {
     try {
-      const { data, error } = await supabase
-        .from('community_suggestions_summary')
-        .select('*')
-        .single()
-
+      // Note: community_suggestions_summary table doesn't exist in live schema
+      // Skip fetching summary until table is created
+      const data = null
+      const error = new Error('community_suggestions_summary table not in live schema')
+      
       if (error) throw error
       setSummary(data)
     } catch (error) {
@@ -69,17 +69,9 @@ export default function CommunitySuggestions({ userId }: { userId: string }) {
 
     setIsSubmitting(true)
     try {
-      const { error } = await supabase
-        .from('community_suggestions')
-        .insert({
-          user_id: userId,
-          title: newSuggestion.trim(),
-          description: newSuggestion.trim(),
-          suggestion_type: selectedCategory,
-          priority: 'medium',
-          status: 'active',
-          votes: 0
-        })
+      // Note: community_suggestions table doesn't exist in live schema
+      // Skip submitting suggestion until table is created
+      const error = new Error('community_suggestions table not in live schema')
 
       if (error) throw error
 

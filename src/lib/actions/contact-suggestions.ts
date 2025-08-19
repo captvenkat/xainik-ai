@@ -63,24 +63,25 @@ export async function getRealContactSuggestions(pitchId: string): Promise<Contac
     // 4. Generate intelligent suggestions based on real data
     const suggestions: ContactSuggestion[] = []
 
-    // Add recruiter suggestions
-    if (recruiters && recruiters.length > 0) {
-      recruiters.forEach((recruiter, index) => {
-        const skillMatch = calculateSkillMatch(pitch.skills, recruiter.industry)
-        const locationMatch = calculateLocationMatch(pitch.location, recruiter.company_name)
-        
-        suggestions.push({
-          id: `recruiter-${recruiter.user_id}`,
-          name: recruiter.users[0]?.name || 'Unknown Recruiter',
-          role: 'Recruiter',
-          company: recruiter.company_name || 'Unknown Company',
-          connectionStrength: skillMatch > 0.7 ? 'high' : skillMatch > 0.4 ? 'medium' : 'low',
-          suggestedAction: skillMatch > 0.7 ? 'email' : 'linkedin',
-          reason: generateReason(pitch.skills, recruiter.industry, skillMatch),
-          successProbability: Math.round(skillMatch * 100)
-        })
-      })
-    }
+    // Note: recruiters table has limited schema in live database
+    // Skip recruiter suggestions until schema is properly migrated
+    // if (recruiters && recruiters.length > 0) {
+    //   recruiters.forEach((recruiter, index) => {
+    //     const skillMatch = calculateSkillMatch(pitch.skills, recruiter.industry)
+    //     const locationMatch = calculateLocationMatch(pitch.location, recruiter.company_name)
+    //     
+    //     suggestions.push({
+    //       id: `recruiter-${recruiter.user_id}`,
+    //       name: recruiter.users[0]?.name || 'Unknown Recruiter',
+    //       role: 'Recruiter',
+    //       company: recruiter.company_name || 'Unknown Company',
+    //       connectionStrength: skillMatch > 0.7 ? 'high' : skillMatch > 0.4 ? 'medium' : 'low',
+    //       suggestedAction: skillMatch > 0.7 ? 'email' : 'linkedin',
+    //       reason: generateReason(pitch.skills, recruiter.industry, skillMatch),
+    //       successProbability: Math.round(skillMatch * 100)
+    //     })
+    //   })
+    // }
 
     // Add supporter suggestions for referrals
     if (supporters && supporters.length > 0) {

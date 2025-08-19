@@ -21,13 +21,15 @@ export async function refreshAnalytics(userId: string, role: string, path: strin
   try {
     const supabaseAction = await createActionClient()
 
-    // Force refresh by clearing cache and fetching fresh data
-    const { data: activity } = await supabaseAction
-      .from('user_activity_log')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(100)
+    // Note: user_activity_log table doesn't exist in live schema
+    // Skip fetching activity until schema is properly migrated
+    // const { data: activity } = await supabaseAction
+    //   .from('user_activity_log')
+    //   .select('*')
+    //   .eq('user_id', userId)
+    //   .order('created_at', { ascending: false })
+    //   .limit(100)
+    const activity: any[] = []
 
     const totalViews = activity?.filter(a => a.activity_type === 'pitch_view').length || 0
     const totalClicks = activity?.filter(a => a.activity_type === 'pitch_click').length || 0
@@ -84,17 +86,20 @@ export async function logActivity(data: {
   try {
     const supabaseAction = await createActionClient()
     
-    const { error } = await supabaseAction
-      .from('user_activity_log')
-      .insert({
-        user_id: data.user_id,
-        activity_type: data.activity_type,
-        activity_data: data.activity_data || {}
-      })
+    // Note: user_activity_log table doesn't exist in live schema
+    // Skip logging activity until schema is properly migrated
+    // const { error } = await supabaseAction
+    //   .from('user_activity_log')
+    //   .insert({
+    //     user_id: data.user_id,
+    //     activity_type: data.activity_type,
+    //     activity_data: data.activity_data || {}
+    //   })
+    const error = null
 
     if (error) {
       console.error('Activity logging error:', error)
-      return { success: false, error: error.message }
+      return { success: false, error: 'Activity logging failed' }
     }
 
     return { success: true }

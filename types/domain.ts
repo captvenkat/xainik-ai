@@ -3,7 +3,7 @@
 // Xainik Platform - Professional Rewrite
 // =====================================================
 
-import { Database } from './supabase';
+import { Database } from './live-schema';
 
 // Extract table types from Supabase schema
 export type Tables = Database['public']['Tables'];

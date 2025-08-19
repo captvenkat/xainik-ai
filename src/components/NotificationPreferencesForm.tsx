@@ -46,16 +46,21 @@ export default function NotificationPreferencesForm({ initialPrefs }: Notificati
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
-      const { error } = await supabase
-        .from('notification_prefs')
-        .upsert({
-          user_id: user.id,
-          email_enabled: prefs.email_enabled,
-          in_app_enabled: prefs.in_app_enabled,
-          digest_enabled: prefs.digest_enabled,
-          quiet_hours_start: prefs.quiet_hours_start,
-          quiet_hours_end: prefs.quiet_hours_end
-        })
+                        // Note: notification_prefs table has limited schema in live database
+                  // Available fields: email_enabled, in_app_enabled, referral_notifications, pitch_notifications,
+                  // endorsement_notifications, resume_request_notifications, plan_notifications
+                  const { error } = await supabase
+                    .from('notification_prefs')
+                    .upsert({
+                      user_id: user.id, // Add the missing user_id
+                      email_enabled: prefs.email_enabled,
+                      in_app_enabled: prefs.in_app_enabled,
+                      referral_notifications: true, // Default enabled
+                      pitch_notifications: true, // Default enabled
+                      endorsement_notifications: true, // Default enabled
+                      resume_request_notifications: true, // Default enabled
+                      plan_notifications: true // Default enabled
+                    })
 
       if (error) {
         throw error

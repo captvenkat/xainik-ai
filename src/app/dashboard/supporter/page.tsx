@@ -117,9 +117,12 @@ export default function SupporterDashboard() {
         supabase.from('donations').select('*', { count: 'exact', head: true }).eq('user_id', userId),
         supabase.from('endorsements').select('*', { count: 'exact', head: true }).eq('endorser_user_id', userId),
         supabase.from('referrals').select('*', { count: 'exact', head: true }).eq('user_id', userId),
-        supabase.from('user_activity_log').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(10),
-        supabase.from('ai_suggestions').select('*').eq('user_id', userId).eq('is_dismissed', false).order('priority', { ascending: false }),
-        supabase.from('supporter_celebrations').select('*').eq('supporter_id', userId).order('created_at', { ascending: false }).limit(5),
+        // Note: user_activity_log table doesn't exist in live schema
+        Promise.resolve({ data: [], error: null }),
+        // Note: ai_suggestions table doesn't exist in live schema
+        Promise.resolve({ data: [], error: null }),
+        // Note: supporter_celebrations table doesn't exist in live schema
+        Promise.resolve({ data: [], error: null }),
         supabase.from('referral_events').select('*').eq('referral_id', userId).order('occurred_at', { ascending: false }).limit(10)
       ])
 
@@ -145,10 +148,10 @@ export default function SupporterDashboard() {
         impactScore
       })
 
-      // Calculate conversion metrics
-      const totalViews = recentActivity?.filter(a => a.activity_type === 'pitch_viewed').length || 0
-      const totalCalls = recentActivity?.filter(a => a.activity_type === 'call_clicked').length || 0
-      const totalEmails = recentActivity?.filter(a => a.activity_type === 'email_clicked').length || 0
+      // Calculate conversion metrics (activity data not available due to missing tables)
+      const totalViews = 0
+      const totalCalls = 0
+      const totalEmails = 0
       const totalActions = totalCalls + totalEmails
       const conversionRate = totalViews > 0 ? (totalActions / totalViews) * 100 : 0
 

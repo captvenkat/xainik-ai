@@ -47,8 +47,13 @@ export async function generateWeeklyReport(userId: string, pitchId?: string) {
     const totalShares = pitchData?.shares_count || 0
     const totalEndorsements = pitchData?.endorsements_count || 0
 
-    const weeklyViews = weeklyActivity?.filter(e => e.event_type === 'VIEW').length || 0
-    const weeklyShares = weeklyActivity?.filter(e => e.event_type === 'SHARE').length || 0
+    // Note: referral_events table has limited schema in live database
+    // Skip calculating weekly activity until schema is properly migrated
+    // const weeklyViews = weeklyActivity?.filter(e => e.event_type === 'VIEW').length || 0
+    // const weeklyShares = weeklyActivity?.filter(e => e.event_type === 'SHARE').length || 0
+    
+    const weeklyViews = 0 // Placeholder until schema is migrated
+    const weeklyShares = 0 // Placeholder until schema is migrated
 
     // Generate report content
     const reportContent = `
@@ -147,28 +152,29 @@ export async function generateMonthlyReport(userId: string, pitchId?: string) {
       return { success: false, error: 'User not found' }
     }
 
-    // Get monthly data
-    const monthAgo = new Date()
-    monthAgo.setMonth(monthAgo.getMonth() - 1)
+    // Get monthly data - commented out due to limited referral_events schema
+    // const monthAgo = new Date()
+    // monthAgo.setMonth(monthAgo.getMonth() - 1)
 
-    const { data: monthlyActivity } = await supabase
-      .from('referral_events')
-      .select('event_type, platform, created_at')
-      .eq('referral_id', pitchId || userId)
-      .gte('created_at', monthAgo.toISOString())
-      .order('created_at', { ascending: false })
+    // const { data: monthlyActivity } = await supabase
+    //   .from('referral_events')
+    //   .select('event_type, platform, created_at')
+    //   .eq('referral_id', pitchId || userId)
+    //   .gte('created_at', monthAgo.toISOString())
+    //   .order('created_at', { ascending: false })
 
-    // Calculate monthly metrics
-    const monthlyViews = monthlyActivity?.filter(e => e.event_type === 'VIEW').length || 0
-    const monthlyShares = monthlyActivity?.filter(e => e.event_type === 'SHARE').length || 0
-    const monthlyLikes = monthlyActivity?.filter(e => e.event_type === 'LIKE').length || 0
+    // Note: referral_events table has limited schema in live database
+    // Skip calculating monthly activity until schema is properly migrated
+    // const monthlyViews = monthlyActivity?.filter(e => e.event_type === 'VIEW').length || 0
+    // const monthlyShares = monthlyActivity?.filter(e => e.event_type === 'SHARE').length || 0
+    // const monthlyLikes = monthlyActivity?.filter(e => e.event_type === 'LIKE').length || 0
+    
+    const monthlyViews = 0 // Placeholder until schema is migrated
+    const monthlyShares = 0 // Placeholder until schema is migrated
+    const monthlyLikes = 0 // Placeholder until schema is migrated
 
-    // Get platform breakdown
-    const platformStats = monthlyActivity?.reduce((acc, event) => {
-      const platform = event.platform || 'unknown'
-      acc[platform] = (acc[platform] || 0) + 1
-      return acc
-    }, {} as Record<string, number>) || {}
+    // Get platform breakdown - placeholder until schema is migrated
+    const platformStats = {} as Record<string, number>
 
     const reportContent = `
       <h2>Monthly Performance Report</h2>

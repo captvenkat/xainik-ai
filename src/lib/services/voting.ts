@@ -21,7 +21,10 @@ export async function voteOnSuggestion(
       }
     }
 
-    return data as VoteResponse
+    return {
+      success: true,
+      data: data
+    } as VoteResponse
   } catch (error) {
     console.error('Voting error:', error)
     return {
@@ -33,11 +36,10 @@ export async function voteOnSuggestion(
 
 export async function getCommunitySuggestionsWithVotes(): Promise<CommunitySuggestionWithVotes[]> {
   try {
-    const { data, error } = await supabase
-      .from('community_suggestions_with_votes')
-      .select('*')
-      .order('votes', { ascending: false })
-      .order('created_at', { ascending: false })
+    // Note: community_suggestions_with_votes table doesn't exist in live schema
+    // Skip fetching suggestions until table is created
+    const data: CommunitySuggestionWithVotes[] = []
+    const error = new Error('community_suggestions_with_votes table not in live schema')
 
     if (error) {
       console.error('Error fetching suggestions with votes:', error)

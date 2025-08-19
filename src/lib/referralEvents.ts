@@ -75,7 +75,9 @@ export async function getReferralEvents(referralId: string): Promise<ReferralEve
 
     return (data || []).map(event => ({
       ...event,
-      created_at: event.occurred_at // Map occurred_at to created_at for compatibility
+      referral_id: event.referral_id || '', // Handle null referral_id
+      occurred_at: event.occurred_at || new Date().toISOString(), // Handle null occurred_at
+      created_at: event.occurred_at || new Date().toISOString() // Map occurred_at to created_at for compatibility
     }))
   } catch (error) {
     console.error('Failed to fetch referral events:', error)

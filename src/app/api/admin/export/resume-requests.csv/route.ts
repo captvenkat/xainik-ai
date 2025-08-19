@@ -4,9 +4,10 @@ import { toCSV } from '@/lib/csv'
 
 export async function GET() {
   const supabase = await createSupabaseServerOnly()
+  // Use actual live schema column names: recruiter_user_id, user_id
   const { data: rows } = await supabase
     .from('resume_requests')
-    .select('id, recruiter_user_id, user_id, pitch_id, status, created_at')
+    .select('id, recruiter_user_id, user_id, pitch_id, status, job_role, message, created_at, responded_at')
     .order('created_at', { ascending: false })
     .limit(5000)
 

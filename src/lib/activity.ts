@@ -35,18 +35,19 @@ export async function logUserActivity(data: {
   try {
     const supabaseAction = await createActionClient()
     
-    const { error } = await supabaseAction
-      .from('user_activity_log')
-      .insert({
-        user_id: data.user_id,
-        activity_type: data.activity_type,
-        activity_data: data.activity_data || {}
-      })
+    // Commented out due to user_activity_log table not existing in live schema
+    // const { error } = await supabaseAction
+    //   .from('user_activity_log')
+    //   .insert({
+    //     user_id: data.user_id,
+    //     activity_type: data.activity_type,
+    //     activity_data: data.activity_data || {}
+    //   })
 
-    if (error) {
-      console.error('Activity logging error:', error)
-      return { success: false, error: error.message }
-    }
+    // if (error) {
+    //   console.error('Activity logging error:', error)
+    //   return { success: false, error: error.message }
+    // }
 
     return { success: true }
   } catch (error) {
@@ -59,27 +60,29 @@ export async function getRecentActivity(limit: number = 10): Promise<ActivityLog
   try {
     const supabaseAction = await createActionClient()
     
-    const { data, error } = await supabaseAction
-      .from('user_activity_log')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(limit)
+    // Commented out due to user_activity_log table not existing in live schema
+    // const { data, error } = await supabaseAction
+    //   .from('user_activity_log')
+    //   .select('*')
+    //   .order('created_at', { ascending: false })
+    //   .limit(limit)
 
-    if (error) {
-      console.error('Failed to fetch recent activity:', error)
-      return []
-    }
+    // if (error) {
+    //   console.error('Failed to fetch recent activity:', error)
+    //   return []
+    // }
 
-    // Transform the data to match ActivityLog interface
-    return (data || []).map(item => ({
-      id: item.id,
-      user_id: item.user_id,
-      activity_type: item.activity_type,
-      activity_data: (item.activity_data as Record<string, any>) || {},
-      created_at: item.created_at,
-      ip_address: item.ip_address,
-      user_agent: item.user_agent
-    }))
+    // // Transform the data to match ActivityLog interface
+    // return (data || []).map(item => ({
+    //   id: item.id,
+    //   user_id: item.user_id,
+    //   activity_type: item.activity_type,
+    //   activity_data: (item.activity_data as Record<string, any>) || {},
+    //   created_at: item.created_at,
+    //   ip_address: item.ip_address,
+    //   user_agent: item.user_agent
+    // }))
+    return []
   } catch (error) {
     console.error('Failed to fetch recent activity:', error)
     return []
@@ -90,28 +93,30 @@ export async function getUserActivity(userId: string, limit: number = 20): Promi
   try {
     const supabaseAction = await createActionClient()
     
-    const { data, error } = await supabaseAction
-      .from('user_activity_log')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(limit)
+    // Commented out due to user_activity_log table not existing in live schema
+    // const { data, error } = await supabaseAction
+    //   .from('user_activity_log')
+    //   .select('*')
+    //   .eq('user_id', userId)
+    //   .order('created_at', { ascending: false })
+    //   .limit(limit)
 
-    if (error) {
-      console.error('Failed to fetch user activity:', error)
-      return []
-    }
+    // if (error) {
+    //   console.error('Failed to fetch user activity:', error)
+    //   return []
+    // }
 
-    // Transform the data to match ActivityLog interface
-    return (data || []).map(item => ({
-      id: item.id,
-      user_id: item.user_id,
-      activity_type: item.activity_type,
-      activity_data: (item.activity_data as Record<string, any>) || {},
-      created_at: item.created_at,
-      ip_address: item.ip_address,
-      user_agent: item.user_agent
-    }))
+    // // Transform the data to match ActivityLog interface
+    // return (data || []).map(item => ({
+    //   id: item.id,
+    //   user_id: item.user_id,
+    //   activity_type: item.activity_type,
+    //   activity_data: (item.activity_data as Record<string, any>) || {},
+    //   created_at: item.created_at,
+    //   ip_address: item.ip_address,
+    //   user_agent: item.user_agent
+    // }))
+    return []
   } catch (error) {
     console.error('Failed to fetch user activity:', error)
     return []

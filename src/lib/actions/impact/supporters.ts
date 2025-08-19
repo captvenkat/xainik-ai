@@ -19,34 +19,38 @@ export async function getSupporterImpact(pitchId: string): Promise<SupporterData
   const supabase = await createActionClient()
   
   try {
-    const { data, error } = await supabase
-      .from('impact_supporter_stats')
-      .select('*')
-      .eq('pitch_id', pitchId)
-      .order('value_generated_usd', { ascending: false })
-      .limit(10)
+    // Note: impact_supporter_stats table doesn't exist in live database
+    // Return empty array until schema is properly migrated
+    // const { data, error } = await supabase
+    //   .from('impact_supporter_stats')
+    //   .select('*')
+    //   .eq('pitch_id', pitchId)
+    //   .order('value_generated_usd', { ascending: false })
+    //   .limit(10)
     
-    if (error) {
-      console.error('Error fetching supporter impact:', error)
-      return []
-    }
+    // if (error) {
+    //   console.error('Error fetching supporter impact:', error)
+    //   return []
+    // }
     
-    if (!data || data.length === 0) {
-      return []
-    }
+    // if (!data || data.length === 0) {
+    //   return []
+    // }
     
-    return data.map(supporter => ({
-      id: supporter.supporter_id,
-      name: supporter.supporter_name || 'Anonymous Supporter',
-      email: supporter.supporter_email || '',
-      referralsGenerated: supporter.referrals_generated || 0,
-      totalOpens: supporter.total_opens || 0,
-      callsMade: supporter.calls_made || 0,
-      outcomesAchieved: supporter.outcomes_achieved || 0,
-      valueGeneratedUsd: supporter.value_generated_usd || 0,
-      lastCallDate: supporter.last_call_date,
-      lastOutcomeDate: supporter.last_outcome_date
-    }))
+    // return data.map(supporter => ({
+    //   id: supporter.supporter_id,
+    //   name: supporter.supporter_name || 'Anonymous Supporter',
+    //   email: supporter.supporter_email || '',
+    //   referralsGenerated: supporter.referrals_generated || 0,
+    //   totalOpens: supporter.total_opens || 0,
+    //   callsMade: supporter.calls_made || 0,
+    //   outcomesAchieved: supporter.outcomes_achieved || 0,
+    //   valueGeneratedUsd: supporter.value_generated_usd || 0,
+    //   lastCallDate: supporter.last_call_date,
+    //   lastOutcomeDate: supporter.last_outcome_date
+    // }))
+    
+    return [] // Placeholder until schema is migrated
   } catch (error) {
     console.error('Error in getSupporterImpact:', error)
     return []

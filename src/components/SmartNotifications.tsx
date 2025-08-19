@@ -106,7 +106,7 @@ export default function SmartNotifications({
       }
 
       // Achievement notifications
-      if (pitch.views_count >= 50 && pitch.likes_count >= 10) {
+      if ((pitch.views_count || 0) >= 50 && (pitch.likes_count || 0) >= 10) {
         newNotifications.push({
           id: 'achievement-popular',
           type: 'achievement',
@@ -120,7 +120,7 @@ export default function SmartNotifications({
       }
 
       // Smart reminders
-      if (pitch.views_count > 0 && pitch.shares_count === 0) {
+      if ((pitch.views_count || 0) > 0 && (pitch.shares_count || 0) === 0) {
         newNotifications.push({
           id: 'reminder-share',
           type: 'reminder',
@@ -134,7 +134,7 @@ export default function SmartNotifications({
         })
       }
 
-      if (pitch.likes_count > 0 && pitch.endorsements_count === 0) {
+      if ((pitch.likes_count || 0) > 0 && (pitch.endorsements_count || 0) === 0) {
         newNotifications.push({
           id: 'reminder-endorsements',
           type: 'reminder',

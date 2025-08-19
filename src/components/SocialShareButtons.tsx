@@ -28,13 +28,15 @@ export default function SocialShareButtons({
 
   const trackShare = async (platform: string) => {
     try {
-      const supabase = createSupabaseBrowser()
-      await supabase.from('referral_events').insert({
-        referral_id: pitchId, // Using pitchId as referral_id for tracking
-        event_type: 'SHARE',
-        platform: platform.toLowerCase(),
-        metadata: { platform, pitch_id: pitchId }
-      })
+      // Note: referral_events table has limited schema in live database
+      // Skip tracking until schema is properly migrated
+      // const supabase = createSupabaseBrowser()
+      // await supabase.from('referral_events').insert({
+      //   referral_id: pitchId, // Using pitchId as referral_id for tracking
+      //   event_type: 'SHARE',
+      //   platform: platform.toLowerCase(),
+      //   metadata: { platform, pitch_id: pitchId }
+      // })
     } catch (error) {
       console.error('Error tracking share:', error)
     }

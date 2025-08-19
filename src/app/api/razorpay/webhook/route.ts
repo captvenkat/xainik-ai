@@ -56,22 +56,9 @@ async function processWebhookEvent(event: any): Promise<void> {
   try {
     console.log('Processing webhook event:', event.event, event.id);
 
-    // Store webhook event in database
-    const { error: insertError } = await supabaseAdmin
-      .from('payment_events_archive')
-      .insert({
-        event_type: event.event,
-        event_data: event.payload,
-        event_id: event.id,
-        payment_id: event.payload?.payment?.entity?.id || null,
-        user_id: 'system', // Use system user for webhook events
-        created_at: new Date().toISOString()
-      })
-
-    if (insertError) {
-      console.error('Failed to record webhook event:', insertError);
-      throw new Error('Failed to record webhook event');
-    }
+    // Note: payment_events_archive table doesn't exist in live schema
+    // Skip storing webhook event until table is created
+    const insertError = null
 
     // Handle specific event types
     switch (event.event) {

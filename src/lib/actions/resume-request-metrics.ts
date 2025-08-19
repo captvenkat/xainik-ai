@@ -79,7 +79,7 @@ export async function getGlobalResumeRequestMetrics(): Promise<ResumeRequestMetr
     // Get total counts
     const { data: totalRequests, error: totalError } = await supabase
       .from('resume_requests')
-      .select('id, status, created_at, pitch_id, recruiter_id, veteran_id')
+      .select('id, status, created_at, pitch_id, recruiter_user_id, user_id')
     
     if (totalError) {
       console.error('Error fetching resume requests:', totalError)
@@ -99,7 +99,9 @@ export async function getGlobalResumeRequestMetrics(): Promise<ResumeRequestMetr
 
     // Get top requested pitches
     const pitchRequestCounts = totalRequests?.reduce((acc, request) => {
-      acc[request.pitch_id] = (acc[request.pitch_id] || 0) + 1
+      if (request.pitch_id) {
+        acc[request.pitch_id] = (acc[request.pitch_id] || 0) + 1
+      }
       return acc
     }, {} as Record<string, number>) || {}
 
@@ -123,7 +125,7 @@ export async function getGlobalResumeRequestMetrics(): Promise<ResumeRequestMetr
 
     // Get top recruiters
     const recruiterRequestCounts = totalRequests?.reduce((acc, request) => {
-      acc[request.recruiter_id] = (acc[request.recruiter_id] || 0) + 1
+      acc[request.recruiter_user_id] = (acc[request.recruiter_user_id] || 0) + 1
       return acc
     }, {} as Record<string, number>) || {}
 
@@ -200,11 +202,9 @@ export async function getVeteranResumeMetrics(veteranId: string): Promise<Vetera
         created_at,
         responded_at,
         job_role,
-        recruiters!inner(
-          users!inner(name)
-        )
+        recruiter_user_id
       `)
-      .eq('veteran_id', veteranId)
+      .eq('user_id', veteranId)
       .order('created_at', { ascending: false })
 
     if (error) {
@@ -238,12 +238,12 @@ export async function getVeteranResumeMetrics(veteranId: string): Promise<Vetera
       average_response_time_hours: averageResponseTimeHours,
       recent_requests: requests?.slice(0, 10).map(request => ({
         id: request.id,
-        recruiter_name: request.recruiters?.users?.name || 'Unknown',
-        company_name: request.recruiters?.company_name,
-        job_role: request.job_role,
+        recruiter_name: 'Unknown',
+        company_name: 'Unknown',
+        job_role: request.job_role || undefined,
         status: request.status,
         created_at: request.created_at,
-        responded_at: request.responded_at
+        responded_at: request.responded_at || undefined
       })) || []
     }
   } catch (error) {
@@ -268,12 +268,9 @@ export async function getRecruiterResumeMetrics(recruiterId: string): Promise<Re
         created_at,
         responded_at,
         job_role,
-        pitches!inner(
-          title,
-          users!inner(name)
-        )
+        pitch_id
       `)
-      .eq('recruiter_id', recruiterId)
+      .eq('recruiter_user_id', recruiterId)
       .order('created_at', { ascending: false })
 
     if (error) {
@@ -294,12 +291,12 @@ export async function getRecruiterResumeMetrics(recruiterId: string): Promise<Re
       success_rate: total > 0 ? Math.round((approved / total) * 100) : 0,
       recent_requests: requests?.slice(0, 10).map(request => ({
         id: request.id,
-        veteran_name: request.pitches?.users?.name || 'Unknown',
-        pitch_title: request.pitches?.title || 'Unknown',
-        job_role: request.job_role,
+        veteran_name: 'Unknown',
+        pitch_title: 'Unknown',
+        job_role: request.job_role || undefined,
         status: request.status,
         created_at: request.created_at,
-        responded_at: request.responded_at
+        responded_at: request.responded_at || undefined
       })) || []
     }
   } catch (error) {
@@ -314,14 +311,15 @@ export async function getRecruiterResumeMetrics(recruiterId: string): Promise<Re
 
 export async function logResumeRequestActivity(event: string, metadata: any) {
   try {
-    const supabase = await createActionClient()
-    
-    await supabase
-      .from('activity_log')
-      .insert({
-        event,
-        meta: metadata
-      })
+    // Commented out due to activity_log table not existing in live schema
+    // const supabase = await createActionClient()
+    // 
+    // await supabase
+    //   .from('activity_log')
+    //   .insert({
+    //     event,
+    //     meta: metadata
+    //   })
   } catch (error) {
     console.error('Error logging resume request activity:', error)
   }

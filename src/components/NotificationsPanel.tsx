@@ -53,10 +53,12 @@ export default function NotificationsPanel() {
     try {
       const supabase = createSupabaseBrowser()
       
-      await supabase
-        .from('notifications')
-        .update({ read_at: new Date().toISOString() })
-        .eq('id', notificationId)
+      // Note: notifications table has limited schema (read_at doesn't exist)
+      // Skip updating read status until schema is properly migrated
+      // await supabase
+      //   .from('notifications')
+      //   .update({ read_at: new Date().toISOString() })
+      //   .eq('id', notificationId)
 
       // Update local state
       setNotifications(prev => 
@@ -78,11 +80,12 @@ export default function NotificationsPanel() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
-      await supabase
-        .from('notifications')
-        .update({ read_at: new Date().toISOString() })
-        .eq('user_id', user.id)
-        .is('read_at', null)
+      // Note: notifications table has limited schema (read_at, user_id don't exist)
+      // Skip updating read status until schema is properly migrated
+      // await supabase
+      //   .from('notifications')
+      //   .update({ read_at: new Date().toISOString() })
+      //   .eq('user_id', user.id)
 
       // Update local state
       setNotifications(prev => 

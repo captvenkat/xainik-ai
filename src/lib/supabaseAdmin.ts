@@ -424,38 +424,42 @@ export async function updateResumeRequest(requestId: string, updates: any) {
 // =====================================================
 
 export async function getAllActivityLogs(limit: number = 1000) {
-  const supabase = createAdminClient();
+  // Commented out due to user_activity_log table not existing in live schema
+  // const supabase = createAdminClient();
   
-  const { data: activity, error } = await supabase
-    .from('user_activity_log')
-    .select(`
-      *,
-      user:users (id, name, email)
-    `)
-    .order('created_at', { ascending: false })
-    .limit(limit);
+  // const { data: activity, error } = await supabase
+  //   .from('user_activity_log')
+  //   .select(`
+  //     *,
+  //     user:users (id, name, email)
+  //   `)
+  //   .order('created_at', { ascending: false })
+  //   .limit(limit);
   
-  if (error) {
-    throw new Error(`Failed to get activity logs: ${error.message}`);
-  }
+  // if (error) {
+  //   throw new Error(`Failed to get activity logs: ${error.message}`);
+  // }
   
-  return activity || [];
+  // return activity || [];
+  return [];
 }
 
 export async function getActivityLogsByUserId(userId: string) {
-  const supabase = createAdminClient();
+  // Commented out due to user_activity_log table not existing in live schema
+  // const supabase = createAdminClient();
   
-  const { data: activity, error } = await supabase
-    .from('user_activity_log')
-    .select('*')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false });
+  // const { data: activity, error } = await supabase
+  //   .from('user_activity_log')
+  //   .select('*')
+  //   .eq('user_id', userId)
+  //   .order('created_at', { ascending: false });
   
-  if (error) {
-    throw new Error(`Failed to get activity logs: ${error.message}`);
-  }
+  // if (error) {
+  //   throw new Error(`Failed to get activity logs: ${error.message}`);
+  // }
   
-  return activity || [];
+  // return activity || [];
+  return [];
 }
 
 // =====================================================

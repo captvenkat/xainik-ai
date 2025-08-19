@@ -15,23 +15,11 @@ export async function POST(request: NextRequest) {
 
     const supabase = createAdminClient()
     
-    // Get expired subscriptions (past end_date)
-    const { data: expiredSubscriptions, error: selectError } = await supabase
-      .from('user_subscriptions')
-      .select('id, user_id, end_date, status')
-      .eq('status', 'active')
-      .lt('end_date', new Date().toISOString())
-
-    // Get subscriptions expiring soon (within 7 days)
-    const sevenDaysFromNow = new Date()
-    sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7)
-    
-    const { data: expiringSoonSubscriptions } = await supabase
-      .from('user_subscriptions')
-      .select('id, user_id, end_date, status')
-      .eq('status', 'active')
-      .gte('end_date', new Date().toISOString())
-      .lte('end_date', sevenDaysFromNow.toISOString())
+    // Note: user_subscriptions table doesn't exist in live schema
+    // Skip subscription expiration check until table is created
+    const expiredSubscriptions: any[] = []
+    const selectError = new Error('user_subscriptions table not in live schema')
+    const expiringSoonSubscriptions: any[] = []
 
     if (selectError) {
       console.error('Error fetching expired subscriptions:', selectError)
@@ -56,12 +44,8 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // Mark expired subscriptions as expired
-    const subscriptionIds = expiredSubscriptions.map(s => s.id)
-    const { error: updateError } = await supabase
-      .from('user_subscriptions')
-      .update({ status: 'expired' })
-      .in('id', subscriptionIds)
+    // Skip subscription update - table doesn't exist in live schema
+    const updateError = null
 
     if (updateError) {
       return NextResponse.json({ error: 'Database error' }, { status: 500 })
@@ -101,12 +85,9 @@ export async function GET(request: NextRequest) {
   try {
     const supabase = createAdminClient()
     
-    // Get expired subscriptions (past end_date)
-    const { data: expiredSubscriptions, error: selectError } = await supabase
-      .from('user_subscriptions')
-      .select('id, user_id, end_date, status')
-      .eq('status', 'active')
-      .lt('end_date', new Date().toISOString())
+    // Note: user_subscriptions table doesn't exist in live schema
+    const expiredSubscriptions: any[] = []
+    const selectError = new Error('user_subscriptions table not in live schema')
 
     if (selectError) {
       console.error('Error fetching expired subscriptions:', selectError)

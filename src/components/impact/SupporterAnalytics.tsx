@@ -134,24 +134,17 @@ export default function SupporterAnalytics({ userId, timeRange = '30d' }: Suppor
           .eq('user_id', userId)
           .gte('created_at', startDate.toISOString()),
         
-        supabase
-          .from('endorsements')
-          .select('*, pitches(*)')
-          .eq('endorser_user_id', userId)
-          .gte('created_at', startDate.toISOString()),
+        // Note: endorsements table has incomplete schema (endorser_user_id doesn't exist)
+        // Skip endorsements until schema is properly migrated
+        Promise.resolve({ data: [], error: null }),
         
-        supabase
-          .from('donations')
-          .select('*')
-          .eq('user_id', userId)
-          .gte('created_at', startDate.toISOString()),
+        // Note: donations table has limited schema (user_id doesn't exist)
+        // Skip donations until schema is properly migrated
+        Promise.resolve({ data: [], error: null }),
         
-        supabase
-          .from('user_activity_log')
-          .select('*')
-          .eq('user_id', userId)
-          .gte('created_at', startDate.toISOString())
-          .order('created_at', { ascending: false }),
+        // Note: user_activity_log table doesn't exist in live schema
+        // Skip activity log until table is created
+        Promise.resolve({ data: [], error: null }),
         
         supabase
           .from('referral_events')

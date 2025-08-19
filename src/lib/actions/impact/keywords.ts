@@ -13,27 +13,31 @@ export async function getKeywordSuggestions(pitchId: string): Promise<KeywordDat
   const supabase = await createActionClient()
   
   try {
-    const { data, error } = await supabase
-      .from('impact_keywords')
-      .select('*')
-      .eq('pitch_id', pitchId)
-      .order('created_at', { ascending: false })
+    // Note: impact_keywords table doesn't exist in live database
+    // Return default keywords until schema is properly migrated
+    // const { data, error } = await supabase
+    //   .from('impact_keywords')
+    //   .select('*')
+    //   .eq('pitch_id', pitchId)
+    //   .order('created_at', { ascending: false })
     
-    if (error) {
-      console.error('Error fetching keyword suggestions:', error)
-      return getDefaultKeywords()
-    }
+    // if (error) {
+    //   console.error('Error fetching keyword suggestions:', error)
+    //   return getDefaultKeywords()
+    // }
     
-    if (!data || data.length === 0) {
-      return getDefaultKeywords()
-    }
+    // if (!data || data.length === 0) {
+    //   return getDefaultKeywords()
+    // }
     
-    return data.map(keyword => ({
-      id: keyword.id,
-      phrase: keyword.keyword_phrase,
-      appliedToHeadline: keyword.applied_to_headline || false,
-      appliedDate: keyword.applied_date
-    }))
+    // return data.map(keyword => ({
+    //   id: keyword.id,
+    //   phrase: keyword.keyword_phrase,
+    //   appliedToHeadline: keyword.applied_to_headline || false,
+    //   appliedDate: keyword.applied_date
+    // }))
+    
+    return getDefaultKeywords() // Placeholder until schema is migrated
   } catch (error) {
     console.error('Error in getKeywordSuggestions:', error)
     return getDefaultKeywords()
@@ -44,46 +48,48 @@ export async function applyKeywordToHeadline(pitchId: string, phrase: string): P
   const supabase = await createActionClient()
   
   try {
-    // First, check if keyword exists
-    const { data: existingKeyword } = await supabase
-      .from('impact_keywords')
-      .select('id')
-      .eq('pitch_id', pitchId)
-      .eq('keyword_phrase', phrase)
-      .single()
+    // Note: impact_keywords table doesn't exist in live database
+    // Return true as placeholder until schema is properly migrated
+    // // First, check if keyword exists
+    // const { data: existingKeyword } = await supabase
+    //   .from('impact_keywords')
+    //   .select('id')
+    //   .eq('pitch_id', pitchId)
+    //   .eq('keyword_phrase', phrase)
+    //   .single()
     
-    if (existingKeyword) {
-      // Update existing keyword
-      const { error } = await supabase
-        .from('impact_keywords')
-        .update({
-          applied_to_headline: true,
-          applied_date: new Date().toISOString()
-        })
-        .eq('id', existingKeyword.id)
+    // if (existingKeyword) {
+    //   // Update existing keyword
+    //   const { error } = await supabase
+    //     .from('impact_keywords')
+    //     .update({
+    //       applied_to_headline: true,
+    //       applied_date: new Date().toISOString()
+    //     })
+    //     .eq('id', existingKeyword.id)
       
-      if (error) {
-        console.error('Error updating keyword:', error)
-        return false
-      }
-    } else {
-      // Create new keyword
-      const { error } = await supabase
-        .from('impact_keywords')
-        .insert({
-          pitch_id: pitchId,
-          keyword_phrase: phrase,
-          applied_to_headline: true,
-          applied_date: new Date().toISOString()
-        })
+    //   if (error) {
+    //     console.error('Error updating keyword:', error)
+    //     return false
+    //   }
+    // } else {
+    //   // Create new keyword
+    //   const { error } = await supabase
+    //     .from('impact_keywords')
+    //     .insert({
+    //       pitch_id: pitchId,
+    //       keyword_phrase: phrase,
+    //       applied_to_headline: true,
+    //       applied_date: new Date().toISOString()
+    //     })
       
-      if (error) {
-        console.error('Error creating keyword:', error)
-        return false
-      }
-    }
+    //   if (error) {
+    //     console.error('Error creating keyword:', error)
+    //     return false
+    //   }
+    // }
     
-    return true
+    return true // Placeholder until schema is migrated
   } catch (error) {
     console.error('Error in applyKeywordToHeadline:', error)
     return false

@@ -14,13 +14,15 @@ export async function getPitchAnalytics(pitchId: string): Promise<AnalyticsData>
   try {
     const supabaseAction = await createActionClient()
 
-    // Get pitch analytics data
-    const { data: activity } = await supabaseAction
-      .from('user_activity_log')
-      .select('*')
-      .eq('activity_type', 'pitch_view')
-      .order('created_at', { ascending: false })
-      .limit(100)
+    // Note: user_activity_log table doesn't exist in live schema
+    // Skip fetching activity until schema is properly migrated
+    // const { data: activity } = await supabaseAction
+    //   .from('user_activity_log')
+    //   .select('*')
+    //   .eq('activity_type', 'pitch_view')
+    //   .order('created_at', { ascending: false })
+    //   .limit(100)
+    const activity: any[] = []
 
     const totalViews = activity?.length || 0
     const totalClicks = Math.floor(totalViews * 0.3) // Mock conversion rate
@@ -50,13 +52,15 @@ export async function getUserAnalytics(userId: string): Promise<AnalyticsData> {
   try {
     const supabaseAction = await createActionClient()
 
-    // Get user analytics data
-    const { data: activity } = await supabaseAction
-      .from('user_activity_log')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(100)
+    // Note: user_activity_log table doesn't exist in live schema
+    // Skip fetching user activity until schema is properly migrated
+    // const { data: activity } = await supabaseAction
+    //   .from('user_activity_log')
+    //   .select('*')
+    //   .eq('user_id', userId)
+    //   .order('created_at', { ascending: false })
+    //   .limit(100)
+    const activity: any[] = []
 
     const totalViews = activity?.filter(a => a.activity_type === 'pitch_view').length || 0
     const totalClicks = activity?.filter(a => a.activity_type === 'pitch_click').length || 0
@@ -109,13 +113,15 @@ export async function getCachedVeteranAnalytics(userId: string): Promise<Analyti
   try {
     const supabaseAction = await createActionClient()
 
-    // Get cached veteran analytics data
-    const { data: activity } = await supabaseAction
-      .from('user_activity_log')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(100)
+    // Note: user_activity_log table doesn't exist in live schema
+    // Skip fetching veteran analytics until schema is properly migrated
+    // const { data: activity } = await supabaseAction
+    //   .from('user_activity_log')
+    //   .select('*')
+    //   .eq('user_id', userId)
+    //   .order('created_at', { ascending: false })
+    //   .limit(100)
+    const activity: any[] = []
 
     const totalViews = activity?.filter(a => a.activity_type === 'pitch_view').length || 0
     const totalClicks = activity?.filter(a => a.activity_type === 'pitch_click').length || 0
@@ -150,13 +156,15 @@ export async function refreshAnalytics(userId: string): Promise<AnalyticsData> {
   try {
     const supabaseAction = await createActionClient()
 
-    // Force refresh by clearing cache and fetching fresh data
-    const { data: activity } = await supabaseAction
-      .from('user_activity_log')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(100)
+    // Note: user_activity_log table doesn't exist in live schema
+    // Skip fetching activity until schema is properly migrated
+    // const { data: activity } = await supabaseAction
+    //   .from('user_activity_log')
+    //   .select('*')
+    //   .eq('user_id', userId)
+    //   .order('created_at', { ascending: false })
+    //   .limit(100)
+    const activity: any[] = []
 
     const totalViews = activity?.filter(a => a.activity_type === 'pitch_view').length || 0
     const totalClicks = activity?.filter(a => a.activity_type === 'pitch_click').length || 0

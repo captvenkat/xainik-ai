@@ -9,12 +9,14 @@ export async function getSimpleHeroData(veteranId: string) {
     const supabaseAction = createSupabaseBrowser()
     
     // Get pitch views for this veteran
-    const { data: views } = await supabaseAction
-      .from('user_activity_log')
-      .select('*')
-      .eq('activity_type', 'pitch_viewed')
-      .eq('user_id', veteranId)
-      .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
+    // Commented out due to user_activity_log table not existing in live schema
+    // const { data: views } = await supabaseAction
+    //   .from('user_activity_log')
+    //   .select('*')
+    //   .eq('activity_type', 'pitch_viewed')
+    //   .eq('user_id', veteranId)
+    //   .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
+    const views: any[] = []
 
     // Get active opportunities (simplified)
     const { data: opportunities } = await supabaseAction
@@ -67,12 +69,14 @@ export async function getSimpleMetricsData(veteranId: string) {
     const supabaseAction = createSupabaseBrowser()
     
     // Get basic metrics for this veteran
-    const { data: activity } = await supabaseAction
-      .from('user_activity_log')
-      .select('*')
-      .eq('user_id', veteranId)
-      .order('created_at', { ascending: false })
-      .limit(100)
+    // Commented out due to user_activity_log table not existing in live schema
+    // const { data: activity } = await supabaseAction
+    //   .from('user_activity_log')
+    //   .select('*')
+    //   .eq('user_id', veteranId)
+    //   .order('created_at', { ascending: false })
+    //   .limit(100)
+    const activity: any[] = []
 
     // Get resume request metrics
     const { data: resumeRequests } = await supabaseAction
@@ -122,13 +126,15 @@ export async function getVeteranOutreachData(veteranId: string) {
     const supabaseAction = createSupabaseBrowser()
     
     // Get veteran's own outreach activities
-    const { data: veteranActivities } = await supabaseAction
-      .from('user_activity_log')
-      .select('*')
-      .eq('user_id', veteranId)
-      .in('activity_type', ['pitch_shared', 'direct_outreach', 'network_contact'])
-      .order('created_at', { ascending: false })
-      .limit(50)
+    // Commented out due to user_activity_log table not existing in live schema
+    // const { data: veteranActivities } = await supabaseAction
+    //   .from('user_activity_log')
+    //   .select('*')
+    //   .eq('user_id', veteranId)
+    //   .in('activity_type', ['pitch_shared', 'direct_outreach', 'network_contact'])
+    //   .order('created_at', { ascending: false })
+    //   .limit(50)
+    const veteranActivities: any[] = []
 
     // Mock data to show what veteran outreach tracking looks like
     const mockVeteranOutreach = [
@@ -290,12 +296,14 @@ export async function getSimpleActionsData(veteranId: string) {
         .select('id, title, pitch_text, skills, experience_years, likes_count, photo_url, created_at, updated_at')
         .eq('user_id', veteranId)
         .order('created_at', { ascending: false }),
-      supabaseAction
-        .from('user_activity_log')
-        .select('*')
-        .eq('user_id', veteranId)
-        .order('created_at', { ascending: false })
-        .limit(50),
+      // Commented out due to user_activity_log table not existing in live schema
+      // supabaseAction
+      //   .from('user_activity_log')
+      //   .select('*')
+      //   .eq('user_id', veteranId)
+      //   .order('created_at', { ascending: false })
+      //   .limit(50),
+      Promise.resolve({ data: [], error: null }),
       supabaseAction
         .from('referrals')
         .select(`
@@ -347,14 +355,17 @@ export async function getSimpleActionsData(veteranId: string) {
     const hasDetailedContent = contentLength > 200
     
     // Analyze recent activity
-    const recentActivity = activity?.filter(a => {
-      const activityDate = new Date(a.created_at)
-      const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-      return activityDate > weekAgo
-    }) || []
+    // Commented out due to user_activity_log table not existing in live schema
+    // const recentActivity = activity?.filter(a => {
+    //   const activityDate = new Date(a.created_at)
+    //   const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+    //   return activityDate > weekAgo
+    // }) || []
     
-    const hasRecentShares = recentActivity.some(a => a.activity_type === 'pitch_shared')
-    const hasRecentViews = recentActivity.some(a => a.activity_type === 'pitch_viewed')
+    // const hasRecentShares = recentActivity.some(a => a.activity_type === 'pitch_shared')
+    // const hasRecentViews = recentActivity.some(a => a.activity_type === 'pitch_viewed')
+    const hasRecentShares = false
+    const hasRecentViews = false
     
     // Analyze network strength
     const supporterCount = referrals?.length || 0
@@ -495,12 +506,14 @@ export async function getSimpleActivityData(veteranId: string) {
     const supabaseAction = createSupabaseBrowser()
     
     // Get recent activity for this veteran
-    const { data: activity } = await supabaseAction
-      .from('user_activity_log')
-      .select('*')
-      .eq('user_id', veteranId)
-      .order('created_at', { ascending: false })
-      .limit(5)
+    // Commented out due to user_activity_log table not existing in live schema
+    // const { data: activity } = await supabaseAction
+    //   .from('user_activity_log')
+    //   .select('*')
+    //   .eq('user_id', veteranId)
+    // .order('created_at', { ascending: false })
+    // .limit(5)
+    const activity: any[] = []
 
     return {
       items: activity?.map((item: any) => ({

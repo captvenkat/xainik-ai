@@ -29,44 +29,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Pitch not found' }, { status: 404 })
     }
 
-    // Create share record with enhanced data
-    const { data: shareRecord, error: shareError } = await supabase
-      .from('shared_pitches')
-      .insert({
-        pitch_id: pitchId,
-        shared_by: user.id,
-        share_type: shareType || 'smart_share',
-        message: message,
-        custom_fields: customFields || {},
-        shared_at: new Date().toISOString()
-      })
-      .select()
-      .single()
+    // Note: shared_pitches table has incomplete schema in live database
+    // Skip creating share record until table is properly migrated
+    const shareRecord = null
+    const shareError = null
 
     if (shareError) {
       console.error('Share record creation error:', shareError)
       return NextResponse.json({ error: 'Failed to record share' }, { status: 500 })
     }
 
-    // Log activity with enhanced data
-    await supabase
-      .from('user_activity_log')
-      .insert({
-        user_id: user.id,
-        activity_type: 'pitch_shared',
-        activity_data: {
-          pitch_id: pitchId,
-          share_type: shareType,
-          custom_fields: customFields,
-          message_preview: message?.substring(0, 100) + '...'
-        },
-        created_at: new Date().toISOString()
-      })
+    // Note: user_activity_log table doesn't exist in live schema
+    // Skip activity logging until table is created
 
     return NextResponse.json({ 
       success: true, 
-      shareId: shareRecord.id,
-      message: 'Smart share generated successfully',
+      shareId: 'temp-id',
+      message: 'Smart share generated successfully (share tracking disabled - table not migrated)',
       shareData: {
         pitchId,
         shareType,

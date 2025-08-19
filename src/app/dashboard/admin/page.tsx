@@ -86,7 +86,8 @@ export default function AdminDashboard() {
         supabase.from('endorsements').select('*', { count: 'exact', head: true }),
         supabase.from('donations').select('*', { count: 'exact', head: true }),
         supabase.from('resume_requests').select('*', { count: 'exact', head: true }),
-        supabase.from('user_activity_log').select('*', { count: 'exact', head: true }).eq('activity_type', 'suspicious_activity')
+        // Note: user_activity_log table doesn't exist in live schema
+        Promise.resolve({ count: 0, error: null })
       ])
 
       setStats({
@@ -98,12 +99,8 @@ export default function AdminDashboard() {
         suspiciousFlags: suspiciousFlags || 0
       })
 
-      // Fetch recent activity
-      const { data: activity } = await supabase
-        .from('user_activity_log')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(10)
+      // Note: user_activity_log table doesn't exist in live schema
+      const activity = null
 
       setRecentActivity(activity || [])
 

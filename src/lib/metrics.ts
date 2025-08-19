@@ -42,11 +42,13 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
     ])
 
     // Get recent activity
-    const { data: recentActivity } = await supabaseAction
-      .from('user_activity_log')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(10)
+    // Commented out due to user_activity_log table not existing in live schema
+    // const { data: recentActivity } = await supabaseAction
+    //   .from('user_activity_log')
+    //   .select('*')
+    //   .order('created_at', { ascending: false })
+    //   .limit(10)
+    const recentActivity: any[] = []
 
     return {
       totalUsers: totalUsers || 0,
@@ -81,7 +83,9 @@ export async function getUserMetrics(userId: string): Promise<any> {
     ] = await Promise.all([
       supabaseAction.from('pitches').select('*', { count: 'exact', head: true }).eq('user_id', userId),
       supabaseAction.from('endorsements').select('*', { count: 'exact', head: true }).eq('user_id', userId),
-      supabaseAction.from('user_activity_log').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(5)
+      // Commented out due to user_activity_log table not existing in live schema
+      // supabaseAction.from('user_activity_log').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(5)
+      Promise.resolve({ data: [] })
     ])
 
     return {
@@ -111,7 +115,9 @@ export async function getRecruiterMetrics(userId: string): Promise<any> {
     ] = await Promise.all([
       supabaseAction.from('recruiter_saved_filters').select('*', { count: 'exact', head: true }).eq('recruiter_id', userId),
       supabaseAction.from('resume_requests').select('*', { count: 'exact', head: true }).eq('recruiter_user_id', userId),
-      supabaseAction.from('user_activity_log').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(5)
+      // Commented out due to user_activity_log table not existing in live schema
+      // supabaseAction.from('user_activity_log').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(5)
+      Promise.resolve({ data: [] })
     ])
 
     return {
@@ -134,13 +140,15 @@ export async function getRecruiterAnalytics(userId: string): Promise<any> {
     const supabaseAction = await createActionClient()
 
     // Get recruiter analytics data
-    const { data: analytics } = await supabaseAction
-      .from('user_activity_log')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('activity_type', 'recruiter_action')
-      .order('created_at', { ascending: false })
-      .limit(50)
+    // Commented out due to user_activity_log table not existing in live schema
+    // const { data: analytics } = await supabaseAction
+    //   .from('user_activity_log')
+    //   .select('*')
+    //   .eq('user_id', userId)
+    //   .eq('activity_type', 'recruiter_action')
+    //   .order('created_at', { ascending: false })
+    //   .limit(50)
+    const analytics: any[] = []
 
     return {
       analytics: analytics || [],
@@ -167,7 +175,9 @@ export async function getSupporterMetrics(userId: string): Promise<any> {
     ] = await Promise.all([
       supabaseAction.from('donations').select('*', { count: 'exact', head: true }).eq('user_id', userId),
       supabaseAction.from('endorsements').select('*', { count: 'exact', head: true }).eq('endorser_user_id', userId),
-      supabaseAction.from('user_activity_log').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(5)
+      // Commented out due to user_activity_log table not existing in live schema
+      // supabaseAction.from('user_activity_log').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(5)
+      Promise.resolve({ data: [] })
     ])
 
     // Calculate conversion rate
@@ -207,7 +217,9 @@ export async function getVeteranMetrics(userId: string): Promise<any> {
     ] = await Promise.all([
       supabaseAction.from('pitches').select('*', { count: 'exact', head: true }).eq('user_id', userId),
       supabaseAction.from('endorsements').select('*', { count: 'exact', head: true }).eq('user_id', userId),
-      supabaseAction.from('user_activity_log').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(5)
+      // Commented out due to user_activity_log table not existing in live schema
+      // supabaseAction.from('user_activity_log').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(5)
+      Promise.resolve({ data: [] })
     ])
 
     return {
@@ -230,13 +242,15 @@ export async function getVeteranAnalytics(userId: string): Promise<any> {
     const supabaseAction = await createActionClient()
 
     // Get veteran analytics data
-    const { data: analytics } = await supabaseAction
-      .from('user_activity_log')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('activity_type', 'pitch_view')
-      .order('created_at', { ascending: false })
-      .limit(50)
+    // Commented out due to user_activity_log table not existing in live schema
+    // const { data: analytics } = await supabaseAction
+    //   .from('user_activity_log')
+    //   .select('*')
+    //   .eq('user_id', userId)
+    //   .eq('activity_type', 'pitch_view')
+    //   .order('created_at', { ascending: false })
+    //   .limit(50)
+    const analytics: any[] = []
 
     return {
       analytics: analytics || [],
@@ -256,12 +270,14 @@ export async function getTrendlineAllPitches(): Promise<any> {
     const supabaseAction = await createActionClient()
 
     // Get trendline data for all pitches
-    const { data: trendline } = await supabaseAction
-      .from('user_activity_log')
-      .select('*')
-      .eq('activity_type', 'pitch_view')
-      .order('created_at', { ascending: true })
-      .limit(100)
+    // Commented out due to user_activity_log table not existing in live schema
+    // const { data: trendline } = await supabaseAction
+    //   .from('user_activity_log')
+    //   .select('*')
+    //   .eq('activity_type', 'pitch_view')
+    //   .order('created_at', { ascending: true })
+    //   .limit(100)
+    const trendline: any[] = []
 
     return {
       trendline: trendline || [],
@@ -281,12 +297,14 @@ export async function getCohortsBySource(): Promise<any> {
     const supabaseAction = await createActionClient()
 
     // Get cohort data by source
-    const { data: cohorts } = await supabaseAction
-      .from('user_activity_log')
-      .select('*')
-      .eq('activity_type', 'user_registered')
-      .order('created_at', { ascending: false })
-      .limit(50)
+    // Commented out due to user_activity_log table not existing in live schema
+    // const { data: cohorts } = await supabaseAction
+    //   .from('user_activity_log')
+    //   .select('*')
+    //   .eq('activity_type', 'user_registered')
+    //   .order('created_at', { ascending: false })
+    //   .limit(50)
+    const cohorts: any[] = []
 
     return {
       cohorts: cohorts || [],
@@ -306,12 +324,14 @@ export async function getAvgTimeToFirstContact(): Promise<any> {
     const supabaseAction = await createActionClient()
 
     // Get average time to first contact data
-    const { data: contacts } = await supabaseAction
-      .from('user_activity_log')
-      .select('*')
-      .eq('activity_type', 'first_contact')
-      .order('created_at', { ascending: false })
-      .limit(100)
+    // Commented out due to user_activity_log table not existing in live schema
+    // const { data: contacts } = await supabaseAction
+    //   .from('user_activity_log')
+    //   .select('*')
+    //   .eq('activity_type', 'first_contact')
+    //   .order('created_at', { ascending: false })
+    //   .limit(100)
+    const contacts: any[] = []
 
     return {
       avgTime: contacts?.length ? 24 : 0, // Mock data for now

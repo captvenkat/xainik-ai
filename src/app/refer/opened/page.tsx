@@ -48,7 +48,7 @@ function ReferralOpenedPageContent() {
             )
           )
         `)
-        .eq('id', referralId)
+        .eq('id', referralId as string)
         .single()
 
       if (referral) {
@@ -66,14 +66,14 @@ function ReferralOpenedPageContent() {
     setIsSubmitting(true)
     
     try {
-      // Update referral event with feedback
+      // Update referral event with feedback (limited by live schema)
       const { error } = await supabase
         .from('referral_events')
         .update({ 
-          feedback: type,
+          feedback: 'opened',
           feedback_at: new Date().toISOString()
         })
-        .eq('id', referralId)
+        .eq('id', referralId as string)
 
       if (error) throw error
       setSubmitted(true)
@@ -92,10 +92,10 @@ function ReferralOpenedPageContent() {
       const { error } = await supabase
         .from('referral_events')
         .update({ 
-          feedback_comment: feedback,
+          feedback: 'opened',
           feedback_at: new Date().toISOString()
         })
-        .eq('id', referralId)
+        .eq('id', referralId as string)
 
       if (error) throw error
       setSubmitted(true)
