@@ -268,7 +268,7 @@ export async function getResumeRequests(userId: string, role: string) {
           pitch_text,
           user_id
         ),
-        users!resume_requests_recruiter_id_fkey (
+        users!resume_requests_recruiter_user_id_fkey (
           id,
           name,
           email
@@ -276,9 +276,9 @@ export async function getResumeRequests(userId: string, role: string) {
       `)
 
     if (role === 'recruiter') {
-      query = query.eq('recruiter_id', userId) // Using user_id as common identifier
+      query = query.eq('recruiter_user_id', userId) // Using user_id as common identifier
     } else if (role === 'veteran') {
-      query = query.eq('veteran_id', userId) // Using user_id as common identifier
+      query = query.eq('user_id', userId) // Using user_id as common identifier
     }
 
     const { data: resumeRequests, error } = await query

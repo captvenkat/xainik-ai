@@ -164,22 +164,14 @@ export default function VeteranProfileTab() {
         retirement_date: data.retirement_date || null
       }
 
-      if (veteranProfile) {
-        // Update existing veteran profile
-        const { error: veteranError } = await supabase
-          .from('veterans')
-          .update(veteranData)
-          .eq('user_id', user.id)
+      // Always use upsert to handle both create and update cases
+      const { error: veteranError } = await supabase
+        .from('veterans')
+        .upsert(veteranData, {
+          onConflict: 'user_id'
+        })
 
-        if (veteranError) throw veteranError
-      } else {
-        // Create new veteran profile
-        const { error: veteranError } = await supabase
-          .from('veterans')
-          .insert(veteranData)
-
-        if (veteranError) throw veteranError
-      }
+      if (veteranError) throw veteranError
 
       if (showSuccess) {
         setSuccess('Profile updated successfully!')
@@ -216,10 +208,10 @@ export default function VeteranProfileTab() {
       clearTimeout(autoSaveTimeoutRef.current)
     }
 
-    // Set new timeout for auto-save (2 seconds after user stops typing)
+    // Set new timeout for auto-save (3 seconds after user stops typing)
     autoSaveTimeoutRef.current = setTimeout(async () => {
-      // Only auto-save if data has actually changed
-      if (lastSavedDataRef.current && JSON.stringify(lastSavedDataRef.current) === JSON.stringify(formData)) {
+      // Only auto-save if data has actually changed and we're not already saving
+      if (isAutoSaving || (lastSavedDataRef.current && JSON.stringify(lastSavedDataRef.current) === JSON.stringify(formData))) {
         return
       }
 
@@ -228,8 +220,8 @@ export default function VeteranProfileTab() {
       
       await saveProfile(formData, false)
       setIsAutoSaving(false)
-    }, 2000)
-  }, [formData])
+    }, 3000)
+  }, [formData, isAutoSaving])
 
   // Trigger auto-save when form data changes
   useEffect(() => {
