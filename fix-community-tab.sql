@@ -21,6 +21,9 @@ DO $$ BEGIN
 END $$;
 
 -- 2. Create the missing vote_on_suggestion RPC function
+-- Drop existing function first if it exists
+DROP FUNCTION IF EXISTS public.vote_on_suggestion(uuid, text);
+
 CREATE OR REPLACE FUNCTION public.vote_on_suggestion(
   p_suggestion_id uuid,
   p_vote_type text
