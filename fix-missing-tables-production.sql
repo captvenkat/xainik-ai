@@ -186,25 +186,72 @@ ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.referrals ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.referral_events ENABLE ROW LEVEL SECURITY;
 
--- 14. Create RLS policies
+-- 14. Create RLS policies (with existence checks)
 -- Users policies
-CREATE POLICY "Users can view all users" ON public.users FOR SELECT USING (true);
-CREATE POLICY "Users can create their own profile" ON public.users FOR INSERT WITH CHECK (auth.uid() = id);
-CREATE POLICY "Users can update their own profile" ON public.users FOR UPDATE USING (auth.uid() = id);
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'users' AND policyname = 'Users can view all users') THEN
+        CREATE POLICY "Users can view all users" ON public.users FOR SELECT USING (true);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'users' AND policyname = 'Users can create their own profile') THEN
+        CREATE POLICY "Users can create their own profile" ON public.users FOR INSERT WITH CHECK (auth.uid() = id);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'users' AND policyname = 'Users can update their own profile') THEN
+        CREATE POLICY "Users can update their own profile" ON public.users FOR UPDATE USING (auth.uid() = id);
+    END IF;
+END $$;
 
 -- Referrals policies
-CREATE POLICY "Users can view all referrals" ON public.referrals FOR SELECT USING (true);
-CREATE POLICY "Users can create referrals" ON public.referrals FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Users can update their own referrals" ON public.referrals FOR UPDATE USING (auth.uid() = user_id);
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'referrals' AND policyname = 'Users can view all referrals') THEN
+        CREATE POLICY "Users can view all referrals" ON public.referrals FOR SELECT USING (true);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'referrals' AND policyname = 'Users can create referrals') THEN
+        CREATE POLICY "Users can create referrals" ON public.referrals FOR INSERT WITH CHECK (auth.uid() = user_id);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'referrals' AND policyname = 'Users can update their own referrals') THEN
+        CREATE POLICY "Users can update their own referrals" ON public.referrals FOR UPDATE USING (auth.uid() = user_id);
+    END IF;
+END $$;
 
 -- Referral events policies
-CREATE POLICY "Users can view all referral events" ON public.referral_events FOR SELECT USING (true);
-CREATE POLICY "Users can create referral events" ON public.referral_events FOR INSERT WITH CHECK (true);
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'referral_events' AND policyname = 'Users can view all referral events') THEN
+        CREATE POLICY "Users can view all referral events" ON public.referral_events FOR SELECT USING (true);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'referral_events' AND policyname = 'Users can create referral events') THEN
+        CREATE POLICY "Users can create referral events" ON public.referral_events FOR INSERT WITH CHECK (true);
+    END IF;
+END $$;
 
--- 15. Grant permissions
-GRANT ALL ON public.users TO authenticated;
-GRANT ALL ON public.referrals TO authenticated;
-GRANT ALL ON public.referral_events TO authenticated;
+-- 15. Grant permissions (with existence checks)
+DO $$ 
+BEGIN
+    -- Grant permissions only if they don't already exist
+    -- Note: PostgreSQL doesn't have a direct way to check if permissions exist, so we'll use exception handling
+    BEGIN
+        GRANT ALL ON public.users TO authenticated;
+    EXCEPTION WHEN OTHERS THEN
+        -- Permission might already exist, continue
+        NULL;
+    END;
+    
+    BEGIN
+        GRANT ALL ON public.referrals TO authenticated;
+    EXCEPTION WHEN OTHERS THEN
+        -- Permission might already exist, continue
+        NULL;
+    END;
+    
+    BEGIN
+        GRANT ALL ON public.referral_events TO authenticated;
+    EXCEPTION WHEN OTHERS THEN
+        -- Permission might already exist, continue
+        NULL;
+    END;
+END $$;
 
 -- 16. Create views for easier querying
 DROP VIEW IF EXISTS public.referrals_with_details CASCADE;
@@ -246,9 +293,23 @@ FROM public.community_suggestions cs
 LEFT JOIN public.users u ON cs.user_id = u.id
 ORDER BY cs.votes DESC, cs.created_at DESC;
 
--- 18. Grant permissions on views
-GRANT SELECT ON public.referrals_with_details TO authenticated;
-GRANT SELECT ON public.community_suggestions_with_users TO authenticated;
+-- 18. Grant permissions on views (with existence checks)
+DO $$ 
+BEGIN
+    BEGIN
+        GRANT SELECT ON public.referrals_with_details TO authenticated;
+    EXCEPTION WHEN OTHERS THEN
+        -- Permission might already exist, continue
+        NULL;
+    END;
+    
+    BEGIN
+        GRANT SELECT ON public.community_suggestions_with_users TO authenticated;
+    EXCEPTION WHEN OTHERS THEN
+        -- Permission might already exist, continue
+        NULL;
+    END;
+END $$;
 
 -- Migration completed successfully!
 -- All missing tables and relationships have been created
