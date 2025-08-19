@@ -3,8 +3,20 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createSupabaseBrowser } from '@/lib/supabaseBrowser';
-import { Shield, ArrowLeft, Save, User, MapPin, Star } from 'lucide-react';
+import { Shield, ArrowLeft, Save, User, MapPin, Star, Link as LinkIcon, FileText, Globe } from 'lucide-react';
 import Link from 'next/link';
+import LocationAutocomplete from '@/components/LocationAutocomplete';
+import WebLinksEditor from '@/components/WebLinksEditor';
+import { 
+  ProfileFormData, 
+  validateProfileForm, 
+  validateBio, 
+  validateLocation, 
+  ALL_MILITARY_RANKS,
+  SERVICE_BRANCHES,
+  getDefaultProfileFormData,
+  parseLocationString
+} from '@/types/enhanced-profile';
 
 export default function ProfileSettingsPage() {
   const [user, setUser] = useState<any>(null);
@@ -17,16 +29,9 @@ export default function ProfileSettingsPage() {
   const router = useRouter();
   const supabase = createSupabaseBrowser();
 
-  // Form state
-  const [formData, setFormData] = useState({
-    name: '',
-    phone: '',
-    rank: '',
-    service_branch: '',
-    years_experience: '',
-    location_current: '',
-    locations_preferred: [] as string[]
-  });
+  // Enhanced form state
+  const [formData, setFormData] = useState<ProfileFormData>(getDefaultProfileFormData());
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const getUser = async () => {
@@ -57,15 +62,17 @@ export default function ProfileSettingsPage() {
         
         setVeteranProfile(veteranData);
         
-        // Initialize form data
+        // Initialize enhanced form data
         setFormData({
           name: profileData?.name || '',
           phone: profileData?.phone || '',
-          rank: veteranData?.rank || '',
+          military_rank: veteranData?.military_rank || '',
           service_branch: veteranData?.service_branch || '',
           years_experience: veteranData?.years_experience?.toString() || '',
+          bio: veteranData?.bio || '',
           location_current: veteranData?.location_current || '',
-          locations_preferred: veteranData?.locations_preferred || []
+          locations_preferred: veteranData?.locations_preferred || [],
+          web_links: veteranData?.web_links || []
         });
         
       } catch (error) {
@@ -79,19 +86,26 @@ export default function ProfileSettingsPage() {
     getUser();
   }, [router]);
 
-  const handleInputChange = (field: string, value: string | string[]) => {
+  const handleInputChange = (field: keyof ProfileFormData, value: any) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
+    
+    // Clear error for this field
+    if (errors[field]) {
+      setErrors(prev => ({
+        ...prev,
+        [field]: ''
+      }));
+    }
   };
 
   const handleLocationAdd = () => {
-    const newLocation = prompt('Enter preferred location (City, Country):');
-    if (newLocation && newLocation.trim()) {
+    if (formData.locations_preferred.length < 3) {
       setFormData(prev => ({
         ...prev,
-        locations_preferred: [...prev.locations_preferred, newLocation.trim()]
+        locations_preferred: [...prev.locations_preferred, '']
       }));
     }
   };
@@ -103,13 +117,37 @@ export default function ProfileSettingsPage() {
     }));
   };
 
+  const handleLocationChange = (index: number, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      locations_preferred: prev.locations_preferred.map((loc, i) => 
+        i === index ? value : loc
+      )
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
     setError(null);
     setSuccess(null);
+    setErrors({});
+
+    // Validate form
+    const validationErrors = validateProfileForm(formData);
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      setIsSaving(false);
+      return;
+    }
 
     try {
+      // Parse locations for structured storage
+      const locationCurrentParsed = parseLocationString(formData.location_current);
+      const locationsPreferredParsed = formData.locations_preferred
+        .filter(loc => loc.trim())
+        .map(loc => parseLocationString(loc));
+
       // Update user profile
       const { error: userError } = await supabase
         .from('users')
@@ -124,11 +162,16 @@ export default function ProfileSettingsPage() {
       // Update or create veteran profile
       const veteranData = {
         user_id: user.id,
-        rank: formData.rank,
+        military_rank: formData.military_rank,
         service_branch: formData.service_branch,
         years_experience: formData.years_experience ? parseInt(formData.years_experience) : null,
+        bio: formData.bio,
         location_current: formData.location_current,
-        locations_preferred: formData.locations_preferred
+        location_current_city: locationCurrentParsed.city,
+        location_current_country: locationCurrentParsed.country,
+        locations_preferred: formData.locations_preferred.filter(loc => loc.trim()),
+        locations_preferred_structured: locationsPreferredParsed,
+        web_links: formData.web_links
       };
 
       if (veteranProfile) {
@@ -242,10 +285,10 @@ export default function ProfileSettingsPage() {
           </div>
         )}
 
-        {/* Profile Form */}
+        {/* Enhanced Profile Form */}
         <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-sm border">
           <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-medium text-gray-900">Profile Information</h2>
+            <h2 className="text-lg font-medium text-gray-900">Enhanced Profile Information</h2>
           </div>
           
           <div className="p-6 space-y-8">
@@ -265,9 +308,16 @@ export default function ProfileSettingsPage() {
                     id="name"
                     value={formData.name}
                     onChange={(e) => handleInputChange('name', e.target.value)}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${
+                      errors.name 
+                        ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
+                        : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+                    }`}
                     required
                   />
+                  {errors.name && (
+                    <p className="mt-1 text-sm text-red-600">{errors.name}</p>
+                  )}
                 </div>
                 <div>
                   <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
@@ -278,10 +328,50 @@ export default function ProfileSettingsPage() {
                     id="phone"
                     value={formData.phone}
                     onChange={(e) => handleInputChange('phone', e.target.value)}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${
+                      errors.phone 
+                        ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
+                        : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+                    }`}
                     placeholder="+91XXXXXXXXXX"
                   />
+                  {errors.phone && (
+                    <p className="mt-1 text-sm text-red-600">{errors.phone}</p>
+                  )}
                 </div>
+              </div>
+            </div>
+
+            {/* Bio Section */}
+            <div>
+              <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
+                <FileText className="h-5 w-5 text-gray-400" />
+                Bio
+              </h3>
+              <div>
+                <label htmlFor="bio" className="block text-sm font-medium text-gray-700">
+                  Tell us about yourself
+                </label>
+                <div className="mt-1 relative">
+                  <textarea
+                    id="bio"
+                    rows={4}
+                    value={formData.bio}
+                    onChange={(e) => handleInputChange('bio', e.target.value)}
+                    className={`block w-full rounded-md shadow-sm sm:text-sm ${
+                      errors.bio 
+                        ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
+                        : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+                    }`}
+                    placeholder="Share your story, achievements, or what you're looking for..."
+                  />
+                  <div className="absolute bottom-2 right-2 text-xs text-gray-400">
+                    {formData.bio.length}/600
+                  </div>
+                </div>
+                {errors.bio && (
+                  <p className="mt-1 text-sm text-red-600">{errors.bio}</p>
+                )}
               </div>
             </div>
 
@@ -293,19 +383,6 @@ export default function ProfileSettingsPage() {
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
-                  <label htmlFor="rank" className="block text-sm font-medium text-gray-700">
-                    Rank
-                  </label>
-                  <input
-                    type="text"
-                    id="rank"
-                    value={formData.rank}
-                    onChange={(e) => handleInputChange('rank', e.target.value)}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                    placeholder="e.g., Colonel, Lieutenant"
-                  />
-                </div>
-                <div>
                   <label htmlFor="service_branch" className="block text-sm font-medium text-gray-700">
                     Service Branch
                   </label>
@@ -313,15 +390,49 @@ export default function ProfileSettingsPage() {
                     id="service_branch"
                     value={formData.service_branch}
                     onChange={(e) => handleInputChange('service_branch', e.target.value)}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${
+                      errors.service_branch 
+                        ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
+                        : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+                    }`}
                   >
                     <option value="">Select Branch</option>
-                    <option value="Indian Army">Indian Army</option>
-                    <option value="Indian Navy">Indian Navy</option>
-                    <option value="Indian Air Force">Indian Air Force</option>
-                    <option value="Coast Guard">Coast Guard</option>
-                    <option value="Other">Other</option>
+                    {SERVICE_BRANCHES.map(branch => (
+                      <option key={branch} value={branch}>{branch}</option>
+                    ))}
                   </select>
+                  {errors.service_branch && (
+                    <p className="mt-1 text-sm text-red-600">{errors.service_branch}</p>
+                  )}
+                </div>
+                <div>
+                  <label htmlFor="military_rank" className="block text-sm font-medium text-gray-700">
+                    Military Rank
+                  </label>
+                  <select
+                    id="military_rank"
+                    value={formData.military_rank}
+                    onChange={(e) => handleInputChange('military_rank', e.target.value)}
+                    className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${
+                      errors.military_rank 
+                        ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
+                        : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+                    }`}
+                  >
+                    <option value="">Select Rank</option>
+                    {formData.service_branch && ALL_MILITARY_RANKS[formData.service_branch] ? (
+                      ALL_MILITARY_RANKS[formData.service_branch].map(rank => (
+                        <option key={rank} value={rank}>{rank}</option>
+                      ))
+                    ) : (
+                      ALL_MILITARY_RANKS['Indian Army'].map(rank => (
+                        <option key={rank} value={rank}>{rank}</option>
+                      ))
+                    )}
+                  </select>
+                  {errors.military_rank && (
+                    <p className="mt-1 text-sm text-red-600">{errors.military_rank}</p>
+                  )}
                 </div>
                 <div>
                   <label htmlFor="years_experience" className="block text-sm font-medium text-gray-700">
@@ -332,11 +443,18 @@ export default function ProfileSettingsPage() {
                     id="years_experience"
                     value={formData.years_experience}
                     onChange={(e) => handleInputChange('years_experience', e.target.value)}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${
+                      errors.years_experience 
+                        ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
+                        : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+                    }`}
                     min="0"
                     max="50"
                     placeholder="e.g., 15"
                   />
+                  {errors.years_experience && (
+                    <p className="mt-1 text-sm text-red-600">{errors.years_experience}</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -352,13 +470,11 @@ export default function ProfileSettingsPage() {
                   <label htmlFor="location_current" className="block text-sm font-medium text-gray-700">
                     Current Location
                   </label>
-                  <input
-                    type="text"
-                    id="location_current"
+                  <LocationAutocomplete
                     value={formData.location_current}
-                    onChange={(e) => handleInputChange('location_current', e.target.value)}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                    placeholder="e.g., Delhi, India"
+                    onChange={(value) => handleInputChange('location_current', value)}
+                    placeholder="Search for your current location..."
+                    error={errors.location_current}
                   />
                 </div>
                 
@@ -366,19 +482,14 @@ export default function ProfileSettingsPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Preferred Locations (up to 3)
                   </label>
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     {formData.locations_preferred.map((location, index) => (
                       <div key={index} className="flex items-center gap-2">
-                        <input
-                          type="text"
+                        <LocationAutocomplete
                           value={location}
-                          onChange={(e) => {
-                            const newLocations = [...formData.locations_preferred];
-                            newLocations[index] = e.target.value;
-                            handleInputChange('locations_preferred', newLocations);
-                          }}
-                          className="flex-1 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                          placeholder="e.g., Mumbai, India"
+                          onChange={(value) => handleLocationChange(index, value)}
+                          placeholder={`Preferred location ${index + 1}...`}
+                          className="flex-1"
                         />
                         <button
                           type="button"
@@ -401,6 +512,19 @@ export default function ProfileSettingsPage() {
                   </div>
                 </div>
               </div>
+            </div>
+
+            {/* Web Links */}
+            <div>
+              <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
+                <LinkIcon className="h-5 w-5 text-gray-400" />
+                Web Links
+              </h3>
+              <WebLinksEditor
+                links={formData.web_links}
+                onChange={(links) => handleInputChange('web_links', links)}
+                error={errors.web_links}
+              />
             </div>
           </div>
 
