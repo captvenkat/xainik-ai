@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { User, Mail, Phone, Calendar, Save, Edit3, CheckCircle, AlertCircle, ArrowLeft, MapPin, Star, Link as LinkIcon, FileText, Shield, Clock, Award } from 'lucide-react'
@@ -27,6 +27,10 @@ export default function VeteranProfileTab() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [veteranProfile, setVeteranProfile] = useState<any>(null)
+  const [isAutoSaving, setIsAutoSaving] = useState(false)
+  const [lastSaved, setLastSaved] = useState<Date | null>(null)
+  const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const lastSavedDataRef = useRef<ProfileFormData | null>(null)
 
   // Load profile data
   useEffect(() => {
@@ -113,28 +117,22 @@ export default function VeteranProfileTab() {
     }))
   }
 
-  const handleSave = async () => {
-    if (!user) return
-
-    setIsLoading(true)
-    setError('')
-    setSuccess('')
-    setErrors({})
-
-    // Validate form
-    const validationResult = validateProfileForm(formData)
-    if (!validationResult.isValid) {
-      setErrors(validationResult.errors)
-      setIsLoading(false)
-      return
-    }
+  const saveProfile = async (data: ProfileFormData, showSuccess = true) => {
+    if (!user) return false
 
     try {
+      // Validate form
+      const validationResult = validateProfileForm(data)
+      if (!validationResult.isValid) {
+        setErrors(validationResult.errors)
+        return false
+      }
+
       const supabase = createSupabaseBrowser()
       
       // Parse locations for structured storage
-      const locationCurrentParsed = parseLocationString(formData.location_current)
-      const locationsPreferredParsed = formData.locations_preferred
+      const locationCurrentParsed = parseLocationString(data.location_current)
+      const locationsPreferredParsed = data.locations_preferred
         .filter(loc => loc.trim())
         .map(loc => parseLocationString(loc))
 
@@ -142,8 +140,8 @@ export default function VeteranProfileTab() {
       const { error: userError } = await supabase
         .from('users')
         .update({
-          name: formData.name,
-          phone: formData.phone
+          name: data.name,
+          phone: data.phone
         })
         .eq('id', user.id)
 
@@ -152,17 +150,17 @@ export default function VeteranProfileTab() {
       // Update or create veteran profile
       const veteranData = {
         user_id: user.id,
-        military_rank: formData.military_rank,
-        service_branch: formData.service_branch,
-        years_experience: formData.years_experience ? parseInt(formData.years_experience) : null,
-        bio: formData.bio,
-        location_current: formData.location_current,
+        military_rank: data.military_rank,
+        service_branch: data.service_branch,
+        years_experience: data.years_experience ? parseInt(data.years_experience) : null,
+        bio: data.bio,
+        location_current: data.location_current,
         location_current_city: locationCurrentParsed.city,
         location_current_country: locationCurrentParsed.country,
-        locations_preferred: formData.locations_preferred.filter(loc => loc.trim()),
+        locations_preferred: data.locations_preferred.filter(loc => loc.trim()),
         locations_preferred_structured: locationsPreferredParsed,
-        web_links: formData.web_links,
-        retirement_date: formData.retirement_date || null
+        web_links: data.web_links,
+        retirement_date: data.retirement_date || null
       }
 
       if (veteranProfile) {
@@ -182,17 +180,71 @@ export default function VeteranProfileTab() {
         if (veteranError) throw veteranError
       }
 
-      setSuccess('Profile updated successfully!')
-      setIsEditing(false)
+      if (showSuccess) {
+        setSuccess('Profile updated successfully!')
+        // Clear success message after 3 seconds
+        setTimeout(() => setSuccess(''), 3000)
+      }
       
-      // Clear success message after 3 seconds
-      setTimeout(() => setSuccess(''), 3000)
+      setLastSaved(new Date())
+      lastSavedDataRef.current = { ...data }
+      return true
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update profile')
-    } finally {
-      setIsLoading(false)
+      return false
     }
   }
+
+  const handleSave = async () => {
+    setIsLoading(true)
+    setError('')
+    setSuccess('')
+    setErrors({})
+
+    const success = await saveProfile(formData, true)
+    if (success) {
+      setIsEditing(false)
+    }
+    setIsLoading(false)
+  }
+
+  // Auto-save functionality
+  const triggerAutoSave = useCallback(() => {
+    // Clear existing timeout
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current)
+    }
+
+    // Set new timeout for auto-save (2 seconds after user stops typing)
+    autoSaveTimeoutRef.current = setTimeout(async () => {
+      // Only auto-save if data has actually changed
+      if (lastSavedDataRef.current && JSON.stringify(lastSavedDataRef.current) === JSON.stringify(formData)) {
+        return
+      }
+
+      setIsAutoSaving(true)
+      setError('')
+      
+      await saveProfile(formData, false)
+      setIsAutoSaving(false)
+    }, 2000)
+  }, [formData])
+
+  // Trigger auto-save when form data changes
+  useEffect(() => {
+    if (isEditing && user) {
+      triggerAutoSave()
+    }
+  }, [formData, isEditing, user, triggerAutoSave])
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current)
+      }
+    }
+  }, [])
 
   const getMilitaryRanksForBranch = (branch: string) => {
     if (!branch || !ALL_MILITARY_RANKS[branch as keyof typeof ALL_MILITARY_RANKS]) {
@@ -216,6 +268,25 @@ export default function VeteranProfileTab() {
             <div>
               <h2 className="text-xl font-semibold text-gray-900">Enhanced Profile</h2>
               <p className="text-sm text-gray-600">Manage your military service and personal information</p>
+              {isEditing && (
+                <div className="flex items-center gap-2 mt-1">
+                  {isAutoSaving ? (
+                    <div className="flex items-center text-xs text-blue-600">
+                      <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600 mr-1"></div>
+                      Auto-saving...
+                    </div>
+                  ) : lastSaved ? (
+                    <div className="flex items-center text-xs text-green-600">
+                      <CheckCircle className="h-3 w-3 mr-1" />
+                      Last saved: {lastSaved.toLocaleTimeString()}
+                    </div>
+                  ) : (
+                    <div className="text-xs text-gray-500">
+                      Changes will be saved automatically
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -228,31 +299,12 @@ export default function VeteranProfileTab() {
                 Edit Profile
               </button>
             ) : (
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setIsEditing(false)}
-                  className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSave}
-                  disabled={isLoading}
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                >
-                  {isLoading ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="h-4 w-4 mr-2" />
-                      Save Changes
-                    </>
-                  )}
-                </button>
-              </div>
+              <button
+                onClick={() => setIsEditing(false)}
+                className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+              >
+                Done
+              </button>
             )}
           </div>
         </div>

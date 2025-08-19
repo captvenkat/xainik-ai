@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { createSupabaseBrowser } from '@/lib/supabaseBrowser';
 import { Shield, ArrowLeft, Save, User, MapPin, Star, Link as LinkIcon, FileText, Globe } from 'lucide-react';
@@ -26,6 +26,10 @@ export default function EnhancedProfileSettingsPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [isAutoSaving, setIsAutoSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastSavedDataRef = useRef<ProfileFormData | null>(null);
   const router = useRouter();
   const supabase = createSupabaseBrowser();
 
@@ -124,54 +128,47 @@ export default function EnhancedProfileSettingsPage() {
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSaving(true);
-    setError(null);
-    setSuccess(null);
-    setValidationErrors({});
-
-    // Validate form
-    const validation = validateProfileForm(formData);
-    if (!validation.isValid) {
-      setValidationErrors(validation.errors);
-      setIsSaving(false);
-      return;
-    }
-
+  const saveProfile = async (data: ProfileFormData, showSuccess = true) => {
     try {
+      // Validate form
+      const validation = validateProfileForm(data);
+      if (!validation.isValid) {
+        setValidationErrors(validation.errors);
+        return false;
+      }
+
       // Update user profile
       const { error: userError } = await supabase
         .from('users')
         .update({
-          name: formData.name,
-          phone: formData.phone
+          name: data.name,
+          phone: data.phone
         })
         .eq('id', user.id);
 
       if (userError) throw userError;
 
       // Parse current location
-      const currentLocationParsed = parseLocationString(formData.location_current);
+      const currentLocationParsed = parseLocationString(data.location_current);
       
       // Parse preferred locations
-      const preferredLocationsStructured = formData.locations_preferred.map(loc => 
+      const preferredLocationsStructured = data.locations_preferred.map(loc => 
         parseLocationString(loc)
       );
 
       // Update or create veteran profile
       const veteranData = {
         user_id: user.id,
-        military_rank: formData.military_rank,
-        service_branch: formData.service_branch,
-        years_experience: formData.years_experience ? parseInt(formData.years_experience) : null,
-        bio: formData.bio,
-        location_current: formData.location_current,
+        military_rank: data.military_rank,
+        service_branch: data.service_branch,
+        years_experience: data.years_experience ? parseInt(data.years_experience) : null,
+        bio: data.bio,
+        location_current: data.location_current,
         location_current_city: currentLocationParsed.city,
         location_current_country: currentLocationParsed.country,
-        locations_preferred: formData.locations_preferred,
+        locations_preferred: data.locations_preferred,
         locations_preferred_structured: preferredLocationsStructured,
-        web_links: formData.web_links
+        web_links: data.web_links
       };
 
       if (veteranProfile) {
@@ -191,32 +188,70 @@ export default function EnhancedProfileSettingsPage() {
         if (veteranError) throw veteranError;
       }
 
-      setSuccess('Profile updated successfully!');
+      if (showSuccess) {
+        setSuccess('Profile updated successfully!');
+        setTimeout(() => setSuccess(null), 3000);
+      }
       
-      // Refresh profile data
-      const { data: newProfile } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-      
-      setProfile(newProfile);
-      
-      const { data: newVeteranProfile } = await supabase
-        .from('veterans')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-      
-      setVeteranProfile(newVeteranProfile);
+      setLastSaved(new Date());
+      lastSavedDataRef.current = { ...data };
+      return true;
       
     } catch (error) {
       console.error('Error updating profile:', error);
       setError('Failed to update profile. Please try again.');
-    } finally {
-      setIsSaving(false);
+      return false;
     }
   };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSaving(true);
+    setError(null);
+    setSuccess(null);
+    setValidationErrors({});
+
+    const success = await saveProfile(formData, true);
+    setIsSaving(false);
+  };
+
+  // Auto-save functionality
+  const triggerAutoSave = useCallback(() => {
+    // Clear existing timeout
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+
+    // Set new timeout for auto-save (2 seconds after user stops typing)
+    autoSaveTimeoutRef.current = setTimeout(async () => {
+      // Only auto-save if data has actually changed
+      if (lastSavedDataRef.current && JSON.stringify(lastSavedDataRef.current) === JSON.stringify(formData)) {
+        return;
+      }
+
+      setIsAutoSaving(true);
+      setError(null);
+      
+      await saveProfile(formData, false);
+      setIsAutoSaving(false);
+    }, 2000);
+  }, [formData]);
+
+  // Trigger auto-save when form data changes
+  useEffect(() => {
+    if (user) {
+      triggerAutoSave();
+    }
+  }, [formData, user, triggerAutoSave]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const getMilitaryRanksForBranch = (branch: string) => {
     if (!branch || !ALL_MILITARY_RANKS[branch as keyof typeof ALL_MILITARY_RANKS]) {
@@ -260,6 +295,25 @@ export default function EnhancedProfileSettingsPage() {
           <p className="text-gray-600">
             Update your profile with intelligent features including Google Places autocomplete, military ranks, and web links
           </p>
+          <div className="flex items-center gap-2 mt-2">
+            {isAutoSaving ? (
+              <div className="flex items-center text-sm text-blue-600">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                Auto-saving...
+              </div>
+            ) : lastSaved ? (
+              <div className="flex items-center text-sm text-green-600">
+                <svg className="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                Last saved: {lastSaved.toLocaleTimeString()}
+              </div>
+            ) : (
+              <div className="text-sm text-gray-500">
+                Changes will be saved automatically
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Success/Error Messages */}
@@ -534,25 +588,34 @@ export default function EnhancedProfileSettingsPage() {
             </div>
           </div>
 
-          {/* Form Actions */}
-          <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end">
-            <button
-              type="submit"
-              disabled={isSaving}
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isSaving ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <Save className="h-4 w-4 mr-2" />
-                  Save Changes
-                </>
-              )}
-            </button>
+          {/* Auto-save status */}
+          <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-gray-600">
+                {isAutoSaving ? (
+                  <div className="flex items-center text-blue-600">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                    Auto-saving your changes...
+                  </div>
+                ) : lastSaved ? (
+                  <div className="flex items-center text-green-600">
+                    <svg className="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    Last saved: {lastSaved.toLocaleTimeString()}
+                  </div>
+                ) : (
+                  <span>Changes will be saved automatically</span>
+                )}
+              </div>
+              <button
+                type="submit"
+                disabled={isSaving}
+                className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Done
+              </button>
+            </div>
           </div>
         </form>
       </div>
