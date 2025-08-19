@@ -97,7 +97,6 @@ export default function CommunitySuggestions({ userId }: { userId: string }) {
           user_id: userId,
           title: newSuggestion.trim(),
           description: newSuggestion.trim(),
-          category: selectedCategory,
           suggestion_type: selectedCategory,
           priority: 'medium',
           status: 'active',
@@ -161,8 +160,8 @@ export default function CommunitySuggestions({ userId }: { userId: string }) {
     }
   }
 
-  function getCategoryColor(category: string) {
-    switch (category) {
+  function getCategoryColor(suggestionType: string) {
+    switch (suggestionType) {
       case 'feature':
         return 'bg-blue-100 text-blue-800'
       case 'improvement':
@@ -299,8 +298,8 @@ export default function CommunitySuggestions({ userId }: { userId: string }) {
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3">
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(suggestion.category)}`}>
-                    {suggestion.category.charAt(0).toUpperCase() + suggestion.category.slice(1)}
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(suggestion.suggestion_type)}`}>
+                    {suggestion.suggestion_type.charAt(0).toUpperCase() + suggestion.suggestion_type.slice(1)}
                   </span>
                   <div className="flex items-center gap-2 text-sm text-gray-500">
                     {getStatusIcon(suggestion.status)}
