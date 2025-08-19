@@ -34,7 +34,12 @@ CREATE TABLE public.referral_events (
   created_at timestamptz DEFAULT now()
 );
 
--- 4. Update COMMUNITY_SUGGESTIONS table to include proper relationships
+-- 4. Clean up existing data and recreate COMMUNITY_SUGGESTIONS table
+-- First, backup any existing data
+CREATE TEMP TABLE temp_community_suggestions AS 
+SELECT * FROM public.community_suggestions WHERE user_id IS NOT NULL AND user_id != '00000000-0000-0000-0000-000000000000';
+
+-- Drop and recreate the table
 DROP TABLE IF EXISTS public.community_suggestions CASCADE;
 CREATE TABLE public.community_suggestions (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -49,7 +54,30 @@ CREATE TABLE public.community_suggestions (
   updated_at timestamptz DEFAULT now()
 );
 
--- 5. Update PITCHES table to include proper foreign key (if not exists)
+-- Restore valid data
+INSERT INTO public.community_suggestions 
+SELECT * FROM temp_community_suggestions;
+
+-- Drop temporary table
+DROP TABLE temp_community_suggestions;
+
+-- 5. Clean up invalid data in existing tables before adding constraints
+-- Clean up pitches table
+DELETE FROM public.pitches WHERE user_id = '00000000-0000-0000-0000-000000000000' OR user_id IS NULL;
+
+-- Clean up endorsements table
+DELETE FROM public.endorsements WHERE user_id = '00000000-0000-0000-0000-000000000000' OR user_id IS NULL;
+DELETE FROM public.endorsements WHERE pitch_id = '00000000-0000-0000-0000-000000000000' OR pitch_id IS NULL;
+
+-- Clean up likes table
+DELETE FROM public.likes WHERE user_id = '00000000-0000-0000-0000-000000000000' OR user_id IS NULL;
+DELETE FROM public.likes WHERE pitch_id = '00000000-0000-0000-0000-000000000000' OR pitch_id IS NULL;
+
+-- Clean up shares table
+DELETE FROM public.shares WHERE user_id = '00000000-0000-0000-0000-000000000000' OR user_id IS NULL;
+DELETE FROM public.shares WHERE pitch_id = '00000000-0000-0000-0000-000000000000' OR pitch_id IS NULL;
+
+-- 6. Update PITCHES table to include proper foreign key (if not exists)
 DO $$ 
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'pitches_user_id_fkey') THEN
@@ -57,7 +85,7 @@ BEGIN
     END IF;
 END $$;
 
--- 6. Update ENDORSEMENTS table to include proper foreign keys (if not exists)
+-- 7. Update ENDORSEMENTS table to include proper foreign keys (if not exists)
 DO $$ 
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'endorsements_user_id_fkey') THEN
@@ -68,7 +96,7 @@ BEGIN
     END IF;
 END $$;
 
--- 7. Update LIKES table to include proper foreign keys (if not exists)
+-- 8. Update LIKES table to include proper foreign keys (if not exists)
 DO $$ 
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'likes_user_id_fkey') THEN
@@ -79,7 +107,7 @@ BEGIN
     END IF;
 END $$;
 
--- 8. Update SHARES table to include proper foreign keys (if not exists)
+-- 9. Update SHARES table to include proper foreign keys (if not exists)
 DO $$ 
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'shares_user_id_fkey') THEN
@@ -90,7 +118,12 @@ BEGIN
     END IF;
 END $$;
 
--- 9. Update MISSION_INVITATION_SUMMARY table to include proper foreign keys (if not exists)
+-- 10. Clean up invalid data in MISSION_INVITATION_SUMMARY before adding constraints
+-- Delete records with invalid user_id (all zeros)
+DELETE FROM public.mission_invitation_summary WHERE user_id = '00000000-0000-0000-0000-000000000000' OR user_id IS NULL;
+DELETE FROM public.mission_invitation_summary WHERE inviter_id = '00000000-0000-0000-0000-000000000000' OR inviter_id IS NULL;
+
+-- 11. Update MISSION_INVITATION_SUMMARY table to include proper foreign keys (if not exists)
 DO $$ 
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'mission_invitation_summary_user_id_fkey') THEN
@@ -101,7 +134,7 @@ BEGIN
     END IF;
 END $$;
 
--- 10. Create indexes for optimal performance
+-- 12. Create indexes for optimal performance
 CREATE INDEX IF NOT EXISTS idx_users_email ON public.users(email);
 CREATE INDEX IF NOT EXISTS idx_users_role ON public.users(role);
 CREATE INDEX IF NOT EXISTS idx_referrals_user_id ON public.referrals(user_id);
@@ -114,12 +147,12 @@ CREATE INDEX IF NOT EXISTS idx_community_suggestions_user_id ON public.community
 CREATE INDEX IF NOT EXISTS idx_community_suggestions_status ON public.community_suggestions(status);
 CREATE INDEX IF NOT EXISTS idx_community_suggestions_votes ON public.community_suggestions(votes);
 
--- 11. Enable RLS on all tables
+-- 13. Enable RLS on all tables
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.referrals ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.referral_events ENABLE ROW LEVEL SECURITY;
 
--- 12. Create RLS policies
+-- 14. Create RLS policies
 -- Users policies
 CREATE POLICY "Users can view all users" ON public.users FOR SELECT USING (true);
 CREATE POLICY "Users can create their own profile" ON public.users FOR INSERT WITH CHECK (auth.uid() = id);
@@ -134,12 +167,12 @@ CREATE POLICY "Users can update their own referrals" ON public.referrals FOR UPD
 CREATE POLICY "Users can view all referral events" ON public.referral_events FOR SELECT USING (true);
 CREATE POLICY "Users can create referral events" ON public.referral_events FOR INSERT WITH CHECK (true);
 
--- 13. Grant permissions
+-- 15. Grant permissions
 GRANT ALL ON public.users TO authenticated;
 GRANT ALL ON public.referrals TO authenticated;
 GRANT ALL ON public.referral_events TO authenticated;
 
--- 14. Create views for easier querying
+-- 16. Create views for easier querying
 DROP VIEW IF EXISTS public.referrals_with_details CASCADE;
 CREATE VIEW public.referrals_with_details AS
 SELECT 
@@ -159,7 +192,7 @@ LEFT JOIN public.users u ON r.user_id = u.id
 LEFT JOIN public.pitches p ON r.pitch_id = p.id
 ORDER BY r.created_at DESC;
 
--- 15. Create community suggestions view
+-- 17. Create community suggestions view
 DROP VIEW IF EXISTS public.community_suggestions_with_users CASCADE;
 CREATE VIEW public.community_suggestions_with_users AS
 SELECT 
@@ -179,7 +212,7 @@ FROM public.community_suggestions cs
 LEFT JOIN public.users u ON cs.user_id = u.id
 ORDER BY cs.votes DESC, cs.created_at DESC;
 
--- Grant permissions on views
+-- 18. Grant permissions on views
 GRANT SELECT ON public.referrals_with_details TO authenticated;
 GRANT SELECT ON public.community_suggestions_with_users TO authenticated;
 
