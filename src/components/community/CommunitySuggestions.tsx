@@ -13,7 +13,7 @@ interface CommunitySuggestion {
   id: string
   user_id: string
   suggestion: string
-  category: 'feature' | 'improvement' | 'bug'
+  suggestion_type: 'feature' | 'improvement' | 'bug'
   status: 'active' | 'implemented' | 'rejected'
   votes: number
   created_at: string
