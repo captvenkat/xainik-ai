@@ -90,7 +90,6 @@ INSERT INTO public.community_suggestions (
   user_id, 
   title, 
   description, 
-  category, 
   suggestion_type, 
   priority, 
   status, 
@@ -101,7 +100,6 @@ INSERT INTO public.community_suggestions (
     'Add dark mode support', 
     'It would be great to have a dark mode option for better user experience, especially for users who prefer darker interfaces.', 
     'feature', 
-    'feature', 
     'medium', 
     'active', 
     5
@@ -111,7 +109,6 @@ INSERT INTO public.community_suggestions (
     'Improve mobile responsiveness', 
     'The mobile experience could be enhanced with better touch targets and improved navigation.', 
     'improvement', 
-    'improvement', 
     'high', 
     'active', 
     8
@@ -120,7 +117,6 @@ INSERT INTO public.community_suggestions (
     (SELECT id FROM public.users LIMIT 1), 
     'Add email notifications', 
     'Users should receive email notifications for important events like new endorsements or recruiter contacts.', 
-    'feature', 
     'feature', 
     'high', 
     'implemented', 
