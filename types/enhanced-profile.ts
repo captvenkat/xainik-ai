@@ -307,13 +307,13 @@ export const parseLocationString = (locationString: string): LocationStructured 
   
   if (parts.length >= 2) {
     return {
-      city: parts[0],
-      country: parts[1],
+      city: parts[0] || '',
+      country: parts[1] || '',
       full: locationString
     };
   } else if (parts.length === 1) {
     return {
-      city: parts[0],
+      city: parts[0] || '',
       country: '',
       full: locationString
     };
