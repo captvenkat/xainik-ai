@@ -1,112 +1,97 @@
 const { createClient } = require('@supabase/supabase-js');
 require('dotenv').config({ path: '.env.local' });
 
-// Initialize Supabase client with service role key for admin access
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
 
-if (!supabaseUrl || !supabaseServiceKey) {
-  console.error('Missing required environment variables');
-  console.error('Please check your .env.local file contains:');
-  console.error('NEXT_PUBLIC_SUPABASE_URL=...');
-  console.error('SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here');
-  process.exit(1);
-}
-
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-async function applyResumeRequestsMigration() {
-  console.log('🔧 Applying Resume Requests Migration...');
-  console.log('=====================================');
-  
+async function applyMigration() {
   try {
-    // Step 1: Add the allow_resume_requests column to pitches table
-    console.log('\n📝 Step 1: Adding allow_resume_requests column...');
-    const { error: alterError } = await supabase.rpc('exec_sql', {
-      sql: `
-        ALTER TABLE public.pitches ADD COLUMN IF NOT EXISTS allow_resume_requests boolean DEFAULT false;
+    console.log('Applying resume_requests table migration...');
+
+    // Create resume_requests table
+    const { error: createTableError } = await supabase.rpc('exec_sql', {
+      sql_query: `
+        CREATE TABLE IF NOT EXISTS resume_requests (
+          id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+          pitch_id UUID NOT NULL REFERENCES pitches(id) ON DELETE CASCADE,
+          requester_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+          veteran_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+          message TEXT NOT NULL,
+          status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'declined', 'expired')),
+          response_message TEXT,
+          responded_at TIMESTAMP WITH TIME ZONE,
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+          updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+        );
       `
     });
-    
-    if (alterError) {
-      console.log(`❌ Error adding column: ${alterError.message}`);
+
+    if (createTableError) {
+      console.error('Error creating table:', createTableError);
       return;
     }
-    console.log('✅ Column added successfully');
-    
-    // Step 2: Update existing records to have allow_resume_requests = false
-    console.log('\n📝 Step 2: Updating existing records...');
-    const { error: updateError } = await supabase.rpc('exec_sql', {
-      sql: `
-        UPDATE public.pitches SET allow_resume_requests = false WHERE allow_resume_requests IS NULL;
-      `
-    });
-    
-    if (updateError) {
-      console.log(`❌ Error updating records: ${updateError.message}`);
-      return;
-    }
-    console.log('✅ Records updated successfully');
-    
-    // Step 3: Add comment for documentation
-    console.log('\n📝 Step 3: Adding column comment...');
-    const { error: commentError } = await supabase.rpc('exec_sql', {
-      sql: `
-        COMMENT ON COLUMN public.pitches.allow_resume_requests IS 'Whether recruiters can request resume for this pitch';
-      `
-    });
-    
-    if (commentError) {
-      console.log(`⚠️ Warning: Could not add comment: ${commentError.message}`);
-    } else {
-      console.log('✅ Comment added successfully');
-    }
-    
-    // Step 4: Create index for better query performance
-    console.log('\n📝 Step 4: Creating index...');
+
+    // Create indexes
     const { error: indexError } = await supabase.rpc('exec_sql', {
-      sql: `
-        CREATE INDEX IF NOT EXISTS idx_pitches_allow_resume_requests ON public.pitches(allow_resume_requests);
+      sql_query: `
+        CREATE INDEX IF NOT EXISTS idx_resume_requests_pitch_id ON resume_requests(pitch_id);
+        CREATE INDEX IF NOT EXISTS idx_resume_requests_requester_id ON resume_requests(requester_id);
+        CREATE INDEX IF NOT EXISTS idx_resume_requests_veteran_id ON resume_requests(veteran_id);
+        CREATE INDEX IF NOT EXISTS idx_resume_requests_status ON resume_requests(status);
+        CREATE INDEX IF NOT EXISTS idx_resume_requests_created_at ON resume_requests(created_at);
       `
     });
-    
+
     if (indexError) {
-      console.log(`⚠️ Warning: Could not create index: ${indexError.message}`);
-    } else {
-      console.log('✅ Index created successfully');
-    }
-    
-    // Step 5: Verify the migration
-    console.log('\n🔍 Step 5: Verifying migration...');
-    const { data: pitches, error: verifyError } = await supabase
-      .from('pitches')
-      .select('id, allow_resume_requests')
-      .limit(5);
-    
-    if (verifyError) {
-      console.log(`❌ Error verifying migration: ${verifyError.message}`);
+      console.error('Error creating indexes:', indexError);
       return;
     }
-    
-    console.log('✅ Migration verification successful');
-    console.log(`   - Found ${pitches?.length || 0} sample pitches`);
-    if (pitches && pitches.length > 0) {
-      console.log('   - Sample pitch:', pitches[0]);
+
+    // Enable RLS
+    const { error: rlsError } = await supabase.rpc('exec_sql', {
+      sql_query: 'ALTER TABLE resume_requests ENABLE ROW LEVEL SECURITY;'
+    });
+
+    if (rlsError) {
+      console.error('Error enabling RLS:', rlsError);
+      return;
     }
-    
-    console.log('\n🎉 Resume Requests Migration Completed Successfully!');
-    console.log('==================================================');
-    console.log('✅ allow_resume_requests column added to pitches table');
-    console.log('✅ Default value set to false for existing records');
-    console.log('✅ Column comment added for documentation');
-    console.log('✅ Index created for performance');
-    console.log('✅ Migration verified');
-    
+
+    // Create RLS policies
+    const { error: policiesError } = await supabase.rpc('exec_sql', {
+      sql_query: `
+        DROP POLICY IF EXISTS "Users can view their own resume requests" ON resume_requests;
+        CREATE POLICY "Users can view their own resume requests" ON resume_requests
+          FOR SELECT USING (
+            auth.uid() = requester_id OR auth.uid() = veteran_id
+          );
+
+        DROP POLICY IF EXISTS "Users can create resume requests" ON resume_requests;
+        CREATE POLICY "Users can create resume requests" ON resume_requests
+          FOR INSERT WITH CHECK (
+            auth.uid() = requester_id
+          );
+
+        DROP POLICY IF EXISTS "Veterans can update resume requests" ON resume_requests;
+        CREATE POLICY "Veterans can update resume requests" ON resume_requests
+          FOR UPDATE USING (
+            auth.uid() = veteran_id
+          );
+      `
+    });
+
+    if (policiesError) {
+      console.error('Error creating policies:', policiesError);
+      return;
+    }
+
+    console.log('✅ Resume requests table migration applied successfully!');
+
   } catch (error) {
-    console.error('❌ Migration failed:', error);
-    process.exit(1);
+    console.error('Migration failed:', error);
   }
 }
 
-// Run the migration
-applyResumeRequestsMigration();
+applyMigration();
