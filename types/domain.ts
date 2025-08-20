@@ -224,6 +224,7 @@ export interface FullPitchData extends PitchCardData {
   plan_expires_at: string | null;
   updated_at: string;
   endorsements: EndorsementWithUser[];
+  veterans?: Veteran[];
   metadata: any;
 }
 

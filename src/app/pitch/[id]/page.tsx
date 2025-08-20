@@ -21,8 +21,10 @@ async function fetchPitch(id: string) {
         id,
         name,
         email,
-        role,
-        bio
+        role
+      ),
+      veterans!veterans_user_id_fkey (
+        intro
       )
     `)
     .eq('id', id)
