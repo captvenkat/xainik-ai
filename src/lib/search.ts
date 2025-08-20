@@ -23,7 +23,7 @@ export async function searchPitches(
       .select(`
         *,
         users!pitches_user_id_fkey (id, name, email),
-        endorsements (*),
+        endorsements!endorsements_pitch_id_fkey (*),
         user_subscriptions!user_subscriptions_user_id_fkey (status, end_date)
       `)
       .or(`title.ilike.%${query}%,pitch_text.ilike.%${query}%`)

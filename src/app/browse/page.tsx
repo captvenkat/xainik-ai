@@ -30,8 +30,8 @@ export async function generateMetadata({ searchParams }: BrowsePageProps): Promi
     : 'Browse Veterans | Xainik'
   
   const description = hasFilters
-    ? `Find military veterans with ${params.skills || 'various skills'} in ${params.city || 'multiple locations'}. Browse verified veteran profiles and connect directly.`
-    : 'Discover talented military veterans ready for civilian opportunities. Browse verified veteran profiles with direct contact details.'
+    ? `Find military veterans with ${params.skills || 'various skills'} in ${params.city || 'multiple locations'}. Browse verified veteran pitches and connect directly.`
+    : 'Discover talented military veterans ready for civilian opportunities. Browse verified veteran pitches with direct contact details.'
 
   return {
     title,
@@ -182,7 +182,7 @@ function EmptyState({ searchParams }: { searchParams: any }) {
       <p className="text-gray-600 mb-6">
         {hasFilters 
           ? 'Try adjusting your filters or search terms to find more veterans.'
-          : 'Check back soon for new veteran profiles.'
+          : 'Check back soon for new veteran pitches.'
         }
       </p>
       {hasFilters && (

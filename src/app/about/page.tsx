@@ -95,7 +95,7 @@ export default function AboutPage() {
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-4">Recruiters Browse & Connect</h3>
               <p className="text-gray-600">
-                Employers and recruiters browse verified veteran profiles, filter by skills and requirements, and connect directly with candidates.
+                Employers and recruiters browse verified veteran pitches, filter by skills and requirements, and connect directly with candidates.
               </p>
             </div>
 

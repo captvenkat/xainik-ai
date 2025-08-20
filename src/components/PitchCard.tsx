@@ -180,7 +180,7 @@ export default function PitchCard({ data, variant = 'default' }: Props) {
             href={`/pitch/${id}`}
             className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105"
           >
-            View Full Profile
+                            View Full Pitch
             <ChevronRight className="h-4 w-4" />
           </Link>
           

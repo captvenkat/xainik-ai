@@ -26,7 +26,7 @@ const roles = [
     description: 'I am a recruiter looking to hire talented veterans',
     icon: Building,
     color: 'bg-green-500',
-    features: ['Browse veteran profiles', 'Request resumes', 'Post job opportunities']
+            features: ['Browse veteran pitches', 'Request resumes', 'Post job opportunities']
   },
   {
     id: 'supporter',
