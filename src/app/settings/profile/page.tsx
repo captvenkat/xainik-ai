@@ -348,7 +348,7 @@ export default function ProfileSettingsPage() {
                 <User className="h-5 w-5 text-gray-400" />
                 Basic Information
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
                   <label htmlFor="name" className="block text-sm font-medium text-gray-700">
                     Full Name *
@@ -368,6 +368,22 @@ export default function ProfileSettingsPage() {
                   {errors.name && (
                     <p className="mt-1 text-sm text-red-600">{errors.name}</p>
                   )}
+                </div>
+                <div>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    value={profile?.email || ''}
+                    className="mt-1 block w-full rounded-md shadow-sm sm:text-sm border-gray-300 bg-gray-50 cursor-not-allowed"
+                    disabled
+                    title="Email cannot be changed - set during signup"
+                  />
+                  <p className="mt-1 text-xs text-gray-500">
+                    Email is set during signup and cannot be modified
+                  </p>
                 </div>
                 <div>
                   <label htmlFor="phone" className="block text-sm font-medium text-gray-700">

@@ -334,7 +334,7 @@ export default function VeteranProfileTab() {
                 <User className="h-5 w-5 text-blue-600" />
                 Basic Information
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
                   <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
                     Full Name *
@@ -354,6 +354,22 @@ export default function VeteranProfileTab() {
                   {errors.name && (
                     <p className="mt-1 text-sm text-red-600">{errors.name}</p>
                   )}
+                </div>
+                <div>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    value={profile?.email || ''}
+                    className="w-full px-3 py-2 border rounded-lg shadow-sm bg-gray-50 cursor-not-allowed"
+                    disabled
+                    title="Email cannot be changed - set during signup"
+                  />
+                  <p className="mt-1 text-xs text-gray-500">
+                    Email is set during signup and cannot be modified
+                  </p>
                 </div>
                 <div>
                   <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
@@ -609,10 +625,14 @@ export default function VeteranProfileTab() {
                 <User className="h-5 w-5 text-blue-600" />
                 Basic Information
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
                   <p className="text-sm text-gray-900 bg-white p-3 rounded-lg border">{formData.name || 'Not provided'}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                  <p className="text-sm text-gray-900 bg-white p-3 rounded-lg border">{profile?.email || 'Not provided'}</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
