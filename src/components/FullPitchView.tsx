@@ -480,42 +480,31 @@ export default function FullPitchView({ pitch, currentUserId }: FullPitchViewPro
               <div className="space-y-4">
                 {/* Direct Call Button */}
                 {phone && (
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3 p-3 bg-white/80 rounded-2xl border border-white">
-                      <Phone className="h-5 w-5 text-red-500" />
-                      <span className="text-gray-700 font-medium">{phone}</span>
-                    </div>
-                    <button
-                      onClick={() => window.open(`tel:${phone}`, '_self')}
-                      className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-4 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105"
-                    >
-                      <Phone className="h-4 w-4" />
-                      Call Now
-                    </button>
-                  </div>
+                  <button
+                    onClick={() => window.open(`tel:${phone}`, '_self')}
+                    className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-4 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105"
+                  >
+                    <Phone className="h-5 w-5" />
+                    Call Now
+                  </button>
                 )}
                 
                 {/* Email Section */}
                 {user?.email && (
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between p-3 bg-white/80 rounded-2xl border border-white">
-                      <div className="flex items-center gap-3">
-                        <MessageCircle className="h-5 w-5 text-green-500" />
-                        <span className="text-gray-700 font-medium">{user.email}</span>
-                      </div>
-                      <button
-                        onClick={copyEmail}
-                        className="p-2 text-gray-500 hover:text-red-500 transition-colors"
-                      >
-                        {copiedEmail ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
-                      </button>
-                    </div>
                     <button
                       onClick={() => window.open(`mailto:${user.email}?subject=Interested in your pitch - ${title}`, '_self')}
                       className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105"
                     >
-                      <Mail className="h-4 w-4" />
+                      <Mail className="h-5 w-5" />
                       Send Email
+                    </button>
+                    <button
+                      onClick={copyEmail}
+                      className="w-full bg-gradient-to-r from-gray-600 to-slate-600 hover:from-gray-700 hover:to-slate-700 text-white px-4 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105"
+                    >
+                      {copiedEmail ? <Check className="h-5 w-5" /> : <Copy className="h-5 w-5" />}
+                      {copiedEmail ? 'Email Copied!' : 'Copy Email'}
                     </button>
                   </div>
                 )}
