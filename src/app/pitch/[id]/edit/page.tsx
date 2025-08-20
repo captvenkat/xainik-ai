@@ -45,6 +45,8 @@ export default function EditPitchPage({ params }: { params: Promise<{ id: string
   })
   const router = useRouter()
 
+
+
   const fetchPitchDetails = useCallback(async (userId: string, pitchId: string) => {
     try {
       const supabase = createSupabaseBrowser()
