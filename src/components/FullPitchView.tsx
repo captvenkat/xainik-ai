@@ -32,12 +32,10 @@ import type { FullPitchData } from '@/types/domain'
 
 interface FullPitchViewProps {
   pitch: FullPitchData
-  onContact?: () => void
-  onRequestResume?: () => void
   currentUserId?: string
 }
 
-export default function FullPitchView({ pitch, onContact, onRequestResume, currentUserId }: FullPitchViewProps) {
+export default function FullPitchView({ pitch, currentUserId }: FullPitchViewProps) {
   const [showContactInfo, setShowContactInfo] = useState(false)
   const [copiedEmail, setCopiedEmail] = useState(false)
   const [showShareModal, setShowShareModal] = useState(false)
@@ -330,7 +328,6 @@ export default function FullPitchView({ pitch, onContact, onRequestResume, curre
             {/* Resume Request */}
             {resume_url && resume_share_enabled && (
               <button
-                onClick={onRequestResume}
                 className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-6 py-3 rounded-2xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105"
               >
                 <FileText className="h-5 w-5" />
