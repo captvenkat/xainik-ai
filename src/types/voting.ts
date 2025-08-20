@@ -31,6 +31,7 @@ export interface VoteResponse {
   action?: 'added' | 'changed' | 'removed'
   vote_type?: 'upvote' | 'downvote'
   error?: string
+  data?: any
 }
 
 export interface VotingStats {

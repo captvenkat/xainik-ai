@@ -57,17 +57,38 @@ export default function CommunitySuggestions({ userId }: { userId: string }) {
 
   async function fetchSummary() {
     try {
-      // Note: community_suggestions_summary table doesn't exist in live schema
-      // Provide fallback summary data
-      const fallbackSummary: CommunitySuggestionsSummary = {
-        total_suggestions: 0,
-        active_suggestions: 0,
-        implemented_suggestions: 0,
-        rejected_suggestions: 0,
-        avg_votes: 0,
-        unique_suggesters: 0
+      // Fetch from community_suggestions_summary view that exists in live schema
+      const { data: summaryData, error } = await supabase
+        .from('community_suggestions_summary')
+        .select('*')
+        .single()
+
+      if (error) {
+        console.error('Error fetching summary:', error)
+        // Calculate summary from community_suggestions table
+        const { data: suggestions } = await supabase
+          .from('community_suggestions')
+          .select('*')
+
+        const calculatedSummary: CommunitySuggestionsSummary = {
+          total_suggestions: suggestions?.length || 0,
+          active_suggestions: suggestions?.filter(s => s.status === 'pending' || s.status === 'under_review').length || 0,
+          implemented_suggestions: suggestions?.filter(s => s.status === 'implemented').length || 0,
+          rejected_suggestions: suggestions?.filter(s => s.status === 'rejected').length || 0,
+          avg_votes: suggestions && suggestions.length > 0 ? suggestions.reduce((sum, s) => sum + (s.votes || 0), 0) / suggestions.length : 0,
+          unique_suggesters: new Set(suggestions?.map(s => s.user_id).filter(Boolean)).size || 0
+        }
+        setSummary(calculatedSummary)
+      } else {
+        setSummary({
+          total_suggestions: summaryData.total_suggestions || 0,
+          active_suggestions: summaryData.active_suggestions || 0,
+          implemented_suggestions: summaryData.implemented_suggestions || 0,
+          rejected_suggestions: summaryData.rejected_suggestions || 0,
+          avg_votes: summaryData.avg_votes || 0,
+          unique_suggesters: summaryData.unique_suggesters || 0
+        })
       }
-      setSummary(fallbackSummary)
     } catch (error) {
       console.error('Error fetching summary:', error)
       // Provide fallback summary data
@@ -87,17 +108,40 @@ export default function CommunitySuggestions({ userId }: { userId: string }) {
 
     setIsSubmitting(true)
     try {
-      // Note: community_suggestions table doesn't exist in live schema
-      // Show user-friendly message instead of error
-      alert('Community suggestions feature is coming soon! Your feedback is valuable and will be implemented in the next update.')
+      // Insert into community_suggestions table that exists in live schema
+      const { data, error } = await supabase
+        .from('community_suggestions')
+        .insert({
+          title: newSuggestion.slice(0, 100), // Use first 100 chars as title
+          description: newSuggestion,
+          suggestion_type: selectedCategory,
+          user_id: userId,
+          status: 'pending',
+          priority: 'medium',
+          votes: 0
+        })
+        .select()
+        .single()
+
+      if (error) {
+        console.error('Error submitting suggestion:', error)
+        alert('Error submitting suggestion. Please try again.')
+        return
+      }
+
+      // Success - refresh the suggestions list
+      await fetchSuggestions()
+      await fetchSummary()
 
       // Reset form
       setNewSuggestion('')
       setSelectedCategory('improvement')
       setShowForm(false)
+
+      alert('Thank you! Your suggestion has been submitted successfully.')
     } catch (error) {
       console.error('Error submitting suggestion:', error)
-      alert('Community suggestions feature is coming soon! Your feedback is valuable and will be implemented in the next update.')
+      alert('Error submitting suggestion. Please try again.')
     } finally {
       setIsSubmitting(false)
     }
@@ -203,18 +247,7 @@ export default function CommunitySuggestions({ userId }: { userId: string }) {
         )}
       </div>
 
-      {/* Feature Coming Soon Notice */}
-      <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl p-6 border border-yellow-200">
-        <div className="flex items-center gap-3">
-          <AlertCircle className="w-6 h-6 text-yellow-600" />
-          <div>
-            <h4 className="text-lg font-semibold text-yellow-800">Community Suggestions Coming Soon!</h4>
-            <p className="text-yellow-700">
-              We're working on implementing the community suggestions feature. This will allow you to submit ideas, vote on suggestions, and help shape the future of Xainik. Stay tuned for updates!
-            </p>
-          </div>
-        </div>
-      </div>
+
 
       {/* New Suggestion Form */}
       {showForm && (
@@ -277,7 +310,7 @@ export default function CommunitySuggestions({ userId }: { userId: string }) {
           <div className="text-center py-8 text-gray-500">
             <Lightbulb className="w-12 h-12 mx-auto mb-4 text-gray-300" />
             <p>No suggestions yet. Be the first to share an idea!</p>
-            <p className="text-sm mt-2">Community suggestions feature will be available soon.</p>
+            <p className="text-sm mt-2">Help improve Xainik by submitting your suggestions.</p>
           </div>
         ) : (
           suggestions.map((suggestion) => (

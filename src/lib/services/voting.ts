@@ -8,27 +8,48 @@ export async function voteOnSuggestion(
   voteType: 'upvote' | 'downvote'
 ): Promise<VoteResponse> {
   try {
-    // Note: Voting functionality is not yet implemented in the live schema
-    // Return a user-friendly response
+    // Use the vote_on_suggestion RPC function that exists in live schema
+    const { data, error } = await supabase
+      .rpc('vote_on_suggestion', {
+        p_suggestion_id: suggestionId,
+        p_vote_type: voteType
+      })
+
+    if (error) {
+      console.error('Voting error:', error)
+      return {
+        success: false,
+        error: error.message
+      }
+    }
+
     return {
-      success: false,
-      error: 'Voting feature is coming soon!'
+      success: true,
+      data: data
     }
   } catch (error) {
     console.error('Voting error:', error)
     return {
       success: false,
-      error: 'Voting feature is coming soon!'
+      error: 'Failed to submit vote'
     }
   }
 }
 
 export async function getCommunitySuggestionsWithVotes(): Promise<CommunitySuggestionWithVotes[]> {
   try {
-    // Note: community_suggestions_with_votes table doesn't exist in live schema
-    // Return empty array gracefully
-    console.log('Community suggestions feature is coming soon!')
-    return []
+    // Fetch from community_suggestions_with_votes view that exists in live schema
+    const { data, error } = await supabase
+      .from('community_suggestions_with_votes')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.error('Error fetching suggestions with votes:', error)
+      return []
+    }
+
+    return (data || []) as CommunitySuggestionWithVotes[]
   } catch (error) {
     console.error('Error fetching suggestions with votes:', error)
     return []
@@ -37,9 +58,18 @@ export async function getCommunitySuggestionsWithVotes(): Promise<CommunitySugge
 
 export async function getUserVoteOnSuggestion(suggestionId: string): Promise<'upvote' | 'downvote' | null> {
   try {
-    // Note: Voting functionality is not yet implemented in the live schema
-    // Return null gracefully
-    return null
+    // Use the get_user_vote_on_suggestion RPC function that exists in live schema
+    const { data, error } = await supabase
+      .rpc('get_user_vote_on_suggestion', {
+        p_suggestion_id: suggestionId
+      })
+
+    if (error) {
+      console.error('Error getting user vote:', error)
+      return null
+    }
+
+    return data as 'upvote' | 'downvote' | null
   } catch (error) {
     console.error('Error getting user vote:', error)
     return null
