@@ -52,7 +52,7 @@ async function fetchUser() {
   // Get user profile
   const { data: userProfile } = await supabaseClient
     .from('users')
-    .select('id, name, email, role, bio')
+    .select('id, name, email, role')
     .eq('id', user.id)
     .single()
 
