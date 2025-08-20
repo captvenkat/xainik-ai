@@ -5,6 +5,13 @@
 
 import { clearSupabaseBrowserInstance } from './supabaseBrowser';
 
+// Extend Window interface for custom properties
+declare global {
+  interface Window {
+    supabaseCache?: any;
+  }
+}
+
 // =====================================================
 // CACHE CLEARING FUNCTIONS
 // =====================================================
@@ -31,8 +38,8 @@ export const clearBrowserCache = () => {
     }
 
     // Clear any other cached data
-    if (window.__NEXT_DATA__) {
-      delete window.__NEXT_DATA__;
+    if ('__NEXT_DATA__' in window) {
+      (window as any).__NEXT_DATA__ = undefined;
       console.log('✅ Next.js data cache cleared');
     }
 
@@ -87,7 +94,9 @@ export const forceCacheRefresh = () => {
     if ('indexedDB' in window) {
       indexedDB.databases().then(databases => {
         databases.forEach(db => {
-          indexedDB.deleteDatabase(db.name);
+          if (db.name) {
+            indexedDB.deleteDatabase(db.name);
+          }
         });
         console.log('✅ IndexedDB cleared');
       });
@@ -120,7 +129,8 @@ export const verifySchemaTables = async (tables: string[]) => {
 
   for (const table of tables) {
     try {
-      const { data, error } = await supabase
+      // Use type assertion for dynamic table names
+      const { data, error } = await (supabase as any)
         .from(table)
         .select('*')
         .limit(1);
@@ -179,7 +189,7 @@ export const getCacheStatus = () => {
     localStorage: localStorage.length,
     sessionStorage: sessionStorage.length,
     hasSupabaseCache: !!window.supabaseCache,
-    hasNextData: !!window.__NEXT_DATA__,
+    hasNextData: !!('__NEXT_DATA__' in window && (window as any).__NEXT_DATA__),
     timestamp: new Date().toISOString()
   };
 
@@ -211,19 +221,4 @@ export const isCacheRefreshNeeded = async () => {
       message: 'Unable to verify tables - cache refresh recommended'
     };
   }
-};
-
-// =====================================================
-// EXPORT ALL FUNCTIONS
-// =====================================================
-
-export {
-  clearBrowserCache,
-  clearSupabaseCache,
-  forceCacheRefresh,
-  verifySchemaTables,
-  verifyCommunityTables,
-  verifyMissionTables,
-  getCacheStatus,
-  isCacheRefreshNeeded
 };
