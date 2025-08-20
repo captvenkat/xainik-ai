@@ -114,9 +114,10 @@ export default function FullPitchView({ pitch, currentUserId }: FullPitchViewPro
 
   const getUrgencyLevel = () => {
     if (!timeLeft) return 'normal'
-    if (timeLeft.days <= 1) return 'critical'
-    if (timeLeft.days <= 3) return 'urgent'
-    if (timeLeft.days <= 7) return 'warning'
+    if (timeLeft.days <= 7) return 'critical'
+    if (timeLeft.days <= 15) return 'urgent'
+    if (timeLeft.days <= 30) return 'warning'
+    if (timeLeft.days <= 60) return 'notice'
     return 'normal'
   }
 
@@ -124,13 +125,15 @@ export default function FullPitchView({ pitch, currentUserId }: FullPitchViewPro
     const level = getUrgencyLevel()
     switch (level) {
       case 'critical':
-        return '🚨 CRITICAL: This pitch expires in less than 24 hours!'
+        return `🚨 CRITICAL: Only ${timeLeft?.days} days left to support this veteran!`
       case 'urgent':
-        return '⚡ URGENT: This pitch expires soon - act fast!'
+        return `⚡ URGENT: This veteran's pitch expires in ${timeLeft?.days} days!`
       case 'warning':
-        return '⚠️ LIMITED TIME: This pitch will expire soon'
+        return `⚠️ LIMITED TIME: Pitch expires in ${timeLeft?.days} days - refer now!`
+      case 'notice':
+        return `⏰ This veteran's pitch is active for ${timeLeft?.days} more days`
       default:
-        return '⏰ This pitch is active and ready for opportunities'
+        return '🤝 Support this veteran - pitch is active and seeking opportunities'
     }
   }
 
@@ -138,13 +141,31 @@ export default function FullPitchView({ pitch, currentUserId }: FullPitchViewPro
     const level = getUrgencyLevel()
     switch (level) {
       case 'critical':
-        return 'from-red-500 to-red-600'
+        return 'from-red-600 to-red-700'
       case 'urgent':
-        return 'from-orange-500 to-red-500'
+        return 'from-orange-500 to-red-600'
       case 'warning':
         return 'from-yellow-500 to-orange-500'
+      case 'notice':
+        return 'from-blue-500 to-purple-600'
       default:
-        return 'from-green-500 to-blue-500'
+        return 'from-green-500 to-blue-600'
+    }
+  }
+
+  const getUrgencySubMessage = () => {
+    const level = getUrgencyLevel()
+    switch (level) {
+      case 'critical':
+        return 'Last chance to help this veteran find opportunities!'
+      case 'urgent':
+        return 'Time is running out - refer them to your network now!'
+      case 'warning':
+        return 'Don\'t let this veteran miss out on opportunities!'
+      case 'notice':
+        return 'Help connect them with opportunities before time runs out'
+      default:
+        return 'Join the community supporting this veteran\'s transition'
     }
   }
 
@@ -166,15 +187,15 @@ export default function FullPitchView({ pitch, currentUserId }: FullPitchViewPro
               <AlertTriangle className="h-6 w-6" />
               <div>
                 <h3 className="text-lg font-bold">{getUrgencyMessage()}</h3>
-                <p className="text-sm opacity-90">Don't miss this opportunity - connect now!</p>
+                <p className="text-sm opacity-90">{getUrgencySubMessage()}</p>
               </div>
             </div>
-                         <div className="text-right">
-               <div className="text-2xl font-bold">
-                 {timeLeft.days} days
-               </div>
-               <div className="text-sm opacity-90">Remaining</div>
-             </div>
+            <div className="text-right">
+              <div className="text-2xl font-bold">
+                {timeLeft.days} days
+              </div>
+              <div className="text-sm opacity-90">Remaining</div>
+            </div>
           </div>
         </div>
       )}
@@ -397,19 +418,32 @@ export default function FullPitchView({ pitch, currentUserId }: FullPitchViewPro
         {/* Right Column - Actions & Contact */}
         <div className="space-y-6">
           {/* Urgency CTA */}
-          <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-3xl p-6 text-white shadow-lg">
+          <div className={`bg-gradient-to-r ${getUrgencyColor()} rounded-3xl p-6 text-white shadow-lg`}>
             <div className="text-center">
-              <h4 className="text-lg font-bold mb-2">🤝 Support This Veteran</h4>
-              <p className="text-sm opacity-90 mb-4">Help connect them with opportunities</p>
+              <h4 className="text-lg font-bold mb-2">
+                {timeLeft && timeLeft.days <= 7 ? '🚨 URGENT: Support Now!' : '🤝 Support This Veteran'}
+              </h4>
+              <p className="text-sm opacity-90 mb-4">
+                {timeLeft && timeLeft.days <= 7 
+                  ? 'Last chance to help this veteran find opportunities!' 
+                  : 'Help connect them with opportunities'
+                }
+              </p>
               <div className="text-2xl font-bold mb-2">
                 {supporters_count} supporters
               </div>
               <div className="text-sm opacity-90 mb-3">
-                Join the community supporting this veteran
+                {timeLeft && timeLeft.days <= 15 
+                  ? 'Time is running out - refer them now!' 
+                  : 'Join the community supporting this veteran'
+                }
               </div>
               {timeLeft && timeLeft.days > 0 && (
                 <div className="text-sm opacity-90 border-t border-white/20 pt-3">
-                  Pitch expires in {timeLeft.days} days
+                  {timeLeft.days <= 7 
+                    ? `⚠️ Only ${timeLeft.days} days left!` 
+                    : `Pitch expires in ${timeLeft.days} days`
+                  }
                 </div>
               )}
             </div>
