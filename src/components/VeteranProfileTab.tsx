@@ -472,7 +472,7 @@ export default function VeteranProfileTab() {
                 <Camera className="h-5 w-5 text-blue-600" />
                 Update Profile Photo
               </h3>
-              <div className="flex items-center space-x-6">
+              <div className="flex flex-col lg:flex-row lg:items-start space-y-6 lg:space-y-0 lg:space-x-6">
                 <div className="flex-shrink-0">
                   <PhotoUpload
                     profilePhotoUrl={localAvatarUrl}
