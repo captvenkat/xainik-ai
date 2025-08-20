@@ -24,6 +24,7 @@ import VeteranOutreachList from '@/components/analytics/VeteranOutreachList'
 import SimpleActivityFeed from '@/components/analytics/SimpleActivityFeed'
 import SharePitchModal from '@/components/SharePitchModal'
 import ResumeRequestMetrics from '@/components/ResumeRequestMetrics'
+
 import { 
   getSimpleHeroData, 
   getSimpleMetricsData, 

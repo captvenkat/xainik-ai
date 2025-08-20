@@ -50,8 +50,8 @@ export async function POST(request: NextRequest) {
       .from('resume_requests')
       .insert({
         pitch_id: pitchId,
-        requester_id: requesterId,
-        veteran_id: pitch.user_id,
+        recruiter_user_id: requesterId,
+        user_id: pitch.user_id,
         message: message,
         status: 'pending',
         created_at: new Date().toISOString()

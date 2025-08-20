@@ -35,6 +35,7 @@ import LikeButton from '@/components/LikeButton'
 import SocialShareCard from '@/components/SocialShareCard'
 import ResumeRequestModal from '@/components/ResumeRequestModal'
 import EmailModal from '@/components/EmailModal'
+import ReferModal from '@/components/ReferModal'
 import type { FullPitchData } from '@/types/domain'
 
 interface FullPitchViewProps {
@@ -48,6 +49,7 @@ export default function FullPitchView({ pitch, currentUserId }: FullPitchViewPro
   const [showShareModal, setShowShareModal] = useState(false)
   const [showResumeModal, setShowResumeModal] = useState(false)
   const [showEmailModal, setShowEmailModal] = useState(false)
+  const [showReferModal, setShowReferModal] = useState(false)
   const [timeLeft, setTimeLeft] = useState<{ days: number } | null>(null)
   
   const {
@@ -417,25 +419,25 @@ export default function FullPitchView({ pitch, currentUserId }: FullPitchViewPro
 
         {/* Right Column - Actions & Contact */}
         <div className="space-y-6">
-          {/* Urgency CTA */}
+          {/* Support CTA */}
           <div className={`bg-gradient-to-r ${getUrgencyColor()} rounded-3xl p-6 text-white shadow-lg`}>
             <div className="text-center">
               <h4 className="text-lg font-bold mb-2">
-                {timeLeft && timeLeft.days <= 7 ? '🚨 URGENT: Support Now!' : '🤝 Support This Veteran'}
+                {timeLeft && timeLeft.days <= 7 ? '🚨 URGENT: Refer Now!' : '🤝 Refer This Professional'}
               </h4>
               <p className="text-sm opacity-90 mb-4">
                 {timeLeft && timeLeft.days <= 7 
-                  ? 'Last chance to help this veteran find opportunities!' 
+                  ? 'Last chance to connect this professional with opportunities!' 
                   : 'Help connect them with opportunities'
                 }
               </p>
               <div className="text-2xl font-bold mb-2">
-                {supporters_count} supporters
+                {supporters_count} referrals
               </div>
               <div className="text-sm opacity-90 mb-3">
                 {timeLeft && timeLeft.days <= 15 
                   ? 'Time is running out - refer them now!' 
-                  : 'Join the community supporting this veteran'
+                  : 'Join the community referring this professional'
                 }
               </div>
               {timeLeft && timeLeft.days > 0 && (
@@ -446,6 +448,25 @@ export default function FullPitchView({ pitch, currentUserId }: FullPitchViewPro
                   }
                 </div>
               )}
+              
+              {/* Support Button */}
+              {currentUserId ? (
+                <button
+                  onClick={() => setShowReferModal(true)}
+                  className="mt-4 w-full bg-white text-blue-600 hover:bg-blue-50 px-6 py-3 rounded-2xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105"
+                >
+                  <Share2 className="h-5 w-5" />
+                  Refer This Professional
+                </button>
+                             ) : (
+                 <Link
+                   href={`/auth?redirect=/role-selection&role=supporter&pitch_id=${id}&source=registration`}
+                   className="mt-4 w-full bg-white text-blue-600 hover:bg-blue-50 px-6 py-3 rounded-2xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105"
+                 >
+                   <Share2 className="h-5 w-5" />
+                   Become a Supporter & Refer
+                 </Link>
+               )}
             </div>
           </div>
 
@@ -592,7 +613,7 @@ export default function FullPitchView({ pitch, currentUserId }: FullPitchViewPro
        {/* Share Modal */}
        {showShareModal && (
          <SocialShareCard
-           pitch={pitch}
+           data={pitch}
            onClose={() => setShowShareModal(false)}
          />
        )}
@@ -614,6 +635,17 @@ export default function FullPitchView({ pitch, currentUserId }: FullPitchViewPro
          pitchId={id}
          currentUserId={currentUserId}
        />
+
+       {/* Refer Modal */}
+       {showReferModal && (
+         <ReferModal
+           pitchId={id}
+           pitchTitle={title}
+           veteranName={veteranName}
+           userId={currentUserId || ''}
+           onClose={() => setShowReferModal(false)}
+         />
+       )}
      </div>
    )
  }

@@ -16,6 +16,8 @@ import MissionInvitationModal from '@/components/mission/MissionInvitationModal'
 import MissionInvitationAnalytics from '@/components/mission/MissionInvitationAnalytics'
 import CommunitySuggestions from '@/components/community/CommunitySuggestions'
 import VeteransSupporting from '@/components/supporter/VeteransSupporting'
+import ConnectedPitches from '@/components/supporter/ConnectedPitches'
+import FOMOTicker from '@/components/analytics/FOMOTicker'
 
 // =====================================================
 // STREAMLINED SUPPORTER DASHBOARD - STRIPE-LEVEL CLARITY
@@ -386,7 +388,11 @@ function OverviewTab({ metrics, userId, onOpenInviteModal }: { metrics: Supporte
 
   return (
     <div className="space-y-8">
+      {/* FOMO Ticker */}
+      <FOMOTicker />
 
+      {/* Connected Pitches */}
+      <ConnectedPitches supporterId={userId} />
 
       {/* Quick Actions - Moved up for better visibility */}
       <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6 border border-green-100">

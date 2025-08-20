@@ -87,8 +87,8 @@ export default async function PitchDetailPage({
 
   // Fetch endorsements and community verification status
   const [endorsements, isVerified] = await Promise.all([
-    getVeteranEndorsements(pitch.user_id as string),
-    isCommunityVerified(pitch.user_id as string)
+    pitch.user_id ? getVeteranEndorsements(pitch.user_id) : Promise.resolve([]),
+    pitch.user_id ? isCommunityVerified(pitch.user_id) : Promise.resolve(false)
   ])
 
   // Transform pitch data for FullPitchView
