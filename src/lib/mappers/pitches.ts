@@ -44,6 +44,7 @@ export function toPitchCardData(pitch: RawPitchRow): PitchCardData {
     experience_years: pitch.experience_years,
     linkedin_url: pitch.linkedin_url,
     resume_url: pitch.resume_url,
+    phone: pitch.phone,
     likes_count: pitch.likes_count || 0,
     views_count: 0, // Not available in current schema
     created_at: pitch.created_at || new Date().toISOString(),

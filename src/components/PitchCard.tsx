@@ -30,6 +30,7 @@ export default function PitchCard({ data, variant = 'default' }: Props) {
     job_type,
     availability,
     photo_url,
+    phone,
     likes_count,
     views_count,
     endorsements_count,
@@ -180,9 +181,20 @@ export default function PitchCard({ data, variant = 'default' }: Props) {
             href={`/pitch/${id}`}
             className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105"
           >
-                            View Full Pitch
+            View Full Pitch
             <ChevronRight className="h-4 w-4" />
           </Link>
+          
+          {/* Call Button */}
+          {phone && (
+            <button
+              onClick={() => window.open(`tel:${phone}`, '_self')}
+              className="flex-shrink-0 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white p-3 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+              title={`Call ${veteranName}`}
+            >
+              <Phone className="h-5 w-5" />
+            </button>
+          )}
           
           <div className="flex-shrink-0">
             <LikeButton 
