@@ -22,9 +22,6 @@ async function fetchPitch(id: string) {
         name,
         email,
         role
-      ),
-      veterans!veterans_user_id_fkey (
-        intro
       )
     `)
     .eq('id', id)
@@ -35,7 +32,17 @@ async function fetchPitch(id: string) {
     return null
   }
 
-  return pitch
+  // Fetch veterans data separately since there's no direct relationship
+  const { data: veterans } = await supabaseClient
+    .from('veterans')
+    .select('bio')
+    .eq('user_id', pitch.user_id)
+    .limit(1)
+
+  return {
+    ...pitch,
+    veterans: veterans || []
+  }
 }
 
 async function fetchUser() {
