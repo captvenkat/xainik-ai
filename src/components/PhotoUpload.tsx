@@ -200,8 +200,8 @@ export default function PhotoUpload({
 
       {/* Cropper Modal */}
       {showCropper && selectedPhoto && (
-        <div className="cropper-modal">
-          <div className="cropper-modal-content">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <h3 className="text-xl font-bold text-gray-900">Crop Your Photo</h3>
@@ -215,7 +215,7 @@ export default function PhotoUpload({
             
             {/* Cropper Content */}
             <div className="p-6">
-              <div className="cropper-container">
+              <div className="flex justify-center">
                 <ReactCrop
                   crop={crop}
                   onChange={(c) => setCrop(c)}
@@ -228,7 +228,7 @@ export default function PhotoUpload({
                     ref={imgRef}
                     src={selectedPhoto}
                     alt="Crop preview"
-                    className="cropper-image"
+                    className="max-w-full h-auto"
                   />
                 </ReactCrop>
               </div>
