@@ -49,9 +49,9 @@ export default function ShareablePitchCard({
 
   const veteranName = user?.name || 'Veteran'
 
-  // Truncate pitch text for social sharing
-  const truncatedPitch = pitch_text?.length > 100 
-    ? pitch_text.substring(0, 100) + '...' 
+  // Truncate pitch text to ~120 characters for better visual balance
+  const truncatedPitch = pitch_text?.length > 120 
+    ? pitch_text.substring(0, 120) + '...' 
     : pitch_text
 
   return (
