@@ -258,6 +258,9 @@ export interface Database {
           currency: string | null
           status: string | null
           payment_method: string | null
+          razorpay_payment_id: string | null
+          razorpay_order_id: string | null
+          is_anonymous: boolean | null
           created_at: string | null
           updated_at: string | null
         }
@@ -268,6 +271,9 @@ export interface Database {
           currency?: string | null
           status?: string | null
           payment_method?: string | null
+          razorpay_payment_id?: string | null
+          razorpay_order_id?: string | null
+          is_anonymous?: boolean | null
           created_at?: string | null
           updated_at?: string | null
         }
@@ -278,6 +284,9 @@ export interface Database {
           currency?: string | null
           status?: string | null
           payment_method?: string | null
+          razorpay_payment_id?: string | null
+          razorpay_order_id?: string | null
+          is_anonymous?: boolean | null
           created_at?: string | null
           updated_at?: string | null
         }
@@ -290,6 +299,14 @@ export interface Database {
           currency: string | null
           status: string | null
           invoice_number: string | null
+          razorpay_payment_id: string | null
+          razorpay_order_id: string | null
+          buyer_name: string | null
+          buyer_email: string | null
+          buyer_phone: string | null
+          plan_tier: string | null
+          plan_meta: any | null
+          storage_key: string | null
           created_at: string | null
           updated_at: string | null
         }
@@ -300,6 +317,14 @@ export interface Database {
           currency?: string | null
           status?: string | null
           invoice_number?: string | null
+          razorpay_payment_id?: string | null
+          razorpay_order_id?: string | null
+          buyer_name?: string | null
+          buyer_email?: string | null
+          buyer_phone?: string | null
+          plan_tier?: string | null
+          plan_meta?: any | null
+          storage_key?: string | null
           created_at?: string | null
           updated_at?: string | null
         }
@@ -310,6 +335,14 @@ export interface Database {
           currency?: string | null
           status?: string | null
           invoice_number?: string | null
+          razorpay_payment_id?: string | null
+          razorpay_order_id?: string | null
+          buyer_name?: string | null
+          buyer_email?: string | null
+          buyer_phone?: string | null
+          plan_tier?: string | null
+          plan_meta?: any | null
+          storage_key?: string | null
           created_at?: string | null
           updated_at?: string | null
         }
@@ -322,6 +355,13 @@ export interface Database {
           amount: number
           currency: string | null
           receipt_number: string | null
+          razorpay_payment_id: string | null
+          razorpay_order_id: string | null
+          donor_name: string | null
+          donor_email: string | null
+          donor_phone: string | null
+          is_anonymous: boolean | null
+          storage_key: string | null
           created_at: string | null
         }
         Insert: {
@@ -331,6 +371,13 @@ export interface Database {
           amount: number
           currency?: string | null
           receipt_number?: string | null
+          razorpay_payment_id?: string | null
+          razorpay_order_id?: string | null
+          donor_name?: string | null
+          donor_email?: string | null
+          donor_phone?: string | null
+          is_anonymous?: boolean | null
+          storage_key?: string | null
           created_at?: string | null
         }
         Update: {
@@ -340,6 +387,13 @@ export interface Database {
           amount?: number
           currency?: string | null
           receipt_number?: string | null
+          razorpay_payment_id?: string | null
+          razorpay_order_id?: string | null
+          donor_name?: string | null
+          donor_email?: string | null
+          donor_phone?: string | null
+          is_anonymous?: boolean | null
+          storage_key?: string | null
           created_at?: string | null
         }
       }
@@ -437,6 +491,76 @@ export interface Database {
           ip_hash?: string | null
           created_at?: string | null
           updated_at?: string | null
+        }
+      }
+      payment_events: {
+        Row: {
+          id: string
+          event_id: string
+          payment_id: string
+          order_id: string
+          amount: number
+          currency: string
+          status: string
+          event_type: string
+          notes: any | null
+          processed_at: string | null
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          event_id: string
+          payment_id: string
+          order_id: string
+          amount: number
+          currency?: string
+          status: string
+          event_type: string
+          notes?: any | null
+          processed_at?: string | null
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          event_id?: string
+          payment_id?: string
+          order_id?: string
+          amount?: number
+          currency?: string
+          status?: string
+          event_type?: string
+          notes?: any | null
+          processed_at?: string | null
+          created_at?: string | null
+        }
+      }
+      email_logs: {
+        Row: {
+          id: string
+          document_type: string
+          document_id: string
+          recipient_email: string
+          message_id: string | null
+          sent_at: string | null
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          document_type: string
+          document_id: string
+          recipient_email: string
+          message_id?: string | null
+          sent_at?: string | null
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          document_type?: string
+          document_id?: string
+          recipient_email?: string
+          message_id?: string | null
+          sent_at?: string | null
+          created_at?: string | null
         }
       }
     }

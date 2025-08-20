@@ -38,7 +38,7 @@ export async function createDonation(donationData: Omit<DonationInsert, 'id'>): 
     activity_data: { 
       donation_id: donation.id, 
       amount_cents: donation.amount,
-      is_anonymous: false
+      is_anonymous: donation.is_anonymous
     }
   });
   }
@@ -105,7 +105,7 @@ export async function getAnonymousDonations(): Promise<Donation[]> {
   const { data: donations, error } = await supabase
     .from('donations')
     .select('*')
-    .eq('user_id', null)
+    .eq('is_anonymous', true)
     .order('created_at', { ascending: false });
   
   if (error) {
@@ -307,11 +307,11 @@ export async function generateDonationReceipt(donationId: string): Promise<{
   const receiptData = {
     receipt_number: receiptNumber,
     donation_date: donation.created_at,
-    donor_name: 'Donor',
+    donor_name: donation.is_anonymous ? 'Anonymous Donor' : 'Donor',
     amount: donation.amount / 100,
     currency: donation.currency,
-    payment_id: null,
-    is_anonymous: false
+    payment_id: donation.razorpay_payment_id,
+    is_anonymous: donation.is_anonymous
   };
   
   return {
