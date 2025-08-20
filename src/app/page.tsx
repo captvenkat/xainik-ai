@@ -8,7 +8,8 @@ import {
   ArrowRight,
   ChevronRight,
   Sparkles,
-  LogOut
+  LogOut,
+  Star
 } from 'lucide-react'
 import LiveActivityTicker from '@/components/LiveActivityTicker'
 import DonationSnapshot from '@/components/DonationSnapshot'
@@ -94,12 +95,12 @@ export default function HomePage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
               {!isLoading && !user ? (
                 <>
-                  <Link href="/auth" className="btn-primary text-lg inline-flex items-center gap-2">
-                    Sign In
+                  <Link href="/waitlist" className="btn-primary text-lg inline-flex items-center gap-2">
+                    Join Waitlist
                     <ArrowRight className="h-5 w-5" />
                   </Link>
                   <Link href="/auth" className="btn-secondary text-lg inline-flex items-center gap-2">
-                    Get Started
+                    Sign In
                     <ChevronRight className="h-5 w-5" />
                   </Link>
                 </>
@@ -153,6 +154,55 @@ export default function HomePage() {
       <section className="py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <DonationSnapshot />
+        </div>
+      </section>
+
+      {/* Waitlist Section */}
+      <section className="py-16 bg-gradient-to-r from-blue-50 to-indigo-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/70 text-gray-800 rounded-full text-sm font-semibold mb-6 shadow-sm">
+              <Shield className="h-4 w-4" />
+              Exclusive Early Access
+            </div>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              Join the First 50 Veterans
+            </h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Get privileged access to the complete platform. First 50 veterans get FREE access with unlimited features.
+            </p>
+          </div>
+          <div className="bg-white rounded-2xl shadow-lg p-8 max-w-2xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <div className="text-center">
+                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                  <Shield className="w-6 h-6 text-blue-600" />
+                </div>
+                <h3 className="font-semibold text-gray-900 mb-1">Complete Platform</h3>
+                <p className="text-sm text-gray-600">All features unlocked</p>
+              </div>
+              <div className="text-center">
+                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                  <Users className="w-6 h-6 text-green-600" />
+                </div>
+                <h3 className="font-semibold text-gray-900 mb-1">Priority Support</h3>
+                <p className="text-sm text-gray-600">Dedicated assistance</p>
+              </div>
+              <div className="text-center">
+                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                  <Star className="w-6 h-6 text-purple-600" />
+                </div>
+                <h3 className="font-semibold text-gray-900 mb-1">Founding Member</h3>
+                <p className="text-sm text-gray-600">Exclusive community</p>
+              </div>
+            </div>
+            <div className="text-center">
+              <Link href="/waitlist" className="btn-primary text-lg inline-flex items-center gap-2">
+                Join Waitlist Now
+                <ArrowRight className="h-5 w-5" />
+              </Link>
+            </div>
+          </div>
         </div>
       </section>
 
