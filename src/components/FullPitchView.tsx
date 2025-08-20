@@ -34,6 +34,7 @@ import Link from 'next/link'
 import LikeButton from '@/components/LikeButton'
 import SocialShareCard from '@/components/SocialShareCard'
 import ResumeRequestModal from '@/components/ResumeRequestModal'
+import EmailModal from '@/components/EmailModal'
 import type { FullPitchData } from '@/types/domain'
 
 interface FullPitchViewProps {
@@ -46,6 +47,7 @@ export default function FullPitchView({ pitch, currentUserId }: FullPitchViewPro
   const [copiedEmail, setCopiedEmail] = useState(false)
   const [showShareModal, setShowShareModal] = useState(false)
   const [showResumeModal, setShowResumeModal] = useState(false)
+  const [showEmailModal, setShowEmailModal] = useState(false)
   const [timeLeft, setTimeLeft] = useState<{ days: number } | null>(null)
   
   const {
@@ -493,7 +495,7 @@ export default function FullPitchView({ pitch, currentUserId }: FullPitchViewPro
                 {user?.email && (
                   <div className="space-y-3">
                     <button
-                      onClick={() => window.open(`mailto:${user.email}?subject=Interested in your pitch - ${title}`, '_self')}
+                      onClick={() => setShowEmailModal(true)}
                       className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105"
                     >
                       <Mail className="h-5 w-5" />
@@ -567,6 +569,15 @@ export default function FullPitchView({ pitch, currentUserId }: FullPitchViewPro
        <ResumeRequestModal
          isOpen={showResumeModal}
          onClose={() => setShowResumeModal(false)}
+         veteranName={veteranName}
+         pitchId={id}
+         currentUserId={currentUserId}
+       />
+
+       {/* Email Modal */}
+       <EmailModal
+         isOpen={showEmailModal}
+         onClose={() => setShowEmailModal(false)}
          veteranName={veteranName}
          pitchId={id}
          currentUserId={currentUserId}
