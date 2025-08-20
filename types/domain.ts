@@ -203,6 +203,7 @@ export interface PitchCardData {
   linkedin_url: string | null;
   resume_url: string | null;
   phone: string | null;
+  bio: string | null;
   likes_count: number;
   views_count: number;
   created_at: string;
