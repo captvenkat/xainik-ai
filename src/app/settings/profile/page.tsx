@@ -7,6 +7,7 @@ import { Shield, ArrowLeft, Save, User, MapPin, Star, Link as LinkIcon, FileText
 import Link from 'next/link';
 import LocationAutocomplete from '@/components/LocationAutocomplete';
 import WebLinksEditor from '@/components/WebLinksEditor';
+import PhotoUpload from '@/components/PhotoUpload';
 import { 
   ProfileFormData, 
   validateProfileForm, 
@@ -102,6 +103,22 @@ export default function ProfileSettingsPage() {
     }
   };
 
+  const handlePhotoChange = (photoUrl: string, isCustom: boolean) => {
+    // Update the profile state with the new photo
+    setProfile((prev: any) => ({
+      ...prev,
+      avatar_url: photoUrl
+    }));
+    
+    // Clear any photo-related errors
+    if (errors.avatar_url) {
+      setErrors((prev: Record<string, string>) => ({
+        ...prev,
+        avatar_url: ''
+      }));
+    }
+  };
+
   const handleLocationAdd = () => {
     if (formData.locations_preferred.length < 3) {
       setFormData(prev => ({
@@ -154,7 +171,8 @@ export default function ProfileSettingsPage() {
         .from('users')
         .update({
           name: formData.name,
-          phone: formData.phone
+          phone: formData.phone,
+          avatar_url: profile?.avatar_url || null
         })
         .eq('id', user.id);
 
@@ -295,6 +313,34 @@ export default function ProfileSettingsPage() {
           </div>
           
           <div className="p-6 space-y-8">
+            {/* Profile Photo */}
+            <div>
+              <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
+                <User className="h-5 w-5 text-gray-400" />
+                Profile Photo
+              </h3>
+              <div className="flex items-center space-x-6">
+                <div className="flex-shrink-0">
+                  <PhotoUpload
+                    profilePhotoUrl={profile?.avatar_url}
+                    onPhotoChange={handlePhotoChange}
+                    size="lg"
+                    showCrop={true}
+                    className="w-32 h-32"
+                  />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm text-gray-600 mb-2">
+                    Upload a professional photo to make your profile stand out. 
+                    This photo will be used across the platform including your pitches.
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    Recommended: Square image, high resolution, professional attire
+                  </p>
+                </div>
+              </div>
+            </div>
+
             {/* Basic Information */}
             <div>
               <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
