@@ -276,6 +276,13 @@ export default function FullPitchView({ pitch, currentUserId }: FullPitchViewPro
                 </div>
               </div>
             )}
+            <div className="flex items-center gap-3 bg-white/90 backdrop-blur-sm rounded-2xl p-4 border border-red-100 shadow-sm">
+              <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+              <div>
+                <div className="text-xs text-gray-500 font-medium">Interested to work</div>
+                <div className="font-semibold text-gray-900">Remote & On-site</div>
+              </div>
+            </div>
             {job_type && (
               <div className="flex items-center gap-3 bg-white/90 backdrop-blur-sm rounded-2xl p-4 border border-red-100 shadow-sm">
                 <Target className="h-5 w-5 text-green-500" />
@@ -511,21 +518,7 @@ export default function FullPitchView({ pitch, currentUserId }: FullPitchViewPro
                   </div>
                 )}
                 
-                {/* Location */}
-                {location && (
-                  <div className="flex items-center gap-3 p-3 bg-white/80 rounded-2xl border border-white">
-                    <MapPin className="h-5 w-5 text-purple-500" />
-                    <span className="text-gray-700 font-medium">{location}</span>
-                  </div>
-                )}
-                
-                {/* Availability */}
-                {availability && (
-                  <div className="flex items-center gap-3 p-3 bg-white/80 rounded-2xl border border-white">
-                    <Clock className="h-5 w-5 text-orange-500" />
-                    <span className="text-gray-700 font-medium">Available: {availability}</span>
-                  </div>
-                )}
+
               </div>
             </div>
           )}
