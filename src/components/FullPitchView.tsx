@@ -33,6 +33,7 @@ import {
 import Link from 'next/link'
 import LikeButton from '@/components/LikeButton'
 import SocialShareCard from '@/components/SocialShareCard'
+import ResumeRequestModal from '@/components/ResumeRequestModal'
 import type { FullPitchData } from '@/types/domain'
 
 interface FullPitchViewProps {
@@ -44,6 +45,7 @@ export default function FullPitchView({ pitch, currentUserId }: FullPitchViewPro
   const [showContactInfo, setShowContactInfo] = useState(false)
   const [copiedEmail, setCopiedEmail] = useState(false)
   const [showShareModal, setShowShareModal] = useState(false)
+  const [showResumeModal, setShowResumeModal] = useState(false)
   const [timeLeft, setTimeLeft] = useState<{ days: number } | null>(null)
   
   const {
@@ -437,6 +439,7 @@ export default function FullPitchView({ pitch, currentUserId }: FullPitchViewPro
             {/* Resume Request */}
             {resume_url && resume_share_enabled && (
               <button
+                onClick={() => setShowResumeModal(true)}
                 className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-6 py-3 rounded-2xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105"
               >
                 <FileText className="h-5 w-5" />
@@ -475,41 +478,66 @@ export default function FullPitchView({ pitch, currentUserId }: FullPitchViewPro
                 Contact Information
               </h4>
               <div className="space-y-4">
-                 {phone && (
-                   <div className="flex items-center gap-3 p-3 bg-white/80 rounded-2xl border border-white">
-                     <Phone className="h-5 w-5 text-red-500" />
-                     <span className="text-gray-700 font-medium">{phone}</span>
-                   </div>
-                 )}
-                 {user?.email && (
-                   <div className="flex items-center justify-between p-3 bg-white/80 rounded-2xl border border-white">
-                     <div className="flex items-center gap-3">
-                       <MessageCircle className="h-5 w-5 text-green-500" />
-                       <span className="text-gray-700 font-medium">{user.email}</span>
-                     </div>
-                     <button
-                       onClick={copyEmail}
-                       className="p-2 text-gray-500 hover:text-red-500 transition-colors"
-                     >
-                       {copiedEmail ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
-                     </button>
-                   </div>
-                 )}
-                 {location && (
-                   <div className="flex items-center gap-3 p-3 bg-white/80 rounded-2xl border border-white">
-                     <MapPin className="h-5 w-5 text-purple-500" />
-                     <span className="text-gray-700 font-medium">{location}</span>
-                   </div>
-                 )}
-                 {availability && (
-                   <div className="flex items-center gap-3 p-3 bg-white/80 rounded-2xl border border-white">
-                     <Clock className="h-5 w-5 text-orange-500" />
-                     <span className="text-gray-700 font-medium">Available: {availability}</span>
-                   </div>
-                 )}
-               </div>
-             </div>
-           )}
+                {/* Direct Call Button */}
+                {phone && (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3 p-3 bg-white/80 rounded-2xl border border-white">
+                      <Phone className="h-5 w-5 text-red-500" />
+                      <span className="text-gray-700 font-medium">{phone}</span>
+                    </div>
+                    <button
+                      onClick={() => window.open(`tel:${phone}`, '_self')}
+                      className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-4 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105"
+                    >
+                      <Phone className="h-4 w-4" />
+                      Call Now
+                    </button>
+                  </div>
+                )}
+                
+                {/* Email Section */}
+                {user?.email && (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-3 bg-white/80 rounded-2xl border border-white">
+                      <div className="flex items-center gap-3">
+                        <MessageCircle className="h-5 w-5 text-green-500" />
+                        <span className="text-gray-700 font-medium">{user.email}</span>
+                      </div>
+                      <button
+                        onClick={copyEmail}
+                        className="p-2 text-gray-500 hover:text-red-500 transition-colors"
+                      >
+                        {copiedEmail ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                      </button>
+                    </div>
+                    <button
+                      onClick={() => window.open(`mailto:${user.email}?subject=Interested in your pitch - ${title}`, '_self')}
+                      className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105"
+                    >
+                      <Mail className="h-4 w-4" />
+                      Send Email
+                    </button>
+                  </div>
+                )}
+                
+                {/* Location */}
+                {location && (
+                  <div className="flex items-center gap-3 p-3 bg-white/80 rounded-2xl border border-white">
+                    <MapPin className="h-5 w-5 text-purple-500" />
+                    <span className="text-gray-700 font-medium">{location}</span>
+                  </div>
+                )}
+                
+                {/* Availability */}
+                {availability && (
+                  <div className="flex items-center gap-3 p-3 bg-white/80 rounded-2xl border border-white">
+                    <Clock className="h-5 w-5 text-orange-500" />
+                    <span className="text-gray-700 font-medium">Available: {availability}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
            
            {/* Pitch Info */}
            <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
@@ -545,6 +573,15 @@ export default function FullPitchView({ pitch, currentUserId }: FullPitchViewPro
            onClose={() => setShowShareModal(false)}
          />
        )}
+
+       {/* Resume Request Modal */}
+       <ResumeRequestModal
+         isOpen={showResumeModal}
+         onClose={() => setShowResumeModal(false)}
+         veteranName={veteranName}
+         pitchId={id}
+         currentUserId={currentUserId}
+       />
      </div>
    )
  }
