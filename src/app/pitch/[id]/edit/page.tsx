@@ -38,7 +38,7 @@ export default function EditPitchPage({ params }: { params: Promise<{ id: string
   const [formData, setFormData] = useState<EditPitchFormData>({
     title: '',
     pitch_text: '',
-    skills: [],
+    skills: ['', '', ''],
     job_type: '',
     availability: '',
     allow_resume_requests: false
@@ -128,10 +128,14 @@ export default function EditPitchPage({ params }: { params: Promise<{ id: string
   // Update form data with only editable fields
   useEffect(() => {
     if (pitch) {
+      // Ensure skills array has exactly 3 elements
+      const existingSkills = pitch.skills || []
+      const paddedSkills = [...existingSkills, '', '', ''].slice(0, 3)
+      
       setFormData({
         title: pitch.title || '',
         pitch_text: pitch.pitch_text || '',
-        skills: pitch.skills || [],
+        skills: paddedSkills,
         job_type: pitch.job_type || '',
         availability: pitch.availability || '',
         allow_resume_requests: pitch.allow_resume_requests || false
@@ -143,10 +147,7 @@ export default function EditPitchPage({ params }: { params: Promise<{ id: string
     setFormData(prev => ({ ...prev, ...updates }))
   }, [])
 
-  const handleSkillsChange = useCallback((value: string) => {
-    const skillsArray = value.split(',').map(skill => skill.trim()).filter(skill => skill)
-    updateFormData({ skills: skillsArray })
-  }, [updateFormData])
+
 
   // Form validation - only check editable fields
   const validateForm = useCallback(() => {
@@ -154,7 +155,7 @@ export default function EditPitchPage({ params }: { params: Promise<{ id: string
     
     if (!formData.title.trim()) missingFields.push('Title')
     if (!formData.pitch_text.trim()) missingFields.push('Pitch Description')
-    if (!formData.skills.length || !formData.skills.some(skill => skill.trim())) missingFields.push('Skills')
+    if (!formData.skills.every(skill => skill.trim())) missingFields.push('Skills (all 3 required)')
     if (!formData.job_type) missingFields.push('Job Type')
     if (!formData.availability) missingFields.push('Availability')
     
@@ -357,20 +358,29 @@ export default function EditPitchPage({ params }: { params: Promise<{ id: string
 
               {/* Skills */}
               <div>
-                <label htmlFor="skills" className="block text-sm font-medium text-gray-700 mb-2">
-                  Skills <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Skills (exactly 3) <span className="text-red-500">*</span>
                 </label>
-                                  <input
-                    type="text"
-                    id="skills"
-                    value={formData.skills.join(', ')}
-                    onChange={(e) => handleSkillsChange(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Enter skills separated by commas (e.g., Leadership, Project Management, Team Building)"
-                    required
-                  />
+                <div className="flex gap-2">
+                  {[0, 1, 2].map((index) => (
+                    <input
+                      key={index}
+                      type="text"
+                      value={formData.skills[index] || ''}
+                      onChange={(e) => {
+                        const newSkills = [...formData.skills]
+                        newSkills[index] = e.target.value
+                        updateFormData({ skills: newSkills })
+                      }}
+                      placeholder={`Skill ${index + 1}`}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      required
+                      maxLength={20}
+                    />
+                  ))}
+                </div>
                 <p className="mt-1 text-xs text-gray-500">
-                  Separate multiple skills with commas
+                  Enter exactly 3 key skills that best represent your expertise
                 </p>
               </div>
             </div>
