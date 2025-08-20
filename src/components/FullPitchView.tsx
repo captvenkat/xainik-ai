@@ -44,7 +44,7 @@ export default function FullPitchView({ pitch, currentUserId }: FullPitchViewPro
   const [showContactInfo, setShowContactInfo] = useState(false)
   const [copiedEmail, setCopiedEmail] = useState(false)
   const [showShareModal, setShowShareModal] = useState(false)
-  const [timeLeft, setTimeLeft] = useState<{ days: number; hours: number; minutes: number; seconds: number } | null>(null)
+  const [timeLeft, setTimeLeft] = useState<{ days: number } | null>(null)
   
   const {
     id,
@@ -75,7 +75,7 @@ export default function FullPitchView({ pitch, currentUserId }: FullPitchViewPro
   const veteranName = user?.name || 'Veteran'
   const veteranRole = 'veteran'
 
-  // Countdown timer effect
+  // Countdown timer effect - updates daily
   useEffect(() => {
     if (!plan_expires_at) return
 
@@ -86,18 +86,16 @@ export default function FullPitchView({ pitch, currentUserId }: FullPitchViewPro
 
       if (difference > 0) {
         setTimeLeft({
-          days: Math.floor(difference / (1000 * 60 * 60 * 24)),
-          hours: Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
-          minutes: Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60)),
-          seconds: Math.floor((difference % (1000 * 60)) / 1000)
+          days: Math.floor(difference / (1000 * 60 * 60 * 24))
         })
       } else {
-        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 })
+        setTimeLeft({ days: 0 })
       }
     }
 
     calculateTimeLeft()
-    const timer = setInterval(calculateTimeLeft, 1000)
+    // Update once per day instead of every second
+    const timer = setInterval(calculateTimeLeft, 24 * 60 * 60 * 1000)
 
     return () => clearInterval(timer)
   }, [plan_expires_at])
@@ -167,12 +165,12 @@ export default function FullPitchView({ pitch, currentUserId }: FullPitchViewPro
                 <p className="text-sm opacity-90">Don't miss this opportunity - connect now!</p>
               </div>
             </div>
-            <div className="text-right">
-              <div className="text-2xl font-bold">
-                {timeLeft.days}d {timeLeft.hours}h {timeLeft.minutes}m {timeLeft.seconds}s
-              </div>
-              <div className="text-sm opacity-90">Remaining</div>
-            </div>
+                         <div className="text-right">
+               <div className="text-2xl font-bold">
+                 {timeLeft.days} days
+               </div>
+               <div className="text-sm opacity-90">Remaining</div>
+             </div>
           </div>
         </div>
       )}
