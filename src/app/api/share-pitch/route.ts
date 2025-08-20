@@ -73,8 +73,9 @@ export async function GET(request: NextRequest) {
     // Get user's pitches that can be shared with enhanced data
     const { data: pitches, error: pitchesError } = await supabase
       .from('pitches')
-      .select('id, title, content, skills, experience, created_at')
+      .select('id, title, pitch_text, skills, job_type, availability, created_at')
       .eq('user_id', user.id)
+      .eq('is_active', true)
       .order('created_at', { ascending: false })
 
     if (pitchesError) {
