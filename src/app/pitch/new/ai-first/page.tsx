@@ -44,6 +44,12 @@ export default function AIFirstPitchPage() {
   const [success, setSuccess] = useState('')
   const router = useRouter()
 
+  // Check if profile has required fields for pitch creation
+  const hasRequiredProfileFields = profile && profile.location && profile.phone
+  const missingProfileFields = []
+  if (!profile?.location) missingProfileFields.push('Location')
+  if (!profile?.phone) missingProfileFields.push('Phone Number')
+
   // Auto-populate from profile data
   useEffect(() => {
     if (profile && !formData.title) {
@@ -100,10 +106,7 @@ export default function AIFirstPitchPage() {
 
       console.log('Form data:', JSON.stringify(formData, null, 2))
 
-      // Check if profile has location (required for pitch creation)
-      if (!profile.location) {
-        throw new Error('Please add your location in your profile before creating a pitch')
-      }
+      // Profile validation is already done upfront, so we can proceed with pitch creation
 
       // Create pitch with profile data auto-populated
       const pitchData = {
@@ -176,6 +179,11 @@ export default function AIFirstPitchPage() {
   }
 
   const renderStep = () => {
+    // Show profile validation step if required fields are missing
+    if (!hasRequiredProfileFields) {
+      return <ProfileValidationStep profile={profile} missingFields={missingProfileFields} />
+    }
+
     switch (currentStep) {
       case 0:
         return <AIStep formData={formData} updateFormData={updateFormData} onNext={nextStep} />
@@ -231,6 +239,17 @@ export default function AIFirstPitchPage() {
 
 // AI Step Component
 function AIStep({ formData, updateFormData, onNext }: any) {
+  const [isValid, setIsValid] = useState(false)
+
+  useEffect(() => {
+    // Check if AI has generated the required content
+    setIsValid(
+      formData.title.trim() && 
+      formData.pitch_text.trim() && 
+      formData.skills.some(skill => skill.trim())
+    )
+  }, [formData])
+
   return (
     <div>
       <div className="text-center mb-8">
@@ -247,6 +266,18 @@ function AIStep({ formData, updateFormData, onNext }: any) {
         onNext={onNext} 
         onBack={() => {}} 
       />
+
+      {/* Validation message */}
+      {!isValid && (
+        <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <div className="flex items-center text-yellow-800">
+            <AlertCircle className="w-5 h-5 mr-2" />
+            <span className="text-sm">
+              Please use the AI assistant above to generate your pitch title, description, and skills before continuing.
+            </span>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -337,21 +368,97 @@ function DetailsStep({ formData, updateFormData, onNext, onBack, profile }: any)
         </p>
       </div>
 
-      {/* Navigation */}
-      <div className="flex justify-between mt-8">
+              {/* Navigation */}
+        <div className="flex justify-between mt-8">
+          <button
+            onClick={onBack}
+            className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+          >
+            Back
+          </button>
+          <button
+            onClick={onNext}
+            disabled={!isValid}
+            className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            Continue
+          </button>
+        </div>
+
+        {/* Validation message */}
+        {!isValid && (
+          <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <div className="flex items-center text-yellow-800">
+              <AlertCircle className="w-5 h-5 mr-2" />
+              <span className="text-sm">
+                Please complete all required fields (marked with *) before continuing.
+              </span>
+            </div>
+          </div>
+        )}
+    </div>
+  )
+}
+
+// Profile Validation Step Component
+function ProfileValidationStep({ profile, missingFields }: { profile: any, missingFields: string[] }) {
+  const router = useRouter()
+  
+  return (
+    <div className="max-w-4xl mx-auto">
+      <div className="text-center mb-8">
+        <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <AlertCircle className="w-8 h-8 text-yellow-600" />
+        </div>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Complete Your Profile First</h2>
+        <p className="text-gray-600">
+          Before creating a pitch, please complete the following required profile information:
+        </p>
+      </div>
+
+      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-8">
+        <h3 className="font-semibold text-yellow-800 mb-4 flex items-center">
+          <AlertCircle className="w-5 h-5 mr-2" />
+          Missing Required Fields:
+        </h3>
+        <ul className="space-y-2">
+          {missingFields.map((field, index) => (
+            <li key={index} className="flex items-center text-yellow-800">
+              <span className="w-2 h-2 bg-yellow-600 rounded-full mr-3"></span>
+              {field}
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
+        <h3 className="font-semibold text-blue-800 mb-4 flex items-center">
+          <User className="w-5 h-5 mr-2" />
+          Why This Matters:
+        </h3>
+        <ul className="space-y-2 text-blue-800">
+          <li className="flex items-center">
+            <span className="w-2 h-2 bg-blue-600 rounded-full mr-3"></span>
+            <strong>Location:</strong> Recruiters need to know where you're based for job opportunities
+          </li>
+          <li className="flex items-center">
+            <span className="w-2 h-2 bg-blue-600 rounded-full mr-3"></span>
+            <strong>Phone:</strong> Essential for recruiters to contact you directly
+          </li>
+        </ul>
+      </div>
+
+      <div className="text-center">
         <button
-          onClick={onBack}
-          className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+          onClick={() => router.push('/dashboard/veteran?tab=profile')}
+          className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
         >
-          Back
+          <User className="w-5 h-5 mr-2" />
+          Complete My Profile
         </button>
-        <button
-          onClick={onNext}
-          disabled={!isValid}
-          className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
-          Continue
-        </button>
+        <p className="text-sm text-gray-500 mt-3">
+          You'll be redirected to your profile tab where you can add the missing information
+        </p>
       </div>
     </div>
   )
