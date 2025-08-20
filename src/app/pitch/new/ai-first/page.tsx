@@ -51,6 +51,31 @@ export default function AIFirstPitchPage() {
   if (!profile?.location) missingProfileFields.push('Location')
   if (!profile?.phone) missingProfileFields.push('Phone Number')
 
+  // Check if user already has an active pitch
+  const [hasExistingPitch, setHasExistingPitch] = useState(false)
+  const [existingPitchData, setExistingPitchData] = useState<any>(null)
+
+  useEffect(() => {
+    const checkExistingPitch = async () => {
+      if (user && profile) {
+        const supabase = createSupabaseBrowser()
+        const { data: existingPitch, error } = await supabase
+          .from('pitches')
+          .select('id, title, is_active, created_at')
+          .eq('user_id', user.id)
+          .eq('is_active', true)
+          .single()
+
+        if (existingPitch && !error) {
+          setHasExistingPitch(true)
+          setExistingPitchData(existingPitch)
+        }
+      }
+    }
+
+    checkExistingPitch()
+  }, [user, profile])
+
   // Debug: Log profile data to understand what's available
   useEffect(() => {
     if (profile) {
@@ -101,6 +126,23 @@ export default function AIFirstPitchPage() {
 
       if (!profile) {
         throw new Error('Profile data not found. Please complete your profile first.')
+      }
+
+      // Check if user already has an active pitch
+      const { data: existingPitch, error: checkError } = await supabase
+        .from('pitches')
+        .select('id, title, is_active')
+        .eq('user_id', user.id)
+        .eq('is_active', true)
+        .single()
+
+      if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = no rows returned
+        console.error('Error checking existing pitch:', checkError)
+        throw new Error('Failed to check existing pitches')
+      }
+
+      if (existingPitch) {
+        throw new Error(`You already have an active pitch: "${existingPitch.title}". You can only have one active pitch at a time. To create a new pitch, please deactivate or delete your existing one first.`)
       }
 
       console.log('Profile data:', JSON.stringify(profile, null, 2))
@@ -203,6 +245,11 @@ export default function AIFirstPitchPage() {
   }
 
   const renderStep = () => {
+    // Show existing pitch message if user already has one
+    if (hasExistingPitch && existingPitchData) {
+      return <ExistingPitchStep existingPitch={existingPitchData} />
+    }
+
     // Show profile validation step if required fields are missing
     if (!hasRequiredProfileFields) {
       return <ProfileValidationStep profile={profile} missingFields={missingProfileFields} />
@@ -284,7 +331,7 @@ function AIStep({ formData, updateFormData, onNext }: any) {
         <p className="text-gray-600">Let AI help you create a compelling pitch based on your military experience</p>
         <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
           <p className="text-sm text-blue-800">
-            💡 <strong>Multiple Pitches Allowed:</strong> You can create different pitches for different job types or opportunities
+            💡 <strong>One Pitch Per User:</strong> Focus on creating one compelling pitch that showcases your best skills and experience
           </p>
         </div>
       </div>
@@ -441,6 +488,85 @@ function DetailsStep({ formData, updateFormData, onNext, onBack, profile }: any)
   )
 }
 
+// Existing Pitch Step Component
+function ExistingPitchStep({ existingPitch }: { existingPitch: any }) {
+  const router = useRouter()
+  
+  return (
+    <div className="max-w-4xl mx-auto">
+      <div className="text-center mb-8">
+        <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <FileText className="w-8 h-8 text-blue-600" />
+        </div>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">You Already Have an Active Pitch</h2>
+        <p className="text-gray-600">
+          Our platform allows only one active pitch per user to maintain focus and quality.
+        </p>
+      </div>
+
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
+        <h3 className="font-semibold text-blue-800 mb-4 flex items-center">
+          <FileText className="w-5 h-5 mr-2" />
+          Your Current Pitch:
+        </h3>
+        <div className="space-y-2 text-blue-800">
+          <div className="flex items-center">
+            <span className="w-2 h-2 bg-blue-600 rounded-full mr-3"></span>
+            <strong>Title:</strong> {existingPitch.title}
+          </div>
+          <div className="flex items-center">
+            <span className="w-2 h-2 bg-blue-600 rounded-full mr-3"></span>
+            <strong>Created:</strong> {new Date(existingPitch.created_at).toLocaleDateString()}
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-8">
+        <h3 className="font-semibold text-yellow-800 mb-4 flex items-center">
+          <AlertCircle className="w-5 h-5 mr-2" />
+          Why One Pitch Per User?
+        </h3>
+        <ul className="space-y-2 text-yellow-800">
+          <li className="flex items-center">
+            <span className="w-2 h-2 bg-yellow-600 rounded-full mr-3"></span>
+            <strong>Focus:</strong> One compelling pitch is better than multiple mediocre ones
+          </li>
+          <li className="flex items-center">
+            <span className="w-2 h-2 bg-yellow-600 rounded-full mr-3"></span>
+            <strong>Quality:</strong> Concentrate your efforts on perfecting one great pitch
+          </li>
+          <li className="flex items-center">
+            <span className="w-2 h-2 bg-yellow-600 rounded-full mr-3"></span>
+            <strong>Tracking:</strong> Our referral system tracks success for individual pitches
+          </li>
+        </ul>
+      </div>
+
+      <div className="text-center space-y-4">
+        <button
+          onClick={() => router.push(`/pitch/${existingPitch.id}/edit`)}
+          className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+        >
+          <FileText className="w-5 h-5 mr-2" />
+          Edit My Current Pitch
+        </button>
+        
+        <button
+          onClick={() => router.push('/dashboard/veteran')}
+          className="block w-full sm:w-auto mx-auto px-6 py-3 text-gray-700 bg-gray-100 font-medium rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
+        >
+          <ArrowLeft className="w-5 h-5 mr-2" />
+          Back to Dashboard
+        </button>
+        
+        <p className="text-sm text-gray-500">
+          You can edit your existing pitch anytime to update skills, experience, or job preferences
+        </p>
+      </div>
+    </div>
+  )
+}
+
 // Profile Validation Step Component
 function ProfileValidationStep({ profile, missingFields }: { profile: any, missingFields: string[] }) {
   const router = useRouter()
@@ -452,7 +578,7 @@ function ProfileValidationStep({ profile, missingFields }: { profile: any, missi
           <AlertCircle className="w-8 h-8 text-yellow-600" />
         </div>
         <h2 className="text-2xl font-bold text-gray-900 mb-2">Complete Your Profile First</h2>
-        <p className="text-gray-600">
+        <p className="text-gray-500">
           Before creating a pitch, please complete the following required profile information:
         </p>
       </div>
