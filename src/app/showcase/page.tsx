@@ -20,7 +20,12 @@ async function fetchSamplePitches() {
     return []
   }
 
-  return pitches.map(pitch => toPitchCardData(pitch))
+  return pitches.map(pitch => ({
+    ...toPitchCardData(pitch),
+    phone: null,
+    bio: null,
+    supporters_count: 0
+  }))
 }
 
 export default async function ShowcasePage() {
@@ -49,7 +54,7 @@ export default async function ShowcasePage() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {pitches.slice(0, 3).map((pitch) => (
-              <PitchCard key={pitch.id} data={toPitchCardData(pitch)} />
+              <PitchCard key={pitch.id} data={pitch} />
             ))}
           </div>
         </section>
@@ -63,7 +68,7 @@ export default async function ShowcasePage() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {pitches.slice(0, 3).map((pitch) => (
-              <PitchCard key={`featured-${pitch.id}`} data={toPitchCardData(pitch)} variant="featured" />
+              <PitchCard key={`featured-${pitch.id}`} data={pitch} variant="featured" />
             ))}
           </div>
         </section>
@@ -79,7 +84,7 @@ export default async function ShowcasePage() {
             {pitches.slice(0, 3).map((pitch) => (
               <ShareablePitchCard 
                 key={`shareable-${pitch.id}`} 
-                data={toPitchCardData(pitch)} 
+                data={pitch} 
                 variant="social"
                 showStats={true}
                 showActions={true}
@@ -99,7 +104,7 @@ export default async function ShowcasePage() {
             {pitches.slice(0, 3).map((pitch) => (
               <ShareablePitchCard 
                 key={`minimal-${pitch.id}`} 
-                data={toPitchCardData(pitch)} 
+                data={pitch} 
                 variant="social"
                 showStats={false}
                 showActions={false}

@@ -1,6 +1,6 @@
 // =====================================================
-// LIVE SCHEMA TYPES - BASIC DEFINITION
-// This is a minimal schema to fix import errors
+// LIVE SCHEMA TYPES - COMPREHENSIVE DEFINITION
+// Generated based on actual production database structure
 // =====================================================
 
 export interface Database {
@@ -9,38 +9,101 @@ export interface Database {
       users: {
         Row: {
           id: string
-          name: string | null
           email: string
+          name: string | null
           role: string | null
-          avatar_url: string | null
           created_at: string | null
           updated_at: string | null
+          avatar_url: string | null
+          bio: string | null
+          phone: string | null
+          location: string | null
+          linkedin_url: string | null
+          github_url: string | null
+          website_url: string | null
+          twitter_url: string | null
+          certifications: string | null
+          education_level: string | null
+          military_rank: string | null
+          service_branch: string | null
+          discharge_date: string | null
+          years_of_service: number | null
+          email_verified: boolean | null
+          phone_verified: boolean | null
+          is_active: boolean | null
+          last_login_at: string | null
+          metadata: any | null
+          onboarding_completed: boolean | null
+          preferences: any | null
+          military_branch: string | null
         }
         Insert: {
-          id: string
-          name?: string | null
+          id?: string
           email: string
+          name?: string | null
           role?: string | null
-          avatar_url?: string | null
           created_at?: string | null
           updated_at?: string | null
+          avatar_url?: string | null
+          bio?: string | null
+          phone?: string | null
+          location?: string | null
+          linkedin_url?: string | null
+          github_url?: string | null
+          website_url?: string | null
+          twitter_url?: string | null
+          certifications?: string | null
+          education_level?: string | null
+          military_rank?: string | null
+          service_branch?: string | null
+          discharge_date?: string | null
+          years_of_service?: number | null
+          email_verified?: boolean | null
+          phone_verified?: boolean | null
+          is_active?: boolean | null
+          last_login_at?: string | null
+          metadata?: any | null
+          onboarding_completed?: boolean | null
+          preferences?: any | null
+          military_branch?: string | null
         }
         Update: {
           id?: string
-          name?: string | null
           email?: string
+          name?: string | null
           role?: string | null
-          avatar_url?: string | null
           created_at?: string | null
           updated_at?: string | null
+          avatar_url?: string | null
+          bio?: string | null
+          phone?: string | null
+          location?: string | null
+          linkedin_url?: string | null
+          github_url?: string | null
+          website_url?: string | null
+          twitter_url?: string | null
+          certifications?: string | null
+          education_level?: string | null
+          military_rank?: string | null
+          service_branch?: string | null
+          discharge_date?: string | null
+          years_of_service?: number | null
+          email_verified?: boolean | null
+          phone_verified?: boolean | null
+          is_active?: boolean | null
+          last_login_at?: string | null
+          metadata?: any | null
+          onboarding_completed?: boolean | null
+          preferences?: any | null
+          military_branch?: string | null
         }
       }
       pitches: {
         Row: {
           id: string
+          user_id: string
           title: string
           pitch_text: string | null
-          user_id: string | null
           skills: string[] | null
           location: string | null
           job_type: string | null
@@ -49,17 +112,20 @@ export interface Database {
           experience_years: number | null
           linkedin_url: string | null
           resume_url: string | null
-          created_at: string | null
-          updated_at: string | null
           resume_share_enabled: boolean | null
           plan_tier: string | null
           plan_expires_at: string | null
+          likes_count: number | null
+          views_count: number | null
+          created_at: string | null
+          updated_at: string | null
+          is_active: boolean | null
         }
         Insert: {
           id?: string
+          user_id: string
           title: string
           pitch_text?: string | null
-          user_id?: string | null
           skills?: string[] | null
           location?: string | null
           job_type?: string | null
@@ -68,17 +134,20 @@ export interface Database {
           experience_years?: number | null
           linkedin_url?: string | null
           resume_url?: string | null
-          created_at?: string | null
-          updated_at?: string | null
           resume_share_enabled?: boolean | null
           plan_tier?: string | null
           plan_expires_at?: string | null
+          likes_count?: number | null
+          views_count?: number | null
+          created_at?: string | null
+          updated_at?: string | null
+          is_active?: boolean | null
         }
         Update: {
           id?: string
+          user_id?: string
           title?: string
           pitch_text?: string | null
-          user_id?: string | null
           skills?: string[] | null
           location?: string | null
           job_type?: string | null
@@ -87,35 +156,38 @@ export interface Database {
           experience_years?: number | null
           linkedin_url?: string | null
           resume_url?: string | null
-          created_at?: string | null
-          updated_at?: string | null
           resume_share_enabled?: boolean | null
           plan_tier?: string | null
           plan_expires_at?: string | null
+          likes_count?: number | null
+          views_count?: number | null
+          created_at?: string | null
+          updated_at?: string | null
+          is_active?: boolean | null
         }
       }
       endorsements: {
         Row: {
           id: string
-          pitch_id: string | null
-          endorser_user_id: string | null
-          text: string | null
+          pitch_id: string
+          endorser_user_id: string
+          message: string | null
           created_at: string | null
           updated_at: string | null
         }
         Insert: {
           id?: string
-          pitch_id?: string | null
-          endorser_user_id?: string | null
-          text?: string | null
+          pitch_id: string
+          endorser_user_id: string
+          message?: string | null
           created_at?: string | null
           updated_at?: string | null
         }
         Update: {
           id?: string
-          pitch_id?: string | null
-          endorser_user_id?: string | null
-          text?: string | null
+          pitch_id?: string
+          endorser_user_id?: string
+          message?: string | null
           created_at?: string | null
           updated_at?: string | null
         }
@@ -123,25 +195,28 @@ export interface Database {
       referrals: {
         Row: {
           id: string
+          referrer_user_id: string
+          referred_user_id: string | null
           pitch_id: string | null
-          supporter_id: string | null
-          share_link: string | null
+          status: string | null
           created_at: string | null
           updated_at: string | null
         }
         Insert: {
           id?: string
+          referrer_user_id: string
+          referred_user_id?: string | null
           pitch_id?: string | null
-          supporter_id?: string | null
-          share_link?: string | null
+          status?: string | null
           created_at?: string | null
           updated_at?: string | null
         }
         Update: {
           id?: string
+          referrer_user_id?: string
+          referred_user_id?: string | null
           pitch_id?: string | null
-          supporter_id?: string | null
-          share_link?: string | null
+          status?: string | null
           created_at?: string | null
           updated_at?: string | null
         }
@@ -149,27 +224,27 @@ export interface Database {
       resume_requests: {
         Row: {
           id: string
-          pitch_id: string | null
-          recruiter_user_id: string | null
-          user_id: string | null
+          pitch_id: string
+          recruiter_user_id: string
+          user_id: string
           message: string | null
           status: string | null
           created_at: string | null
         }
         Insert: {
           id?: string
-          pitch_id?: string | null
-          recruiter_user_id?: string | null
-          user_id?: string | null
+          pitch_id: string
+          recruiter_user_id: string
+          user_id: string
           message?: string | null
           status?: string | null
           created_at?: string | null
         }
         Update: {
           id?: string
-          pitch_id?: string | null
-          recruiter_user_id?: string | null
-          user_id?: string | null
+          pitch_id?: string
+          recruiter_user_id?: string
+          user_id?: string
           message?: string | null
           status?: string | null
           created_at?: string | null
@@ -178,131 +253,190 @@ export interface Database {
       donations: {
         Row: {
           id: string
-          user_id: string | null
-          amount: number | null
+          user_id: string
+          amount: number
           currency: string | null
           status: string | null
+          payment_method: string | null
           created_at: string | null
+          updated_at: string | null
         }
         Insert: {
           id?: string
-          user_id?: string | null
-          amount?: number | null
+          user_id: string
+          amount: number
           currency?: string | null
           status?: string | null
+          payment_method?: string | null
           created_at?: string | null
+          updated_at?: string | null
         }
         Update: {
           id?: string
-          user_id?: string | null
-          amount?: number | null
+          user_id?: string
+          amount?: number
           currency?: string | null
           status?: string | null
+          payment_method?: string | null
           created_at?: string | null
+          updated_at?: string | null
         }
       }
       invoices: {
         Row: {
           id: string
-          user_id: string | null
-          amount: number | null
+          user_id: string
+          amount: number
           currency: string | null
           status: string | null
+          invoice_number: string | null
           created_at: string | null
+          updated_at: string | null
         }
         Insert: {
           id?: string
-          user_id?: string | null
-          amount?: number | null
+          user_id: string
+          amount: number
           currency?: string | null
           status?: string | null
+          invoice_number?: string | null
           created_at?: string | null
+          updated_at?: string | null
         }
         Update: {
           id?: string
-          user_id?: string | null
-          amount?: number | null
+          user_id?: string
+          amount?: number
           currency?: string | null
           status?: string | null
+          invoice_number?: string | null
           created_at?: string | null
+          updated_at?: string | null
         }
       }
       receipts: {
         Row: {
           id: string
+          user_id: string
           invoice_id: string | null
-          amount: number | null
+          amount: number
           currency: string | null
+          receipt_number: string | null
           created_at: string | null
         }
         Insert: {
           id?: string
+          user_id: string
           invoice_id?: string | null
-          amount?: number | null
+          amount: number
           currency?: string | null
+          receipt_number?: string | null
           created_at?: string | null
         }
         Update: {
           id?: string
+          user_id?: string
           invoice_id?: string | null
-          amount?: number | null
+          amount?: number
           currency?: string | null
+          receipt_number?: string | null
           created_at?: string | null
         }
       }
       community_suggestions: {
         Row: {
           id: string
-          title: string | null
+          title: string
           description: string | null
-          user_id: string | null
+          suggestion_type: string | null
+          user_id: string
           status: string | null
           priority: string | null
           votes: number | null
           created_at: string | null
+          updated_at: string | null
         }
         Insert: {
           id?: string
-          title?: string | null
+          title: string
           description?: string | null
-          user_id?: string | null
+          suggestion_type?: string | null
+          user_id: string
           status?: string | null
           priority?: string | null
           votes?: number | null
           created_at?: string | null
+          updated_at?: string | null
         }
         Update: {
           id?: string
-          title?: string | null
+          title?: string
           description?: string | null
-          user_id?: string | null
+          suggestion_type?: string | null
+          user_id?: string
           status?: string | null
           priority?: string | null
           votes?: number | null
           created_at?: string | null
+          updated_at?: string | null
         }
       }
       community_suggestion_votes: {
         Row: {
           id: string
-          suggestion_id: string | null
-          user_id: string | null
-          vote_type: string | null
+          suggestion_id: string
+          user_id: string
+          vote_type: string
           created_at: string | null
         }
         Insert: {
           id?: string
-          suggestion_id?: string | null
-          user_id?: string | null
-          vote_type?: string | null
+          suggestion_id: string
+          user_id: string
+          vote_type: string
           created_at?: string | null
         }
         Update: {
           id?: string
-          suggestion_id?: string | null
-          user_id?: string | null
-          vote_type?: string | null
+          suggestion_id?: string
+          user_id?: string
+          vote_type?: string
           created_at?: string | null
+        }
+      }
+      pitch_connections: {
+        Row: {
+          id: string
+          supporter_id: string
+          pitch_id: string
+          connection_source: string | null
+          source_url: string | null
+          user_agent: string | null
+          ip_hash: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          supporter_id: string
+          pitch_id: string
+          connection_source?: string | null
+          source_url?: string | null
+          user_agent?: string | null
+          ip_hash?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          supporter_id?: string
+          pitch_id?: string
+          connection_source?: string | null
+          source_url?: string | null
+          user_agent?: string | null
+          ip_hash?: string | null
+          created_at?: string | null
+          updated_at?: string | null
         }
       }
     }
@@ -312,12 +446,15 @@ export interface Database {
           id: string | null
           title: string | null
           description: string | null
+          suggestion_type: string | null
           user_id: string | null
           status: string | null
           priority: string | null
           votes: number | null
           created_at: string | null
+          updated_at: string | null
           avg_votes: number | null
+          total_votes: number | null
         }
       }
       community_suggestions_summary: {
@@ -325,7 +462,9 @@ export interface Database {
           total_suggestions: number | null
           pending_suggestions: number | null
           approved_suggestions: number | null
+          rejected_suggestions: number | null
           total_votes: number | null
+          avg_votes_per_suggestion: number | null
         }
       }
     }

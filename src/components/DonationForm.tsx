@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { createDonation } from '@/lib/actions/donations-server'
 import { logActivity } from '@/lib/actions/analytics-server'
+import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 import { Heart, Loader2 } from 'lucide-react'
 
 const SUGGESTED_AMOUNTS = [100, 250, 500, 1000, 2500]
@@ -36,8 +37,15 @@ export default function DonationForm() {
       // Create donation record
       // Note: donations table has limited schema in live database
       // Only id, created_at, updated_at are available
+      const supabase = createSupabaseBrowser()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        throw new Error('User not authenticated')
+      }
+      
       const donation = await createDonation({
-        amount_cents: amount * 100, // Convert to cents
+        user_id: user.id,
+        amount: amount, // Use amount directly
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       })
