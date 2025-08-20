@@ -3,8 +3,13 @@
 import { createActionClient } from '@/lib/supabase-server'
 import { Database } from '@/types/live-schema'
 
-type Notification = Database['public']['Tables']['notifications']['Row']
-type NotificationInsert = Database['public']['Tables']['notifications']['Insert']
+// Note: notifications table doesn't exist in live schema
+// type Notification = Database['public']['Tables']['notifications']['Row']
+// type NotificationInsert = Database['public']['Tables']['notifications']['Insert']
+
+// Placeholder types until notifications table is created
+type Notification = any
+type NotificationInsert = any
 
 export interface NotificationData {
   id: string

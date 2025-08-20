@@ -55,7 +55,12 @@ export default function FeaturedPitches() {
         if (error) throw error;
         const rows = data || [];
 
-        const cards: PitchCardData[] = rows.map((r: any) => toPitchCardData(r as RawPitchRow));
+        const cards: PitchCardData[] = rows.map((r: any) => ({
+          ...toPitchCardData(r as RawPitchRow),
+          phone: null,
+          bio: null,
+          supporters_count: 0
+        }));
         setPitches(cards);
       } catch (error) {
       } finally {

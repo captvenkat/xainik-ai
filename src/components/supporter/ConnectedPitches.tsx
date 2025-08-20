@@ -22,8 +22,8 @@ interface ConnectedPitch {
       id: string
       name: string
       avatar_url: string
-    }
-  }
+    }[]
+  }[]
   metrics: {
     clicks: number
     shares: number
@@ -140,14 +140,14 @@ export default function ConnectedPitches({ supporterId }: { supporterId: string 
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
-                    {connection.pitches.users.name.charAt(0).toUpperCase()}
+                    {connection.pitches[0]?.users?.[0]?.name?.charAt(0).toUpperCase() || 'V'}
                   </div>
                   <div>
                     <h4 className="font-semibold text-gray-900">
-                      {connection.pitches.title}
+                      {connection.pitches[0]?.title || 'Untitled Pitch'}
                     </h4>
                     <p className="text-sm text-gray-600">
-                      by {connection.pitches.users.name}
+                      by {connection.pitches[0]?.users?.[0]?.name || 'Unknown Veteran'}
                     </p>
                   </div>
                 </div>

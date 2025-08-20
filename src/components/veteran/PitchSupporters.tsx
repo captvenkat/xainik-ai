@@ -18,7 +18,7 @@ interface PitchSupporter {
     name: string
     avatar_url: string
     email: string
-  }
+  }[]
   metrics: {
     clicks: number
     shares: number
@@ -137,7 +137,7 @@ export default function PitchSupporters({ pitchId }: { pitchId: string }) {
                 {/* Supporter Avatar */}
                 <div className="relative">
                   <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold">
-                    {supporter.users.name.charAt(0).toUpperCase()}
+                    {supporter.users[0]?.name?.charAt(0).toUpperCase() || 'S'}
                   </div>
                   {/* Top supporter badge */}
                   {index === 0 && supporter.metrics.total_activity > 0 && (
@@ -150,7 +150,7 @@ export default function PitchSupporters({ pitchId }: { pitchId: string }) {
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <h4 className="font-semibold text-gray-900">
-                      {supporter.users.name}
+                      {supporter.users[0]?.name || 'Unknown Supporter'}
                     </h4>
                     {supporter.metrics.total_activity > 5 && (
                       <div className="flex items-center gap-1 px-2 py-1 bg-green-50 text-green-700 rounded-full text-xs font-medium">
@@ -226,7 +226,7 @@ export default function PitchSupporters({ pitchId }: { pitchId: string }) {
             {/* Supporter Actions */}
             <div className="mt-4 flex items-center gap-2">
               <a
-                href={`mailto:${supporter.users.email}?subject=Thank you for supporting my pitch`}
+                href={`mailto:${supporter.users[0]?.email || ''}?subject=Thank you for supporting my pitch`}
                 className="inline-flex items-center gap-2 px-3 py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium"
               >
                 <Mail className="w-4 h-4" />
