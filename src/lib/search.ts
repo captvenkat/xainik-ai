@@ -22,7 +22,7 @@ export async function searchPitches(
       .from('pitches')
       .select(`
         *,
-        user:users (id, name, email),
+        users!pitches_user_id_fkey (id, name, email),
         endorsements (*),
         user_subscriptions!user_subscriptions_user_id_fkey (status, end_date)
       `)

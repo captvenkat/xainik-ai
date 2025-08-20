@@ -11,11 +11,19 @@ export const revalidate = 30
 async function fetchPitch(id: string) {
   const supabase = createSupabaseServerOnly()
   
-  // Get pitch with all related data
+  // Get pitch with user data using specific relationship
   const supabaseClient = await supabase
   const { data: pitch, error: pitchError } = await supabaseClient
     .from('pitches')
-    .select('*')
+    .select(`
+      *,
+      users!pitches_user_id_fkey (
+        id,
+        name,
+        email,
+        role
+      )
+    `)
     .eq('id', id)
     .eq('is_active', true)
     .single()
@@ -74,7 +82,7 @@ export default async function PitchDetailPage({
   ])
 
   // Transform pitch data for FullPitchView
-  const fullPitchData = toFullPitchData(pitch)
+  const fullPitchData = toFullPitchData(pitch as any)
 
   // Log referral event if referral ID is present
   if (ref) {
@@ -117,12 +125,6 @@ export default async function PitchDetailPage({
         <FullPitchView 
           pitch={fullPitchData}
           currentUserId={user?.id}
-          onContact={() => {
-            // Handle contact action
-          }}
-          onRequestResume={() => {
-            // Handle resume request
-          }}
         />
 
         {/* Support Section */}

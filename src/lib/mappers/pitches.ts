@@ -2,7 +2,7 @@ import type { Database } from '@/types/live-schema'
 import type { FullPitchData } from '@/types/domain'
 
 export type RawPitchRow = Database['public']['Tables']['pitches']['Row'] & {
-  user?: Database['public']['Tables']['users']['Row']
+  users?: Database['public']['Tables']['users']['Row']
   endorsements?: Database['public']['Tables']['endorsements']['Row'][]
   user_subscriptions?: Database['public']['Tables']['user_subscriptions']['Row'][]
 }
@@ -47,10 +47,10 @@ export function toPitchCardData(pitch: RawPitchRow): PitchCardData {
     likes_count: pitch.likes_count || 0,
     views_count: 0, // Not available in current schema
     created_at: pitch.created_at || new Date().toISOString(),
-    user: pitch.user ? {
-      id: pitch.user.id,
-      name: pitch.user.name,
-      email: pitch.user.email
+    user: pitch.users ? {
+      id: pitch.users.id,
+      name: pitch.users.name,
+      email: pitch.users.email
     } : null,
     endorsements_count: pitch.endorsements?.length || 0,
     is_subscription_active: pitch.user_subscriptions?.some(sub => 
