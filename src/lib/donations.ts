@@ -310,7 +310,7 @@ export async function generateDonationReceipt(donationId: string): Promise<{
     donor_name: 'Donor',
     amount: donation.amount / 100,
     currency: donation.currency,
-    payment_id: donation.razorpay_payment_id,
+    payment_id: null,
     is_anonymous: false
   };
   
