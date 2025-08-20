@@ -172,6 +172,7 @@ export default function ProfileSettingsPage() {
         .update({
           name: formData.name,
           phone: formData.phone,
+          location: formData.location_current, // Also update users.location for pitch creation
           avatar_url: profile?.avatar_url || null
         })
         .eq('id', user.id);

@@ -141,7 +141,8 @@ export default function VeteranProfileTab() {
         .from('users')
         .update({
           name: data.name,
-          phone: data.phone
+          phone: data.phone,
+          location: data.location_current // Also update users.location for pitch creation
         })
         .eq('id', user.id)
 
