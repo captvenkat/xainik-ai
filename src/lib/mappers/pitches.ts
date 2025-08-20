@@ -35,7 +35,7 @@ export function toPitchCardData(pitch: RawPitchRow): PitchCardData {
   return {
     id: pitch.id,
     title: pitch.title,
-    pitch_text: pitch.pitch_text,
+    pitch_text: pitch.pitch_text || '',
     skills: pitch.skills || [],
     location: pitch.location,
     job_type: pitch.job_type,
