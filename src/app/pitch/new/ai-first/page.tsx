@@ -46,7 +46,7 @@ export default function AIFirstPitchPage() {
 
   // Check if profile has required fields for pitch creation
   const hasRequiredProfileFields = profile && profile.location && profile.phone
-  const missingProfileFields = []
+  const missingProfileFields: string[] = []
   if (!profile?.location) missingProfileFields.push('Location')
   if (!profile?.phone) missingProfileFields.push('Phone Number')
 
@@ -246,7 +246,7 @@ function AIStep({ formData, updateFormData, onNext }: any) {
     setIsValid(
       formData.title.trim() && 
       formData.pitch_text.trim() && 
-      formData.skills.some(skill => skill.trim())
+      formData.skills.some((skill: string) => skill.trim())
     )
   }, [formData])
 
