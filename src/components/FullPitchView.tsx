@@ -397,16 +397,21 @@ export default function FullPitchView({ pitch, currentUserId }: FullPitchViewPro
         {/* Right Column - Actions & Contact */}
         <div className="space-y-6">
           {/* Urgency CTA */}
-          <div className="bg-gradient-to-r from-red-500 to-orange-500 rounded-3xl p-6 text-white shadow-lg">
+          <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-3xl p-6 text-white shadow-lg">
             <div className="text-center">
-              <h4 className="text-lg font-bold mb-2">⚡ Act Fast!</h4>
-              <p className="text-sm opacity-90 mb-4">This veteran is actively seeking opportunities</p>
+              <h4 className="text-lg font-bold mb-2">🤝 Support This Veteran</h4>
+              <p className="text-sm opacity-90 mb-4">Help connect them with opportunities</p>
               <div className="text-2xl font-bold mb-2">
-                {views_count} people viewing
+                {supporters_count} supporters
               </div>
-              <div className="text-sm opacity-90">
-                Don't miss this opportunity!
+              <div className="text-sm opacity-90 mb-3">
+                Join the community supporting this veteran
               </div>
+              {timeLeft && timeLeft.days > 0 && (
+                <div className="text-sm opacity-90 border-t border-white/20 pt-3">
+                  Pitch expires in {timeLeft.days} days
+                </div>
+              )}
             </div>
           </div>
 
