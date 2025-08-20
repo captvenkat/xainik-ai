@@ -333,6 +333,34 @@ export default function VeteranProfileTab() {
 
       {/* Profile Content */}
       <div className="p-6">
+        {/* Photo Upload Section - Always Visible */}
+        <div className="bg-gray-50 rounded-lg p-6 mb-8">
+          <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
+            <Camera className="h-5 w-5 text-blue-600" />
+            Profile Photo
+          </h3>
+          <div className="flex items-center space-x-6">
+            <div className="flex-shrink-0">
+              <PhotoUpload
+                profilePhotoUrl={profile?.avatar_url}
+                onPhotoChange={handlePhotoChange}
+                size="lg"
+                showCrop={true}
+                className="w-32 h-32"
+              />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm text-gray-600 mb-2">
+                Upload a professional photo to make your profile stand out. 
+                This photo will be used across the platform including your pitches.
+              </p>
+              <p className="text-xs text-gray-500">
+                Recommended: Square image, high resolution, professional attire
+              </p>
+            </div>
+          </div>
+        </div>
+
         {isEditing ? (
           /* Enhanced Edit Form */
           <div className="space-y-8">
@@ -398,34 +426,6 @@ export default function VeteranProfileTab() {
                   {errors.phone && (
                     <p className="mt-1 text-sm text-red-600">{errors.phone}</p>
                   )}
-                </div>
-              </div>
-            </div>
-
-            {/* Profile Photo */}
-            <div className="bg-gray-50 rounded-lg p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
-                <Camera className="h-5 w-5 text-blue-600" />
-                Profile Photo
-              </h3>
-              <div className="flex items-center space-x-6">
-                <div className="flex-shrink-0">
-                  <PhotoUpload
-                    profilePhotoUrl={profile?.avatar_url}
-                    onPhotoChange={handlePhotoChange}
-                    size="lg"
-                    showCrop={true}
-                    className="w-32 h-32"
-                  />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-gray-600 mb-2">
-                    Upload a professional photo to make your profile stand out. 
-                    This photo will be used across the platform including your pitches.
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    Recommended: Square image, high resolution, professional attire
-                  </p>
                 </div>
               </div>
             </div>
@@ -673,37 +673,6 @@ export default function VeteranProfileTab() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
                   <p className="text-sm text-gray-900 bg-white p-3 rounded-lg border">{formData.phone || 'Not provided'}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Profile Photo Display */}
-            <div className="bg-gray-50 rounded-lg p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
-                <Camera className="h-5 w-5 text-blue-600" />
-                Profile Photo
-              </h3>
-              <div className="flex items-center space-x-6">
-                <div className="flex-shrink-0">
-                  {profile?.avatar_url ? (
-                    <img
-                      src={profile.avatar_url}
-                      alt="Profile photo"
-                      className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg"
-                    />
-                  ) : (
-                    <div className="w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center border-4 border-white shadow-lg">
-                      <User className="w-16 h-16 text-gray-400" />
-                    </div>
-                  )}
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-gray-600">
-                    {profile?.avatar_url 
-                      ? 'Your profile photo is displayed here and used across the platform.'
-                      : 'No profile photo uploaded yet. Click Edit to add one.'
-                    }
-                  </p>
                 </div>
               </div>
             </div>
