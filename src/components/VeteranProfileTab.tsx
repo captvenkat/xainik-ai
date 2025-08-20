@@ -30,6 +30,7 @@ export default function VeteranProfileTab() {
   const [veteranProfile, setVeteranProfile] = useState<any>(null)
   const [isAutoSaving, setIsAutoSaving] = useState(false)
   const [lastSaved, setLastSaved] = useState<Date | null>(null)
+  const [localAvatarUrl, setLocalAvatarUrl] = useState<string | null>(null)
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const lastSavedDataRef = useRef<ProfileFormData | null>(null)
 
@@ -56,6 +57,9 @@ export default function VeteranProfileTab() {
           .single()
         
         setVeteranProfile(veteranData)
+        
+        // Initialize local avatar URL
+        setLocalAvatarUrl(profileData?.avatar_url || null)
         
         // Initialize enhanced form data
         setFormData({
@@ -118,10 +122,36 @@ export default function VeteranProfileTab() {
     }))
   }
 
-  const handlePhotoChange = (photoUrl: string, isCustom: boolean) => {
-    // Update the profile state with the new photo
-    // Note: This will be saved when the profile is saved
-    console.log('Photo changed:', { photoUrl, isCustom })
+  const handlePhotoChange = async (photoUrl: string, isCustom: boolean) => {
+    if (!user) return
+    
+    try {
+      console.log('Photo changed:', { photoUrl, isCustom })
+      
+      // Update the user's avatar_url in the database immediately
+      const supabase = createSupabaseBrowser()
+      const { error } = await supabase
+        .from('users')
+        .update({ avatar_url: photoUrl })
+        .eq('id', user.id)
+      
+      if (error) {
+        console.error('Error saving photo:', error)
+        setError('Failed to save photo')
+        return
+      }
+      
+      // Update local avatar URL immediately for instant UI feedback
+      setLocalAvatarUrl(photoUrl)
+      
+      // Show success message
+      setSuccess('Photo updated successfully!')
+      setTimeout(() => setSuccess(''), 3000)
+      
+    } catch (err) {
+      console.error('Error handling photo change:', err)
+      setError('Failed to update photo')
+    }
   }
 
   const saveProfile = async (data: ProfileFormData, showSuccess = true) => {
@@ -341,9 +371,9 @@ export default function VeteranProfileTab() {
           </h3>
           <div className="flex items-center space-x-6">
             <div className="flex-shrink-0">
-              {profile?.avatar_url ? (
+              {localAvatarUrl ? (
                 <img
-                  src={profile.avatar_url}
+                  src={localAvatarUrl}
                   alt="Profile photo"
                   className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg"
                 />
@@ -355,7 +385,7 @@ export default function VeteranProfileTab() {
             </div>
             <div className="flex-1">
               <p className="text-sm text-gray-600 mb-2">
-                {profile?.avatar_url 
+                {localAvatarUrl 
                   ? 'Your profile photo is displayed here and used across the platform.'
                   : 'No profile photo uploaded yet. Click Edit to add one.'
                 }
@@ -445,7 +475,7 @@ export default function VeteranProfileTab() {
               <div className="flex items-center space-x-6">
                 <div className="flex-shrink-0">
                   <PhotoUpload
-                    profilePhotoUrl={profile?.avatar_url}
+                    profilePhotoUrl={localAvatarUrl}
                     onPhotoChange={handlePhotoChange}
                     size="lg"
                     showCrop={true}
