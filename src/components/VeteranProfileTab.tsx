@@ -467,8 +467,8 @@ export default function VeteranProfileTab() {
             </div>
 
             {/* Profile Photo Upload - Only in Edit Mode */}
-            <div className="bg-gray-50 rounded-lg p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
+            <div className="bg-blue-50 rounded-lg p-6 border border-blue-200">
+              <h3 className="text-lg font-medium text-blue-900 mb-4 flex items-center gap-2">
                 <Camera className="h-5 w-5 text-blue-600" />
                 Update Profile Photo
               </h3>
@@ -483,11 +483,11 @@ export default function VeteranProfileTab() {
                   />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm text-gray-600 mb-2">
+                  <p className="text-sm text-blue-700 mb-2">
                     Upload a professional photo to make your profile stand out. 
                     This photo will be used across the platform including your pitches.
                   </p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-blue-600">
                     Recommended: Square image, high resolution, professional attire
                   </p>
                 </div>
