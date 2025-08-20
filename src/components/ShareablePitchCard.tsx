@@ -16,7 +16,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 
-import type { PitchCardData } from '@/types/domain'
+import type { PitchCardData } from '../../types/domain'
 
 type Props = { 
   data: PitchCardData; 
@@ -115,10 +115,18 @@ export default function ShareablePitchCard({
           {title}
         </h3>
 
-        {/* Pitch Content */}
+        {/* Pitch Content - Value-focused */}
         <p className="text-gray-600 mb-6 leading-relaxed text-sm line-clamp-3">
           {truncatedPitch}
         </p>
+        
+        {/* Value Proposition */}
+        <div className="mb-6 p-3 bg-gradient-to-r from-green-50 to-blue-50 rounded-xl border border-green-100">
+          <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
+            <CheckCircle className="h-4 w-4 text-green-600" />
+            <span>Proven leadership • Mission-driven • Results-oriented</span>
+          </div>
+        </div>
 
         {/* Skills - Minimalist Design */}
         <div className="flex flex-wrap gap-2 mb-6">
@@ -185,10 +193,10 @@ export default function ShareablePitchCard({
             </div>
             <div className="text-center">
               <div className="flex items-center justify-center gap-1 mb-1">
-                <Users className="h-4 w-4 text-purple-500" />
-                <span className="text-lg font-bold text-gray-900">{supporters_count}</span>
+                <Award className="h-4 w-4 text-purple-500" />
+                <span className="text-lg font-bold text-gray-900">{endorsements_count}</span>
               </div>
-              <div className="text-xs text-gray-500 font-medium">Supporters</div>
+              <div className="text-xs text-gray-500 font-medium">Endorsed</div>
             </div>
           </div>
         )}
@@ -206,12 +214,12 @@ export default function ShareablePitchCard({
           </div>
         )}
 
-        {/* Social Share Badge */}
+        {/* Professional Badge */}
         {variant === 'social' && (
           <div className="mt-4 text-center">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium border border-blue-200">
-              <CheckCircle className="h-3 w-3" />
-              Shared from Xainik
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-gray-50 text-gray-700 rounded-full text-xs font-medium border border-gray-200">
+              <Shield className="h-3 w-3" />
+              Verified Professional
             </div>
           </div>
         )}

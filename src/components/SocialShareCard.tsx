@@ -15,7 +15,7 @@ import {
 } from 'lucide-react'
 import html2canvas from 'html2canvas'
 
-import type { PitchCardData } from '@/types/domain'
+import type { PitchCardData } from '../../types/domain'
 import ShareablePitchCard from './ShareablePitchCard'
 
 type Props = { 
@@ -29,7 +29,22 @@ export default function SocialShareCard({ data, onClose }: Props) {
   const cardRef = useRef<HTMLDivElement>(null)
 
   const shareUrl = `${window.location.origin}/pitch/${data.id}`
-  const shareText = `Check out this amazing veteran profile: ${data.title} - ${data.user?.name || 'Veteran'}`
+  
+  // Generate value-focused share text based on skills and experience
+  const generateShareText = () => {
+    const veteranName = data.user?.name || 'Veteran'
+    const skills = data.skills?.slice(0, 2).join(', ') || 'Leadership'
+    const experience = data.experience_years || 0
+    const location = data.location || ''
+    
+    if (experience > 0) {
+      return `${veteranName} | ${experience}+ years ${skills} | ${location} | Available now`
+    } else {
+      return `${veteranName} | ${skills} specialist | ${location} | Ready to deploy`
+    }
+  }
+  
+  const shareText = generateShareText()
   
   const shareLinks = [
     {
@@ -53,7 +68,7 @@ export default function SocialShareCard({ data, onClose }: Props) {
     {
       name: 'Email',
       icon: Mail,
-      url: `mailto:?subject=${encodeURIComponent(shareText)}&body=${encodeURIComponent(`Check out this veteran profile: ${shareUrl}`)}`,
+      url: `mailto:?subject=${encodeURIComponent(shareText)}&body=${encodeURIComponent(`High-impact professional available for immediate deployment:\n\n${shareText}\n\nView full profile: ${shareUrl}`)}`,
       color: 'text-gray-600 hover:bg-gray-50'
     }
   ]
@@ -81,7 +96,7 @@ export default function SocialShareCard({ data, onClose }: Props) {
       })
       
       const link = document.createElement('a')
-      link.download = `veteran-profile-${data.id}.png`
+      link.download = `professional-profile-${data.id}.png`
       link.href = canvas.toDataURL()
       link.click()
     } catch (error) {
@@ -97,7 +112,7 @@ export default function SocialShareCard({ data, onClose }: Props) {
         {/* Header */}
         <div className="p-6 border-b border-gray-100">
           <div className="flex items-center justify-between">
-            <h3 className="text-xl font-bold text-gray-900">Share Veteran Profile</h3>
+            <h3 className="text-xl font-bold text-gray-900">Share Professional Profile</h3>
             <button
               onClick={onClose}
               className="p-2 hover:bg-gray-100 rounded-full transition-colors"

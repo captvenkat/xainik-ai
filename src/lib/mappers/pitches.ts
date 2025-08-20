@@ -44,8 +44,8 @@ export function toPitchCardData(pitch: RawPitchRow): PitchCardData {
     experience_years: pitch.experience_years,
     linkedin_url: pitch.linkedin_url,
     resume_url: pitch.resume_url,
-    phone: pitch.phone,
-    bio: pitch.bio,
+    phone: null, // Not available in current schema
+    bio: null, // Not available in current schema
     likes_count: pitch.likes_count || 0,
     views_count: 0, // Not available in current schema
     created_at: pitch.created_at || new Date().toISOString(),
@@ -56,9 +56,7 @@ export function toPitchCardData(pitch: RawPitchRow): PitchCardData {
     } : null,
     endorsements_count: pitch.endorsements?.length || 0,
     supporters_count: 0, // TODO: Implement supporters count
-    is_subscription_active: pitch.user_subscriptions?.some(sub => 
-      sub.status === 'active' && new Date(sub.end_date) > new Date()
-    ) || false
+    is_subscription_active: false // Not available in current schema
   }
 }
 
@@ -69,12 +67,13 @@ export function toPitchCardDataArray(pitches: RawPitchRow[]): PitchCardData[] {
 export function toFullPitchData(pitch: RawPitchRow): FullPitchData {
   return {
     ...toPitchCardData(pitch),
-    phone: pitch.phone,
+    bio: null, // Not available in current schema
+    supporters_count: 0, // Not available in current schema
     resume_share_enabled: pitch.resume_share_enabled || false,
     plan_tier: pitch.plan_tier,
     plan_expires_at: pitch.plan_expires_at,
     updated_at: pitch.updated_at || new Date().toISOString(),
-    endorsements: pitch.endorsements?.filter(endorsement => endorsement.endorser_user_id).map(endorsement => ({
+    endorsements: pitch.endorsements?.filter((endorsement: any) => endorsement.endorser_user_id).map((endorsement: any) => ({
       ...endorsement,
       endorser_user_id: endorsement.endorser_user_id!, // Ensure it's not null
       updated_at: (endorsement as any).updated_at || endorsement.created_at || new Date().toISOString(),

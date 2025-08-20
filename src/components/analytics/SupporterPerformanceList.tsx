@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { getSupporterPerformanceList } from '@/lib/analytics'
-import { Users, Eye, Phone, Mail, Share2, TrendingUp } from 'lucide-react'
+import { getPitchSupporters } from '@/lib/actions/pitch-connections'
+import { Users, Eye, Phone, Mail, Share2, TrendingUp, Crown, Award, Calendar } from 'lucide-react'
 
 interface SupporterPerformanceListProps {
   veteranId: string
@@ -11,6 +12,7 @@ interface SupporterPerformanceListProps {
 export default function SupporterPerformanceList({ veteranId }: SupporterPerformanceListProps) {
   const [supporterData, setSupporterData] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [pitchId, setPitchId] = useState<string>('')
 
   useEffect(() => {
     loadSupporterData()
@@ -19,8 +21,33 @@ export default function SupporterPerformanceList({ veteranId }: SupporterPerform
   async function loadSupporterData() {
     try {
       setLoading(true)
-      const data = await getSupporterPerformanceList(veteranId)
-      setSupporterData(data)
+      
+      // First get the veteran's pitch ID
+      const { createSupabaseBrowser } = await import('@/lib/supabaseBrowser')
+      const supabase = createSupabaseBrowser()
+      
+      const { data: pitches } = await supabase
+        .from('pitches')
+        .select('id')
+        .eq('user_id', veteranId)
+        .limit(1)
+      
+      if (pitches && pitches.length > 0) {
+        const currentPitchId = pitches[0]?.id
+        if (!currentPitchId) {
+          console.error('No pitch found for veteran')
+          return
+        }
+        setPitchId(currentPitchId)
+        
+        // Get real supporter data using our new connection system
+        const result = await getPitchSupporters(currentPitchId)
+        if (result.success) {
+          setSupporterData(result.data || [])
+        } else {
+          console.error('Failed to load pitch supporters:', result.error)
+        }
+      }
     } catch (error) {
       console.error('Failed to load supporter data:', error)
     } finally {
@@ -37,7 +64,32 @@ export default function SupporterPerformanceList({ veteranId }: SupporterPerform
     )
   }
 
-  // Mock data to show what supporter tracking looks like
+  // Transform our new connection data to the existing format
+  const transformedData = supporterData.map(supporter => ({
+    supporterId: supporter.supporter_id,
+    supporterName: supporter.users.name,
+    supporterEmail: supporter.users.email,
+    pitchTitle: 'Your Pitch',
+    sharedAt: supporter.created_at,
+    lastActivity: supporter.metrics.last_activity || supporter.created_at,
+    metrics: {
+      totalViews: supporter.metrics.clicks,
+      totalCalls: supporter.metrics.calls,
+      totalEmails: supporter.metrics.emails,
+      totalShares: supporter.metrics.shares,
+      totalActions: supporter.metrics.total_activity,
+      conversionRate: supporter.metrics.total_activity > 0 ? 
+        ((supporter.metrics.calls + supporter.metrics.emails) / supporter.metrics.total_activity * 100) : 0
+    },
+    platforms: {
+      'LinkedIn': Math.floor(supporter.metrics.shares * 0.4),
+      'Email': Math.floor(supporter.metrics.shares * 0.4),
+      'WhatsApp': Math.floor(supporter.metrics.shares * 0.2)
+    },
+    isTopSupporter: supporter.metrics.total_activity > 5
+  }))
+
+  // Fallback mock data for demo when no real supporters exist
   const mockSupporterData = [
     {
       supporterId: 'mock-1',
@@ -104,7 +156,7 @@ export default function SupporterPerformanceList({ veteranId }: SupporterPerform
     }
   ]
 
-  const displayData = supporterData.length > 0 ? supporterData : mockSupporterData
+  const displayData = transformedData.length > 0 ? transformedData : mockSupporterData
   const isMockData = supporterData.length === 0
 
   return (

@@ -59,27 +59,34 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Note: platform_emails table doesn't exist in live schema
     // Insert email into database
-    const { data: emailRecord, error: insertError } = await supabaseClient
-      .from('platform_emails')
-      .insert({
-        pitch_id: pitchId,
-        sender_id: requesterId,
-        recipient_id: pitch.user_id,
-        subject: subject || 'Requesting your resume - Xainik',
-        message: message,
-        status: 'sent',
-        created_at: new Date().toISOString()
-      })
-      .select()
-      .single()
+    // const { data: emailRecord, error: insertError } = await supabaseClient
+    //   .from('platform_emails')
+    //   .insert({
+    //     pitch_id: pitchId,
+    //     sender_id: requesterId,
+    //     recipient_id: pitch.user_id,
+    //     subject: subject || 'Requesting your resume - Xainik',
+    //     message: message,
+    //     status: 'sent',
+    //     created_at: new Date().toISOString()
+    //   })
+    //   .select()
+    //   .single()
 
-    if (insertError) {
-      console.error('Error inserting email:', insertError)
-      return NextResponse.json(
-        { error: 'Failed to send email' },
-        { status: 500 }
-      )
+    // if (insertError) {
+    //   console.error('Error inserting email:', insertError)
+    //   return NextResponse.json(
+    //     { error: 'Failed to send email' },
+    //     { status: 500 }
+    //   )
+    // }
+
+    // Mock email record for now
+    const emailRecord = {
+      id: 'mock-email-id',
+      created_at: new Date().toISOString()
     }
 
     // Log the activity

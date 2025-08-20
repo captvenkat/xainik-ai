@@ -276,7 +276,7 @@ export default function AdminDashboard() {
           data={donations.slice(0, 10)}
           columns={[
             { key: 'id', label: 'ID' },
-            { key: 'amount_cents', label: 'Amount', render: (value) => `₹${value / 100}` },
+            { key: 'amount', label: 'Amount', render: (value) => `₹${value}` },
             { key: 'currency', label: 'Currency' },
             { key: 'created_at', label: 'Created', render: (value) => new Date(value).toLocaleDateString() }
           ]}
@@ -287,7 +287,7 @@ export default function AdminDashboard() {
           data={invoices.slice(0, 10)}
           columns={[
             { key: 'id', label: 'ID' },
-            { key: 'amount_cents', label: 'Amount', render: (value) => `₹${value / 100}` },
+            { key: 'amount', label: 'Amount', render: (value) => `₹${value}` },
             { key: 'status', label: 'Status' },
             { key: 'created_at', label: 'Created', render: (value) => new Date(value).toLocaleDateString() }
           ]}

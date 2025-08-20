@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { createSupabaseBrowser } from '@/lib/supabaseBrowser';
 import { Shield, Briefcase, Heart, Check } from 'lucide-react';
 
@@ -52,6 +52,29 @@ export default function RoleSelectionPage() {
   const [error, setError] = useState<string>('');
   const [user, setUser] = useState<any>(null);
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Pre-select role if provided in URL params
+  useEffect(() => {
+    const roleParam = searchParams.get('role');
+    if (roleParam && ['veteran', 'recruiter', 'supporter'].includes(roleParam)) {
+      setSelectedRole(roleParam);
+    }
+  }, [searchParams]);
+
+  // Store pitch connection data if coming from a pitch
+  useEffect(() => {
+    const pitchId = searchParams.get('pitch_id');
+    const connectionSource = searchParams.get('source') || 'registration';
+    
+    if (pitchId && selectedRole === 'supporter') {
+      sessionStorage.setItem('pitch_connection_data', JSON.stringify({
+        pitch_id: pitchId,
+        connection_source: connectionSource,
+        source_url: window.location.href
+      }));
+    }
+  }, [searchParams, selectedRole]);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -93,6 +116,38 @@ export default function RoleSelectionPage() {
 
       if (error) {
         throw error;
+      }
+
+      // Handle pitch connection if coming from a pitch page
+      const pitchConnectionData = sessionStorage.getItem('pitch_connection_data');
+      if (pitchConnectionData && selectedRole === 'supporter') {
+        try {
+          const { pitch_id, connection_source, source_url } = JSON.parse(pitchConnectionData);
+          
+          // Import the connection function
+          const { connectSupporterToPitch } = await import('@/lib/actions/pitch-connections');
+          
+          // Connect supporter to the pitch
+          const connectionResult = await connectSupporterToPitch({
+            supporter_id: user.id,
+            pitch_id: pitch_id,
+            connection_source: connection_source,
+            source_url: source_url,
+            user_agent: navigator.userAgent,
+            ip_hash: 'client-side'
+          });
+
+          if (connectionResult.success) {
+            console.log('Successfully connected supporter to pitch:', connectionResult.data);
+          } else {
+            console.error('Error connecting supporter to pitch:', connectionResult.error);
+          }
+
+          // Clear the stored data
+          sessionStorage.removeItem('pitch_connection_data');
+        } catch (parseError) {
+          console.error('Error parsing pitch connection data:', parseError);
+        }
       }
 
       // Handle referral attribution if coming from supporter signup
