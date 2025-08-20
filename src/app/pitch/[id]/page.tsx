@@ -21,7 +21,8 @@ async function fetchPitch(id: string) {
         id,
         name,
         email,
-        role
+        role,
+        bio
       )
     `)
     .eq('id', id)
@@ -49,7 +50,7 @@ async function fetchUser() {
   // Get user profile
   const { data: userProfile } = await supabaseClient
     .from('users')
-    .select('id, name, email, role')
+    .select('id, name, email, role, bio')
     .eq('id', user.id)
     .single()
 
