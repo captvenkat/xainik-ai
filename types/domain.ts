@@ -212,6 +212,7 @@ export interface PitchCardData {
     email: string;
   } | null;
   endorsements_count: number;
+  supporters_count: number;
   is_subscription_active: boolean;
 }
 

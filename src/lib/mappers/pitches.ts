@@ -54,6 +54,7 @@ export function toPitchCardData(pitch: RawPitchRow): PitchCardData {
       email: pitch.users.email
     } : null,
     endorsements_count: pitch.endorsements?.length || 0,
+    supporters_count: 0, // TODO: Implement supporters count
     is_subscription_active: pitch.user_subscriptions?.some(sub => 
       sub.status === 'active' && new Date(sub.end_date) > new Date()
     ) || false
