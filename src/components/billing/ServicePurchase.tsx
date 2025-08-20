@@ -19,47 +19,73 @@ interface ServicePlan {
 
 const servicePlans: ServicePlan[] = [
   {
-    id: 'basic',
-    name: 'Basic',
-    description: 'Essential features for getting started',
-    price: 999,
+    id: 'free',
+    name: 'Free',
+    description: 'Experience the platform with limited features',
+    price: 0,
     features: [
-      'Enhanced pitch visibility',
-      'Basic analytics',
-      'Email support',
-      'Standard pitch card'
+      'Access to dashboard',
+      'Create pitches (not published)',
+      'Basic platform experience',
+      'No supporter invitations'
     ]
   },
   {
-    id: 'premium',
-    name: 'Premium',
-    description: 'Advanced features for serious professionals',
-    price: 2499,
+    id: 'trial',
+    name: '7-Day Trial',
+    description: 'Full access for 7 days to test all features',
+    price: 1,
     popular: true,
     recommended: true,
     features: [
-      'Priority pitch placement',
-      'Advanced analytics dashboard',
-      'Priority support',
-      'Premium pitch card design',
-      'Direct recruiter access',
-      'Performance insights'
+      'Create and publish pitches',
+      'Invite supporters',
+      'Full dashboard access',
+      'Pitch analytics',
+      'Supporter connections',
+      'Email support'
     ]
   },
   {
-    id: 'enterprise',
-    name: 'Enterprise',
-    description: 'Complete solution for maximum impact',
-    price: 4999,
+    id: '30days',
+    name: '30 Days',
+    description: 'One month of full platform access',
+    price: 999,
     features: [
+      'Create and publish pitches',
+      'Invite unlimited supporters',
+      'Full analytics dashboard',
+      'Priority support',
+      'Pitch optimization tools',
+      'Recruiter matching'
+    ]
+  },
+  {
+    id: '60days',
+    name: '60 Days',
+    description: 'Two months of premium access',
+    price: 1799,
+    features: [
+      'All 30-day features',
+      'Advanced analytics',
+      'Performance insights',
+      'Priority placement',
+      'Direct recruiter access',
+      'Success tracking'
+    ]
+  },
+  {
+    id: '90days',
+    name: '90 Days',
+    description: 'Three months of complete access',
+    price: 2499,
+    features: [
+      'All 60-day features',
       'Top priority placement',
-      'Full analytics suite',
       'Dedicated support',
-      'Custom pitch card design',
-      'Direct recruiter matching',
-      'Performance optimization',
       'Personal success coach',
-      'Exclusive networking events'
+      'Exclusive networking',
+      'Custom pitch optimization'
     ]
   }
 ]
@@ -76,7 +102,31 @@ export default function ServicePurchase({ userId }: { userId: string }) {
 
       const supabase = createSupabaseBrowser()
 
-      // Create Razorpay order
+      // Handle free plan
+      if (plan.id === 'free') {
+        const { error: updateError } = await supabase
+          .from('users')
+          .update({ 
+            metadata: { 
+              current_plan: 'free',
+              plan_activated_at: new Date().toISOString(),
+              plan_expires_at: null
+            }
+          })
+          .eq('id', userId)
+
+        if (updateError) {
+          console.error('Failed to activate free plan:', updateError)
+          setError('Failed to activate free plan. Please try again.')
+          return
+        }
+
+        alert('Free plan activated! You can now experience the platform with limited features.')
+        window.location.reload()
+        return
+      }
+
+      // Create Razorpay order for paid plans
       const response = await fetch('/api/donations/create-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -94,7 +144,10 @@ export default function ServicePurchase({ userId }: { userId: string }) {
             plan_tier: plan.id,
             plan_meta: {
               features: plan.features,
-              description: plan.description
+              description: plan.description,
+              duration_days: plan.id === 'trial' ? 7 : 
+                            plan.id === '30days' ? 30 :
+                            plan.id === '60days' ? 60 : 90
             }
           }
         })
@@ -134,13 +187,22 @@ export default function ServicePurchase({ userId }: { userId: string }) {
               })
 
               if (verifyResponse.ok) {
+                // Calculate plan expiry date
+                const now = new Date()
+                const durationDays = plan.id === 'trial' ? 7 : 
+                                   plan.id === '30days' ? 30 :
+                                   plan.id === '60days' ? 60 : 90
+                const expiresAt = new Date(now.getTime() + (durationDays * 24 * 60 * 60 * 1000))
+
                 // Update user's plan
                 const { error: updateError } = await supabase
                   .from('users')
                   .update({ 
                     metadata: { 
                       current_plan: plan.id,
-                      plan_purchased_at: new Date().toISOString()
+                      plan_activated_at: now.toISOString(),
+                      plan_expires_at: expiresAt.toISOString(),
+                      plan_duration_days: durationDays
                     }
                   })
                   .eq('id', userId)
@@ -149,7 +211,7 @@ export default function ServicePurchase({ userId }: { userId: string }) {
                   console.error('Failed to update user plan:', updateError)
                 }
 
-                alert(`Thank you for purchasing the ${plan.name} plan! Your features are now active.`)
+                alert(`Thank you for purchasing the ${plan.name} plan! Your features are now active for ${durationDays} days.`)
                 window.location.reload()
               } else {
                 throw new Error('Payment verification failed')
@@ -188,12 +250,12 @@ export default function ServicePurchase({ userId }: { userId: string }) {
           Choose Your Plan
         </h2>
         <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-          Unlock premium features to maximize your professional impact and accelerate your career growth.
+          Start with our free plan to experience the platform, then upgrade to unlock full features and publish your pitch.
         </p>
       </div>
 
       {/* Plans Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
         {servicePlans.map((plan) => (
           <div
             key={plan.id}
@@ -223,10 +285,20 @@ export default function ServicePurchase({ userId }: { userId: string }) {
               <h3 className="text-2xl font-bold text-gray-900 mb-2">{plan.name}</h3>
               <p className="text-gray-600 mb-4">{plan.description}</p>
               
-              <div className="mb-6">
-                <span className="text-4xl font-bold text-gray-900">₹{plan.price}</span>
-                <span className="text-gray-600">/one-time</span>
-              </div>
+                          <div className="mb-6">
+              {plan.price === 0 ? (
+                <span className="text-4xl font-bold text-gray-900">Free</span>
+              ) : (
+                <>
+                  <span className="text-4xl font-bold text-gray-900">₹{plan.price}</span>
+                  <span className="text-gray-600">
+                    {plan.id === 'trial' ? '/7 days' : 
+                     plan.id === '30days' ? '/30 days' :
+                     plan.id === '60days' ? '/60 days' : '/90 days'}
+                  </span>
+                </>
+              )}
+            </div>
             </div>
 
             <ul className="space-y-4 mb-8">
@@ -242,7 +314,9 @@ export default function ServicePurchase({ userId }: { userId: string }) {
               onClick={() => handlePurchase(plan)}
               disabled={loading}
               className={`w-full py-3 px-6 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 ${
-                plan.popular
+                plan.id === 'free'
+                  ? 'bg-gray-600 text-white hover:bg-gray-700'
+                  : plan.popular
                   ? 'bg-blue-600 text-white hover:bg-blue-700'
                   : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
               } disabled:opacity-50 disabled:cursor-not-allowed`}
@@ -254,9 +328,18 @@ export default function ServicePurchase({ userId }: { userId: string }) {
                 </>
               ) : (
                 <>
-                  <CreditCard className="h-4 w-4" />
-                  Get {plan.name}
-                  <ArrowRight className="h-4 w-4" />
+                  {plan.id === 'free' ? (
+                    <>
+                      <CheckCircle className="h-4 w-4" />
+                      Activate Free
+                    </>
+                  ) : (
+                    <>
+                      <CreditCard className="h-4 w-4" />
+                      Get {plan.name}
+                      <ArrowRight className="h-4 w-4" />
+                    </>
+                  )}
                 </>
               )}
             </button>
@@ -277,7 +360,7 @@ export default function ServicePurchase({ userId }: { userId: string }) {
       {/* Features Comparison */}
       <div className="bg-gray-50 rounded-2xl p-8">
         <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">
-          Why Choose Premium?
+          Why Upgrade from Free?
         </h3>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -285,9 +368,9 @@ export default function ServicePurchase({ userId }: { userId: string }) {
             <div className="mx-auto w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
               <TrendingUp className="h-6 w-6 text-blue-600" />
             </div>
-            <h4 className="font-semibold text-gray-900 mb-2">Increased Visibility</h4>
+            <h4 className="font-semibold text-gray-900 mb-2">Publish Your Pitch</h4>
             <p className="text-gray-600">
-              Get priority placement in recruiter searches and featured positions.
+              Free users can create pitches but can't publish them. Upgrade to make your pitch live and visible to recruiters.
             </p>
           </div>
           
@@ -295,9 +378,9 @@ export default function ServicePurchase({ userId }: { userId: string }) {
             <div className="mx-auto w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-4">
               <Users className="h-6 w-6 text-green-600" />
             </div>
-            <h4 className="font-semibold text-gray-900 mb-2">Direct Access</h4>
+            <h4 className="font-semibold text-gray-900 mb-2">Invite Supporters</h4>
             <p className="text-gray-600">
-              Connect directly with top recruiters and hiring managers.
+              Connect with supporters who can help amplify your pitch and increase your visibility to potential employers.
             </p>
           </div>
           
@@ -305,9 +388,9 @@ export default function ServicePurchase({ userId }: { userId: string }) {
             <div className="mx-auto w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mb-4">
               <Zap className="h-6 w-6 text-purple-600" />
             </div>
-            <h4 className="font-semibold text-gray-900 mb-2">Performance Insights</h4>
+            <h4 className="font-semibold text-gray-900 mb-2">Full Analytics</h4>
             <p className="text-gray-600">
-              Detailed analytics to optimize your pitch and maximize opportunities.
+              Track your pitch performance, supporter engagement, and recruiter interest with detailed analytics.
             </p>
           </div>
         </div>
