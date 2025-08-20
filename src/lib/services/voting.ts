@@ -8,24 +8,142 @@ export async function voteOnSuggestion(
   voteType: 'upvote' | 'downvote'
 ): Promise<VoteResponse> {
   try {
-    // Use the vote_on_suggestion RPC function that exists in live schema
-    const { data, error } = await supabase
-      .rpc('vote_on_suggestion', {
-        p_suggestion_id: suggestionId,
-        p_vote_type: voteType
-      })
-
-    if (error) {
-      console.error('Voting error:', error)
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
       return {
         success: false,
-        error: error.message
+        error: 'User not authenticated'
       }
     }
 
-    return {
-      success: true,
-      data: data
+    // Check if user already voted on this suggestion
+    const { data: existingVote } = await supabase
+      .from('community_suggestion_votes')
+      .select('*')
+      .eq('suggestion_id', suggestionId)
+      .eq('user_id', user.id)
+      .single()
+
+    if (existingVote) {
+      if (existingVote.vote_type === voteType) {
+        // Remove vote if clicking same button
+        const { error: deleteError } = await supabase
+          .from('community_suggestion_votes')
+          .delete()
+          .eq('id', existingVote.id)
+
+        if (deleteError) {
+          console.error('Error removing vote:', deleteError)
+          return {
+            success: false,
+            error: 'Failed to remove vote'
+          }
+        }
+
+        // Update suggestion vote count
+        const voteChange = voteType === 'upvote' ? -1 : 1
+        const { data: currentSuggestion } = await supabase
+          .from('community_suggestions')
+          .select('votes')
+          .eq('id', suggestionId)
+          .single()
+        
+        const newVoteCount = (currentSuggestion?.votes || 0) + voteChange
+        const { error: updateError } = await supabase
+          .from('community_suggestions')
+          .update({ votes: newVoteCount })
+          .eq('id', suggestionId)
+
+        if (updateError) {
+          console.error('Error updating suggestion votes:', updateError)
+        }
+
+        return {
+          success: true,
+          action: 'removed',
+          vote_type: voteType
+        }
+      } else {
+        // Change vote type
+        const { error: updateError } = await supabase
+          .from('community_suggestion_votes')
+          .update({ vote_type: voteType })
+          .eq('id', existingVote.id)
+
+        if (updateError) {
+          console.error('Error updating vote:', updateError)
+          return {
+            success: false,
+            error: 'Failed to update vote'
+          }
+        }
+
+        // Update suggestion vote count (change from old vote to new vote)
+        const voteChange = existingVote.vote_type === 'upvote' ? -2 : 2
+        const { data: currentSuggestion } = await supabase
+          .from('community_suggestions')
+          .select('votes')
+          .eq('id', suggestionId)
+          .single()
+        
+        const newVoteCount = (currentSuggestion?.votes || 0) + voteChange
+        const { error: suggestionUpdateError } = await supabase
+          .from('community_suggestions')
+          .update({ votes: newVoteCount })
+          .eq('id', suggestionId)
+
+        if (suggestionUpdateError) {
+          console.error('Error updating suggestion votes:', suggestionUpdateError)
+        }
+
+        return {
+          success: true,
+          action: 'changed',
+          vote_type: voteType
+        }
+      }
+    } else {
+      // Add new vote
+      const { error: insertError } = await supabase
+        .from('community_suggestion_votes')
+        .insert({
+          suggestion_id: suggestionId,
+          user_id: user.id,
+          vote_type: voteType
+        })
+
+      if (insertError) {
+        console.error('Error inserting vote:', insertError)
+        return {
+          success: false,
+          error: 'Failed to submit vote'
+        }
+      }
+
+      // Update suggestion vote count
+      const voteChange = voteType === 'upvote' ? 1 : -1
+      const { data: currentSuggestion } = await supabase
+        .from('community_suggestions')
+        .select('votes')
+        .eq('id', suggestionId)
+        .single()
+      
+      const newVoteCount = (currentSuggestion?.votes || 0) + voteChange
+      const { error: updateError } = await supabase
+        .from('community_suggestions')
+        .update({ votes: newVoteCount })
+        .eq('id', suggestionId)
+
+      if (updateError) {
+        console.error('Error updating suggestion votes:', updateError)
+      }
+
+      return {
+        success: true,
+        action: 'added',
+        vote_type: voteType
+      }
     }
   } catch (error) {
     console.error('Voting error:', error)
@@ -58,18 +176,25 @@ export async function getCommunitySuggestionsWithVotes(): Promise<CommunitySugge
 
 export async function getUserVoteOnSuggestion(suggestionId: string): Promise<'upvote' | 'downvote' | null> {
   try {
-    // Use the get_user_vote_on_suggestion RPC function that exists in live schema
-    const { data, error } = await supabase
-      .rpc('get_user_vote_on_suggestion', {
-        p_suggestion_id: suggestionId
-      })
-
-    if (error) {
-      console.error('Error getting user vote:', error)
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
       return null
     }
 
-    return data as 'upvote' | 'downvote' | null
+    // Get user's vote from community_suggestion_votes table
+    const { data: vote, error } = await supabase
+      .from('community_suggestion_votes')
+      .select('vote_type')
+      .eq('suggestion_id', suggestionId)
+      .eq('user_id', user.id)
+      .single()
+
+    if (error || !vote) {
+      return null
+    }
+
+    return vote.vote_type as 'upvote' | 'downvote'
   } catch (error) {
     console.error('Error getting user vote:', error)
     return null
