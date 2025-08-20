@@ -51,6 +51,54 @@ export async function connectSupporterToPitch(data: PitchConnectionData) {
       return { success: true, data: existingConnection, action: 'refreshed' }
     }
 
+    // Check supporter limits for the pitch
+    const { data: pitchData } = await supabase
+      .from('pitches')
+      .select('veteran_id, plan_tier')
+      .eq('id', data.pitch_id)
+      .single()
+
+    if (!pitchData) {
+      throw new Error('Pitch not found')
+    }
+
+    // Get veteran's plan limits
+    const { data: veteranData } = await supabase
+      .from('users')
+      .select('metadata')
+      .eq('id', pitchData.veteran_id)
+      .single()
+
+    const planTier = veteranData?.metadata?.current_plan || 'free'
+    const supporterLimits = {
+      'free': 0, // Free plan cannot have supporters
+      'trial': 25,
+      '30days': 50,
+      '60days': 100,
+      '90days': -1 // unlimited
+    }
+
+    const maxSupporters = supporterLimits[planTier as keyof typeof supporterLimits] || 0
+
+    // If not unlimited, check current supporter count
+    if (maxSupporters !== -1) {
+      const { count: currentSupporters } = await supabase
+        .from('referrals')
+        .select('*', { count: 'exact', head: true })
+        .eq('pitch_id', data.pitch_id)
+
+      if (currentSupporters && currentSupporters >= maxSupporters) {
+        return { 
+          success: false, 
+          error: 'SUPPORTER_LIMIT_REACHED',
+          message: `This veteran has reached their supporter limit (${maxSupporters}). Please upgrade your plan to connect with more supporters.`,
+          currentCount: currentSupporters,
+          maxLimit: maxSupporters,
+          planTier: planTier
+        }
+      }
+    }
+
     // Create new connection
     const shareLink = `${process.env.NEXT_PUBLIC_SITE_URL}/refer/opened/${nanoid(12)}`
     
