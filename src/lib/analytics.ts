@@ -78,11 +78,19 @@ export async function getSimpleMetricsData(veteranId: string) {
     //   .limit(100)
     const activity: any[] = []
 
-    // Get resume request metrics
-    const { data: resumeRequests } = await supabaseAction
-      .from('resume_requests')
-      .select('id, status, created_at')
-      .eq('user_id', veteranId)
+    // Get resume request metrics (with error handling)
+    let resumeRequests: any[] = []
+    try {
+      const { data: resumeRequestsData } = await supabaseAction
+        .from('resume_requests')
+        .select('id, status, created_at')
+        .eq('user_id', veteranId)
+      
+      resumeRequests = resumeRequestsData || []
+    } catch (error) {
+      console.log('Resume requests query failed, using empty data:', error)
+      resumeRequests = []
+    }
 
     const totalResumeRequests = resumeRequests?.length || 0
     const pendingRequests = resumeRequests?.filter(r => r.status === 'PENDING').length || 0
@@ -202,33 +210,41 @@ export async function getSupporterPerformanceList(veteranId: string) {
   try {
     const supabaseAction = createSupabaseBrowser()
     
-    // Get all supporters who referred this veteran's pitches
-    const { data: supporterReferrals } = await supabaseAction
-      .from('referrals')
-      .select(`
-        id,
-        user_id,
-        pitch_id,
-        created_at,
-        users!referrals_user_id_fkey (
+    // Get all supporters who referred this veteran's pitches (with error handling)
+    let supporterReferrals: any[] = []
+    try {
+      const { data: supporterReferralsData } = await supabaseAction
+        .from('referrals')
+        .select(`
           id,
-          name,
-          email
-        ),
-        pitches!referrals_pitch_id_fkey (
-          id,
-          title,
-          user_id
-        ),
-        referral_events (
-          id,
-          event_type,
-          platform,
-          occurred_at
-        )
-      `)
-      .eq('pitches.user_id', veteranId)
-      .order('created_at', { ascending: false })
+          user_id,
+          pitch_id,
+          created_at,
+          users!referrals_user_id_fkey (
+            id,
+            name,
+            email
+          ),
+          pitches!referrals_pitch_id_fkey (
+            id,
+            title,
+            user_id
+          ),
+          referral_events (
+            id,
+            event_type,
+            platform,
+            occurred_at
+          )
+        `)
+        .eq('pitches.user_id', veteranId)
+        .order('created_at', { ascending: false })
+      
+      supporterReferrals = supporterReferralsData || []
+    } catch (error) {
+      console.log('Supporter referrals query failed, using empty data:', error)
+      supporterReferrals = []
+    }
 
     // Process supporter performance data
         const supporterPerformance = supporterReferrals?.map((referral: any) => {
@@ -315,10 +331,8 @@ export async function getSimpleActionsData(veteranId: string) {
           )
         `)
         .eq('pitches.user_id', veteranId),
-      supabaseAction
-        .from('endorsements')
-        .select('*')
-        .eq('user_id', veteranId)
+      // Endorsements table doesn't exist in live schema, use empty data
+      Promise.resolve({ data: [], error: null })
     ])
 
     const actions = []
