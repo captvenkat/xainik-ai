@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
-import { Lightbulb, Plus, CheckCircle, XCircle, Clock } from 'lucide-react'
+import { Lightbulb, Plus, CheckCircle, XCircle, Clock, AlertCircle } from 'lucide-react'
 import VoteButtons from '@/components/voting/VoteButtons'
 import { getCommunitySuggestionsWithVotes } from '@/lib/services/voting'
 import { CommunitySuggestionWithVotes } from '../../types/voting'
@@ -31,6 +31,7 @@ export default function CommunitySuggestions({ userId }: { userId: string }) {
   const [newSuggestion, setNewSuggestion] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<'feature' | 'improvement' | 'bug'>('improvement')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [hasError, setHasError] = useState(false)
 
   const supabase = createSupabaseBrowser()
 
@@ -43,8 +44,12 @@ export default function CommunitySuggestions({ userId }: { userId: string }) {
     try {
       const suggestionsWithVotes = await getCommunitySuggestionsWithVotes()
       setSuggestions(suggestionsWithVotes)
+      setHasError(false)
     } catch (error) {
       console.error('Error fetching suggestions:', error)
+      setHasError(true)
+      // Provide fallback data
+      setSuggestions([])
     } finally {
       setIsLoading(false)
     }
@@ -53,14 +58,27 @@ export default function CommunitySuggestions({ userId }: { userId: string }) {
   async function fetchSummary() {
     try {
       // Note: community_suggestions_summary table doesn't exist in live schema
-      // Skip fetching summary until table is created
-      const data = null
-      const error = new Error('community_suggestions_summary table not in live schema')
-      
-      if (error) throw error
-      setSummary(data)
+      // Provide fallback summary data
+      const fallbackSummary: CommunitySuggestionsSummary = {
+        total_suggestions: 0,
+        active_suggestions: 0,
+        implemented_suggestions: 0,
+        rejected_suggestions: 0,
+        avg_votes: 0,
+        unique_suggesters: 0
+      }
+      setSummary(fallbackSummary)
     } catch (error) {
       console.error('Error fetching summary:', error)
+      // Provide fallback summary data
+      setSummary({
+        total_suggestions: 0,
+        active_suggestions: 0,
+        implemented_suggestions: 0,
+        rejected_suggestions: 0,
+        avg_votes: 0,
+        unique_suggesters: 0
+      })
     }
   }
 
@@ -70,23 +88,16 @@ export default function CommunitySuggestions({ userId }: { userId: string }) {
     setIsSubmitting(true)
     try {
       // Note: community_suggestions table doesn't exist in live schema
-      // Skip submitting suggestion until table is created
-      const error = new Error('community_suggestions table not in live schema')
+      // Show user-friendly message instead of error
+      alert('Community suggestions feature is coming soon! Your feedback is valuable and will be implemented in the next update.')
 
-      if (error) throw error
-
-      // Reset form and refresh
+      // Reset form
       setNewSuggestion('')
       setSelectedCategory('improvement')
       setShowForm(false)
-      await fetchSuggestions()
-      await fetchSummary()
-
-      // Show success feedback
-      alert('Thank you! Your suggestion has been submitted.')
     } catch (error) {
       console.error('Error submitting suggestion:', error)
-      alert('Error submitting suggestion. Please try again.')
+      alert('Community suggestions feature is coming soon! Your feedback is valuable and will be implemented in the next update.')
     } finally {
       setIsSubmitting(false)
     }
@@ -192,6 +203,19 @@ export default function CommunitySuggestions({ userId }: { userId: string }) {
         )}
       </div>
 
+      {/* Feature Coming Soon Notice */}
+      <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl p-6 border border-yellow-200">
+        <div className="flex items-center gap-3">
+          <AlertCircle className="w-6 h-6 text-yellow-600" />
+          <div>
+            <h4 className="text-lg font-semibold text-yellow-800">Community Suggestions Coming Soon!</h4>
+            <p className="text-yellow-700">
+              We're working on implementing the community suggestions feature. This will allow you to submit ideas, vote on suggestions, and help shape the future of Xainik. Stay tuned for updates!
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* New Suggestion Form */}
       {showForm && (
         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
@@ -253,6 +277,7 @@ export default function CommunitySuggestions({ userId }: { userId: string }) {
           <div className="text-center py-8 text-gray-500">
             <Lightbulb className="w-12 h-12 mx-auto mb-4 text-gray-300" />
             <p>No suggestions yet. Be the first to share an idea!</p>
+            <p className="text-sm mt-2">Community suggestions feature will be available soon.</p>
           </div>
         ) : (
           suggestions.map((suggestion) => (
