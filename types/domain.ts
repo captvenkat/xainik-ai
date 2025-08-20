@@ -202,6 +202,7 @@ export interface PitchCardData {
   experience_years: number | null;
   linkedin_url: string | null;
   resume_url: string | null;
+  phone: string | null;
   likes_count: number;
   views_count: number;
   created_at: string;
