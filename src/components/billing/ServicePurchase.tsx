@@ -21,33 +21,33 @@ const servicePlans: ServicePlan[] = [
   {
     id: 'free',
     name: 'Free',
-    description: 'Experience the platform with limited features',
+    description: 'Create pitches but cannot publish them',
     price: 0,
     features: [
-      'Access to dashboard',
-      'Create pitches (not published)',
-      'Basic platform experience',
-      'View pitch analytics (limited)',
-      'No supporter invitations',
-      'No pitch publishing'
+      'Create up to 3 draft pitches',
+      'View basic dashboard',
+      'Access platform for 7 days',
+      'Cannot publish pitches',
+      'Cannot invite supporters',
+      'Cannot receive endorsements'
     ]
   },
   {
     id: 'trial',
     name: '7-Day Trial',
-    description: 'Full access for 7 days to test all features',
+    description: 'Full access for 7 days to test everything',
     price: 49,
     popular: true,
     recommended: true,
     features: [
-      'Create and publish pitches',
-      'Invite unlimited supporters',
-      'Full dashboard access',
-      'Complete pitch analytics',
-      'Supporter connections',
-      'Email support',
-      'Pitch sharing and referrals',
-      'Endorsement system access'
+      'Publish 1 active pitch',
+      'Invite up to 50 supporters',
+      'Receive endorsements',
+      'View pitch views and clicks',
+      'Generate referral links',
+      'Track supporter connections',
+      'Email support within 24 hours',
+      'Download pitch analytics report'
     ]
   },
   {
@@ -56,13 +56,14 @@ const servicePlans: ServicePlan[] = [
     description: 'One month of full platform access',
     price: 399,
     features: [
-      'All trial features',
-      'Priority pitch placement',
-      'Advanced analytics dashboard',
-      'Resume request tracking',
-      'Performance insights',
-      'Priority email support',
-      'Enhanced supporter management'
+      'Publish 1 active pitch',
+      'Invite up to 100 supporters',
+      'Priority placement in search results',
+      'View detailed analytics (views, clicks, calls, emails)',
+      'Track resume requests from recruiters',
+      'Download weekly performance reports',
+      'Email support within 12 hours',
+      'Manage supporter connections'
     ]
   },
   {
@@ -71,13 +72,14 @@ const servicePlans: ServicePlan[] = [
     description: 'Two months of premium access',
     price: 699,
     features: [
-      'All 30-day features',
-      'Enhanced analytics with trends',
-      'Success tracking metrics',
-      'Advanced supporter management',
-      'Referral link analytics',
-      'Priority placement in searches',
-      'Dedicated support channel'
+      'Publish 1 active pitch',
+      'Invite up to 200 supporters',
+      'Enhanced analytics with 7-day and 30-day trends',
+      'Track referral link performance by platform',
+      'Priority placement in search results',
+      'Download monthly performance reports',
+      'Email support within 6 hours',
+      'View supporter activity metrics'
     ]
   },
   {
@@ -86,13 +88,14 @@ const servicePlans: ServicePlan[] = [
     description: 'Three months of complete access',
     price: 999,
     features: [
-      'All 60-day features',
-      'Top priority placement',
-      'Advanced performance insights',
-      'Complete analytics suite',
-      'Maximum supporter connections',
-      'Premium support access',
-      'Extended pitch visibility'
+      'Publish 1 active pitch',
+      'Invite unlimited supporters',
+      'Top priority placement in search results',
+      'Complete analytics suite with all metrics',
+      'Download comprehensive performance reports',
+      'Email support within 2 hours',
+      'Maximum pitch visibility duration',
+      'Access to all platform features'
     ]
   }
 ]
