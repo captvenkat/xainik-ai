@@ -8,28 +8,17 @@ export async function voteOnSuggestion(
   voteType: 'upvote' | 'downvote'
 ): Promise<VoteResponse> {
   try {
-    const { data, error } = await supabase.rpc('vote_on_suggestion', {
-      p_suggestion_id: suggestionId,
-      p_vote_type: voteType
-    })
-
-    if (error) {
-      console.error('Voting error:', error)
-      return {
-        success: false,
-        error: error.message
-      }
-    }
-
+    // Note: Voting functionality is not yet implemented in the live schema
+    // Return a user-friendly response
     return {
-      success: true,
-      data: data
-    } as VoteResponse
+      success: false,
+      error: 'Voting feature is coming soon!'
+    }
   } catch (error) {
     console.error('Voting error:', error)
     return {
       success: false,
-      error: 'Failed to vote on suggestion'
+      error: 'Voting feature is coming soon!'
     }
   }
 }
@@ -37,16 +26,9 @@ export async function voteOnSuggestion(
 export async function getCommunitySuggestionsWithVotes(): Promise<CommunitySuggestionWithVotes[]> {
   try {
     // Note: community_suggestions_with_votes table doesn't exist in live schema
-    // Skip fetching suggestions until table is created
-    const data: CommunitySuggestionWithVotes[] = []
-    const error = new Error('community_suggestions_with_votes table not in live schema')
-
-    if (error) {
-      console.error('Error fetching suggestions with votes:', error)
-      return []
-    }
-
-    return data || []
+    // Return empty array gracefully
+    console.log('Community suggestions feature is coming soon!')
+    return []
   } catch (error) {
     console.error('Error fetching suggestions with votes:', error)
     return []
@@ -55,16 +37,9 @@ export async function getCommunitySuggestionsWithVotes(): Promise<CommunitySugge
 
 export async function getUserVoteOnSuggestion(suggestionId: string): Promise<'upvote' | 'downvote' | null> {
   try {
-    const { data, error } = await supabase.rpc('get_user_vote_on_suggestion', {
-      p_suggestion_id: suggestionId
-    })
-
-    if (error) {
-      console.error('Error getting user vote:', error)
-      return null
-    }
-
-    return data as 'upvote' | 'downvote' | null
+    // Note: Voting functionality is not yet implemented in the live schema
+    // Return null gracefully
+    return null
   } catch (error) {
     console.error('Error getting user vote:', error)
     return null
