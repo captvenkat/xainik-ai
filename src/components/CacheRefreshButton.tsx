@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
+// Using regular button elements with Tailwind classes
 import { RefreshCw, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { 
   clearSupabaseCache, 
@@ -96,12 +96,10 @@ export default function CacheRefreshButton() {
 
       {/* Action Buttons */}
       <div className="flex gap-2">
-        <Button
+        <button
           onClick={handleCacheRefresh}
           disabled={isLoading}
-          variant="outline"
-          size="sm"
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLoading ? (
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -109,27 +107,23 @@ export default function CacheRefreshButton() {
             <RefreshCw className="h-4 w-4" />
           )}
           {isLoading ? 'Refreshing...' : 'Refresh Cache'}
-        </Button>
+        </button>
 
-        <Button
+        <button
           onClick={checkCacheStatus}
-          variant="ghost"
-          size="sm"
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-md"
         >
           <RefreshCw className="h-4 w-4" />
           Recheck
-        </Button>
+        </button>
 
-        <Button
+        <button
           onClick={handleManualRefresh}
-          variant="ghost"
-          size="sm"
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-md"
         >
           <RefreshCw className="h-4 w-4" />
           Reload Page
-        </Button>
+        </button>
       </div>
 
       {/* Detailed Status */}
