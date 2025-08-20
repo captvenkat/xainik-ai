@@ -37,7 +37,7 @@ export async function createDonation(donationData: Omit<DonationInsert, 'id'>): 
     activity_type: 'donation_created',
     activity_data: { 
       donation_id: donation.id, 
-      amount_cents: donation.amount_cents,
+      amount_cents: donation.amount,
       is_anonymous: donation.is_anonymous 
     }
   });
@@ -142,7 +142,7 @@ export async function getDonationStats(): Promise<{
   
   // Calculate stats
   const totalDonations = allDonations.length;
-  const totalAmount = allDonations.reduce((sum, donation) => sum + donation.amount_cents, 0);
+  const totalAmount = allDonations.reduce((sum, donation) => sum + donation.amount, 0);
   const uniqueDonors = new Set(allDonations.filter(d => d.user_id).map(d => d.user_id)).size;
   const averageDonation = totalDonations > 0 ? totalAmount / totalDonations : 0;
   const recentDonations = allDonations.slice(0, 10);
@@ -179,7 +179,7 @@ export async function getDonationStatsByPeriod(days: number): Promise<{
   const periodDonations = donations || [];
   
   // Calculate period stats
-  const periodAmount = periodDonations.reduce((sum, donation) => sum + donation.amount_cents, 0);
+  const periodAmount = periodDonations.reduce((sum, donation) => sum + donation.amount, 0);
   const uniqueDonors = new Set(periodDonations.filter(d => d.user_id).map(d => d.user_id)).size;
   const periodAverage = periodDonations.length > 0 ? periodAmount / periodDonations.length : 0;
   
@@ -204,7 +204,7 @@ export async function getTopDonors(limit: number = 10): Promise<{
     .from('donations')
     .select(`
       user_id,
-      amount_cents,
+      amount,
       user:users (id, name, email)
     `)
     .not('user_id', 'is', null);
@@ -231,12 +231,12 @@ export async function getTopDonors(limit: number = 10): Promise<{
     const user = donation.user as any;
     
     if (existing) {
-      existing.total_amount += donation.amount_cents;
+      existing.total_amount += donation.amount;
       existing.donation_count += 1;
     } else {
       donorMap.set(donation.user_id, {
         user_id: donation.user_id,
-        total_amount: donation.amount_cents,
+        total_amount: donation.amount,
         donation_count: 1,
         user_name: user?.name || 'Anonymous',
         user_email: user?.email || 'unknown@example.com'
@@ -268,7 +268,7 @@ export function validateDonationAmount(amountCents: number): { valid: boolean; e
 
 export function validateDonationData(donationData: DonationInsert): { valid: boolean; error?: string } {
   // Validate amount
-  const amountValidation = validateDonationAmount(donationData.amount_cents);
+  const amountValidation = validateDonationAmount(donationData.amount);
   if (!amountValidation.valid) {
     return amountValidation;
   }
@@ -308,7 +308,7 @@ export async function generateDonationReceipt(donationId: string): Promise<{
     receipt_number: receiptNumber,
     donation_date: donation.created_at,
     donor_name: donation.is_anonymous ? 'Anonymous Donor' : 'Donor',
-    amount: donation.amount_cents / 100,
+    amount: donation.amount / 100,
     currency: donation.currency,
     payment_id: donation.razorpay_payment_id,
     is_anonymous: donation.is_anonymous

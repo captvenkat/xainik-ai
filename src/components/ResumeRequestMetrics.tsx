@@ -17,6 +17,7 @@ type ResumeRequestData = Database['public']['Tables']['resume_requests']['Row'] 
   company_name?: string
   veteran_name?: string
   pitch_title?: string
+  job_role?: string | null
 }
 
 export default function ResumeRequestMetrics({ 
@@ -121,7 +122,7 @@ export default function ResumeRequestMetrics({
     )
   }
 
-  const getStatusIcon = (status: string) => {
+  const getStatusIcon = (status: string | null) => {
     switch (status) {
       case 'PENDING':
         return <Clock className="w-4 h-4 text-yellow-500" />
@@ -134,7 +135,7 @@ export default function ResumeRequestMetrics({
     }
   }
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string | null) => {
     switch (status) {
       case 'PENDING':
         return 'text-yellow-600 bg-yellow-50'
@@ -231,7 +232,7 @@ export default function ResumeRequestMetrics({
                     {request.status}
                   </div>
                   <div className="text-xs text-gray-400 mt-1">
-                    {new Date(request.created_at).toLocaleDateString()}
+                    {request.created_at ? new Date(request.created_at).toLocaleDateString() : 'N/A'}
                   </div>
                 </div>
               </div>

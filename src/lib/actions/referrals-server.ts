@@ -4,7 +4,9 @@ import { createActionClient } from '@/lib/supabase-server'
 import { Database } from '@/types/live-schema'
 
 type Referral = Database['public']['Tables']['referrals']['Row']
-type ReferralEvent = Database['public']['Tables']['referral_events']['Row']
+// Note: referral_events table doesn't exist in live schema
+// type ReferralEvent = Database['public']['Tables']['referral_events']['Row']
+type ReferralEvent = any
 
 export async function createOrGetReferral(supporterUserId: string, pitchId: string): Promise<string> {
   const supabase = await createActionClient()
