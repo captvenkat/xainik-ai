@@ -45,10 +45,29 @@ export default function AIFirstPitchPage() {
   const router = useRouter()
 
   // Check if profile has required fields for pitch creation
+  // Note: location is in users table, phone is in users table
   const hasRequiredProfileFields = profile && profile.location && profile.phone
   const missingProfileFields: string[] = []
   if (!profile?.location) missingProfileFields.push('Location')
   if (!profile?.phone) missingProfileFields.push('Phone Number')
+
+  // Debug: Log profile data to understand what's available
+  useEffect(() => {
+    if (profile) {
+      console.log('🔍 Profile Debug Data:', {
+        id: profile.id,
+        name: profile.name,
+        email: profile.email,
+        location: profile.location,
+        phone: profile.phone,
+        avatar_url: profile.avatar_url,
+        role: profile.role,
+        hasLocation: !!profile.location,
+        hasPhone: !!profile.phone,
+        hasRequiredFields: hasRequiredProfileFields
+      })
+    }
+  }, [profile, hasRequiredProfileFields])
 
   // Auto-populate from profile data
   useEffect(() => {
@@ -57,7 +76,12 @@ export default function AIFirstPitchPage() {
       const autoTitle = `${profile.name} - Military Professional`
       setFormData(prev => ({ ...prev, title: autoTitle }))
     }
-  }, [profile, formData.title])
+    
+    // Auto-populate photo from profile if available
+    if (profile?.avatar_url && !formData.photo_url) {
+      setFormData(prev => ({ ...prev, photo_url: profile.avatar_url }))
+    }
+  }, [profile, formData.title, formData.photo_url])
 
   const updateFormData = useCallback((updates: Partial<AIPitchFormData>) => {
     setFormData(prev => ({ ...prev, ...updates }))
@@ -258,6 +282,11 @@ function AIStep({ formData, updateFormData, onNext }: any) {
         </div>
         <h2 className="text-2xl font-bold text-gray-900 mb-2">AI-Powered Pitch Creation</h2>
         <p className="text-gray-600">Let AI help you create a compelling pitch based on your military experience</p>
+        <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <p className="text-sm text-blue-800">
+            💡 <strong>Multiple Pitches Allowed:</strong> You can create different pitches for different job types or opportunities
+          </p>
+        </div>
       </div>
 
       <AIPitchHelper 
@@ -334,20 +363,32 @@ function DetailsStep({ formData, updateFormData, onNext, onBack, profile }: any)
 
 
 
-        {/* Photo Upload */}
+        {/* Photo Info */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Profile Photo (Optional)
+            Profile Photo
           </label>
-                         <SmartPhotoManager
-                 profilePhotoUrl={profile?.avatar_url || profile?.photo_url}
-                 pitchPhotoUrl={formData.photo_url}
-                 onPhotoChange={(photoUrl) => updateFormData({ photo_url: photoUrl })}
-                 className="w-full"
-               />
-          <p className="mt-1 text-xs text-gray-500">
-            Add a professional photo to make your pitch stand out
-          </p>
+          <div className="flex items-center space-x-4">
+            {formData.photo_url ? (
+              <img 
+                src={formData.photo_url} 
+                alt="Profile photo" 
+                className="w-16 h-16 rounded-lg object-cover border-2 border-gray-200"
+              />
+            ) : (
+              <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
+                <User className="w-8 h-8 text-gray-400" />
+              </div>
+            )}
+            <div>
+              <p className="text-sm text-gray-600">
+                Using photo from your profile
+              </p>
+              <p className="text-xs text-gray-500">
+                To change your photo, update it in your profile settings
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Resume Request */}
