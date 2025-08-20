@@ -56,9 +56,24 @@ async function processWebhookEvent(event: any): Promise<void> {
   try {
     console.log('Processing webhook event:', event.event, event.id);
 
-    // Note: payment_events_archive table doesn't exist in live schema
-    // Skip storing webhook event until table is created
-    const insertError = null
+    // Store webhook event for idempotency
+    const { error: insertError } = await supabaseAdmin
+      .from('payment_events')
+      .insert({
+        event_id: event.id,
+        payment_id: event.payload?.payment?.id || event.payload?.subscription?.id || 'unknown',
+        order_id: event.payload?.payment?.order_id || event.payload?.subscription?.id || 'unknown',
+        amount: event.payload?.payment?.amount || event.payload?.subscription?.amount || 0,
+        currency: event.payload?.payment?.currency || event.payload?.subscription?.currency || 'INR',
+        status: event.payload?.payment?.status || event.payload?.subscription?.status || 'unknown',
+        event_type: event.event,
+        notes: event.payload
+      });
+
+    if (insertError) {
+      console.error('Failed to store payment event:', insertError);
+      // Continue processing even if event storage fails
+    }
 
     // Handle specific event types
     switch (event.event) {
@@ -84,23 +99,172 @@ async function processWebhookEvent(event: any): Promise<void> {
 async function handlePaymentCaptured(payload: any): Promise<void> {
   console.log('Handling payment captured:', payload.payment?.id);
   
-  // Record donation if this is a donation payment
-  if (payload.payment?.notes?.type === 'donation') {
-    const { error } = await supabaseAdmin
-      .from('donations')
-      .insert({
-        razorpay_payment_id: payload.payment.id,
-        amount_cents: payload.payment.amount,
-        currency: payload.payment.currency,
-        user_id: null, // Anonymous donation
-        is_anonymous: payload.payment.notes?.anonymous === 'true',
-        created_at: new Date().toISOString()
-      });
+  const payment = payload.payment;
+  const notes = payment?.notes || {};
+  
+  try {
+    // Record donation if this is a donation payment
+    if (notes.type === 'donation') {
+      const { data: donation, error } = await supabaseAdmin
+        .from('donations')
+        .insert({
+          razorpay_payment_id: payment.id,
+          razorpay_order_id: payment.order_id,
+          amount: payment.amount,
+          currency: payment.currency,
+          user_id: notes.user_id || null, // Can be anonymous
+          is_anonymous: notes.is_anonymous === 'true',
+          status: 'completed',
+          payment_method: payment.method,
+          created_at: new Date().toISOString()
+        })
+        .select()
+        .single();
 
-    if (error) {
-      console.error('Failed to record donation:', error);
-      throw new Error('Failed to record donation');
+      if (error) {
+        console.error('Failed to record donation:', error);
+        throw new Error('Failed to record donation');
+      }
+
+      // Generate donation receipt
+      if (donation) {
+        await generateDonationReceipt(donation, notes);
+      }
     }
+    
+    // Record service payment if this is a service payment
+    else if (notes.type === 'service') {
+      const { data: invoice, error } = await supabaseAdmin
+        .from('invoices')
+        .insert({
+          razorpay_payment_id: payment.id,
+          razorpay_order_id: payment.order_id,
+          user_id: notes.user_id,
+          amount: payment.amount,
+          currency: payment.currency,
+          status: 'paid',
+          buyer_name: notes.buyer_name,
+          buyer_email: notes.buyer_email,
+          buyer_phone: notes.buyer_phone,
+          plan_tier: notes.plan_tier,
+          plan_meta: notes.plan_meta,
+          created_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Failed to record invoice:', error);
+        throw new Error('Failed to record invoice');
+      }
+
+      // Generate service invoice
+      if (invoice) {
+        await generateServiceInvoice(invoice, notes);
+      }
+    }
+    
+  } catch (error) {
+    console.error('Error handling payment captured:', error);
+    throw error;
+  }
+}
+
+async function generateDonationReceipt(donation: any, notes: any): Promise<void> {
+  try {
+    // Import receipt generation function
+    const { generateDonationReceipt } = await import('@/lib/billing/receipts');
+    
+    const receiptData = {
+      amount: donation.amount,
+      user_id: donation.user_id || 'anonymous',
+      currency: donation.currency,
+      payment_method: donation.payment_method,
+      razorpay_payment_id: donation.razorpay_payment_id,
+      donor_name: notes.donor_name,
+      is_anonymous: donation.is_anonymous,
+      metadata: notes
+    };
+
+    const receipt = await generateDonationReceipt(receiptData);
+    console.log('✅ Donation receipt generated:', receipt.receipt_number);
+    
+    // Send receipt email
+    await sendReceiptEmail(receipt, notes.donor_email);
+    
+  } catch (error) {
+    console.error('Error generating donation receipt:', error);
+  }
+}
+
+async function generateServiceInvoice(invoice: any, notes: any): Promise<void> {
+  try {
+    // Import invoice generation function
+    const { generateServiceInvoice } = await import('@/lib/billing/invoices');
+    
+    const invoiceData = {
+      amount: invoice.amount,
+      user_id: invoice.user_id,
+      currency: invoice.currency,
+      plan_tier: invoice.plan_tier,
+      plan_meta: invoice.plan_meta,
+      buyer_name: invoice.buyer_name,
+      buyer_email: invoice.buyer_email,
+      buyer_phone: invoice.buyer_phone,
+      razorpay_payment_id: invoice.razorpay_payment_id,
+      metadata: notes
+    };
+
+    const generatedInvoice = await generateServiceInvoice(invoiceData);
+    console.log('✅ Service invoice generated:', generatedInvoice.invoice_number);
+    
+    // Send invoice email
+    await sendInvoiceEmail(generatedInvoice, invoice.buyer_email);
+    
+  } catch (error) {
+    console.error('Error generating service invoice:', error);
+  }
+}
+
+async function sendReceiptEmail(receipt: any, email: string): Promise<void> {
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/send-email`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        to: email,
+        subject: `Donation Receipt - ${receipt.receipt_number}`,
+        template: 'receipt',
+        data: { receipt }
+      })
+    });
+    
+    if (response.ok) {
+      console.log('✅ Receipt email sent to:', email);
+    }
+  } catch (error) {
+    console.error('Error sending receipt email:', error);
+  }
+}
+
+async function sendInvoiceEmail(invoice: any, email: string): Promise<void> {
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/send-email`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        to: email,
+        subject: `Invoice - ${invoice.invoice_number}`,
+        template: 'invoice',
+        data: { invoice }
+      })
+    });
+    
+    if (response.ok) {
+      console.log('✅ Invoice email sent to:', email);
+    }
+  } catch (error) {
+    console.error('Error sending invoice email:', error);
   }
 }
 

@@ -3,9 +3,10 @@
 // Xainik Platform - Professional Billing & Invoicing
 // =====================================================
 
-import { createClient } from '@supabase/supabase-js'
-import fs from 'fs'
-import path from 'path'
+const { createClient } = require('@supabase/supabase-js')
+const fs = require('fs')
+const path = require('path')
+require('dotenv').config({ path: '.env.local' })
 
 // =====================================================
 // SUPABASE CLIENT
@@ -16,6 +17,8 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
 if (!supabaseUrl || !supabaseServiceKey) {
   console.error('❌ Missing Supabase environment variables')
+  console.error('NEXT_PUBLIC_SUPABASE_URL:', !!supabaseUrl)
+  console.error('SUPABASE_SERVICE_ROLE_KEY:', !!supabaseServiceKey)
   process.exit(1)
 }
 
