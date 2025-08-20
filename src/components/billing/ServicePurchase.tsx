@@ -59,11 +59,10 @@ const servicePlans: ServicePlan[] = [
       'All trial features',
       'Priority pitch placement',
       'Advanced analytics dashboard',
-      'Recruiter matching system',
       'Resume request tracking',
       'Performance insights',
       'Priority email support',
-      'Pitch optimization tools'
+      'Enhanced supporter management'
     ]
   },
   {
@@ -74,7 +73,6 @@ const servicePlans: ServicePlan[] = [
     features: [
       'All 30-day features',
       'Enhanced analytics with trends',
-      'Direct recruiter access',
       'Success tracking metrics',
       'Advanced supporter management',
       'Referral link analytics',
@@ -90,12 +88,11 @@ const servicePlans: ServicePlan[] = [
     features: [
       'All 60-day features',
       'Top priority placement',
-      'Personal success coach',
-      'Exclusive networking events',
-      'Custom pitch optimization',
       'Advanced performance insights',
-      'VIP recruiter matching',
-      'Dedicated account manager'
+      'Complete analytics suite',
+      'Maximum supporter connections',
+      'Premium support access',
+      'Extended pitch visibility'
     ]
   }
 ]
