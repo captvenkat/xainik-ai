@@ -3,22 +3,17 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
-import { FileText, Save, ArrowLeft, AlertCircle, CheckCircle, User, MapPin, Calendar, Phone, Mail, Linkedin, Award, Camera } from 'lucide-react'
+import { FileText, Save, ArrowLeft, AlertCircle, CheckCircle, User, MapPin, Calendar, Phone, Mail, Linkedin, Award, Camera, Briefcase, Info } from 'lucide-react'
 import Link from 'next/link'
 
+// EditPitchFormData Interface - Only fields that are actually editable
 interface EditPitchFormData {
   title: string
   pitch_text: string
   skills: string[]
   job_type: string
   availability: string
-  location: string
-  phone: string
-  linkedin_url: string
-  experience_years: number
   allow_resume_requests: boolean
-  resume_share_enabled: boolean
-  photo_url: string
 }
 
 const JOB_TYPES = [
@@ -39,19 +34,14 @@ export default function EditPitchPage({ params }: { params: Promise<{ id: string
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  // Initialize form data with only editable fields
   const [formData, setFormData] = useState<EditPitchFormData>({
     title: '',
     pitch_text: '',
     skills: [],
     job_type: '',
     availability: '',
-    location: '',
-    phone: '',
-    linkedin_url: '',
-    experience_years: 0,
-    allow_resume_requests: false,
-    resume_share_enabled: false,
-    photo_url: ''
+    allow_resume_requests: false
   })
   const router = useRouter()
 
@@ -73,20 +63,14 @@ export default function EditPitchPage({ params }: { params: Promise<{ id: string
       
       setPitch(pitchData)
       
-      // Initialize form data with pitch data
+      // Initialize form data with only editable fields
       setFormData({
         title: pitchData.title || '',
         pitch_text: pitchData.pitch_text || '',
         skills: pitchData.skills || [],
         job_type: pitchData.job_type || '',
         availability: pitchData.availability || '',
-        location: pitchData.location || '',
-        phone: pitchData.phone || '',
-        linkedin_url: pitchData.linkedin_url || '',
-        experience_years: pitchData.experience_years || 0,
-        allow_resume_requests: pitchData.allow_resume_requests || false,
-        resume_share_enabled: pitchData.resume_share_enabled || false,
-        photo_url: pitchData.photo_url || ''
+        allow_resume_requests: pitchData.allow_resume_requests || false
       })
     } catch (error) {
       console.error('Failed to fetch pitch details:', error)
@@ -139,6 +123,20 @@ export default function EditPitchPage({ params }: { params: Promise<{ id: string
     initializePage()
   }, [params, router, fetchPitchDetails])
 
+  // Update form data with only editable fields
+  useEffect(() => {
+    if (pitch) {
+      setFormData({
+        title: pitch.title || '',
+        pitch_text: pitch.pitch_text || '',
+        skills: pitch.skills || [],
+        job_type: pitch.job_type || '',
+        availability: pitch.availability || '',
+        allow_resume_requests: pitch.allow_resume_requests || false
+      })
+    }
+  }, [pitch])
+
   const updateFormData = useCallback((updates: Partial<EditPitchFormData>) => {
     setFormData(prev => ({ ...prev, ...updates }))
   }, [])
@@ -148,59 +146,56 @@ export default function EditPitchPage({ params }: { params: Promise<{ id: string
     updateFormData({ skills: skillsArray })
   }, [updateFormData])
 
+  // Form validation - only check editable fields
   const validateForm = useCallback(() => {
-    const errors = []
+    const missingFields: string[] = []
     
-    if (!formData.title.trim()) errors.push('Title')
-    if (!formData.pitch_text.trim()) errors.push('Pitch Description')
-    if (formData.skills.length === 0) errors.push('Skills')
-    if (!formData.job_type) errors.push('Job Type')
-    if (!formData.availability) errors.push('Availability')
-    if (!formData.location.trim()) errors.push('Location')
-    if (!formData.phone.trim()) errors.push('Phone')
+    if (!formData.title.trim()) missingFields.push('Title')
+    if (!formData.pitch_text.trim()) missingFields.push('Pitch Description')
+    if (!formData.skills.length || !formData.skills.some(skill => skill.trim())) missingFields.push('Skills')
+    if (!formData.job_type) missingFields.push('Job Type')
+    if (!formData.availability) missingFields.push('Availability')
     
-    return errors
+    return missingFields
   }, [formData])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSaving(true)
-    setError('')
-    setSuccess('')
+    setError(null)
+    setSuccess(null)
 
     try {
       const supabase = createSupabaseBrowser()
       
+      // Check authentication
       if (!user) {
         throw new Error('Authentication required')
       }
 
+      // Check if pitch exists
       if (!pitch) {
-        throw new Error('Pitch data not found')
+        throw new Error('Pitch not found')
       }
 
-      // Validate required fields
+      // Validate form
       const missingFields = validateForm()
       if (missingFields.length > 0) {
-        throw new Error(`Please complete the following fields: ${missingFields.join(', ')}`)
+        throw new Error(`Please fill in the following required fields: ${missingFields.join(', ')}`)
       }
 
-      // Update pitch data
+      // Update only editable fields
       const updateData = {
         title: formData.title.trim(),
         pitch_text: formData.pitch_text.trim(),
         skills: formData.skills.filter(skill => skill.trim()),
         job_type: formData.job_type,
         availability: formData.availability,
-        location: formData.location.trim(),
-        phone: formData.phone.trim(),
-        linkedin_url: formData.linkedin_url.trim(),
-        experience_years: formData.experience_years,
         allow_resume_requests: formData.allow_resume_requests,
-        resume_share_enabled: formData.resume_share_enabled,
-        photo_url: formData.photo_url,
         updated_at: new Date().toISOString()
       }
+
+      console.log('Updating pitch with data:', updateData)
 
       const { data: updatedPitch, error: updateError } = await supabase
         .from('pitches')
@@ -211,21 +206,20 @@ export default function EditPitchPage({ params }: { params: Promise<{ id: string
         .single()
 
       if (updateError) {
-        console.error('Pitch update error:', updateError)
-        throw new Error('Failed to update pitch')
+        console.error('Update error:', updateError)
+        throw new Error(`Failed to update pitch: ${updateError.message}`)
       }
 
       setSuccess('Pitch updated successfully!')
       setPitch(updatedPitch)
-      
+
       // Redirect to dashboard after a short delay
       setTimeout(() => {
         router.push('/dashboard/veteran')
       }, 2000)
 
-    } catch (error: any) {
-      console.error('Form submission error:', error)
-      setError(error.message || 'Failed to update pitch')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update pitch')
     } finally {
       setIsSaving(false)
     }
@@ -318,287 +312,213 @@ export default function EditPitchPage({ params }: { params: Promise<{ id: string
           </div>
         )}
 
-        {/* Edit Form */}
-        <div className="bg-white rounded-xl shadow-lg p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Basic Information */}
-            <div className="space-y-6">
-              <h3 className="text-lg font-medium text-gray-900 flex items-center gap-2">
-                <FileText className="h-5 w-5 text-blue-600" />
-                Basic Information
-              </h3>
-              
+        {/* Main Form */}
+        <form onSubmit={handleSubmit} className="space-y-8">
+          {/* Basic Information Section */}
+          <div className="bg-white rounded-lg p-6 border border-gray-200">
+            <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
+              <FileText className="h-5 w-5 text-blue-600" />
+              Basic Information
+            </h3>
+            <div className="space-y-4">
+              {/* Title */}
               <div>
                 <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
-                  Pitch Title *
+                  Pitch Title <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   id="title"
                   value={formData.title}
                   onChange={(e) => updateFormData({ title: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                  placeholder="e.g., Experienced Software Engineer with Military Background"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter your pitch title"
                   required
                 />
               </div>
 
+              {/* Pitch Description */}
               <div>
                 <label htmlFor="pitch_text" className="block text-sm font-medium text-gray-700 mb-2">
-                  Pitch Description *
+                  Pitch Description <span className="text-red-500">*</span>
                 </label>
                 <textarea
                   id="pitch_text"
-                  rows={4}
                   value={formData.pitch_text}
                   onChange={(e) => updateFormData({ pitch_text: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                  placeholder="Brief overview of your background, skills, and what you're looking for..."
+                  rows={6}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Describe your skills, experience, and what you're looking for"
                   required
                 />
               </div>
 
+              {/* Skills */}
               <div>
                 <label htmlFor="skills" className="block text-sm font-medium text-gray-700 mb-2">
-                  Skills (comma-separated) *
+                  Skills <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="text"
-                  id="skills"
-                  value={formData.skills.join(', ')}
-                  onChange={(e) => handleSkillsChange(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                  placeholder="e.g., JavaScript, React, Node.js, Leadership"
-                  required
-                />
+                                  <input
+                    type="text"
+                    id="skills"
+                    value={formData.skills.join(', ')}
+                    onChange={(e) => handleSkillsChange(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Enter skills separated by commas (e.g., Leadership, Project Management, Team Building)"
+                    required
+                  />
                 <p className="mt-1 text-xs text-gray-500">
                   Separate multiple skills with commas
                 </p>
               </div>
             </div>
+          </div>
 
-            {/* Job Preferences */}
-            <div className="space-y-6">
-              <h3 className="text-lg font-medium text-gray-900 flex items-center gap-2">
-                <Award className="h-5 w-5 text-blue-600" />
-                Job Preferences
-              </h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label htmlFor="job_type" className="block text-sm font-medium text-gray-700 mb-2">
-                    Job Type *
-                  </label>
-                  <select
-                    id="job_type"
-                    value={formData.job_type}
-                    onChange={(e) => updateFormData({ job_type: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                    required
-                  >
-                    <option value="">Select job type</option>
-                    {JOB_TYPES.map(type => (
-                      <option key={type} value={type}>
-                        {type.charAt(0).toUpperCase() + type.slice(1).replace('-', ' ')}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label htmlFor="availability" className="block text-sm font-medium text-gray-700 mb-2">
-                    Availability *
-                  </label>
-                  <select
-                    id="availability"
-                    value={formData.availability}
-                    onChange={(e) => updateFormData({ availability: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                    required
-                  >
-                    <option value="">Select availability</option>
-                    {AVAILABILITY_OPTIONS.map(option => (
-                      <option key={option} value={option}>{option}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
+          {/* Job Preferences Section */}
+          <div className="bg-white rounded-lg p-6 border border-gray-200">
+            <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
+              <Briefcase className="h-5 w-5 text-green-600" />
+              Job Preferences
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Job Type */}
               <div>
-                <label htmlFor="experience_years" className="block text-sm font-medium text-gray-700 mb-2">
-                  Years of Experience
+                <label htmlFor="job_type" className="block text-sm font-medium text-gray-700 mb-2">
+                  Job Type <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="number"
-                  id="experience_years"
-                  min="0"
-                  max="50"
-                  value={formData.experience_years}
-                  onChange={(e) => updateFormData({ experience_years: parseInt(e.target.value) || 0 })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                  placeholder="e.g., 5"
-                />
-              </div>
-            </div>
-
-            {/* Contact & Location */}
-            <div className="space-y-6">
-              <h3 className="text-lg font-medium text-gray-900 flex items-center gap-2">
-                <MapPin className="h-5 w-5 text-blue-600" />
-                Contact & Location
-              </h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-2">
-                    Location *
-                  </label>
-                  <input
-                    type="text"
-                    id="location"
-                    value={formData.location}
-                    onChange={(e) => updateFormData({ location: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                    placeholder="e.g., Bangalore, India"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
-                    Phone Number *
-                  </label>
-                  <input
-                    type="tel"
-                    id="phone"
-                    value={formData.phone}
-                    onChange={(e) => updateFormData({ phone: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                    placeholder="+91XXXXXXXXXX"
-                    required
-                  />
-                </div>
+                <select
+                  id="job_type"
+                  value={formData.job_type}
+                  onChange={(e) => updateFormData({ job_type: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                >
+                  <option value="">Select job type</option>
+                  {JOB_TYPES.map(type => (
+                    <option key={type} value={type}>
+                      {type.charAt(0).toUpperCase() + type.slice(1)}
+                    </option>
+                  ))}
+                </select>
               </div>
 
+              {/* Availability */}
               <div>
-                <label htmlFor="linkedin_url" className="block text-sm font-medium text-gray-700 mb-2">
-                  LinkedIn Profile URL
+                <label htmlFor="availability" className="block text-sm font-medium text-gray-700 mb-2">
+                  Availability <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="url"
-                  id="linkedin_url"
-                  value={formData.linkedin_url}
-                  onChange={(e) => updateFormData({ linkedin_url: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                  placeholder="https://linkedin.com/in/yourprofile"
-                />
+                <select
+                  id="availability"
+                  value={formData.availability}
+                  onChange={(e) => updateFormData({ availability: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                >
+                  <option value="">Select availability</option>
+                  {AVAILABILITY_OPTIONS.map(option => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
               </div>
-            </div>
-
-            {/* Resume Settings */}
-            <div className="space-y-6">
-              <h3 className="text-lg font-medium text-gray-900 flex items-center gap-2">
-                <FileText className="h-5 w-5 text-blue-600" />
-                Resume & Sharing Settings
-              </h3>
-              
-              <div className="space-y-4">
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id="allow_resume_requests"
-                    checked={formData.allow_resume_requests}
-                    onChange={(e) => updateFormData({ allow_resume_requests: e.target.checked })}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                  />
-                  <label htmlFor="allow_resume_requests" className="ml-2 block text-sm text-gray-700">
-                    Allow recruiters to request my resume
-                  </label>
-                </div>
-                <p className="ml-6 text-xs text-gray-500">
-                  When enabled, recruiters can click a button to request your resume and add a note explaining why they need it.
-                </p>
-
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id="resume_share_enabled"
-                    checked={formData.resume_share_enabled}
-                    onChange={(e) => updateFormData({ resume_share_enabled: e.target.checked })}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                  />
-                  <label htmlFor="resume_share_enabled" className="ml-2 block text-sm text-gray-700">
-                    Enable resume sharing
-                  </label>
-                </div>
-                <p className="ml-6 text-xs text-gray-500">
-                  Allow recruiters to view and download your resume directly from your pitch.
-                </p>
-              </div>
-            </div>
-
-            {/* Form Actions */}
-            <div className="flex gap-4 pt-6 border-t border-gray-200">
-              <button
-                type="submit"
-                disabled={isSaving || missingFields.length > 0}
-                className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                <Save className="w-5 h-5" />
-                {isSaving ? 'Saving...' : 'Save Changes'}
-              </button>
-              <Link
-                href="/dashboard/veteran"
-                className="flex items-center gap-2 bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300 transition-colors"
-              >
-                Cancel
-              </Link>
-            </div>
-
-            {/* Validation Message */}
-            {missingFields.length > 0 && (
-              <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <div className="flex items-center text-yellow-800">
-                  <AlertCircle className="w-5 h-5 mr-2" />
-                  <span className="text-sm">
-                    Please complete all required fields (marked with *) before saving: {missingFields.join(', ')}
-                  </span>
-                </div>
-              </div>
-            )}
-          </form>
-        </div>
-
-        {/* Pitch Status Info */}
-        <div className="mt-8 bg-blue-50 rounded-xl p-6">
-          <h3 className="text-lg font-semibold text-blue-900 mb-2">Pitch Status</h3>
-          <div className="space-y-2 text-sm text-blue-800">
-            <div className="flex justify-between">
-              <span>Status:</span>
-              <span className="font-medium">{pitch.is_active ? 'Active' : 'Inactive'}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Created:</span>
-              <span className="font-medium">{new Date(pitch.created_at).toLocaleDateString()}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Last Updated:</span>
-              <span className="font-medium">{pitch.updated_at ? new Date(pitch.updated_at).toLocaleDateString() : 'Never'}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Views:</span>
-              <span className="font-medium">{pitch.views_count || 0}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Likes:</span>
-              <span className="font-medium">{pitch.likes_count || 0}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Shares:</span>
-              <span className="font-medium">{pitch.shares_count || 0}</span>
             </div>
           </div>
-        </div>
+
+          {/* Resume Settings Section */}
+          <div className="bg-white rounded-lg p-6 border border-gray-200">
+            <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
+              <FileText className="h-5 w-5 text-purple-600" />
+              Resume Settings
+            </h3>
+            <div className="space-y-4">
+              {/* Allow Resume Requests */}
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="allow_resume_requests"
+                  checked={formData.allow_resume_requests}
+                  onChange={(e) => updateFormData({ allow_resume_requests: e.target.checked })}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <label htmlFor="allow_resume_requests" className="ml-2 block text-sm text-gray-700">
+                  Allow recruiters to request my resume
+                </label>
+              </div>
+              <p className="text-xs text-gray-500">
+                When enabled, recruiters can click a button to request your resume and add a note explaining why they need it.
+              </p>
+            </div>
+          </div>
+
+          {/* Pitch Status Info - Read Only */}
+          <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
+            <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
+              <Info className="h-5 w-5 text-gray-600" />
+              Pitch Status (Read Only)
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+              <div>
+                <span className="text-gray-500">Status:</span>
+                <div className="font-medium text-gray-900">
+                  {pitch?.is_active ? 'Active' : 'Inactive'}
+                </div>
+              </div>
+              <div>
+                <span className="text-gray-500">Created:</span>
+                <div className="font-medium text-gray-900">
+                  {pitch?.created_at ? new Date(pitch.created_at).toLocaleDateString() : 'N/A'}
+                </div>
+              </div>
+              <div>
+                <span className="text-gray-500">Views:</span>
+                <div className="font-medium text-gray-900">{pitch?.views_count || 0}</div>
+              </div>
+              <div>
+                <span className="text-gray-500">Likes:</span>
+                <div className="font-medium text-gray-900">{pitch?.likes_count || 0}</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Form Actions */}
+          <div className="flex justify-between items-center pt-6 border-t border-gray-200">
+            <button
+              type="button"
+              onClick={() => router.push('/dashboard/veteran')}
+              className="px-6 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+            >
+              Cancel
+            </button>
+            
+            <button
+              type="submit"
+              disabled={isSaving || missingFields.length > 0}
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+            >
+              {isSaving ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  Saving...
+                </>
+              ) : (
+                'Save Changes'
+              )}
+            </button>
+          </div>
+
+          {/* Validation message */}
+          {missingFields.length > 0 && (
+            <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <div className="flex items-center text-yellow-800">
+                <AlertCircle className="w-5 h-5 mr-2" />
+                <span className="text-sm">
+                  Please complete all required fields (marked with *) before saving.
+                </span>
+              </div>
+            </div>
+          )}
+        </form>
       </div>
     </div>
   )
