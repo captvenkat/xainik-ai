@@ -41,7 +41,8 @@ const servicePlans: ServicePlan[] = [
     recommended: true,
     features: [
       'Publish 1 active pitch',
-      'Invite up to 50 supporters',
+      'Send up to 50 supporter invitations',
+      'Connect with up to 25 supporters who accept',
       'Receive endorsements',
       'View pitch views and clicks',
       'Generate referral links',
@@ -57,7 +58,8 @@ const servicePlans: ServicePlan[] = [
     price: 399,
     features: [
       'Publish 1 active pitch',
-      'Invite up to 100 supporters',
+      'Send up to 100 supporter invitations',
+      'Connect with up to 50 supporters who accept',
       'Priority placement in search results',
       'View detailed analytics (views, clicks, calls, emails)',
       'Track resume requests from recruiters',
@@ -73,7 +75,8 @@ const servicePlans: ServicePlan[] = [
     price: 699,
     features: [
       'Publish 1 active pitch',
-      'Invite up to 200 supporters',
+      'Send up to 200 supporter invitations',
+      'Connect with up to 100 supporters who accept',
       'Enhanced analytics with 7-day and 30-day trends',
       'Track referral link performance by platform',
       'Priority placement in search results',
@@ -89,7 +92,8 @@ const servicePlans: ServicePlan[] = [
     price: 999,
     features: [
       'Publish 1 active pitch',
-      'Invite unlimited supporters',
+      'Send unlimited supporter invitations',
+      'Connect with unlimited supporters who accept',
       'Top priority placement in search results',
       'Complete analytics suite with all metrics',
       'Download comprehensive performance reports',
