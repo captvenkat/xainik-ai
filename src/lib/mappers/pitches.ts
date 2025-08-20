@@ -1,35 +1,12 @@
 import type { Database } from '@/types/live-schema'
-import type { FullPitchData } from '@/types/domain'
+import type { FullPitchData, PitchCardData } from '@/types/domain'
 
 export type RawPitchRow = Database['public']['Tables']['pitches']['Row'] & {
   users?: Database['public']['Tables']['users']['Row']
   endorsements?: Database['public']['Tables']['endorsements']['Row'][]
-  user_subscriptions?: Database['public']['Tables']['user_subscriptions']['Row'][]
 }
 
-export interface PitchCardData {
-  id: string
-  title: string
-  pitch_text: string
-  skills: string[]
-  location: string | null
-  job_type: string | null
-  availability: string | null
-  photo_url: string | null
-  experience_years: number | null
-  linkedin_url: string | null
-  resume_url: string | null
-  likes_count: number
-  views_count: number
-  created_at: string
-  user: {
-    id: string
-    name: string | null
-    email: string
-  } | null
-  endorsements_count: number
-  is_subscription_active: boolean
-}
+
 
 export function toPitchCardData(pitch: RawPitchRow): PitchCardData {
   return {
