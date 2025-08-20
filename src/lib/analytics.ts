@@ -82,7 +82,7 @@ export async function getSimpleMetricsData(veteranId: string) {
     const { data: resumeRequests } = await supabaseAction
       .from('resume_requests')
       .select('id, status, created_at')
-      .eq('veteran_id', veteranId)
+      .eq('user_id', veteranId)
 
     const totalResumeRequests = resumeRequests?.length || 0
     const pendingRequests = resumeRequests?.filter(r => r.status === 'PENDING').length || 0
