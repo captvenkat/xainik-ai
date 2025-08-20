@@ -357,6 +357,63 @@ async function generateReceiptNumber(): Promise<string> {
 }
 
 // =====================================================
+// INVOICE GENERATION - ENTERPRISE FEATURES
+// =====================================================
+
+export async function generateServiceInvoice(data: {
+  amount: number
+  user_id: string
+  currency?: string
+  plan_tier?: string
+  plan_meta?: any
+  buyer_name?: string
+  buyer_email?: string
+  buyer_phone?: string
+  razorpay_payment_id?: string
+  metadata?: any
+}): Promise<any> {
+  try {
+    const supabase = await createActionClient()
+    
+    // Generate invoice number
+    const invoiceNumber = await generateInvoiceNumber()
+    
+    const invoiceData = {
+      invoice_number: invoiceNumber,
+      amount_cents: data.amount,
+      currency: data.currency || 'INR',
+      status: 'paid',
+      payment_date: new Date().toISOString(),
+      payment_method: 'online',
+      razorpay_payment_id: data.razorpay_payment_id,
+      plan_tier: data.plan_tier,
+      plan_meta: data.plan_meta,
+      buyer_name: data.buyer_name,
+      buyer_email: data.buyer_email,
+      buyer_phone: data.buyer_phone,
+      metadata: data.metadata || {},
+      user_id: data.user_id
+    }
+
+    const { data: invoice, error } = await supabase
+      .from('invoices')
+      .insert(invoiceData)
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error generating invoice:', error)
+      throw new Error('Failed to generate invoice')
+    }
+
+    return invoice
+  } catch (error) {
+    console.error('Error in generateServiceInvoice:', error)
+    throw error
+  }
+}
+
+// =====================================================
 // EMAIL INTEGRATION - ENTERPRISE FEATURES
 // =====================================================
 

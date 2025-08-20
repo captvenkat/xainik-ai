@@ -176,7 +176,7 @@ async function generateDonationReceipt(donation: any, notes: any): Promise<void>
     const { generateDonationReceipt } = await import('@/lib/billing/receipts');
     
     const receiptData = {
-      amount: donation.amount,
+      amount_cents: donation.amount,
       user_id: donation.user_id || 'anonymous',
       currency: donation.currency,
       payment_method: donation.payment_method,

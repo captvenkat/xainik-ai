@@ -117,33 +117,57 @@ export type NotificationChannel = 'email' | 'in_app' | 'both';
 // MISSING TABLE TYPES (Added by sync fix)
 // =====================================================
 
-export type Veteran = Tables['veterans']['Row'];
-export type VeteranInsert = Tables['veterans']['Insert'];
-export type VeteranUpdate = Tables['veterans']['Update'];
+// Commented out due to tables not existing in live schema
+// export type Veteran = Tables['veterans']['Row'];
+// export type VeteranInsert = Tables['veterans']['Insert'];
+// export type VeteranUpdate = Tables['veterans']['Update'];
 
-export type Recruiter = Tables['recruiters']['Row'];
-export type RecruiterInsert = Tables['recruiters']['Insert'];
-export type RecruiterUpdate = Tables['recruiters']['Update'];
+// export type Recruiter = Tables['recruiters']['Row'];
+// export type RecruiterInsert = Tables['recruiters']['Insert'];
+// export type RecruiterUpdate = Tables['recruiters']['Update'];
 
-export type Supporter = Tables['supporters']['Row'];
-export type SupporterInsert = Tables['supporters']['Insert'];
-export type SupporterUpdate = Tables['supporters']['Update'];
+// export type Supporter = Tables['supporters']['Row'];
+// export type SupporterInsert = Tables['supporters']['Insert'];
+// export type SupporterUpdate = Tables['supporters']['Update'];
 
-export type Like = Tables['likes']['Row'];
-export type LikeInsert = Tables['likes']['Insert'];
-export type LikeUpdate = Tables['likes']['Update'];
+// export type Like = Tables['likes']['Row'];
+// export type LikeInsert = Tables['likes']['Insert'];
+// export type LikeUpdate = Tables['likes']['Update'];
 
-export type Share = Tables['shares']['Row'];
-export type ShareInsert = Tables['shares']['Insert'];
-export type ShareUpdate = Tables['shares']['Update'];
+// export type Share = Tables['shares']['Row'];
+// export type ShareInsert = Tables['shares']['Insert'];
+// export type ShareUpdate = Tables['shares']['Update'];
 
-export type CommunitySuggestion = Tables['community_suggestions']['Row'];
-export type CommunitySuggestionInsert = Tables['community_suggestions']['Insert'];
-export type CommunitySuggestionUpdate = Tables['community_suggestions']['Update'];
+// export type CommunitySuggestion = Tables['community_suggestions']['Row'];
+// export type CommunitySuggestionInsert = Tables['community_suggestions']['Insert'];
+// export type CommunitySuggestionUpdate = Tables['community_suggestions']['Update'];
 
-export type MissionInvitationSummary = Tables['mission_invitation_summary']['Row'];
-export type MissionInvitationSummaryInsert = Tables['mission_invitation_summary']['Insert'];
-export type MissionInvitationSummaryUpdate = Tables['mission_invitation_summary']['Update'];
+// export type MissionInvitationSummary = Tables['mission_invitation_summary']['Row'];
+// export type MissionInvitationSummaryInsert = Tables['mission_invitation_summary']['Insert'];
+// export type MissionInvitationSummaryUpdate = Tables['mission_invitation_summary']['Update'];
+
+// Placeholder types for compatibility
+export type Veteran = any;
+export type VeteranInsert = any;
+export type VeteranUpdate = any;
+export type Recruiter = any;
+export type RecruiterInsert = any;
+export type RecruiterUpdate = any;
+export type Supporter = any;
+export type SupporterInsert = any;
+export type SupporterUpdate = any;
+export type Like = any;
+export type LikeInsert = any;
+export type LikeUpdate = any;
+export type Share = any;
+export type ShareInsert = any;
+export type ShareUpdate = any;
+export type CommunitySuggestion = any;
+export type CommunitySuggestionInsert = any;
+export type CommunitySuggestionUpdate = any;
+export type MissionInvitationSummary = any;
+export type MissionInvitationSummaryInsert = any;
+export type MissionInvitationSummaryUpdate = any;
 
 // =====================================================
 // UPDATED COMPOSITE TYPES
