@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseServer } from '@/lib/supabaseServer'
+import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 
 export async function POST(request: NextRequest) {
   try {
@@ -62,10 +63,19 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createSupabaseServer()
+    // Get the authorization header
+    const authHeader = request.headers.get('authorization')
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+    }
+
+    const token = authHeader.replace('Bearer ', '')
     
-    // Get the current user
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    // Create supabase client with the token
+    const supabase = createSupabaseBrowser()
+    
+    // Set the session manually
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
     if (authError || !user) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }

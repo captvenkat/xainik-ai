@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { X, Mail, Copy, Check, MessageCircle, Users, Briefcase, Globe, Send, Sparkles, Target, Zap, ExternalLink, MessageSquare, Linkedin, Twitter, Facebook, Instagram, Youtube, Github } from 'lucide-react'
+import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 
 interface SharePitchModalProps {
   isOpen: boolean
@@ -327,14 +328,26 @@ ${userEmail.split('@')[0]}`,
 
   async function loadPitches() {
     try {
-      const response = await fetch('/api/share-pitch')
-      const data = await response.json()
+      const supabase = createSupabaseBrowser()
       
-      if (data.success) {
-        setPitches(data.pitches)
-        if (data.pitches.length > 0) {
-          setSelectedPitch(data.pitches[0].id)
-        }
+      // Get user's pitches that can be shared
+      const { data: pitches, error: pitchesError } = await supabase
+        .from('pitches')
+        .select('id, title, pitch_text, skills, job_type, availability, created_at')
+        .eq('user_id', userId)
+        .eq('is_active', true)
+        .order('created_at', { ascending: false })
+
+      if (pitchesError) {
+        console.error('Pitches fetch error:', pitchesError)
+        return
+      }
+
+      // Filter out null created_at and ensure type safety
+      const validPitches = (pitches || []).filter(pitch => pitch.created_at !== null) as Pitch[]
+      setPitches(validPitches)
+      if (validPitches.length > 0 && validPitches[0]) {
+        setSelectedPitch(validPitches[0].id)
       }
     } catch (error) {
       console.error('Failed to load pitches:', error)
