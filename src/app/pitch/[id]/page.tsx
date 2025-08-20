@@ -102,12 +102,12 @@ export default async function PitchDetailPage({
   const veteranYears = ''
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
         {/* Community Verification Badge */}
         {isVerified && (
-          <div className="mb-6 text-center">
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+          <div className="mb-8 text-center">
+            <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border border-green-200 shadow-sm">
               🛡️ Community Verified Veteran
             </span>
           </div>
@@ -125,13 +125,28 @@ export default async function PitchDetailPage({
           }}
         />
 
-        {/* Contribute */}
-        <div className="mt-8 card-glass p-6">
-          <div className="flex items-center justify-between flex-wrap gap-3">
-            <div className="text-gray-800 font-semibold">Support the platform</div>
-            <div className="flex items-center gap-3">
-              <a href="/donations" className="btn-secondary">Donate</a>
-              <a href="/support-the-mission" className="btn-primary">Become a Supporter</a>
+        {/* Support Section */}
+        <div className="mt-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-3xl p-8 md:p-12 text-white shadow-2xl">
+          <div className="max-w-4xl mx-auto text-center">
+            <h3 className="text-2xl md:text-3xl font-bold mb-4">
+              Support Our Mission
+            </h3>
+            <p className="text-blue-100 text-lg mb-8 max-w-2xl mx-auto">
+              Help us connect more veterans with meaningful opportunities. Your support enables us to maintain and expand this platform.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <a 
+                href="/donations" 
+                className="bg-white text-blue-600 hover:bg-blue-50 px-8 py-3 rounded-2xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+              >
+                Make a Donation
+              </a>
+              <a 
+                href="/support-the-mission" 
+                className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-blue-600 px-8 py-3 rounded-2xl font-semibold transition-all duration-300"
+              >
+                Become a Supporter
+              </a>
             </div>
           </div>
         </div>
