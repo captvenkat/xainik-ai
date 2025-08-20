@@ -16,7 +16,6 @@ interface AIPitchFormData {
   skills: string[]
   job_type: string
   availability: string
-  photo_url?: string
   allow_resume_requests?: boolean
 }
 
@@ -102,11 +101,7 @@ export default function AIFirstPitchPage() {
       setFormData(prev => ({ ...prev, title: autoTitle }))
     }
     
-    // Auto-populate photo from profile if available
-    if (profile?.avatar_url && !formData.photo_url) {
-      setFormData(prev => ({ ...prev, photo_url: profile.avatar_url }))
-    }
-  }, [profile, formData.title, formData.photo_url])
+  }, [profile, formData.title])
 
   const updateFormData = useCallback((updates: Partial<AIPitchFormData>) => {
     setFormData(prev => ({ ...prev, ...updates }))
@@ -184,7 +179,8 @@ export default function AIFirstPitchPage() {
         availability: formData.availability,
         location: profile.location || '', // Use profile location (already validated above)
         phone: profile.phone || '', // Add phone from profile
-        photo_url: formData.photo_url || '',
+        photo_url: profile.avatar_url || '', // Use profile photo
+
         linkedin_url: '',
         likes_count: 0,
         shares_count: 0,
@@ -410,33 +406,7 @@ function DetailsStep({ formData, updateFormData, onNext, onBack, profile }: any)
 
 
 
-        {/* Photo Info */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Profile Photo
-          </label>
-          <div className="flex items-center space-x-4">
-            {formData.photo_url ? (
-              <img 
-                src={formData.photo_url} 
-                alt="Profile photo" 
-                className="w-16 h-16 rounded-lg object-cover border-2 border-gray-200"
-              />
-            ) : (
-              <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
-                <User className="w-8 h-8 text-gray-400" />
-              </div>
-            )}
-            <div>
-              <p className="text-sm text-gray-600">
-                Using photo from your profile
-              </p>
-              <p className="text-xs text-gray-500">
-                To change your photo, update it in your profile settings
-              </p>
-            </div>
-          </div>
-        </div>
+
 
         {/* Resume Request */}
         <div className="flex items-center">
@@ -676,19 +646,7 @@ function ReviewStep({ formData, profile, onNext, onBack, isLoading, error, succe
           <h3 className="font-semibold text-gray-900 mb-2">Pitch Information</h3>
           <div className="space-y-4">
             
-            {/* Photo Preview */}
-            {formData.photo_url && (
-              <div>
-                <span className="text-gray-600 text-sm">Profile Photo:</span>
-                <div className="mt-2">
-                  <img 
-                    src={formData.photo_url} 
-                    alt="Profile preview" 
-                    className="w-20 h-20 rounded-lg object-cover border-2 border-gray-200"
-                  />
-                </div>
-              </div>
-            )}
+
             <div>
               <span className="text-gray-600 text-sm">Title:</span>
               <p className="font-medium">{formData.title || 'Not set'}</p>
