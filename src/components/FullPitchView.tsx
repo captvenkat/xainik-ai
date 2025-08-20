@@ -337,14 +337,14 @@ export default function FullPitchView({ pitch, currentUserId }: FullPitchViewPro
           </div>
 
           {/* Bio Section */}
-          {user?.bio && (
+          {pitch.veterans?.[0]?.intro && (
             <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm">
               <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
                 <User className="h-5 w-5 text-green-500" />
                 About {veteranName}
               </h3>
               <div className="prose prose-gray max-w-none">
-                <p className="text-gray-700 leading-relaxed text-lg">{user.bio}</p>
+                <p className="text-gray-700 leading-relaxed text-lg">{pitch.veterans[0].intro}</p>
               </div>
             </div>
           )}

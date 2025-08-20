@@ -109,6 +109,7 @@ export function toFullPitchData(pitch: RawPitchRow): FullPitchData {
         phone_verified: null
       }
     })) || [],
+    veterans: (pitch as any).veterans || [],
     metadata: (pitch as any).metadata || {}
   }
 }
