@@ -11,7 +11,8 @@ import {
   Calendar,
   TrendingUp,
   CheckCircle,
-  ExternalLink
+  ExternalLink,
+  Users
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -42,6 +43,7 @@ export default function ShareablePitchCard({
     likes_count,
     views_count,
     endorsements_count,
+    supporters_count,
     user
   } = data
 
@@ -159,7 +161,7 @@ export default function ShareablePitchCard({
 
         {/* Stats - Modern Card Design */}
         {showStats && (
-          <div className="grid grid-cols-3 gap-3 mb-6 p-4 bg-gradient-to-r from-gray-50 to-blue-50 rounded-2xl border border-gray-100">
+          <div className="grid grid-cols-4 gap-2 mb-6 p-4 bg-gradient-to-r from-gray-50 to-blue-50 rounded-2xl border border-gray-100">
             <div className="text-center">
               <div className="flex items-center justify-center gap-1 mb-1">
                 <Eye className="h-4 w-4 text-blue-500" />
@@ -180,6 +182,13 @@ export default function ShareablePitchCard({
                 <span className="text-lg font-bold text-gray-900">{endorsements_count}</span>
               </div>
               <div className="text-xs text-gray-500 font-medium">Endorsed</div>
+            </div>
+            <div className="text-center">
+              <div className="flex items-center justify-center gap-1 mb-1">
+                <Users className="h-4 w-4 text-purple-500" />
+                <span className="text-lg font-bold text-gray-900">{supporters_count}</span>
+              </div>
+              <div className="text-xs text-gray-500 font-medium">Supporters</div>
             </div>
           </div>
         )}
