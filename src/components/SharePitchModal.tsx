@@ -12,9 +12,10 @@ interface SharePitchModalProps {
 interface Pitch {
   id: string
   title: string
-  content: string
+  pitch_text: string
   skills: string[]
-  experience: string
+  job_type: string
+  availability: string
   created_at: string
 }
 
@@ -154,9 +155,9 @@ export default function SharePitchModal({ isOpen, onClose, userId }: SharePitchM
       platforms: platforms.filter(p => ['linkedin', 'email', 'telegram'].includes(p.id)),
       autoMessage: (pitch, userEmail) => `Hi [Recruiter Name],
 
-I'm a military veteran with ${pitch.experience} of experience in ${pitch.skills?.slice(0, 3).join(', ')}. I led teams of 15+ people, managed $2M+ budgets, and delivered projects under pressure.
+I'm a military veteran with expertise in ${pitch.skills?.slice(0, 3).join(', ')}. I led teams of 15+ people, managed $2M+ budgets, and delivered projects under pressure.
 
-I can start in 2 weeks. My pitch: [PITCH_LINK]
+I'm available for ${pitch.availability} ${pitch.job_type} opportunities. My pitch: [PITCH_LINK]
 
 I want to discuss how I can solve your hiring needs.
 
@@ -190,11 +191,11 @@ ${userEmail.split('@')[0]}`,
       platforms: platforms.filter(p => ['whatsapp', 'telegram', 'email', 'linkedin'].includes(p.id)),
       autoMessage: (pitch, userEmail) => `Hi [Supporter Name],
 
-I'm a military veteran with ${pitch.experience} of experience in ${pitch.skills?.slice(0, 2).join(' and ')}. I'm looking for opportunities.
+I'm a military veteran with expertise in ${pitch.skills?.slice(0, 2).join(' and ')}. I'm looking for ${pitch.job_type} opportunities.
 
-Can you share this with your network? [PITCH_LINK]
+I'm available ${pitch.availability}. Can you share this with your network? [PITCH_LINK]
 
-I can start in 2 weeks. I led teams, managed budgets, and delivered results.
+I led teams, managed budgets, and delivered results.
 
 ${userEmail.split('@')[0]}`,
       customFields: [
@@ -220,11 +221,11 @@ ${userEmail.split('@')[0]}`,
       platforms: platforms.filter(p => ['linkedin', 'twitter', 'whatsapp', 'telegram', 'facebook'].includes(p.id)),
       autoMessage: (pitch, userEmail) => `Hi,
 
-I'm a military veteran with ${pitch.experience} of experience in ${pitch.skills?.slice(0, 2).join(' and ')}. I'm looking for opportunities.
+I'm a military veteran with expertise in ${pitch.skills?.slice(0, 2).join(' and ')}. I'm looking for ${pitch.job_type} opportunities.
 
-My pitch: [PITCH_LINK]
+I'm available ${pitch.availability}. My pitch: [PITCH_LINK]
 
-I can start in 2 weeks. I led teams, managed budgets, and delivered projects.
+I led teams, managed budgets, and delivered projects.
 
 ${userEmail.split('@')[0]}`,
       customFields: [
@@ -244,9 +245,9 @@ ${userEmail.split('@')[0]}`,
       platforms: platforms.filter(p => ['linkedin', 'email', 'telegram'].includes(p.id)),
       autoMessage: (pitch, userEmail) => `Hi [Hiring Manager],
 
-I'm a military veteran with ${pitch.experience} of experience in ${pitch.skills?.slice(0, 3).join(', ')}. I led teams of 20+ people, managed $5M+ budgets, and delivered results under pressure.
+I'm a military veteran with expertise in ${pitch.skills?.slice(0, 3).join(', ')}. I led teams of 20+ people, managed $5M+ budgets, and delivered results under pressure.
 
-I can start in 2 weeks. My pitch: [PITCH_LINK]
+I'm available for ${pitch.availability} ${pitch.job_type} opportunities. My pitch: [PITCH_LINK]
 
 I want to discuss how I can solve your team's challenges.
 
@@ -280,9 +281,9 @@ ${userEmail.split('@')[0]}`,
       platforms: platforms.filter(p => ['linkedin', 'email', 'whatsapp', 'telegram', 'facebook'].includes(p.id)),
       autoMessage: (pitch, userEmail) => `Hi [Contact Name],
 
-I'm a military veteran with ${pitch.experience} of experience in ${pitch.skills?.slice(0, 3).join(', ')}. I'm available for contract work.
+I'm a military veteran with expertise in ${pitch.skills?.slice(0, 3).join(', ')}. I'm available for ${pitch.job_type} work.
 
-I led teams, managed budgets, and delivered projects. I can start in 2 weeks.
+I'm available ${pitch.availability}. I led teams, managed budgets, and delivered projects.
 
 My pitch: [PITCH_LINK]
 
