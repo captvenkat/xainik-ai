@@ -27,65 +27,75 @@ const servicePlans: ServicePlan[] = [
       'Access to dashboard',
       'Create pitches (not published)',
       'Basic platform experience',
-      'No supporter invitations'
+      'View pitch analytics (limited)',
+      'No supporter invitations',
+      'No pitch publishing'
     ]
   },
   {
     id: 'trial',
     name: '7-Day Trial',
     description: 'Full access for 7 days to test all features',
-    price: 1,
+    price: 49,
     popular: true,
     recommended: true,
     features: [
       'Create and publish pitches',
-      'Invite supporters',
+      'Invite unlimited supporters',
       'Full dashboard access',
-      'Pitch analytics',
+      'Complete pitch analytics',
       'Supporter connections',
-      'Email support'
+      'Email support',
+      'Pitch sharing and referrals',
+      'Endorsement system access'
     ]
   },
   {
     id: '30days',
     name: '30 Days',
     description: 'One month of full platform access',
-    price: 999,
+    price: 399,
     features: [
-      'Create and publish pitches',
-      'Invite unlimited supporters',
-      'Full analytics dashboard',
-      'Priority support',
-      'Pitch optimization tools',
-      'Recruiter matching'
+      'All trial features',
+      'Priority pitch placement',
+      'Advanced analytics dashboard',
+      'Recruiter matching system',
+      'Resume request tracking',
+      'Performance insights',
+      'Priority email support',
+      'Pitch optimization tools'
     ]
   },
   {
     id: '60days',
     name: '60 Days',
     description: 'Two months of premium access',
-    price: 1799,
+    price: 699,
     features: [
       'All 30-day features',
-      'Advanced analytics',
-      'Performance insights',
-      'Priority placement',
+      'Enhanced analytics with trends',
       'Direct recruiter access',
-      'Success tracking'
+      'Success tracking metrics',
+      'Advanced supporter management',
+      'Referral link analytics',
+      'Priority placement in searches',
+      'Dedicated support channel'
     ]
   },
   {
     id: '90days',
     name: '90 Days',
     description: 'Three months of complete access',
-    price: 2499,
+    price: 999,
     features: [
       'All 60-day features',
       'Top priority placement',
-      'Dedicated support',
       'Personal success coach',
-      'Exclusive networking',
-      'Custom pitch optimization'
+      'Exclusive networking events',
+      'Custom pitch optimization',
+      'Advanced performance insights',
+      'VIP recruiter matching',
+      'Dedicated account manager'
     ]
   }
 ]
@@ -250,7 +260,7 @@ export default function ServicePurchase({ userId }: { userId: string }) {
           Choose Your Plan
         </h2>
         <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-          Start with our free plan to experience the platform, then upgrade to unlock full features and publish your pitch.
+          Start free, try for ₹49, then unlock premium features to accelerate your career transition.
         </p>
       </div>
 
@@ -293,8 +303,8 @@ export default function ServicePurchase({ userId }: { userId: string }) {
                   <span className="text-4xl font-bold text-gray-900">₹{plan.price}</span>
                   <span className="text-gray-600">
                     {plan.id === 'trial' ? '/7 days' : 
-                     plan.id === '30days' ? '/30 days' :
-                     plan.id === '60days' ? '/60 days' : '/90 days'}
+                     plan.id === '30days' ? '/month' :
+                     plan.id === '60days' ? '/2 months' : '/3 months'}
                   </span>
                 </>
               )}
