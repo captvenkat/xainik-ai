@@ -139,11 +139,11 @@ export default function PhotoUpload({
       </div>
 
       {/* Photo Actions */}
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2 min-w-[120px]">
         {/* Upload New Photo */}
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          className="flex items-center justify-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
         >
           <Upload className="w-4 h-4" />
           Upload Photo
@@ -153,7 +153,7 @@ export default function PhotoUpload({
         {profilePhotoUrl && !isCustomPhoto && (
           <button
             onClick={handleUseProfilePhoto}
-            className="flex items-center justify-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+            className="flex items-center justify-center gap-2 px-3 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm"
           >
             <User className="w-4 h-4" />
             Use Profile Photo
@@ -164,11 +164,11 @@ export default function PhotoUpload({
         {currentPhotoUrl && (
           <button
             onClick={handleRemovePhoto}
-            className="flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+            className="flex items-center justify-center gap-2 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
           >
             <X className="w-4 h-4" />
             Remove Photo
-          </button>
+        </button>
         )}
 
         {/* Hidden File Input */}
