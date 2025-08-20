@@ -36,7 +36,7 @@ const servicePlans: ServicePlan[] = [
     id: 'trial',
     name: '7-Day Trial',
     description: 'Full access for 7 days to test everything',
-    price: 49,
+    price: 99,
     popular: true,
     recommended: true,
     features: [
@@ -54,8 +54,8 @@ const servicePlans: ServicePlan[] = [
   {
     id: '30days',
     name: '30 Days',
-    description: 'One month of full platform access',
-    price: 399,
+    description: 'One month of premium platform access',
+    price: 499,
     features: [
       'Publish 1 active pitch',
       'Send up to 100 supporter invitations',
@@ -72,7 +72,7 @@ const servicePlans: ServicePlan[] = [
     id: '60days',
     name: '60 Days',
     description: 'Two months of premium access',
-    price: 699,
+    price: 799,
     features: [
       'Publish 1 active pitch',
       'Send up to 200 supporter invitations',
@@ -88,7 +88,7 @@ const servicePlans: ServicePlan[] = [
   {
     id: '90days',
     name: '90 Days',
-    description: 'Three months of complete access',
+    description: 'Three months of complete premium access',
     price: 999,
     features: [
       'Publish 1 active pitch',
@@ -261,10 +261,10 @@ export default function ServicePurchase({ userId }: { userId: string }) {
       {/* Header */}
       <div className="text-center">
         <h2 className="text-3xl font-bold text-gray-900 mb-4">
-          Choose Your Plan
+          Choose Your Premium Plan
         </h2>
         <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-          Start free, try for ₹49, then unlock premium features to accelerate your career transition.
+          Premium platform for veterans in high need. First 50 veterans get FREE trial - join the waitlist now.
         </p>
       </div>
 
