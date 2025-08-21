@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     // Check if email already exists in waitlist
     const { data: existingUser } = await supabase
       .from('users')
-      .select('id, metadata')
+      .select('id, metadata, role')
       .eq('email', body.email)
       .single()
 
@@ -35,6 +35,22 @@ export async function POST(request: NextRequest) {
       if (waitlistStatus && waitlistStatus !== 'expired') {
         return NextResponse.json(
           { error: 'You are already on the waitlist' },
+          { status: 400 }
+        )
+      }
+
+      // Check if user already has a Google Auth account with a role
+      if (existingUser.role && existingUser.role !== 'veteran') {
+        return NextResponse.json(
+          { error: 'You already have an account. Please sign in with Google instead.' },
+          { status: 400 }
+        )
+      }
+
+      // If user has Google Auth but no role, they should use Google Auth instead
+      if (existingUser.id && !existingUser.role) {
+        return NextResponse.json(
+          { error: 'You already have an account. Please sign in with Google to complete your registration.' },
           { status: 400 }
         )
       }

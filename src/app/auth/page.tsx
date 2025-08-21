@@ -116,6 +116,29 @@ function AuthPageContent() {
           </p>
         </div>
 
+        {/* Veteran Notice */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="flex items-start">
+            <svg className="h-5 w-5 text-blue-600 mt-0.5 mr-3 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>
+            </svg>
+            <div>
+              <h3 className="text-sm font-semibold text-blue-900 mb-1">
+                Military Veterans
+              </h3>
+              <p className="text-sm text-blue-700 mb-2">
+                Join our exclusive waitlist for priority access and special benefits.
+              </p>
+              <a 
+                href="/waitlist" 
+                className="text-sm text-blue-600 hover:text-blue-800 font-medium underline"
+              >
+                Join Veteran Waitlist →
+              </a>
+            </div>
+          </div>
+        </div>
+
         {/* Error Display */}
         {(error || authError) && (
           <div className="bg-red-50 border border-red-200 rounded-md p-4">

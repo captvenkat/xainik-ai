@@ -122,13 +122,60 @@ export default function AuthCallbackPage() {
         // Check if user already has a role set
         const { data: existingUser, error: userError } = await supabase
           .from('users')
-          .select('role')
+          .select('role, metadata')
           .eq('id', session.user.id)
           .single();
 
         if (userError) {
-          console.log('AuthCallback: User not found in database, will create new user');
-          // User doesn't exist in our database yet, they need to select a role
+          console.log('AuthCallback: User not found in database, checking waitlist...');
+          
+          // Check if user exists in waitlist (by email)
+          const { data: waitlistUser } = await supabase
+            .from('users')
+            .select('id, role, metadata')
+            .eq('email', session.user.email)
+            .single();
+
+          if (waitlistUser) {
+            console.log('AuthCallback: Found waitlist user, linking accounts...');
+            
+            // Link the Google Auth account to the existing waitlist user
+            const { error: linkError } = await supabase
+              .from('users')
+              .update({ 
+                id: session.user.id, // Update to use Google Auth ID
+                email_verified: true,
+                last_login_at: new Date().toISOString()
+              })
+              .eq('id', waitlistUser.id);
+
+            if (linkError) {
+              console.error('AuthCallback: Error linking accounts:', linkError);
+              setError('Failed to link accounts. Please contact support.');
+              setStatus('error');
+              clearTimeout(timeoutId);
+              return;
+            }
+
+            // User is now linked, proceed to veteran dashboard
+            setStatus('success');
+            const redirectPath = sessionStorage.getItem('auth_redirect') || '/dashboard/veteran';
+            sessionStorage.removeItem('auth_redirect');
+            
+            // Clear any hash fragments from the URL
+            if (typeof window !== 'undefined') {
+              window.history.replaceState(null, '', window.location.pathname);
+            }
+            
+            console.log('AuthCallback: Redirecting waitlist veteran to:', redirectPath);
+            clearTimeout(timeoutId);
+            setTimeout(() => {
+              router.push(redirectPath);
+            }, 1000);
+            return;
+          }
+
+          // User doesn't exist in database or waitlist, they need to select a role
           setUserEmail(session.user.email || '');
           setStatus('role-selection');
           
@@ -142,6 +189,22 @@ export default function AuthCallbackPage() {
 
         if (existingUser?.role) {
           console.log('AuthCallback: User has role:', existingUser.role);
+          
+          // Check if user is a waitlist veteran
+          const isWaitlistVeteran = existingUser.metadata?.waitlist_status && existingUser.role === 'veteran';
+          
+          if (isWaitlistVeteran) {
+            console.log('AuthCallback: Waitlist veteran logging in');
+            // Update last login for waitlist veterans
+            await supabase
+              .from('users')
+              .update({ 
+                last_login_at: new Date().toISOString(),
+                email_verified: true
+              })
+              .eq('id', session.user.id);
+          }
+          
           // User already has a role, proceed to dashboard
           setStatus('success');
           const redirectPath = sessionStorage.getItem('auth_redirect') || `/dashboard/${existingUser.role}`;

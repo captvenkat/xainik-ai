@@ -13,20 +13,12 @@ interface RoleSelectionModalProps {
 
 const roles = [
   {
-    id: 'veteran',
-    title: 'Veteran',
-    description: 'I am a military veteran looking for civilian opportunities',
-    icon: Shield,
-    color: 'bg-blue-500',
-    features: ['Create professional pitches', 'Get endorsed by supporters', 'Connect with recruiters']
-  },
-  {
     id: 'recruiter',
     title: 'Recruiter',
     description: 'I am a recruiter looking to hire talented veterans',
     icon: Building,
     color: 'bg-green-500',
-            features: ['Browse veteran pitches', 'Request resumes', 'Post job opportunities']
+    features: ['Browse veteran pitches', 'Request resumes', 'Post job opportunities']
   },
   {
     id: 'supporter',
@@ -123,7 +115,28 @@ export default function RoleSelectionModal({ isOpen, onClose, onRoleSelected, us
             </p>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-3">
+          {/* Veteran Notice */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <div className="flex items-start">
+              <Shield className="h-5 w-5 text-blue-600 mt-0.5 mr-3 flex-shrink-0" />
+              <div>
+                <h3 className="text-sm font-semibold text-blue-900 mb-1">
+                  Are you a Military Veteran?
+                </h3>
+                <p className="text-sm text-blue-700 mb-2">
+                  Veterans should join our exclusive waitlist for priority access and special benefits.
+                </p>
+                <a 
+                  href="/waitlist" 
+                  className="text-sm text-blue-600 hover:text-blue-800 font-medium underline"
+                >
+                  Join Veteran Waitlist →
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
             {roles.map((role) => {
               const IconComponent = role.icon
               return (
