@@ -180,6 +180,7 @@ export async function getAllDonations(): Promise<Donation[]> {
     .from('donations')
     .select('*')
     .order('created_at', { ascending: false })
+    .limit(5) // Limit to 5 most recent donations
   
   if (error) {
     console.error('Error getting all donations:', error)
