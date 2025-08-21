@@ -1,59 +1,61 @@
-import { NextResponse } from 'next/server';
-import { createSupabaseServerOnly } from '@/lib/supabaseServerOnly';
+import { NextRequest, NextResponse } from 'next/server'
+import { createSupabaseServerOnly } from '@/lib/supabaseServerOnly'
 
 export async function GET() {
   try {
-    const supabase = await createSupabaseServerOnly();
+    console.log('🔍 Testing authentication...')
     
-    // Test basic connection
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const supabase = await createSupabaseServerOnly()
     
-    if (authError) {
+    // Check authentication
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    
+    console.log('🔍 Auth result:', { user: user?.id, error: authError?.message })
+    
+    if (authError || !user) {
       return NextResponse.json({ 
-        success: false, 
-        error: 'Auth error', 
-        details: authError.message 
-      }, { status: 401 });
+        error: 'Unauthorized', 
+        details: authError?.message || 'No user found',
+        timestamp: new Date().toISOString()
+      }, { status: 401 })
     }
-    
-    if (!user) {
-      return NextResponse.json({ 
-        success: false, 
-        error: 'No user found' 
-      }, { status: 401 });
-    }
-    
-    // Test database access
+
+    // Check if user is a recruiter
     const { data: profile, error: profileError } = await supabase
       .from('users')
-      .select('id, email, role, created_at')
+      .select('role, name')
       .eq('id', user.id)
-      .single();
-    
+      .single()
+
+    console.log('🔍 Profile result:', { profile, error: profileError?.message })
+
     if (profileError) {
       return NextResponse.json({ 
-        success: false, 
-        error: 'Profile error', 
-        details: profileError.message 
-      }, { status: 500 });
+        error: 'Profile fetch failed', 
+        details: profileError.message,
+        timestamp: new Date().toISOString()
+      }, { status: 500 })
     }
-    
-    return NextResponse.json({
-      success: true,
-      user: {
-        id: user.id,
-        email: user.email,
-        role: profile?.role,
-        created_at: profile?.created_at
-      },
-      message: 'Authentication successful'
-    });
-    
-  } catch (error) {
+
+    if (profile?.role !== 'recruiter') {
+      return NextResponse.json({ 
+        error: 'Forbidden', 
+        details: `User role is ${profile?.role}, expected recruiter`,
+        timestamp: new Date().toISOString()
+      }, { status: 403 })
+    }
+
     return NextResponse.json({ 
-      success: false, 
-      error: 'Unexpected error', 
-      details: error instanceof Error ? error.message : 'Unknown error' 
-    }, { status: 500 });
+      success: true, 
+      user: { id: user.id, role: profile.role, name: profile.name },
+      timestamp: new Date().toISOString()
+    })
+  } catch (error) {
+    console.error('🔍 Test auth error:', error)
+    return NextResponse.json({ 
+      error: 'Internal server error', 
+      details: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString()
+    }, { status: 500 })
   }
 }

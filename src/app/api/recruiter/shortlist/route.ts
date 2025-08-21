@@ -4,11 +4,17 @@ import { createSupabaseServerOnly } from '@/lib/supabaseServerOnly'
 // GET: Retrieve recruiter's shortlist
 export async function GET() {
   try {
+    console.log('🔍 Shortlist API: Starting authentication check...')
+    
     const supabase = await createSupabaseServerOnly()
     
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser()
+    
+    console.log('🔍 Shortlist API: Auth result:', { user: user?.id, error: authError?.message })
+    
     if (authError || !user) {
+      console.log('🔍 Shortlist API: Authentication failed')
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
