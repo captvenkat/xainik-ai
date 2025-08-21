@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { createDonation } from '@/lib/actions/donations-server'
 import { logActivity } from '@/lib/actions/analytics-server'
 import { sendDonationReceipt } from '@/lib/email'
+import { downloadReceipt } from '@/lib/receipts'
 import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 import { Heart, Loader2 } from 'lucide-react'
 
@@ -108,8 +109,23 @@ export default function DonationForm() {
                   }
                 })
 
+                // Generate and download receipt
+                const receiptNumber = `RCP-${new Date().getFullYear()}-${response.razorpay_payment_id.slice(-8).toUpperCase()}`
+                const currentDate = new Date().toLocaleDateString('en-IN')
+                const financialYear = new Date().getFullYear() + '-' + (new Date().getFullYear() + 1).toString().slice(-2)
+                
+                downloadReceipt({
+                  receiptNumber,
+                  donorName: formData.anonymous ? 'Anonymous Donor' : formData.donor_name,
+                  donorEmail: formData.email,
+                  amount: amount,
+                  transactionId: response.razorpay_payment_id,
+                  donationDate: currentDate,
+                  financialYear: financialYear
+                })
+                
                 // Show success message
-                alert('Thank you for your donation! Your contribution will help veterans find meaningful opportunities.')
+                alert('Thank you for your donation! Your Section 80G receipt has been downloaded. Your contribution will help veterans find meaningful opportunities.')
                 
                 // Reset form
                 setFormData({
