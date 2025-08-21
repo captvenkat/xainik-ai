@@ -23,27 +23,120 @@ export default function FOMOTicker() {
     async function loadFOMOEvents() {
       try {
         const supabase = createSupabaseBrowser()
+        const realEvents: FOMOEvent[] = []
         
-        // Note: activity_log table doesn't exist in live schema
-        // Get recent activity events
-        // const { data: recentEvents } = await supabase
-        //   .from('activity_log')
-        //   .select('*')
-        //   .order('created_at', { ascending: false })
-        //   .limit(10)
+        // 1. Get recent referral events
+        const { data: referralEvents } = await supabase
+          .from('referral_events')
+          .select(`
+            id, event_type, occurred_at, platform,
+            referral:referrals(
+              pitch:pitches(title),
+              supporter:users(name)
+            )
+          `)
+          .gte('occurred_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+          .order('occurred_at', { ascending: false })
+          .limit(5)
 
-        // For now, use mock events
-        const mockEvents: FOMOEvent[] = [
-          {
-            id: '1',
-            event: 'supporter_connected_to_pitch',
-            meta: { supporter_id: 'mock', pitch_id: 'mock' },
-            created_at: new Date().toISOString()
-          }
-        ]
-        setEvents(mockEvents)
+        if (referralEvents && referralEvents.length > 0) {
+          referralEvents.forEach(event => {
+            const referral = event.referral
+            if (referral) {
+              realEvents.push({
+                id: `ref-${event.id}`,
+                event: event.event_type,
+                meta: {
+                  platform: event.platform,
+                  pitch_title: referral.pitch?.title,
+                  supporter_name: referral.supporter?.name
+                },
+                created_at: event.occurred_at
+              })
+            }
+          })
+        }
+
+        // 2. Get recent endorsements
+        const { data: recentEndorsements } = await supabase
+          .from('endorsements')
+          .select(`
+            id, created_at,
+            veteran:users(name),
+            endorser:users(name)
+          `)
+          .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+          .order('created_at', { ascending: false })
+          .limit(3)
+
+        if (recentEndorsements && recentEndorsements.length > 0) {
+          recentEndorsements.forEach(endorsement => {
+            realEvents.push({
+              id: `endorsement-${endorsement.id}`,
+              event: 'supporter_endorse',
+              meta: {
+                veteran_name: endorsement.veteran?.name,
+                endorser_name: endorsement.endorser?.name
+              },
+              created_at: endorsement.created_at
+            })
+          })
+        }
+
+        // 3. Get recent donations
+        const { data: recentDonations } = await supabase
+          .from('donations')
+          .select('id, amount, donor_name, created_at')
+          .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+          .order('created_at', { ascending: false })
+          .limit(2)
+
+        if (recentDonations && recentDonations.length > 0) {
+          recentDonations.forEach(donation => {
+            realEvents.push({
+              id: `donation-${donation.id}`,
+              event: 'donation_received',
+              meta: {
+                amount: donation.amount,
+                donor_name: donation.donor_name
+              },
+              created_at: donation.created_at
+            })
+          })
+        }
+
+        // 4. Get recent new pitches
+        const { data: recentPitches } = await supabase
+          .from('pitches')
+          .select('id, title, created_at, veteran:users(name)')
+          .eq('is_active', true)
+          .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+          .order('created_at', { ascending: false })
+          .limit(2)
+
+        if (recentPitches && recentPitches.length > 0) {
+          recentPitches.forEach(pitch => {
+            realEvents.push({
+              id: `pitch-${pitch.id}`,
+              event: 'new_pitch_posted',
+              meta: {
+                title: pitch.title,
+                veteran_name: pitch.veteran?.name
+              },
+              created_at: pitch.created_at
+            })
+          })
+        }
+
+        // Sort by timestamp and take top 8
+        const sortedEvents = realEvents
+          .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+          .slice(0, 8)
+
+        setEvents(sortedEvents)
       } catch (error) {
         console.error('Error loading FOMO events:', error)
+        setEvents([])
       }
     }
 
@@ -75,17 +168,26 @@ export default function FOMOTicker() {
   const getEventIcon = (eventType: string) => {
     switch (eventType) {
       case 'supporter_connected_to_pitch':
+      case 'LINK_OPENED':
         return <Heart className="w-4 h-4 text-red-500" />
       case 'supporter_view':
+      case 'PITCH_VIEWED':
         return <Eye className="w-4 h-4 text-blue-500" />
       case 'supporter_share':
+      case 'SHARE_RESHARED':
         return <Share2 className="w-4 h-4 text-green-500" />
       case 'supporter_call':
+      case 'CALL_CLICKED':
         return <Phone className="w-4 h-4 text-purple-500" />
       case 'supporter_email':
+      case 'EMAIL_CLICKED':
         return <Mail className="w-4 h-4 text-orange-500" />
       case 'supporter_endorse':
         return <Award className="w-4 h-4 text-yellow-500" />
+      case 'donation_received':
+        return <Heart className="w-4 h-4 text-pink-500" />
+      case 'new_pitch_posted':
+        return <TrendingUp className="w-4 h-4 text-green-500" />
       default:
         return <Zap className="w-4 h-4 text-blue-500" />
     }
@@ -95,18 +197,22 @@ export default function FOMOTicker() {
     const timeAgo = getTimeAgo(event.created_at)
     
     switch (event.event) {
-      case 'supporter_connected_to_pitch':
-        return `Someone just connected to support a veteran's pitch`
-      case 'supporter_view':
-        return `A supporter viewed a veteran's pitch`
-      case 'supporter_share':
-        return `A supporter shared a veteran's pitch`
-      case 'supporter_call':
+      case 'LINK_OPENED':
+        return `Someone opened a referral link for "${event.meta?.pitch_title || 'a veteran'}"`
+      case 'PITCH_VIEWED':
+        return `A veteran's pitch was viewed via supporter referral`
+      case 'SHARE_RESHARED':
+        return `A veteran's pitch was shared on ${event.meta?.platform || 'social media'}`
+      case 'CALL_CLICKED':
         return `Someone called a veteran through supporter referral`
-      case 'supporter_email':
+      case 'EMAIL_CLICKED':
         return `Someone emailed a veteran through supporter referral`
       case 'supporter_endorse':
-        return `A supporter endorsed a veteran's pitch`
+        return `New endorsement for ${event.meta?.veteran_name || 'a veteran'}`
+      case 'donation_received':
+        return `New donation of ₹${event.meta?.amount} to support veterans`
+      case 'new_pitch_posted':
+        return `New pitch posted: "${event.meta?.title}"`
       default:
         return `New activity on the platform`
     }
@@ -153,7 +259,7 @@ export default function FOMOTicker() {
       <div className="mt-3 flex items-center gap-2 text-xs text-gray-600">
         <Star className="w-3 h-3 text-yellow-500" />
         <span>
-          {events.length} people active in the last hour • Join the movement!
+          {events.length} activities in the last 24 hours • Join the movement!
         </span>
       </div>
     </div>
@@ -169,26 +275,39 @@ export function MiniFOMOTicker() {
     async function loadFOMOEvents() {
       try {
         const supabase = createSupabaseBrowser()
+        const realEvents: FOMOEvent[] = []
         
-        // Note: activity_log table doesn't exist in live schema
-        // const { data: recentEvents } = await supabase
-        //   .from('activity_log')
-        //   .select('*')
-        //   .order('created_at', { ascending: false })
-        //   .limit(5)
+        // Get recent referral events for mini ticker
+        const { data: referralEvents } = await supabase
+          .from('referral_events')
+          .select(`
+            id, event_type, occurred_at, platform,
+            referral:referrals(
+              pitch:pitches(title)
+            )
+          `)
+          .gte('occurred_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+          .order('occurred_at', { ascending: false })
+          .limit(3)
 
-        // For now, use mock events
-        const mockEvents: FOMOEvent[] = [
-          {
-            id: '1',
-            event: 'supporter_connected_to_pitch',
-            meta: { supporter_id: 'mock', pitch_id: 'mock' },
-            created_at: new Date().toISOString()
-          }
-        ]
-        setEvents(mockEvents)
+        if (referralEvents && referralEvents.length > 0) {
+          referralEvents.forEach(event => {
+            realEvents.push({
+              id: `ref-${event.id}`,
+              event: event.event_type,
+              meta: {
+                platform: event.platform,
+                pitch_title: event.referral?.pitch?.title
+              },
+              created_at: event.occurred_at
+            })
+          })
+        }
+
+        setEvents(realEvents)
       } catch (error) {
         console.error('Error loading FOMO events:', error)
+        setEvents([])
       }
     }
 
@@ -219,7 +338,9 @@ export function MiniFOMOTicker() {
       <div className="flex items-center gap-2 text-sm">
         <Zap className="w-4 h-4 text-green-600" />
         <span className="text-gray-700 font-medium">
-          {currentEvent.event.includes('supporter') ? 'New supporter activity' : 'Platform activity'}
+          {currentEvent.event.includes('LINK_OPENED') || currentEvent.event.includes('PITCH_VIEWED') 
+            ? 'New supporter activity' 
+            : 'Platform activity'}
         </span>
         <span className="text-gray-500">• {getTimeAgo(currentEvent.created_at)}</span>
       </div>
