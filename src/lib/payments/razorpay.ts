@@ -38,7 +38,11 @@ export async function createOrder(params: CreateOrderParams): Promise<OrderRespo
       status: order.status,
     }
   } catch (error) {
-    throw new Error('Failed to create payment order')
+    console.error('Razorpay order creation error:', error)
+    if (error instanceof Error) {
+      throw new Error(`Failed to create payment order: ${error.message}`)
+    }
+    throw new Error('Failed to create payment order: Unknown error')
   }
 }
 

@@ -4,6 +4,18 @@ import { createOrder } from '@/lib/payments/razorpay'
 
 export async function POST(request: NextRequest) {
   try {
+    // Check if Razorpay environment variables are configured
+    if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+      console.error('Razorpay environment variables missing:', {
+        keyId: !!process.env.RAZORPAY_KEY_ID,
+        keySecret: !!process.env.RAZORPAY_KEY_SECRET
+      })
+      return NextResponse.json(
+        { error: 'Payment gateway not configured' },
+        { status: 500 }
+      )
+    }
+
     // Get current user (optional for anonymous donations)
     const supabase = await createSupabaseServerOnly()
     const { data: { user } } = await supabase.auth.getUser()
