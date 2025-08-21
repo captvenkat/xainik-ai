@@ -268,7 +268,7 @@ export function validateDonationAmount(amountCents: number): { valid: boolean; e
 
 export function validateDonationData(donationData: DonationInsert): { valid: boolean; error?: string } {
   // Validate amount
-  const amountValidation = validateDonationAmount(donationData.amount);
+  const amountValidation = validateDonationAmount(donationData.amount_cents);
   if (!amountValidation.valid) {
     return amountValidation;
   }
@@ -308,7 +308,7 @@ export async function generateDonationReceipt(donationId: string): Promise<{
     receipt_number: receiptNumber,
     donation_date: donation.created_at,
     donor_name: donation.donor_name || 'Anonymous Donor',
-    amount: donation.amount / 100,
+    amount: donation.amount_cents / 100,
     currency: donation.currency,
     payment_id: null, // No payment ID in current schema
     is_anonymous: !donation.donor_name || donation.donor_name === 'Anonymous'

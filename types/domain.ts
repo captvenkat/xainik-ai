@@ -53,9 +53,7 @@ export type ReferralUpdate = Tables['referrals']['Update'];
 // export type UserSubscriptionInsert = Tables['user_subscriptions']['Insert'];
 // export type UserSubscriptionUpdate = Tables['user_subscriptions']['Update'];
 
-export type Invoice = Tables['invoices']['Row'];
-export type InvoiceInsert = Tables['invoices']['Insert'];
-export type InvoiceUpdate = Tables['invoices']['Update'];
+
 
 export type Receipt = Tables['receipts']['Row'];
 export type ReceiptInsert = Tables['receipts']['Insert'];
@@ -263,15 +261,10 @@ export interface EndorsementWithUser extends Endorsement {
 //   pitch?: Pitch;
 // }
 
-export interface InvoiceWithDetails extends Invoice {
-  user: User;
-  // plan?: ServicePlan; // ServicePlan type is commented out
-  // subscription?: UserSubscription; // UserSubscription type is commented out
-}
+
 
 export interface ReceiptWithDetails extends Receipt {
   user: User;
-  invoice?: Invoice;
 }
 
 // =====================================================

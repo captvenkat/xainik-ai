@@ -12,7 +12,6 @@ import {
   Pitch,
   Endorsement,
   Donation,
-  Invoice,
   Receipt
 } from '@/types/domain';
 import {
@@ -140,7 +139,6 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState<User[]>([]);
   const [pitches, setPitches] = useState<Pitch[]>([]);
   const [donations, setDonations] = useState<Donation[]>([]);
-  const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -193,19 +191,16 @@ export default function AdminDashboard() {
       const [
         { data: recentUsers },
         { data: recentPitches },
-        { data: recentDonations },
-        { data: recentInvoices }
+        { data: recentDonations }
       ] = await Promise.all([
         supabase.from('users').select('*').order('created_at', { ascending: false }).limit(10),
         supabase.from('pitches').select('*').order('created_at', { ascending: false }).limit(10),
-        supabase.from('donations').select('*').order('created_at', { ascending: false }).limit(10),
-        supabase.from('invoices').select('*').order('created_at', { ascending: false }).limit(10)
+        supabase.from('donations').select('*').order('created_at', { ascending: false }).limit(10)
       ]);
 
       setUsers(recentUsers || []);
       setPitches(recentPitches || []);
       setDonations(recentDonations || []);
-      setInvoices(recentInvoices || []);
 
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -276,23 +271,14 @@ export default function AdminDashboard() {
           data={donations.slice(0, 10)}
           columns={[
             { key: 'id', label: 'ID' },
-            { key: 'amount', label: 'Amount', render: (value) => `₹${value}` },
+            { key: 'amount_cents', label: 'Amount', render: (value) => `₹${value / 100}` },
             { key: 'currency', label: 'Currency' },
             { key: 'created_at', label: 'Created', render: (value) => new Date(value).toLocaleDateString() }
           ]}
           title="Recent Donations"
         />
         
-        <DataTable
-          data={invoices.slice(0, 10)}
-          columns={[
-            { key: 'id', label: 'ID' },
-            { key: 'amount', label: 'Amount', render: (value) => `₹${value}` },
-            { key: 'status', label: 'Status' },
-            { key: 'created_at', label: 'Created', render: (value) => new Date(value).toLocaleDateString() }
-          ]}
-          title="Recent Invoices"
-        />
+
       </div>
     </div>
   );
