@@ -72,13 +72,14 @@ export default function LiveActivityTicker({
       if (referralEvents && referralEvents.length > 0) {
         referralEvents.forEach(event => {
           const referral = event.referral
-          if (referral) {
+          if (referral && Array.isArray(referral) && referral.length > 0) {
+            const referralData = referral[0] // Get first item from array
             let message = ''
             let type: ActivityEvent['type'] = 'view'
             
             switch (event.event_type) {
               case 'LINK_OPENED':
-                message = `Someone opened a referral link for "${referral.pitch?.title}"`
+                message = `Someone opened a referral link for "${referralData.pitch?.[0]?.title || 'a veteran'}"`
                 type = 'view'
                 break
               case 'PITCH_VIEWED':
@@ -128,10 +129,14 @@ export default function LiveActivityTicker({
 
       if (recentEndorsements && recentEndorsements.length > 0) {
         recentEndorsements.forEach(endorsement => {
+          const veteranName = endorsement.veteran && Array.isArray(endorsement.veteran) && endorsement.veteran.length > 0 
+            ? endorsement.veteran[0]?.name 
+            : 'a veteran'
+          
           realActivities.push({
             id: `endorsement-${endorsement.id}`,
             type: 'endorsement',
-            message: `New endorsement for ${endorsement.veteran?.name || 'a veteran'}`,
+            message: `New endorsement for ${veteranName}`,
             timestamp: new Date(endorsement.created_at),
             icon: 'Award',
             color: 'yellow'
