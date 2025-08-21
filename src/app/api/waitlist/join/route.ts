@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseServerOnly } from '@/lib/supabaseServerOnly'
 import { nanoid } from 'nanoid'
+import { sendEmail } from '@/lib/email'
 
 interface WaitlistSignupData {
   name: string
@@ -119,20 +120,40 @@ export async function POST(request: NextRequest) {
 
     // Send confirmation email (non-blocking)
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/send-email`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          to: body.email,
-          subject: `You're #${position} in line! 🎯 Join the exclusive veteran waitlist`,
-          template: 'waitlist-confirmation',
-          data: {
-            name: body.name,
-            position: position,
-            referralCode: referralCode,
-            totalSignups: position
-          }
-        })
+      await sendEmail({
+        to: body.email,
+        subject: `You're #${position} in line! Welcome to Xainik Waitlist 🎯`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #1f2937;">🎉 Welcome to Xainik, ${body.name}!</h2>
+            <p>Congratulations! You've successfully joined the exclusive Xainik waitlist.</p>
+            
+            <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h3 style="color: #2563eb;">Your Waitlist Position</h3>
+              <p style="font-size: 24px; font-weight: bold; color: #1f2937;">#${position}</p>
+              <p style="color: #6b7280;">You're among the first ${position} veterans to join our platform!</p>
+            </div>
+            
+            <div style="background: #e8f4fd; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h3 style="color: #1f2937;">Your Referral Code</h3>
+              <p style="font-size: 18px; font-weight: bold; color: #2563eb;">${referralCode}</p>
+              <p style="color: #6b7280;">Share this code with fellow veterans to help them join faster!</p>
+            </div>
+            
+            <div style="margin: 30px 0;">
+              <h3 style="color: #1f2937;">What's Next?</h3>
+              <ul style="color: #6b7280;">
+                <li>We'll notify you as soon as the platform launches</li>
+                <li>Early access to all features before public release</li>
+                <li>Connect with recruiters looking specifically for ${body.service_branch} veterans</li>
+                <li>Create your pitch and get discovered faster</li>
+              </ul>
+            </div>
+            
+            <p style="color: #6b7280;">Thank you for your service and for joining Xainik!</p>
+            <p style="color: #6b7280;">Best regards,<br>The Xainik Team</p>
+          </div>
+        `
       })
     } catch (emailError) {
       console.error('Failed to send confirmation email:', emailError)

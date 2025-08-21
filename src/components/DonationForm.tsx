@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { createDonation } from '@/lib/actions/donations-server'
 import { logActivity } from '@/lib/actions/analytics-server'
+import { sendDonationReceipt } from '@/lib/email'
 import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 import { Heart, Loader2 } from 'lucide-react'
 

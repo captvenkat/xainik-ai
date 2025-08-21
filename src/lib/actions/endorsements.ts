@@ -1,5 +1,6 @@
 import { createActionClient } from '@/lib/supabase-server'
 import { logUserActivity } from '@/lib/actions/activity-server'
+import { sendEndorsementEmail } from '@/lib/email'
 
 export interface Endorsement {
   id: string
@@ -44,6 +45,27 @@ export async function createEndorsement(
     //     is_anonymous: endorserId === null
     //   }
     // })
+
+    // Send endorsement email notification (non-blocking)
+    try {
+      // Get veteran and endorser details for the email
+      const [veteranData, endorserData] = await Promise.all([
+        supabaseAction.from('users').select('name, email').eq('id', userId).single(),
+        endorserId ? supabaseAction.from('users').select('name').eq('id', endorserId).single() : Promise.resolve({ data: null })
+      ])
+
+      if (veteranData.data) {
+        await sendEndorsementEmail(
+          veteranData.data.email,
+          veteranData.data.name,
+          endorserData.data?.name || 'Anonymous Supporter',
+          'Leadership & Teamwork' // Default skill until schema includes specific skills
+        )
+      }
+    } catch (emailError) {
+      console.error('Failed to send endorsement email:', emailError)
+      // Don't fail the request if email fails
+    }
 
     // Return dummy endorsement object to match interface until schema is migrated
     const dummyEndorsement: Endorsement = {

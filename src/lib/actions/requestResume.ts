@@ -2,6 +2,7 @@
 
 import { createActionClient } from '@/lib/supabase-server'
 import { revalidatePath } from 'next/cache'
+import { sendResumeRequestEmail } from '@/lib/email'
 
 export interface CreateResumeRequestData {
   pitch_id: string
@@ -40,6 +41,30 @@ export async function createResumeRequest(data: CreateResumeRequestData) {
       recruiter_user_id: data.recruiter_user_id,
       user_id: data.user_id
     })
+
+    // Send email notification to veteran (non-blocking)
+    try {
+      // Get veteran and recruiter details for the email
+      const [veteranData, recruiterData, pitchData, recruiterProfile] = await Promise.all([
+        supabase.from('users').select('name, email').eq('id', data.user_id).single(),
+        supabase.from('users').select('name').eq('id', data.recruiter_user_id).single(),
+        supabase.from('pitches').select('title').eq('id', data.pitch_id).single(),
+        supabase.from('recruiters').select('company_name').eq('user_id', data.recruiter_user_id).single()
+      ])
+
+      if (veteranData.data && recruiterData.data) {
+        await sendResumeRequestEmail(
+          veteranData.data.email,
+          veteranData.data.name,
+          recruiterData.data.name,
+          recruiterProfile.data?.company_name || 'Company',
+          resumeRequest.id
+        )
+      }
+    } catch (emailError) {
+      console.error('Failed to send resume request email:', emailError)
+      // Don't fail the request if email fails
+    }
 
     // Also log to activity_log for dashboard display
     try {
