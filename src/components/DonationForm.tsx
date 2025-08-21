@@ -47,6 +47,7 @@ export default function DonationForm() {
       const result = await createDonationAction(formDataForAction)
       
       if (!result.success || !result.donation) {
+        console.error('Donation creation failed:', result)
         throw new Error(result.error || 'Failed to create donation')
       }
       
@@ -65,7 +66,9 @@ export default function DonationForm() {
       })
 
       if (!response.ok) {
-        throw new Error('Failed to create payment order')
+        const errorData = await response.json().catch(() => ({}))
+        console.error('Payment order creation failed:', errorData)
+        throw new Error(errorData.error || 'Failed to create payment order')
       }
 
       const { orderId } = await response.json()
