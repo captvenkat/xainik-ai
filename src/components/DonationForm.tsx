@@ -54,6 +54,13 @@ export default function DonationForm() {
       const donation = result.donation
 
       // Create Razorpay order
+      console.log('Creating Razorpay order with data:', {
+        amount,
+        donationId: donation.id,
+        donor_name: formData.donor_name,
+        email: formData.email
+      })
+      
       const response = await fetch('/api/donations/create-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -65,9 +72,14 @@ export default function DonationForm() {
         })
       })
 
+      console.log('Response status:', response.status)
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()))
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
         console.error('Payment order creation failed:', errorData)
+        console.error('Response status:', response.status)
+        console.error('Response status text:', response.statusText)
         throw new Error(errorData.error || 'Failed to create payment order')
       }
 
