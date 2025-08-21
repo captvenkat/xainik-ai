@@ -61,15 +61,19 @@ export default function DonationForm() {
         email: formData.email
       })
       
+      const requestBody = {
+        amount,
+        donationId: donation.id,
+        donor_name: formData.donor_name,
+        email: formData.email
+      }
+      
+      console.log('Form: About to send request with body:', requestBody)
+      
       const response = await fetch('/api/donations/create-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          amount,
-          donationId: donation.id,
-          donor_name: formData.donor_name,
-          email: formData.email
-        })
+        body: JSON.stringify(requestBody)
       })
 
       console.log('Response status:', response.status)

@@ -3,6 +3,7 @@ import { createSupabaseServerOnly } from '@/lib/supabaseServerOnly'
 import { createOrder } from '@/lib/payments/razorpay'
 
 export async function POST(request: NextRequest) {
+  console.log('API: Starting POST request')
   try {
     // Check if Razorpay environment variables are configured
     console.log('Checking Razorpay environment variables:', {
@@ -87,6 +88,10 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Error creating donation order:', error)
+    console.error('Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : 'No stack trace'
+    })
     return NextResponse.json(
       { error: 'Failed to create payment order' },
       { status: 500 }
