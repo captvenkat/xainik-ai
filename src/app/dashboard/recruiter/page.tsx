@@ -61,6 +61,9 @@ export default function RecruiterDashboard() {
   const fetchShortlist = async () => {
     setLoading(true)
     try {
+      // Add a small delay to ensure authentication is ready
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
       const response = await fetch('/api/recruiter/shortlist', {
         credentials: 'include'
       })
@@ -68,9 +71,12 @@ export default function RecruiterDashboard() {
         const data = await response.json()
         setShortlist(data)
       } else {
+        const errorData = await response.json().catch(() => ({}))
+        console.error('Shortlist fetch error:', errorData)
         setError('Failed to load shortlist')
       }
     } catch (error) {
+      console.error('Shortlist fetch error:', error)
       setError('Failed to load shortlist')
     } finally {
       setLoading(false)
@@ -124,6 +130,20 @@ export default function RecruiterDashboard() {
     }
   }
 
+  const testAuth = async () => {
+    try {
+      const response = await fetch('/api/test-auth', {
+        credentials: 'include'
+      })
+      const data = await response.json()
+      console.log('Auth test result:', data)
+      alert(`Auth test: ${response.ok ? 'SUCCESS' : 'FAILED'} - ${JSON.stringify(data)}`)
+    } catch (error) {
+      console.error('Auth test error:', error)
+      alert('Auth test failed')
+    }
+  }
+
   const filteredShortlist = shortlist.filter(item => {
     const matchesSearch = searchQuery === '' || 
       item.pitch.veteran.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -163,6 +183,12 @@ export default function RecruiterDashboard() {
               </p>
             </div>
             <div className="flex space-x-3">
+              <button
+                onClick={testAuth}
+                className="flex items-center px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 transition-colors"
+              >
+                Test Auth
+              </button>
               <button
                 onClick={() => router.push('/browse')}
                 className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
