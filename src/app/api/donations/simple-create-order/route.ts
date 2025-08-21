@@ -1,11 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import Razorpay from 'razorpay'
-
-// Initialize Razorpay
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID!,
-  key_secret: process.env.RAZORPAY_KEY_SECRET!
-})
+import { createOrder } from '@/lib/payments/razorpay'
 
 export async function POST(request: NextRequest) {
   try {
@@ -28,8 +22,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Create Razorpay order directly
-    const order = await razorpay.orders.create({
+    // Create Razorpay order using existing function
+    const order = await createOrder({
       amount: amount * 100, // Convert to paise
       currency: 'INR',
       receipt: `donation_${donationId}`,
