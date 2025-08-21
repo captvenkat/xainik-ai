@@ -43,6 +43,41 @@ export async function createDonation(donationData: Omit<DonationInsert, 'id'>): 
   return donation
 }
 
+// Server action wrapper for client components
+export async function createDonationAction(formData: FormData): Promise<{ success: boolean; donation?: Donation; error?: string }> {
+  try {
+    const amount = parseInt(formData.get('amount') as string)
+    const donorName = formData.get('donor_name') as string
+    const email = formData.get('email') as string
+    const isAnonymous = formData.get('anonymous') === 'true'
+    
+    if (!amount || amount < 10) {
+      return { success: false, error: 'Invalid amount. Minimum donation is ₹10.' }
+    }
+    
+    if (!donorName || !email) {
+      return { success: false, error: 'Name and email are required.' }
+    }
+    
+    const donation = await createDonation({
+      user_id: null, // Anonymous donation
+      amount_cents: amount,
+      currency: 'INR',
+      is_anonymous: isAnonymous,
+      razorpay_payment_id: null, // Will be set after payment
+      created_at: new Date().toISOString()
+    })
+    
+    return { success: true, donation }
+  } catch (error) {
+    console.error('Error in createDonationAction:', error)
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Failed to create donation' 
+    }
+  }
+}
+
 export async function getDonationById(donationId: string): Promise<Donation | null> {
   const supabase = await createActionClient()
   

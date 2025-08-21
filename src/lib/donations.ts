@@ -16,10 +16,33 @@ type DonationInsert = Database['public']['Tables']['donations']['Insert'];
 // DONATION MANAGEMENT - ENTERPRISE FEATURES
 // =====================================================
 
+// DEPRECATED: Use createDonation from @/lib/actions/donations-server instead
+// This function is kept for backward compatibility but should not be used
 export async function createDonation(donationData: Omit<DonationInsert, 'id'>): Promise<Donation> {
+  console.warn('DEPRECATED: Use createDonation from @/lib/actions/donations-server instead');
+  
+  // For anonymous donations (user_id = null), we need to use service role to bypass RLS
+  if (!donationData.user_id) {
+    const { createSupabaseServerOnly } = await import('@/lib/supabaseServerOnly');
+    const supabaseAdmin = await createSupabaseServerOnly();
+    
+    const { data: donation, error } = await supabaseAdmin
+      .from('donations')
+      .insert(donationData)
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Error creating anonymous donation:', error);
+      throw new Error(`Failed to create donation: ${error.message}`);
+    }
+    
+    return donation;
+  }
+  
+  // For authenticated user donations, use regular client
   const supabase = await createActionClient();
   
-  // Create donation with unified ID system
   const { data: donation, error } = await supabase
     .from('donations')
     .insert(donationData)
@@ -27,20 +50,26 @@ export async function createDonation(donationData: Omit<DonationInsert, 'id'>): 
     .single();
   
   if (error) {
+    console.error('Error creating authenticated donation:', error);
     throw new Error(`Failed to create donation: ${error.message}`);
   }
   
   // Log activity
   if (donation.user_id) {
+    try {
       await logUserActivity({
-    user_id: donation.user_id,
-    activity_type: 'donation_created',
-    activity_data: { 
-      donation_id: donation.id, 
-      amount_cents: donation.amount,
-      is_anonymous: donation.is_anonymous
+        user_id: donation.user_id,
+        activity_type: 'donation_created',
+        activity_data: { 
+          donation_id: donation.id, 
+          amount_cents: donation.amount_cents,
+          is_anonymous: donation.is_anonymous
+        }
+      });
+    } catch (activityError) {
+      console.error('Failed to log donation activity:', activityError);
+      // Don't fail the donation if activity logging fails
     }
-  });
   }
   
   return donation;
@@ -142,7 +171,7 @@ export async function getDonationStats(): Promise<{
   
   // Calculate stats
   const totalDonations = allDonations.length;
-  const totalAmount = allDonations.reduce((sum, donation) => sum + donation.amount, 0);
+  const totalAmount = allDonations.reduce((sum, donation) => sum + donation.amount_cents, 0);
   const uniqueDonors = new Set(allDonations.filter(d => d.user_id).map(d => d.user_id)).size;
   const averageDonation = totalDonations > 0 ? totalAmount / totalDonations : 0;
   const recentDonations = allDonations.slice(0, 10);
@@ -179,7 +208,7 @@ export async function getDonationStatsByPeriod(days: number): Promise<{
   const periodDonations = donations || [];
   
   // Calculate period stats
-  const periodAmount = periodDonations.reduce((sum, donation) => sum + donation.amount, 0);
+  const periodAmount = periodDonations.reduce((sum, donation) => sum + donation.amount_cents, 0);
   const uniqueDonors = new Set(periodDonations.filter(d => d.user_id).map(d => d.user_id)).size;
   const periodAverage = periodDonations.length > 0 ? periodAmount / periodDonations.length : 0;
   
@@ -204,7 +233,7 @@ export async function getTopDonors(limit: number = 10): Promise<{
     .from('donations')
     .select(`
       user_id,
-      amount,
+      amount_cents,
       user:users (id, name, email)
     `)
     .not('user_id', 'is', null);
@@ -231,12 +260,12 @@ export async function getTopDonors(limit: number = 10): Promise<{
     const user = donation.user as any;
     
     if (existing) {
-      existing.total_amount += donation.amount;
+      existing.total_amount += donation.amount_cents;
       existing.donation_count += 1;
     } else {
       donorMap.set(donation.user_id, {
         user_id: donation.user_id,
-        total_amount: donation.amount,
+        total_amount: donation.amount_cents,
         donation_count: 1,
         user_name: user?.name || 'Anonymous',
         user_email: user?.email || 'unknown@example.com'

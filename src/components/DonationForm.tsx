@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { createDonation } from '@/lib/actions/donations-server'
+import { createDonationAction } from '@/lib/actions/donations-server'
 import { logActivity } from '@/lib/actions/analytics-server'
 import { sendDonationReceipt } from '@/lib/email'
 import { downloadReceipt } from '@/lib/receipts'
@@ -37,18 +37,20 @@ export default function DonationForm() {
       }
 
       // Create donation record
-      // Note: donations table has limited schema in live database
-      // Only id, created_at, updated_at are available
-      // Donations are open to everyone, no authentication required
+      // Create FormData for server action
+      const formDataForAction = new FormData()
+      formDataForAction.append('amount', amount.toString())
+      formDataForAction.append('donor_name', formData.donor_name)
+      formDataForAction.append('email', formData.email)
+      formDataForAction.append('anonymous', formData.anonymous.toString())
       
-      const donation = await createDonation({
-        user_id: null, // Anonymous donation
-        amount_cents: amount,
-        currency: 'INR',
-        is_anonymous: formData.anonymous,
-        razorpay_payment_id: null, // Will be set after payment
-        created_at: new Date().toISOString()
-      })
+      const result = await createDonationAction(formDataForAction)
+      
+      if (!result.success || !result.donation) {
+        throw new Error(result.error || 'Failed to create donation')
+      }
+      
+      const donation = result.donation
 
       // Create Razorpay order
       const response = await fetch('/api/donations/create-order', {
