@@ -49,17 +49,22 @@ export async function createDonationAction(formData: FormData): Promise<{ succes
     
     console.log('createDonationAction: About to create donation...')
     
-    const donation = await createDonation({
-      user_id: null, // Anonymous donation
-      amount_cents: amount,
-      currency: 'INR',
-      is_anonymous: isAnonymous,
-      razorpay_payment_id: null, // Will be set after payment
-      created_at: new Date().toISOString()
-    })
-    
-    console.log('createDonationAction: Donation created successfully:', donation.id)
-    return { success: true, donation }
+    try {
+      const donation = await createDonation({
+        user_id: null, // Anonymous donation
+        amount_cents: amount,
+        currency: 'INR',
+        is_anonymous: isAnonymous,
+        razorpay_payment_id: null, // Will be set after payment
+        created_at: new Date().toISOString()
+      })
+      
+      console.log('createDonationAction: Donation created successfully:', donation.id)
+      return { success: true, donation }
+    } catch (createError) {
+      console.error('createDonationAction: Error in createDonation:', createError)
+      throw createError
+    }
   } catch (error) {
     console.error('Error in createDonationAction:', error)
     return { 

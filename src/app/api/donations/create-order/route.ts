@@ -29,10 +29,14 @@ export async function POST(request: NextRequest) {
 
     // Parse request body
     const body = await request.json()
+    console.log('API: Received request body:', body)
     const { amount, donationId, donor_name, email } = body
+
+    console.log('API: Parsed values:', { amount, donationId, donor_name, email })
 
     // Validate required fields
     if (!amount || amount < 10) {
+      console.log('API: Invalid amount:', amount)
       return NextResponse.json(
         { error: 'Invalid amount. Minimum donation is ₹10.' },
         { status: 400 }
@@ -40,6 +44,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!donationId) {
+      console.log('API: Missing donationId')
       return NextResponse.json(
         { error: 'Donation ID is required' },
         { status: 400 }
