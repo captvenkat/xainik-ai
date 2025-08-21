@@ -6,7 +6,9 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 export async function POST(request: NextRequest) {
   try {
     const { email } = await request.json()
-    const adminEmail = process.env.ADMIN_EMAIL || email || 'admin@xainik.com'
+    
+    // Use the provided email, fallback to admin email if not provided
+    const recipientEmail = email || process.env.ADMIN_EMAIL || 'admin@xainik.com'
     
     const buildHash = process.env.VERCEL_GIT_COMMIT_SHA || 'dev-build'
     const envName = process.env.NODE_ENV || 'development'
@@ -14,7 +16,7 @@ export async function POST(request: NextRequest) {
 
     const { data, error } = await resend.emails.send({
       from: 'Xainik <noreply@xainik.com>',
-      to: [adminEmail],
+      to: [recipientEmail],
       subject: `Test Email - ${envName} Environment`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -42,21 +44,22 @@ export async function POST(request: NextRequest) {
     })
 
     if (error) {
-      return NextResponse.json({ error: 'Failed to send email' }, { status: 500 })
+      console.error('Resend error:', error)
+      return NextResponse.json({ error: 'Failed to send email', details: error }, { status: 500 })
     }
-
 
     return NextResponse.json({ 
       success: true, 
       messageId: data?.id,
-      to: adminEmail,
+      to: recipientEmail,
       environment: envName,
       buildHash,
       timestamp
     })
 
   } catch (error) {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('Unexpected error:', error)
+    return NextResponse.json({ error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' }, { status: 500 })
   }
 }
 
