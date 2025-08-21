@@ -61,6 +61,8 @@ export default function LiveActivityTicker({
         .select(`
           id, event_type, occurred_at, platform,
           referral:referrals(
+            pitch_id,
+            supporter_id,
             pitch:pitches(title),
             supporter:users(name)
           )
@@ -74,6 +76,9 @@ export default function LiveActivityTicker({
           const referral = event.referral
           if (referral && Array.isArray(referral) && referral.length > 0) {
             const referralData = referral[0] // Get first item from array
+            // Ensure referralData exists before proceeding
+            if (!referralData) return
+            
             let message = ''
             let type: ActivityEvent['type'] = 'view'
             
@@ -171,7 +176,7 @@ export default function LiveActivityTicker({
         .slice(0, 5)
 
     } catch (error) {
-      console.error('Error fetching real activities:', error)
+      // Error fetching real activities - return empty array
       return []
     }
   }
