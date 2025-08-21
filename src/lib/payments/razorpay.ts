@@ -24,7 +24,7 @@ export interface OrderResponse {
 export async function createOrder(params: CreateOrderParams): Promise<OrderResponse> {
   try {
     const order = await razorpay.orders.create({
-      amount: params.amount * 100, // Razorpay expects amount in paise
+      amount: params.amount, // Amount should already be in paise
       currency: params.currency,
       receipt: params.receipt,
       notes: params.notes,

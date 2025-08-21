@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
     })
     
     const order = await createOrder({
-      amount: amount,
+      amount: amount * 100, // Convert to paise for Razorpay
       currency: 'INR',
       receipt: `donation_${donationId}`,
       notes: {
