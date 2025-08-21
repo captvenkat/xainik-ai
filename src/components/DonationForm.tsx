@@ -44,10 +44,10 @@ export default function DonationForm() {
       }
       
       const donation = await createDonation({
-        user_id: user.id,
+        donor_name: formData.anonymous ? 'Anonymous' : formData.donor_name,
         amount: amount, // Use amount directly
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        currency: 'INR',
+        created_at: new Date().toISOString()
       })
 
       // Create Razorpay order

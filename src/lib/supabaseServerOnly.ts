@@ -80,7 +80,7 @@ export async function getSession() {
   const { data: { session }, error } = await supabase.auth.getSession();
   
   if (error) {
-    console.error('Session error:', error);
+    // Session error - return null
     return null;
   }
   

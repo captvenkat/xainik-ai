@@ -25,12 +25,14 @@ export default function FOMOTicker() {
         const supabase = createSupabaseBrowser()
         const realEvents: FOMOEvent[] = []
         
-        // 1. Get recent referral events
+        // Get recent referral events
         const { data: referralEvents } = await supabase
           .from('referral_events')
           .select(`
             id, event_type, occurred_at, platform,
             referral:referrals(
+              pitch_id,
+              supporter_id,
               pitch:pitches(title),
               supporter:users(name)
             )
@@ -44,6 +46,9 @@ export default function FOMOTicker() {
             const referral = event.referral
             if (referral && Array.isArray(referral) && referral.length > 0) {
               const referralData = referral[0] // Get first item from array
+              // Ensure referralData exists before proceeding
+              if (!referralData) return
+              
               realEvents.push({
                 id: `ref-${event.id}`,
                 event: event.event_type,
@@ -147,7 +152,7 @@ export default function FOMOTicker() {
 
         setEvents(sortedEvents)
       } catch (error) {
-        console.error('Error loading FOMO events:', error)
+        // Error loading FOMO events - set empty array
         setEvents([])
       }
     }
@@ -295,6 +300,8 @@ export function MiniFOMOTicker() {
           .select(`
             id, event_type, occurred_at, platform,
             referral:referrals(
+              pitch_id,
+              supporter_id,
               pitch:pitches(title)
             )
           `)
@@ -307,6 +314,9 @@ export function MiniFOMOTicker() {
             const referral = event.referral
             if (referral && Array.isArray(referral) && referral.length > 0) {
               const referralData = referral[0] // Get first item from array
+              // Ensure referralData exists before proceeding
+              if (!referralData) return
+              
               realEvents.push({
                 id: `ref-${event.id}`,
                 event: event.event_type,
@@ -322,7 +332,7 @@ export function MiniFOMOTicker() {
 
         setEvents(realEvents)
       } catch (error) {
-        console.error('Error loading FOMO events:', error)
+        // Error loading FOMO events - set empty array
         setEvents([])
       }
     }

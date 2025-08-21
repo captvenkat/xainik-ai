@@ -1,6 +1,6 @@
 // =====================================================
-// LIVE SCHEMA TYPES - COMPREHENSIVE DEFINITION
-// Generated based on actual production database structure
+// LIVE DATABASE SCHEMA TYPES
+// Generated from actual database schema
 // =====================================================
 
 export interface Database {
@@ -10,92 +10,47 @@ export interface Database {
         Row: {
           id: string
           email: string
-          name: string | null
-          role: string | null
-          created_at: string | null
-          updated_at: string | null
-          avatar_url: string | null
-          bio: string | null
+          name: string
           phone: string | null
-          location: string | null
-          linkedin_url: string | null
-          github_url: string | null
-          website_url: string | null
-          twitter_url: string | null
-          certifications: string | null
-          education_level: string | null
-          military_rank: string | null
-          service_branch: string | null
-          discharge_date: string | null
-          years_of_service: number | null
-          email_verified: boolean | null
-          phone_verified: boolean | null
-          is_active: boolean | null
+          avatar_url: string | null
+          role: 'veteran' | 'recruiter' | 'supporter' | 'admin'
+          is_active: boolean
+          email_verified: boolean
+          phone_verified: boolean
+          created_at: string
+          updated_at: string
           last_login_at: string | null
-          metadata: any | null
-          onboarding_completed: boolean | null
-          preferences: any | null
-          military_branch: string | null
+          metadata: any
         }
         Insert: {
           id?: string
           email: string
-          name?: string | null
-          role?: string | null
-          created_at?: string | null
-          updated_at?: string | null
-          avatar_url?: string | null
-          bio?: string | null
+          name: string
           phone?: string | null
-          location?: string | null
-          linkedin_url?: string | null
-          github_url?: string | null
-          website_url?: string | null
-          twitter_url?: string | null
-          certifications?: string | null
-          education_level?: string | null
-          military_rank?: string | null
-          service_branch?: string | null
-          discharge_date?: string | null
-          years_of_service?: number | null
-          email_verified?: boolean | null
-          phone_verified?: boolean | null
-          is_active?: boolean | null
+          avatar_url?: string | null
+          role?: 'veteran' | 'recruiter' | 'supporter' | 'admin'
+          is_active?: boolean
+          email_verified?: boolean
+          phone_verified?: boolean
+          created_at?: string
+          updated_at?: string
           last_login_at?: string | null
-          metadata?: any | null
-          onboarding_completed?: boolean | null
-          preferences?: any | null
-          military_branch?: string | null
+          metadata?: any
         }
         Update: {
           id?: string
           email?: string
-          name?: string | null
-          role?: string | null
-          created_at?: string | null
-          updated_at?: string | null
-          avatar_url?: string | null
-          bio?: string | null
+          name?: string
           phone?: string | null
-          location?: string | null
-          linkedin_url?: string | null
-          github_url?: string | null
-          website_url?: string | null
-          twitter_url?: string | null
-          certifications?: string | null
-          education_level?: string | null
-          military_rank?: string | null
-          service_branch?: string | null
-          discharge_date?: string | null
-          years_of_service?: number | null
-          email_verified?: boolean | null
-          phone_verified?: boolean | null
-          is_active?: boolean | null
+          avatar_url?: string | null
+          role?: 'veteran' | 'recruiter' | 'supporter' | 'admin'
+          is_active?: boolean
+          email_verified?: boolean
+          phone_verified?: boolean
+          created_at?: string
+          updated_at?: string
           last_login_at?: string | null
-          metadata?: any | null
-          onboarding_completed?: boolean | null
-          preferences?: any | null
-          military_branch?: string | null
+          metadata?: any
         }
       }
       pitches: {
@@ -103,494 +58,290 @@ export interface Database {
           id: string
           user_id: string
           title: string
-          pitch_text: string | null
-          skills: string[] | null
-          location: string | null
-          job_type: string | null
-          availability: string | null
-          photo_url: string | null
+          pitch_text: string
+          skills: string[]
+          job_type: string
+          location: string
           experience_years: number | null
+          availability: string
           linkedin_url: string | null
+          phone: string | null
+          photo_url: string | null
           resume_url: string | null
-          resume_share_enabled: boolean | null
-          plan_tier: string | null
+          resume_share_enabled: boolean
+          plan_tier: string
           plan_expires_at: string | null
-          likes_count: number | null
-          views_count: number | null
-          created_at: string | null
-          updated_at: string | null
-          is_active: boolean | null
+          is_active: boolean
+          likes_count: number
+          views_count: number
+          created_at: string
+          updated_at: string
+          metadata: any
         }
         Insert: {
           id?: string
           user_id: string
           title: string
-          pitch_text?: string | null
-          skills?: string[] | null
-          location?: string | null
-          job_type?: string | null
-          availability?: string | null
-          photo_url?: string | null
+          pitch_text: string
+          skills?: string[]
+          job_type: string
+          location: string
           experience_years?: number | null
+          availability: string
           linkedin_url?: string | null
+          phone?: string | null
+          photo_url?: string | null
           resume_url?: string | null
-          resume_share_enabled?: boolean | null
-          plan_tier?: string | null
+          resume_share_enabled?: boolean
+          plan_tier?: string
           plan_expires_at?: string | null
-          likes_count?: number | null
-          views_count?: number | null
-          created_at?: string | null
-          updated_at?: string | null
-          is_active?: boolean | null
+          is_active?: boolean
+          likes_count?: number
+          views_count?: number
+          created_at?: string
+          updated_at?: string
+          metadata?: any
         }
         Update: {
           id?: string
           user_id?: string
           title?: string
-          pitch_text?: string | null
-          skills?: string[] | null
-          location?: string | null
-          job_type?: string | null
-          availability?: string | null
-          photo_url?: string | null
+          pitch_text?: string
+          skills?: string[]
+          job_type?: string
+          location?: string
           experience_years?: number | null
+          availability?: string
           linkedin_url?: string | null
+          phone?: string | null
+          photo_url?: string | null
           resume_url?: string | null
-          resume_share_enabled?: boolean | null
-          plan_tier?: string | null
+          resume_share_enabled?: boolean
+          plan_tier?: string
           plan_expires_at?: string | null
-          likes_count?: number | null
-          views_count?: number | null
-          created_at?: string | null
-          updated_at?: string | null
-          is_active?: boolean | null
-        }
-      }
-      endorsements: {
-        Row: {
-          id: string
-          pitch_id: string
-          endorser_user_id: string
-          message: string | null
-          created_at: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          id?: string
-          pitch_id: string
-          endorser_user_id: string
-          message?: string | null
-          created_at?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          id?: string
-          pitch_id?: string
-          endorser_user_id?: string
-          message?: string | null
-          created_at?: string | null
-          updated_at?: string | null
+          is_active?: boolean
+          likes_count?: number
+          views_count?: number
+          created_at?: string
+          updated_at?: string
+          metadata?: any
         }
       }
       referrals: {
         Row: {
           id: string
-          referrer_user_id: string
-          referred_user_id: string | null
-          pitch_id: string | null
-          status: string | null
-          created_at: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          id?: string
-          referrer_user_id: string
-          referred_user_id?: string | null
-          pitch_id?: string | null
-          status?: string | null
-          created_at?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          id?: string
-          referrer_user_id?: string
-          referred_user_id?: string | null
-          pitch_id?: string | null
-          status?: string | null
-          created_at?: string | null
-          updated_at?: string | null
-        }
-      }
-      resume_requests: {
-        Row: {
-          id: string
-          pitch_id: string
-          recruiter_user_id: string
-          user_id: string
-          message: string | null
-          status: string | null
-          created_at: string | null
-        }
-        Insert: {
-          id?: string
-          pitch_id: string
-          recruiter_user_id: string
-          user_id: string
-          message?: string | null
-          status?: string | null
-          created_at?: string | null
-        }
-        Update: {
-          id?: string
-          pitch_id?: string
-          recruiter_user_id?: string
-          user_id?: string
-          message?: string | null
-          status?: string | null
-          created_at?: string | null
-        }
-      }
-      donations: {
-        Row: {
-          id: string
-          user_id: string
-          amount: number
-          currency: string | null
-          status: string | null
-          payment_method: string | null
-          razorpay_payment_id: string | null
-          razorpay_order_id: string | null
-          is_anonymous: boolean | null
-          created_at: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          amount: number
-          currency?: string | null
-          status?: string | null
-          payment_method?: string | null
-          razorpay_payment_id?: string | null
-          razorpay_order_id?: string | null
-          is_anonymous?: boolean | null
-          created_at?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          amount?: number
-          currency?: string | null
-          status?: string | null
-          payment_method?: string | null
-          razorpay_payment_id?: string | null
-          razorpay_order_id?: string | null
-          is_anonymous?: boolean | null
-          created_at?: string | null
-          updated_at?: string | null
-        }
-      }
-      invoices: {
-        Row: {
-          id: string
-          user_id: string
-          amount: number
-          currency: string | null
-          status: string | null
-          invoice_number: string | null
-          razorpay_payment_id: string | null
-          razorpay_order_id: string | null
-          buyer_name: string | null
-          buyer_email: string | null
-          buyer_phone: string | null
-          plan_tier: string | null
-          plan_meta: any | null
-          storage_key: string | null
-          created_at: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          amount: number
-          currency?: string | null
-          status?: string | null
-          invoice_number?: string | null
-          razorpay_payment_id?: string | null
-          razorpay_order_id?: string | null
-          buyer_name?: string | null
-          buyer_email?: string | null
-          buyer_phone?: string | null
-          plan_tier?: string | null
-          plan_meta?: any | null
-          storage_key?: string | null
-          created_at?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          amount?: number
-          currency?: string | null
-          status?: string | null
-          invoice_number?: string | null
-          razorpay_payment_id?: string | null
-          razorpay_order_id?: string | null
-          buyer_name?: string | null
-          buyer_email?: string | null
-          buyer_phone?: string | null
-          plan_tier?: string | null
-          plan_meta?: any | null
-          storage_key?: string | null
-          created_at?: string | null
-          updated_at?: string | null
-        }
-      }
-      receipts: {
-        Row: {
-          id: string
-          user_id: string
-          invoice_id: string | null
-          amount: number
-          currency: string | null
-          receipt_number: string | null
-          razorpay_payment_id: string | null
-          razorpay_order_id: string | null
-          donor_name: string | null
-          donor_email: string | null
-          donor_phone: string | null
-          is_anonymous: boolean | null
-          storage_key: string | null
-          created_at: string | null
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          invoice_id?: string | null
-          amount: number
-          currency?: string | null
-          receipt_number?: string | null
-          razorpay_payment_id?: string | null
-          razorpay_order_id?: string | null
-          donor_name?: string | null
-          donor_email?: string | null
-          donor_phone?: string | null
-          is_anonymous?: boolean | null
-          storage_key?: string | null
-          created_at?: string | null
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          invoice_id?: string | null
-          amount?: number
-          currency?: string | null
-          receipt_number?: string | null
-          razorpay_payment_id?: string | null
-          razorpay_order_id?: string | null
-          donor_name?: string | null
-          donor_email?: string | null
-          donor_phone?: string | null
-          is_anonymous?: boolean | null
-          storage_key?: string | null
-          created_at?: string | null
-        }
-      }
-      community_suggestions: {
-        Row: {
-          id: string
-          title: string
-          description: string | null
-          suggestion_type: string | null
-          user_id: string
-          status: string | null
-          priority: string | null
-          votes: number | null
-          created_at: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          id?: string
-          title: string
-          description?: string | null
-          suggestion_type?: string | null
-          user_id: string
-          status?: string | null
-          priority?: string | null
-          votes?: number | null
-          created_at?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          id?: string
-          title?: string
-          description?: string | null
-          suggestion_type?: string | null
-          user_id?: string
-          status?: string | null
-          priority?: string | null
-          votes?: number | null
-          created_at?: string | null
-          updated_at?: string | null
-        }
-      }
-      community_suggestion_votes: {
-        Row: {
-          id: string
-          suggestion_id: string
-          user_id: string
-          vote_type: string
-          created_at: string | null
-        }
-        Insert: {
-          id?: string
-          suggestion_id: string
-          user_id: string
-          vote_type: string
-          created_at?: string | null
-        }
-        Update: {
-          id?: string
-          suggestion_id?: string
-          user_id?: string
-          vote_type?: string
-          created_at?: string | null
-        }
-      }
-      pitch_connections: {
-        Row: {
-          id: string
           supporter_id: string
           pitch_id: string
-          connection_source: string | null
-          source_url: string | null
-          user_agent: string | null
-          ip_hash: string | null
-          created_at: string | null
-          updated_at: string | null
+          share_link: string
+          created_at: string
         }
         Insert: {
           id?: string
           supporter_id: string
           pitch_id: string
-          connection_source?: string | null
-          source_url?: string | null
-          user_agent?: string | null
-          ip_hash?: string | null
-          created_at?: string | null
-          updated_at?: string | null
+          share_link: string
+          created_at?: string
         }
         Update: {
           id?: string
           supporter_id?: string
           pitch_id?: string
-          connection_source?: string | null
-          source_url?: string | null
-          user_agent?: string | null
-          ip_hash?: string | null
-          created_at?: string | null
-          updated_at?: string | null
+          share_link?: string
+          created_at?: string
         }
       }
-      payment_events: {
+      referral_events: {
         Row: {
           id: string
-          event_id: string
-          payment_id: string
-          order_id: string
+          referral_id: string
+          event_type: 'LINK_OPENED' | 'PITCH_VIEWED' | 'CALL_CLICKED' | 'EMAIL_CLICKED' | 'SHARE_RESHARED' | 'SIGNUP_FROM_REFERRAL'
+          platform: string | null
+          user_agent: string | null
+          country: string | null
+          ip_hash: string | null
+          occurred_at: string
+        }
+        Insert: {
+          id?: string
+          referral_id: string
+          event_type: 'LINK_OPENED' | 'PITCH_VIEWED' | 'CALL_CLICKED' | 'EMAIL_CLICKED' | 'SHARE_RESHARED' | 'SIGNUP_FROM_REFERRAL'
+          platform?: string | null
+          user_agent?: string | null
+          country?: string | null
+          ip_hash?: string | null
+          occurred_at?: string
+        }
+        Update: {
+          id?: string
+          referral_id?: string
+          event_type?: 'LINK_OPENED' | 'PITCH_VIEWED' | 'CALL_CLICKED' | 'EMAIL_CLICKED' | 'SHARE_RESHARED' | 'SIGNUP_FROM_REFERRAL'
+          platform?: string | null
+          user_agent?: string | null
+          country?: string | null
+          ip_hash?: string | null
+          occurred_at?: string
+        }
+      }
+      endorsements: {
+        Row: {
+          id: string
+          user_id: string
+          endorser_user_id: string | null
+          text: string
+          rating: number | null
+          is_public: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          endorser_user_id?: string | null
+          text: string
+          rating?: number | null
+          is_public?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          endorser_user_id?: string | null
+          text?: string
+          rating?: number | null
+          is_public?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      donations: {
+        Row: {
+          id: string
+          donor_name: string | null
+          amount: number
+          currency: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          donor_name?: string | null
+          amount: number
+          currency?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          donor_name?: string | null
+          amount?: number
+          currency?: string
+          created_at?: string
+        }
+      }
+      invoices: {
+        Row: {
+          id: string
+          invoice_number: string
+          user_id: string
           amount: number
           currency: string
           status: string
-          event_type: string
-          notes: any | null
-          processed_at: string | null
-          created_at: string | null
+          due_date: string
+          created_at: string
+          paid_at: string | null
         }
         Insert: {
           id?: string
-          event_id: string
-          payment_id: string
-          order_id: string
+          invoice_number: string
+          user_id: string
           amount: number
           currency?: string
-          status: string
-          event_type: string
-          notes?: any | null
-          processed_at?: string | null
-          created_at?: string | null
+          status?: string
+          due_date: string
+          created_at?: string
+          paid_at?: string | null
         }
         Update: {
           id?: string
-          event_id?: string
-          payment_id?: string
-          order_id?: string
+          invoice_number?: string
+          user_id?: string
           amount?: number
           currency?: string
           status?: string
-          event_type?: string
-          notes?: any | null
-          processed_at?: string | null
-          created_at?: string | null
+          due_date?: string
+          created_at?: string
+          paid_at?: string | null
         }
       }
-      email_logs: {
+      receipts: {
         Row: {
           id: string
-          document_type: string
-          document_id: string
-          recipient_email: string
-          message_id: string | null
-          sent_at: string | null
-          created_at: string | null
+          receipt_number: string
+          user_id: string
+          amount: number
+          currency: string
+          payment_method: string
+          created_at: string
         }
         Insert: {
           id?: string
-          document_type: string
-          document_id: string
-          recipient_email: string
-          message_id?: string | null
-          sent_at?: string | null
-          created_at?: string | null
+          receipt_number: string
+          user_id: string
+          amount: number
+          currency?: string
+          payment_method: string
+          created_at?: string
         }
         Update: {
           id?: string
-          document_type?: string
-          document_id?: string
-          recipient_email?: string
-          message_id?: string | null
-          sent_at?: string | null
-          created_at?: string | null
+          receipt_number?: string
+          user_id?: string
+          amount?: number
+          currency?: string
+          payment_method?: string
+          created_at?: string
+        }
+      }
+      resume_requests: {
+        Row: {
+          id: string
+          recruiter_user_id: string
+          user_id: string
+          pitch_id: string | null
+          job_role: string | null
+          status: 'PENDING' | 'APPROVED' | 'DECLINED'
+          created_at: string
+          responded_at: string | null
+        }
+        Insert: {
+          id?: string
+          recruiter_user_id: string
+          user_id: string
+          pitch_id?: string | null
+          job_role?: string | null
+          status?: 'PENDING' | 'APPROVED' | 'DECLINED'
+          created_at?: string
+          responded_at?: string | null
+        }
+        Update: {
+          id?: string
+          recruiter_user_id?: string
+          user_id?: string
+          pitch_id?: string | null
+          job_role?: string | null
+          status?: 'PENDING' | 'APPROVED' | 'DECLINED'
+          created_at?: string
+          responded_at?: string | null
         }
       }
     }
     Views: {
-      community_suggestions_with_votes: {
-        Row: {
-          id: string | null
-          title: string | null
-          description: string | null
-          suggestion_type: string | null
-          user_id: string | null
-          status: string | null
-          priority: string | null
-          votes: number | null
-          created_at: string | null
-          updated_at: string | null
-          avg_votes: number | null
-          total_votes: number | null
-        }
-      }
-      community_suggestions_summary: {
-        Row: {
-          total_suggestions: number | null
-          pending_suggestions: number | null
-          approved_suggestions: number | null
-          rejected_suggestions: number | null
-          total_votes: number | null
-          avg_votes_per_suggestion: number | null
-        }
-      }
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
+    Enums: {
+      [_ in never]: never
     }
   }
 }
