@@ -210,23 +210,29 @@ export interface Database {
       donations: {
         Row: {
           id: string
-          donor_name: string
+          user_id: string | null
           amount_cents: number
           currency: string
+          is_anonymous: boolean
+          razorpay_payment_id: string | null
           created_at: string
         }
         Insert: {
           id?: string
-          donor_name: string
+          user_id?: string | null
           amount_cents: number
           currency?: string
+          is_anonymous?: boolean
+          razorpay_payment_id?: string | null
           created_at?: string
         }
         Update: {
           id?: string
-          donor_name?: string
+          user_id?: string | null
           amount_cents?: number
           currency?: string
+          is_anonymous?: boolean
+          razorpay_payment_id?: string | null
           created_at?: string
         }
       }

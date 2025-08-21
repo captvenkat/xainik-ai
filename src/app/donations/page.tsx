@@ -102,7 +102,7 @@ export default async function DonationsPage() {
                       </div>
                     </div>
                     <div className="text-lg font-bold text-green-600">
-                      ₹{(100).toLocaleString()}
+                      ₹{((donation.amount_cents || 0) / 100).toLocaleString()}
                     </div>
                   </div>
                 ))}

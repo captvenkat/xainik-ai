@@ -278,10 +278,7 @@ export function validateDonationData(donationData: DonationInsert): { valid: boo
     return { valid: false, error: 'Invalid currency code' };
   }
   
-  // Validate donor_name
-  if (!donationData.donor_name || donationData.donor_name.trim().length === 0) {
-    return { valid: false, error: 'Donor name is required' };
-  }
+  // Note: donor_name field removed from schema, using user_id and is_anonymous instead
   
   return { valid: true };
 }
@@ -307,11 +304,11 @@ export async function generateDonationReceipt(donationId: string): Promise<{
   const receiptData = {
     receipt_number: receiptNumber,
     donation_date: donation.created_at,
-    donor_name: donation.donor_name || 'Anonymous Donor',
+    donor_name: donation.is_anonymous ? 'Anonymous Donor' : 'Supporter',
     amount: donation.amount_cents / 100,
     currency: donation.currency,
-    payment_id: null, // No payment ID in current schema
-    is_anonymous: !donation.donor_name || donation.donor_name === 'Anonymous'
+    payment_id: donation.razorpay_payment_id,
+    is_anonymous: donation.is_anonymous
   };
   
   return {
