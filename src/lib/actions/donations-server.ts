@@ -3,6 +3,7 @@
 import { createActionClient } from '@/lib/supabase-server'
 import { createSupabaseServerOnly } from '@/lib/supabaseServerOnly'
 import { Database } from '@/types/live-schema'
+import { createOrder } from '@/lib/payments/razorpay'
 
 type Donation = Database['public']['Tables']['donations']['Row']
 type DonationInsert = Database['public']['Tables']['donations']['Insert']
@@ -25,29 +26,95 @@ export async function createDonation(donationData: Omit<DonationInsert, 'id'>): 
   return donation
 }
 
-// Server action wrapper for client components
-export async function createDonationAction(formData: FormData): Promise<{ success: boolean; donation?: Donation; error?: string }> {
+// New server action that creates donation and Razorpay order
+export async function createDonationAction(data: {
+  amount: number
+  donor_name: string
+  email: string
+  message?: string
+  isAnonymous: boolean
+}): Promise<{ success: boolean; donation?: Donation; orderId?: string; error?: string }> {
   try {
-    console.log('createDonationAction: Starting...')
+    console.log('createDonationAction: Starting with data:', data)
+    
+    const { amount, donor_name, email, message, isAnonymous } = data
+    
+    if (!amount || amount < 10) {
+      return { success: false, error: 'Invalid amount. Minimum donation is ₹10.' }
+    }
+    
+    if (!donor_name || !email) {
+      return { success: false, error: 'Name and email are required.' }
+    }
+    
+    // Step 1: Create donation record
+    console.log('createDonationAction: Creating donation...')
+    const donation = await createDonation({
+      user_id: null, // Anonymous donation
+      amount_cents: amount,
+      currency: 'INR',
+      is_anonymous: isAnonymous,
+      razorpay_payment_id: null, // Will be set after payment
+      created_at: new Date().toISOString()
+    })
+    
+    console.log('createDonationAction: Donation created:', donation.id)
+    
+    // Step 2: Create Razorpay order
+    console.log('createDonationAction: Creating Razorpay order...')
+    const order = await createOrder({
+      amount: amount * 100, // Convert to paise
+      currency: 'INR',
+      receipt: `donation_${donation.id}`,
+      notes: {
+        type: 'donation',
+        donation_id: donation.id,
+        donor_name: donor_name,
+        donor_email: email,
+        message: message || ''
+      }
+    })
+    
+    console.log('createDonationAction: Razorpay order created:', order.id)
+    
+    return { 
+      success: true, 
+      donation, 
+      orderId: order.id 
+    }
+    
+  } catch (error) {
+    console.error('Error in createDonationAction:', error)
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Failed to create donation' 
+    }
+  }
+}
+
+// Legacy server action wrapper for client components (keeping for backward compatibility)
+export async function createDonationActionLegacy(formData: FormData): Promise<{ success: boolean; donation?: Donation; error?: string }> {
+  try {
+    console.log('createDonationActionLegacy: Starting...')
     
     const amount = parseInt(formData.get('amount') as string)
     const donorName = formData.get('donor_name') as string
     const email = formData.get('email') as string
     const isAnonymous = formData.get('anonymous') === 'true'
     
-    console.log('createDonationAction: Parsed data:', { amount, donorName, email, isAnonymous })
+    console.log('createDonationActionLegacy: Parsed data:', { amount, donorName, email, isAnonymous })
     
     if (!amount || amount < 10) {
-      console.log('createDonationAction: Invalid amount')
+      console.log('createDonationActionLegacy: Invalid amount')
       return { success: false, error: 'Invalid amount. Minimum donation is ₹10.' }
     }
     
     if (!donorName || !email) {
-      console.log('createDonationAction: Missing required fields')
+      console.log('createDonationActionLegacy: Missing required fields')
       return { success: false, error: 'Name and email are required.' }
     }
     
-    console.log('createDonationAction: About to create donation...')
+    console.log('createDonationActionLegacy: About to create donation...')
     
     try {
       const donation = await createDonation({
@@ -59,14 +126,14 @@ export async function createDonationAction(formData: FormData): Promise<{ succes
         created_at: new Date().toISOString()
       })
       
-      console.log('createDonationAction: Donation created successfully:', donation.id)
+      console.log('createDonationActionLegacy: Donation created successfully:', donation.id)
       return { success: true, donation }
     } catch (createError) {
-      console.error('createDonationAction: Error in createDonation:', createError)
+      console.error('createDonationActionLegacy: Error in createDonation:', createError)
       throw createError
     }
   } catch (error) {
-    console.error('Error in createDonationAction:', error)
+    console.error('Error in createDonationActionLegacy:', error)
     return { 
       success: false, 
       error: error instanceof Error ? error.message : 'Failed to create donation' 
