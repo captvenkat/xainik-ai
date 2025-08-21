@@ -16,8 +16,8 @@ export async function POST(request: NextRequest) {
     const { data: waitlistEntries, error: searchError } = await supabase
       .from('activity_log')
       .select('*')
-      .eq('event', 'waitlist_joined')
-      .contains('meta', { email: email })
+      .eq('event', 'veteran_joined_waitlist')
+      .contains('meta', { veteran_email: email })
     
     if (searchError) {
       console.error('Error searching for waitlist entries:', searchError)
