@@ -26,123 +26,102 @@ export default function FOMOTicker() {
         const realEvents: FOMOEvent[] = []
         
         // Get recent referral events
-        const { data: referralEvents } = await supabase
-          .from('referral_events')
-          .select(`
-            id, event_type, occurred_at, platform,
-            referral:referrals(
-              pitch_id,
-              supporter_id,
-              pitch:pitches(title),
-              supporter:users(name)
-            )
-          `)
-          .gte('occurred_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
-          .order('occurred_at', { ascending: false })
-          .limit(5)
+        try {
+          const { data: referralEvents, error: referralError } = await supabase
+            .from('referral_events')
+            .select('id, event_type, occurred_at, platform')
+            .gte('occurred_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+            .order('occurred_at', { ascending: false })
+            .limit(5)
 
-        if (referralEvents && referralEvents.length > 0) {
-          referralEvents.forEach(event => {
-            const referral = event.referral
-            if (referral && Array.isArray(referral) && referral.length > 0) {
-              const referralData = referral[0] // Get first item from array
-              // Ensure referralData exists before proceeding
-              if (!referralData) return
-              
+          if (!referralError && referralEvents && referralEvents.length > 0) {
+            referralEvents.forEach(event => {
               realEvents.push({
                 id: `ref-${event.id}`,
                 event: event.event_type,
                 meta: {
-                  platform: event.platform,
-                  pitch_title: referralData.pitch?.[0]?.title,
-                  supporter_name: referralData.supporter?.[0]?.name
+                  platform: event.platform
                 },
                 created_at: event.occurred_at
               })
-            }
-          })
+            })
+          }
+        } catch (error) {
+          // Silently continue if referral events query fails
         }
 
-        // 2. Get recent endorsements
-        const { data: recentEndorsements } = await supabase
-          .from('endorsements')
-          .select(`
-            id, created_at,
-            veteran:users(name),
-            endorser:users(name)
-          `)
-          .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
-          .order('created_at', { ascending: false })
-          .limit(3)
+        // Get recent endorsements
+        try {
+          const { data: recentEndorsements, error: endorsementsError } = await supabase
+            .from('endorsements')
+            .select('id, created_at')
+            .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+            .order('created_at', { ascending: false })
+            .limit(3)
 
-        if (recentEndorsements && recentEndorsements.length > 0) {
-          recentEndorsements.forEach(endorsement => {
-            const veteranName = endorsement.veteran && Array.isArray(endorsement.veteran) && endorsement.veteran.length > 0 
-              ? endorsement.veteran[0]?.name 
-              : 'a veteran'
-            const endorserName = endorsement.endorser && Array.isArray(endorsement.endorser) && endorsement.endorser.length > 0 
-              ? endorsement.endorser[0]?.name 
-              : 'someone'
-            
-            realEvents.push({
-              id: `endorsement-${endorsement.id}`,
-              event: 'supporter_endorse',
-              meta: {
-                veteran_name: veteranName,
-                endorser_name: endorserName
-              },
-              created_at: endorsement.created_at
+          if (!endorsementsError && recentEndorsements && recentEndorsements.length > 0) {
+            recentEndorsements.forEach(endorsement => {
+              realEvents.push({
+                id: `endorsement-${endorsement.id}`,
+                event: 'supporter_endorse',
+                meta: {},
+                created_at: endorsement.created_at
+              })
             })
-          })
+          }
+        } catch (error) {
+          // Silently continue if endorsements query fails
         }
 
-        // 3. Get recent donations
-        const { data: recentDonations } = await supabase
-          .from('donations')
-          .select('id, amount, donor_name, created_at')
-          .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
-          .order('created_at', { ascending: false })
-          .limit(2)
+        // Get recent donations
+        try {
+          const { data: recentDonations, error: donationsError } = await supabase
+            .from('donations')
+            .select('id, amount, donor_name, created_at')
+            .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+            .order('created_at', { ascending: false })
+            .limit(2)
 
-        if (recentDonations && recentDonations.length > 0) {
-          recentDonations.forEach(donation => {
-            realEvents.push({
-              id: `donation-${donation.id}`,
-              event: 'donation_received',
-              meta: {
-                amount: donation.amount,
-                donor_name: donation.donor_name
-              },
-              created_at: donation.created_at
+          if (!donationsError && recentDonations && recentDonations.length > 0) {
+            recentDonations.forEach(donation => {
+              realEvents.push({
+                id: `donation-${donation.id}`,
+                event: 'donation_received',
+                meta: {
+                  amount: donation.amount,
+                  donor_name: donation.donor_name || 'Anonymous'
+                },
+                created_at: donation.created_at
+              })
             })
-          })
+          }
+        } catch (error) {
+          // Silently continue if donations query fails
         }
 
-        // 4. Get recent new pitches
-        const { data: recentPitches } = await supabase
-          .from('pitches')
-          .select('id, title, created_at, veteran:users(name)')
-          .eq('is_active', true)
-          .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
-          .order('created_at', { ascending: false })
-          .limit(2)
+        // Get recent new pitches
+        try {
+          const { data: recentPitches, error: pitchesError } = await supabase
+            .from('pitches')
+            .select('id, title, created_at')
+            .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+            .order('created_at', { ascending: false })
+            .limit(2)
 
-        if (recentPitches && recentPitches.length > 0) {
-          recentPitches.forEach(pitch => {
-            const veteranName = pitch.veteran && Array.isArray(pitch.veteran) && pitch.veteran.length > 0 
-              ? pitch.veteran[0]?.name 
-              : 'a veteran'
-            
-            realEvents.push({
-              id: `pitch-${pitch.id}`,
-              event: 'new_pitch_posted',
-              meta: {
-                title: pitch.title,
-                veteran_name: veteranName
-              },
-              created_at: pitch.created_at
+          if (!pitchesError && recentPitches && recentPitches.length > 0) {
+            recentPitches.forEach(pitch => {
+              realEvents.push({
+                id: `pitch-${pitch.id}`,
+                event: 'new_pitch_posted',
+                meta: {
+                  title: pitch.title
+                },
+                created_at: pitch.created_at
+              })
             })
-          })
+          }
+        } catch (error) {
+          // Silently continue if pitches query fails
         }
 
         // Sort by timestamp and take top 8
@@ -295,39 +274,102 @@ export function MiniFOMOTicker() {
         const realEvents: FOMOEvent[] = []
         
         // Get recent referral events for mini ticker
-        const { data: referralEvents } = await supabase
-          .from('referral_events')
-          .select(`
-            id, event_type, occurred_at, platform,
-            referral:referrals(
-              pitch_id,
-              supporter_id,
-              pitch:pitches(title)
-            )
-          `)
-          .gte('occurred_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
-          .order('occurred_at', { ascending: false })
-          .limit(3)
+        try {
+          const { data: referralEvents, error: referralError } = await supabase
+            .from('referral_events')
+            .select('id, event_type, occurred_at, platform')
+            .gte('occurred_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+            .order('occurred_at', { ascending: false })
+            .limit(3)
 
-        if (referralEvents && referralEvents.length > 0) {
-          referralEvents.forEach(event => {
-            const referral = event.referral
-            if (referral && Array.isArray(referral) && referral.length > 0) {
-              const referralData = referral[0] // Get first item from array
-              // Ensure referralData exists before proceeding
-              if (!referralData) return
-              
+          if (!referralError && referralEvents && referralEvents.length > 0) {
+            referralEvents.forEach(event => {
               realEvents.push({
                 id: `ref-${event.id}`,
                 event: event.event_type,
                 meta: {
-                  platform: event.platform,
-                  pitch_title: referralData.pitch?.[0]?.title
+                  platform: event.platform
                 },
                 created_at: event.occurred_at
               })
-            }
-          })
+            })
+          }
+        } catch (error) {
+          // Silently continue if referral events query fails
+        }
+
+        // Get recent endorsements
+        try {
+          const { data: recentEndorsements, error: endorsementsError } = await supabase
+            .from('endorsements')
+            .select('id, created_at')
+            .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+            .order('created_at', { ascending: false })
+            .limit(2)
+
+          if (!endorsementsError && recentEndorsements && recentEndorsements.length > 0) {
+            recentEndorsements.forEach(endorsement => {
+              realEvents.push({
+                id: `endorsement-${endorsement.id}`,
+                event: 'supporter_endorse',
+                meta: {},
+                created_at: endorsement.created_at
+              })
+            })
+          }
+        } catch (error) {
+          // Silently continue if endorsements query fails
+        }
+
+        // Get recent donations
+        try {
+          const { data: recentDonations, error: donationsError } = await supabase
+            .from('donations')
+            .select('id, amount, donor_name, created_at')
+            .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+            .order('created_at', { ascending: false })
+            .limit(2)
+
+          if (!donationsError && recentDonations && recentDonations.length > 0) {
+            recentDonations.forEach(donation => {
+              realEvents.push({
+                id: `donation-${donation.id}`,
+                event: 'donation_received',
+                meta: {
+                  amount: donation.amount,
+                  donor_name: donation.donor_name || 'Anonymous'
+                },
+                created_at: donation.created_at
+              })
+            })
+          }
+        } catch (error) {
+          // Silently continue if donations query fails
+        }
+
+        // Get recent pitches
+        try {
+          const { data: recentPitches, error: pitchesError } = await supabase
+            .from('pitches')
+            .select('id, title, created_at')
+            .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+            .order('created_at', { ascending: false })
+            .limit(2)
+
+          if (!pitchesError && recentPitches && recentPitches.length > 0) {
+            recentPitches.forEach(pitch => {
+              realEvents.push({
+                id: `pitch-${pitch.id}`,
+                event: 'new_pitch_posted',
+                meta: {
+                  pitch_title: pitch.title
+                },
+                created_at: pitch.created_at
+              })
+            })
+          }
+        } catch (error) {
+          // Silently continue if pitches query fails
         }
 
         setEvents(realEvents)
