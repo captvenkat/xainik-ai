@@ -23,11 +23,19 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if email already exists in waitlist
-    const { data: existingUser } = await supabase
+    const { data: existingUser, error: userError } = await supabase
       .from('users')
       .select('id, metadata, role')
       .eq('email', body.email)
       .single()
+
+    if (userError && userError.code !== 'PGRST116') { // PGRST116 = no rows returned
+      console.error('Error checking existing user:', userError)
+      return NextResponse.json(
+        { error: 'Database error while checking existing user' },
+        { status: 500 }
+      )
+    }
 
     if (existingUser) {
       // Check if user is already on waitlist
@@ -57,10 +65,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Get current waitlist count for position
-    const { count: currentCount } = await supabase
+    const { count: currentCount, error: countError } = await supabase
       .from('users')
       .select('*', { count: 'exact', head: true })
       .not('metadata->waitlist_status', 'is', null)
+
+    if (countError) {
+      console.error('Error getting waitlist count:', countError)
+      // Continue with position 1 if we can't get the count
+    }
 
     const position = (currentCount || 0) + 1
 
@@ -118,7 +131,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Send confirmation email
+    // Send confirmation email (non-blocking)
     try {
       await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/send-email`, {
         method: 'POST',
@@ -140,19 +153,30 @@ export async function POST(request: NextRequest) {
       // Don't fail the request if email fails
     }
 
-    // Log activity for FOMO ticker
+    // Log activity for FOMO ticker (non-blocking, with table existence check)
     try {
-      await supabase
+      // First check if activity_log table exists
+      const { data: tableCheck, error: tableError } = await supabase
         .from('activity_log')
-        .insert({
-          event: 'veteran_joined_waitlist',
-          meta: {
-            veteran_name: body.name,
-            position: position,
-            service_branch: body.service_branch,
-            rank: body.rank
-          }
-        })
+        .select('id')
+        .limit(1)
+
+      if (!tableError && tableCheck !== null) {
+        // Table exists, proceed with logging
+        await supabase
+          .from('activity_log')
+          .insert({
+            event: 'veteran_joined_waitlist',
+            meta: {
+              veteran_name: body.name,
+              position: position,
+              service_branch: body.service_branch,
+              rank: body.rank
+            }
+          })
+      } else {
+        console.log('Activity log table not available, skipping activity logging')
+      }
     } catch (logError) {
       console.error('Failed to log activity:', logError)
       // Don't fail the request if logging fails
