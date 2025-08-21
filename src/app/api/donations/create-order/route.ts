@@ -5,6 +5,13 @@ import { createOrder } from '@/lib/payments/razorpay'
 export async function POST(request: NextRequest) {
   try {
     // Check if Razorpay environment variables are configured
+    console.log('Checking Razorpay environment variables:', {
+      keyId: !!process.env.RAZORPAY_KEY_ID,
+      keySecret: !!process.env.RAZORPAY_KEY_SECRET,
+      keyIdLength: process.env.RAZORPAY_KEY_ID?.length,
+      keySecretLength: process.env.RAZORPAY_KEY_SECRET?.length
+    })
+    
     if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
       console.error('Razorpay environment variables missing:', {
         keyId: !!process.env.RAZORPAY_KEY_ID,
@@ -40,6 +47,18 @@ export async function POST(request: NextRequest) {
     }
 
     // Create Razorpay order
+    console.log('About to create Razorpay order with params:', {
+      amount,
+      currency: 'INR',
+      receipt: `donation_${donationId}`,
+      notes: {
+        type: 'donation',
+        donation_id: donationId,
+        donor_name: donor_name || 'Anonymous',
+        user_id: user?.id || 'anonymous'
+      }
+    })
+    
     const order = await createOrder({
       amount: amount,
       currency: 'INR',
@@ -51,6 +70,8 @@ export async function POST(request: NextRequest) {
         user_id: user?.id || 'anonymous'
       }
     })
+    
+    console.log('Razorpay order created successfully:', order.id)
 
     return NextResponse.json({
       success: true,
