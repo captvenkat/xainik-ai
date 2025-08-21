@@ -93,8 +93,8 @@ export default function SupporterPerformanceList({ veteranId }: SupporterPerform
   const mockSupporterData = [
     {
       supporterId: 'mock-1',
-      supporterName: 'Sarah Johnson',
-      supporterEmail: 'sarah.j@techcorp.com',
+      supporterName: 'Priya Sharma',
+      supporterEmail: 'priya.sharma@techcorp.com',
       pitchTitle: 'Senior Software Engineer',
       sharedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
       lastActivity: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
@@ -114,8 +114,8 @@ export default function SupporterPerformanceList({ veteranId }: SupporterPerform
     },
     {
       supporterId: 'mock-2',
-      supporterName: 'Mike Chen',
-      supporterEmail: 'mike.chen@startup.io',
+      supporterName: 'Amit Patel',
+      supporterEmail: 'amit.patel@startup.io',
       pitchTitle: 'Senior Software Engineer',
       sharedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
       lastActivity: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
@@ -135,8 +135,8 @@ export default function SupporterPerformanceList({ veteranId }: SupporterPerform
     },
     {
       supporterId: 'mock-3',
-      supporterName: 'Lisa Rodriguez',
-      supporterEmail: 'lisa.r@enterprise.com',
+      supporterName: 'Neha Singh',
+      supporterEmail: 'neha.singh@enterprise.com',
       pitchTitle: 'Senior Software Engineer',
       sharedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
       lastActivity: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),

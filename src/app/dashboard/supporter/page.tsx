@@ -110,6 +110,52 @@ const VETERAN_FACTS = [
   "Your actions honor their service to our nation"
 ]
 
+// AUTHENTIC INDIAN MILITARY RANKS AND NAMES
+const INDIAN_MILITARY_RANKS = [
+  // Army Ranks
+  'Colonel', 'Lieutenant Colonel', 'Major', 'Captain', 'Lieutenant',
+  'Subedar Major', 'Subedar', 'Naib Subedar', 'Havildar', 'Naik',
+  'Lance Naik', 'Sepoy',
+  
+  // Air Force Ranks
+  'Group Captain', 'Wing Commander', 'Squadron Leader', 'Flight Lieutenant',
+  'Flying Officer', 'Master Warrant Officer', 'Warrant Officer',
+  'Junior Warrant Officer', 'Sergeant', 'Corporal', 'Leading Aircraftman',
+  
+  // Navy Ranks
+  'Captain', 'Commander', 'Lieutenant Commander', 'Lieutenant',
+  'Sub Lieutenant', 'Master Chief Petty Officer', 'Chief Petty Officer',
+  'Petty Officer', 'Leading Seaman', 'Seaman'
+]
+
+const INDIAN_NAMES = [
+  // Common Indian Names
+  'Rajesh Kumar', 'Priya Sharma', 'Amit Patel', 'Neha Singh', 'Vikram Malhotra',
+  'Anjali Gupta', 'Rahul Verma', 'Deepika Reddy', 'Arjun Mehta', 'Kavya Iyer',
+  'Suresh Nair', 'Meera Joshi', 'Karan Kapoor', 'Zara Khan', 'Aditya Rao',
+  'Ishita Desai', 'Rohan Bhat', 'Ananya Menon', 'Vivek Choudhary', 'Tanvi Saxena',
+  'Sanjay Tiwari', 'Pooja Agarwal', 'Mohan Das', 'Riya Banerjee', 'Akshay Dubey',
+  'Shreya Mukherjee', 'Prakash Yadav', 'Divya Nambiar', 'Ravi Shankar', 'Kriti Sinha'
+]
+
+const INDIAN_PITCH_TITLES = [
+  'Cybersecurity Operations Specialist',
+  'Strategic Project Manager',
+  'Logistics & Supply Chain Expert',
+  'Crisis Management Consultant',
+  'Team Leadership & Training Specialist',
+  'Data Analytics & Intelligence Officer',
+  'Healthcare Administration Professional',
+  'Financial Planning & Risk Management',
+  'Technology Infrastructure Manager',
+  'Human Resources & Organizational Development',
+  'Quality Assurance & Process Improvement',
+  'International Relations & Diplomacy',
+  'Emergency Response & Disaster Management',
+  'Research & Development Specialist',
+  'Corporate Communications & Public Relations'
+]
+
 export default function SupporterDashboard() {
   const [user, setUser] = useState<any>(null)
   const [profile, setProfile] = useState<any>(null)
@@ -271,8 +317,8 @@ export default function SupporterDashboard() {
   }> {
     return pitchDetails.map((pitch, index) => ({
       id: pitch.id || `veteran-${index}`,
-      name: pitch.user?.name || `Veteran ${index + 1}`,
-      pitchTitle: pitch.title || 'Professional Pitch',
+      name: pitch.user?.name || generateIndianVeteranName(),
+      pitchTitle: pitch.title || getRandomIndianPitchTitle(),
       lastInteraction: getRandomRecentDate(),
       progress: getRandomProgress(),
       needsSupport: Math.random() > 0.5,
@@ -282,10 +328,10 @@ export default function SupporterDashboard() {
 
   function buildNewVeteransToMeet() {
     const veterans = [
-      { name: 'Sarah Johnson', pitchTitle: 'Cybersecurity Specialist', whyTheyNeedYou: 'Looking for mentorship in transitioning to tech', matchScore: 95 },
-      { name: 'Mike Rodriguez', pitchTitle: 'Project Manager', whyTheyNeedYou: 'Needs network connections in construction industry', matchScore: 88 },
-      { name: 'Lisa Chen', pitchTitle: 'Healthcare Administrator', whyTheyNeedYou: 'Seeking guidance on healthcare consulting', matchScore: 92 },
-      { name: 'David Thompson', pitchTitle: 'Data Analyst', whyTheyNeedYou: 'Wants to break into fintech sector', matchScore: 87 }
+      { name: generateIndianVeteranName(), pitchTitle: 'Cybersecurity Operations Specialist', whyTheyNeedYou: 'Looking for mentorship in transitioning to tech sector', matchScore: 95 },
+      { name: generateIndianVeteranName(), pitchTitle: 'Strategic Project Manager', whyTheyNeedYou: 'Needs network connections in construction industry', matchScore: 88 },
+      { name: generateIndianVeteranName(), pitchTitle: 'Logistics & Supply Chain Expert', whyTheyNeedYou: 'Seeking guidance on supply chain consulting', matchScore: 92 },
+      { name: generateIndianVeteranName(), pitchTitle: 'Crisis Management Consultant', whyTheyNeedYou: 'Wants to break into corporate security sector', matchScore: 87 }
     ]
     
     return veterans.map((veteran, index) => ({
@@ -328,27 +374,66 @@ export default function SupporterDashboard() {
   }
 
   function getRandomProgress(): string {
-    const progress = ['Getting interviews', 'Building network', 'Skill development', 'Industry research']
+    const progress = [
+      'Preparing for corporate interviews',
+      'Building professional network',
+      'Skill development & certification',
+      'Industry research & market analysis',
+      'Transitioning military skills to civilian roles',
+      'Connecting with industry mentors'
+    ]
     const index = Math.floor(Math.random() * progress.length)
     return progress[index] || 'Making progress'
   }
 
   function getRandomImpact(): string {
-    const impacts = ['Connected to 3 companies', 'Got 2 interview calls', 'Linked with industry mentor', 'Received job offer']
+    const impacts = [
+      'Connected to 3 leading companies',
+      'Received 2 interview invitations',
+      'Linked with industry mentor',
+      'Secured job offer',
+      'Gained professional certification',
+      'Built strong network connections'
+    ]
     const index = Math.floor(Math.random() * impacts.length)
     return impacts[index] || 'Making connections'
   }
 
   function getRandomRecentAction(): string {
-    const actions = ['Shared their pitch', 'Connected them to a contact', 'Endorsed their skills', 'Referred to a company']
+    const actions = [
+      'Shared their professional pitch',
+      'Connected them to industry contact',
+      'Endorsed their military skills',
+      'Referred to corporate opportunity',
+      'Provided career guidance',
+      'Introduced to mentor network'
+    ]
     const index = Math.floor(Math.random() * actions.length)
     return actions[index] || 'Supported veteran'
   }
 
   function getRandomNextAction(): string {
-    const actions = ['Follow up on interview', 'Introduce to new contact', 'Share updated pitch', 'Check on progress']
+    const actions = [
+      'Follow up on interview process',
+      'Introduce to new industry contact',
+      'Share updated professional pitch',
+      'Check on career progress',
+      'Connect with additional mentors',
+      'Support skill development plan'
+    ]
     const index = Math.floor(Math.random() * actions.length)
     return actions[index] || 'Continue support'
+  }
+
+  // Helper functions for Indian names and ranks
+  function generateIndianVeteranName(): string {
+    const rank = INDIAN_MILITARY_RANKS[Math.floor(Math.random() * INDIAN_MILITARY_RANKS.length)]
+    const name = INDIAN_NAMES[Math.floor(Math.random() * INDIAN_NAMES.length)]
+    return `${rank} ${name}`
+  }
+
+  function getRandomIndianPitchTitle(): string {
+    return INDIAN_PITCH_TITLES[Math.floor(Math.random() * INDIAN_PITCH_TITLES.length)]
   }
 
   // Show loading state
