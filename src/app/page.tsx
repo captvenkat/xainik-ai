@@ -100,20 +100,30 @@ export default function HomePage() {
                   <div className="flex flex-col sm:flex-row gap-4 justify-center w-full max-w-2xl mx-auto">
                     {/* Veterans - Join Waitlist */}
                     <div className="flex flex-col items-center">
-                      <Link href="/waitlist" className="btn-primary text-lg inline-flex items-center gap-2 w-full justify-center">
-                        <Shield className="h-5 w-5" />
-                        Veterans - Join Waitlist
-                        <ArrowRight className="h-5 w-5" />
+                      <Link href="/waitlist" className="btn-primary text-lg inline-flex flex-col items-center gap-2 w-full justify-center py-4">
+                        <div className="flex items-center gap-2">
+                          <Shield className="h-5 w-5" />
+                          <span>Veterans</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span>Join Waitlist</span>
+                          <ArrowRight className="h-5 w-5" />
+                        </div>
                       </Link>
                       <p className="text-sm text-gray-500 mt-2 text-center">New veterans join our waitlist</p>
                     </div>
                     
                     {/* Recruiters & Supporters - Sign In */}
                     <div className="flex flex-col items-center">
-                      <Link href="/auth" className="btn-secondary text-lg inline-flex items-center gap-2 w-full justify-center">
-                        <Users className="h-5 w-5" />
-                        Recruiters & Supporters - Sign In
-                        <ChevronRight className="h-5 w-5" />
+                      <Link href="/auth" className="btn-secondary text-lg inline-flex flex-col items-center gap-2 w-full justify-center py-4">
+                        <div className="flex items-center gap-2">
+                          <Users className="h-5 w-5" />
+                          <span>Recruiters & Supporters</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span>Sign In</span>
+                          <ChevronRight className="h-5 w-5" />
+                        </div>
                       </Link>
                       <p className="text-sm text-gray-500 mt-2 text-center">Existing users access platform</p>
                     </div>
