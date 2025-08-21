@@ -1,11 +1,5 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/next"
-    }
-  ],
   "headers": [
     {
       "source": "/(.*)",
@@ -26,6 +20,6 @@
     }
   ],
   "env": {
-    "NEXT_PUBLIC_SITE_URL": "https://xainik.org"
+    "NEXT_PUBLIC_SITE_URL": "https://xainik.com"
   }
 }
