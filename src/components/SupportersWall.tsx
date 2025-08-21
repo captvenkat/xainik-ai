@@ -39,7 +39,7 @@ export default function SupportersWall({
       const mockSupporters: Supporter[] = [
         {
           id: '1',
-          name: 'Sarah Johnson',
+          name: 'Priya Sharma',
           avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
           impact: 95,
           contribution: 'Shared your pitch with 15+ connections',
@@ -48,7 +48,7 @@ export default function SupportersWall({
         },
         {
           id: '2',
-          name: 'Michael Chen',
+          name: 'Amit Patel',
           avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
           impact: 87,
           contribution: 'Provided valuable feedback and endorsements',
@@ -57,7 +57,7 @@ export default function SupportersWall({
         },
         {
           id: '3',
-          name: 'Emily Rodriguez',
+          name: 'Neha Singh',
           avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
           impact: 78,
           contribution: 'Connected you with 3 potential employers',
@@ -66,7 +66,7 @@ export default function SupportersWall({
         },
         {
           id: '4',
-          name: 'David Kim',
+          name: 'Vikram Malhotra',
           avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
           impact: 72,
           contribution: 'Shared on LinkedIn and Twitter',
@@ -75,7 +75,7 @@ export default function SupportersWall({
         },
         {
           id: '5',
-          name: 'Lisa Wang',
+          name: 'Anjali Gupta',
           avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face',
           impact: 65,
           contribution: 'Provided mentorship and career advice',
