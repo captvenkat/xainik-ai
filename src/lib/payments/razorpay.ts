@@ -32,7 +32,7 @@ export async function createOrder(params: CreateOrderParams): Promise<OrderRespo
 
     return {
       id: order.id,
-      amount: Number(order.amount || 0) / 100, // Convert back to rupees
+      amount: Number(order.amount || 0), // Keep in paise as returned by Razorpay
       currency: order.currency,
       receipt: order.receipt || '',
       status: order.status,
