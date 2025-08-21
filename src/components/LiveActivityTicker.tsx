@@ -1,12 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Eye, Heart, Share2, Star, TrendingUp, Users, Phone, Mail, Award } from 'lucide-react'
+import { Eye, Heart, Share2, Star, TrendingUp, Users, Phone, Mail, Award, FileText } from 'lucide-react'
 import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 
 interface ActivityEvent {
   id: string
-  type: 'new_pitch' | 'referral' | 'endorsement' | 'like' | 'view' | 'call' | 'email'
+  type: 'new_pitch' | 'referral' | 'endorsement' | 'like' | 'view' | 'call' | 'email' | 'donation'
   message: string
   timestamp: Date
   icon: string
@@ -28,63 +28,53 @@ export default function LiveActivityTicker({
 
   const supabase = createSupabaseBrowser()
 
-  // Fetch real activity data from database
-  const fetchRealActivities = async (): Promise<ActivityEvent[]> => {
-    const realActivities: ActivityEvent[] = []
-    
+  async function fetchRealActivities(): Promise<ActivityEvent[]> {
     try {
-      // 1. Get recent new pitches
-      const { data: recentPitches } = await supabase
-        .from('pitches')
-        .select('id, title, created_at, veteran:users(name)')
-        .eq('is_active', true)
-        .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()) // Last 24 hours
-        .order('created_at', { ascending: false })
-        .limit(3)
+      const supabase = createSupabaseBrowser()
+      const realActivities: ActivityEvent[] = []
 
-      if (recentPitches && recentPitches.length > 0) {
-        recentPitches.forEach(pitch => {
-          realActivities.push({
-            id: `pitch-${pitch.id}`,
-            type: 'new_pitch',
-            message: `New pitch posted: "${pitch.title}"`,
-            timestamp: new Date(pitch.created_at),
-            icon: 'TrendingUp',
-            color: 'green'
+      // 1. Get recent pitches (simplified query)
+      try {
+        const { data: recentPitches, error: pitchesError } = await supabase
+          .from('pitches')
+          .select('id, title, created_at')
+          .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+          .order('created_at', { ascending: false })
+          .limit(2)
+
+        if (!pitchesError && recentPitches && recentPitches.length > 0) {
+          recentPitches.forEach(pitch => {
+            realActivities.push({
+              id: `pitch-${pitch.id}`,
+              type: 'new_pitch',
+              message: `New pitch posted: "${pitch.title}"`,
+              timestamp: new Date(pitch.created_at),
+              icon: 'FileText',
+              color: 'green'
+            })
           })
-        })
+        }
+      } catch (error) {
+        // Silently continue if pitches query fails
       }
 
-      // 2. Get recent referral events
-      const { data: referralEvents } = await supabase
-        .from('referral_events')
-        .select(`
-          id, event_type, occurred_at, platform,
-          referral:referrals(
-            pitch_id,
-            supporter_id,
-            pitch:pitches(title),
-            supporter:users(name)
-          )
-        `)
-        .gte('occurred_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
-        .order('occurred_at', { ascending: false })
-        .limit(3)
+      // 2. Get recent referral events (simplified query)
+      try {
+        const { data: referralEvents, error: referralError } = await supabase
+          .from('referral_events')
+          .select('id, event_type, occurred_at, platform')
+          .gte('occurred_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+          .order('occurred_at', { ascending: false })
+          .limit(3)
 
-      if (referralEvents && referralEvents.length > 0) {
-        referralEvents.forEach(event => {
-          const referral = event.referral
-          if (referral && Array.isArray(referral) && referral.length > 0) {
-            const referralData = referral[0] // Get first item from array
-            // Ensure referralData exists before proceeding
-            if (!referralData) return
-            
+        if (!referralError && referralEvents && referralEvents.length > 0) {
+          referralEvents.forEach(event => {
             let message = ''
             let type: ActivityEvent['type'] = 'view'
             
             switch (event.event_type) {
               case 'LINK_OPENED':
-                message = `Someone opened a referral link for "${referralData.pitch?.[0]?.title || 'a veteran'}"`
+                message = `Someone opened a referral link`
                 type = 'view'
                 break
               case 'PITCH_VIEWED':
@@ -116,65 +106,67 @@ export default function LiveActivityTicker({
               icon: type === 'call' ? 'Phone' : type === 'email' ? 'Mail' : 'Share2',
               color: type === 'call' ? 'purple' : type === 'email' ? 'orange' : 'blue'
             })
-          }
-        })
-      }
-
-      // 3. Get recent endorsements
-      const { data: recentEndorsements } = await supabase
-        .from('endorsements')
-        .select(`
-          id, created_at,
-          veteran:users(name),
-          endorser:users(name)
-        `)
-        .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
-        .order('created_at', { ascending: false })
-        .limit(2)
-
-      if (recentEndorsements && recentEndorsements.length > 0) {
-        recentEndorsements.forEach(endorsement => {
-          const veteranName = endorsement.veteran && Array.isArray(endorsement.veteran) && endorsement.veteran.length > 0 
-            ? endorsement.veteran[0]?.name 
-            : 'a veteran'
-          
-          realActivities.push({
-            id: `endorsement-${endorsement.id}`,
-            type: 'endorsement',
-            message: `New endorsement for ${veteranName}`,
-            timestamp: new Date(endorsement.created_at),
-            icon: 'Award',
-            color: 'yellow'
           })
-        })
+        }
+      } catch (error) {
+        // Silently continue if referral events query fails
       }
 
-      // 4. Get recent donations
-      const { data: recentDonations } = await supabase
-        .from('donations')
-        .select('id, amount, donor_name, created_at')
-        .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
-        .order('created_at', { ascending: false })
-        .limit(2)
+      // 3. Get recent endorsements (simplified query)
+      try {
+        const { data: recentEndorsements, error: endorsementsError } = await supabase
+          .from('endorsements')
+          .select('id, created_at')
+          .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+          .order('created_at', { ascending: false })
+          .limit(2)
 
-      if (recentDonations && recentDonations.length > 0) {
-        recentDonations.forEach(donation => {
-          realActivities.push({
-            id: `donation-${donation.id}`,
-            type: 'like', // Using like type for donations
-            message: `New donation of ₹${donation.amount} to support veterans`,
-            timestamp: new Date(donation.created_at),
-            icon: 'Heart',
-            color: 'pink'
+        if (!endorsementsError && recentEndorsements && recentEndorsements.length > 0) {
+          recentEndorsements.forEach(endorsement => {
+            realActivities.push({
+              id: `endorsement-${endorsement.id}`,
+              type: 'endorsement',
+              message: `New endorsement for a veteran`,
+              timestamp: new Date(endorsement.created_at),
+              icon: 'Award',
+              color: 'yellow'
+            })
           })
-        })
+        }
+      } catch (error) {
+        // Silently continue if endorsements query fails
       }
 
-      // Sort by timestamp (most recent first) and take top 5
-      return realActivities
-        .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
-        .slice(0, 5)
+      // 4. Get recent donations (simplified query)
+      try {
+        const { data: recentDonations, error: donationsError } = await supabase
+          .from('donations')
+          .select('id, amount, donor_name, created_at')
+          .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+          .order('created_at', { ascending: false })
+          .limit(2)
 
+        if (!donationsError && recentDonations && recentDonations.length > 0) {
+          recentDonations.forEach(donation => {
+            const donorName = donation.donor_name || 'Anonymous'
+            const amount = donation.amount ? (donation.amount / 100).toFixed(0) : '0'
+            
+            realActivities.push({
+              id: `donation-${donation.id}`,
+              type: 'donation',
+              message: `$${amount} donation from ${donorName}`,
+              timestamp: new Date(donation.created_at),
+              icon: 'Heart',
+              color: 'red'
+            })
+          })
+        }
+      } catch (error) {
+        // Silently continue if donations query fails
+      }
+
+      // Sort by timestamp and return
+      return realActivities.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()).slice(0, 5)
     } catch (error) {
       // Error fetching real activities - return empty array
       return []
@@ -184,7 +176,7 @@ export default function LiveActivityTicker({
   // Get icon component
   const getIcon = (iconName: string) => {
     const icons: Record<string, any> = {
-      Eye, Heart, Share2, Star, TrendingUp, Users, Phone, Mail, Award
+      Eye, Heart, Share2, Star, TrendingUp, Users, Phone, Mail, Award, FileText
     }
     return icons[iconName] || Eye
   }
@@ -197,7 +189,8 @@ export default function LiveActivityTicker({
       orange: 'text-orange-600',
       yellow: 'text-yellow-600',
       green: 'text-green-600',
-      purple: 'text-purple-600'
+      purple: 'text-purple-600',
+      red: 'text-red-600'
     }
     return colors[color] || 'text-gray-600'
   }
