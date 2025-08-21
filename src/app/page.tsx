@@ -78,7 +78,7 @@ export default function HomePage() {
           <div className="text-center">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/70 text-gray-800 rounded-full text-sm font-semibold mb-8 shadow-sm">
               <Sparkles className="h-4 w-4" />
-              World's Only AI-First, Community-Supported Hiring Platform
+              Built for the Best
             </div>
 
             <h1 className="heading-hero mb-6">
