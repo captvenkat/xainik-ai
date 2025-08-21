@@ -4,7 +4,14 @@
 // =====================================================
 
 import { jsPDF } from 'jspdf'
-import 'jspdf-autotable'
+import autoTable from 'jspdf-autotable'
+
+// Extend jsPDF type to include autoTable
+declare module 'jspdf' {
+  interface jsPDF {
+    autoTable: (options: any) => jsPDF
+  }
+}
 
 export interface ReceiptData {
   receiptNumber: string
@@ -26,6 +33,9 @@ export function generateSection80GReceipt(data: ReceiptData): jsPDF {
     author: 'Xainik',
     creator: 'Xainik Receipt System'
   })
+
+  // Add autoTable plugin
+  ;(doc as any).autoTable = autoTable
 
   // Header
   doc.setFontSize(24)
