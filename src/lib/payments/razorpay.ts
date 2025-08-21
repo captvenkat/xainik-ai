@@ -39,10 +39,20 @@ export async function createOrder(params: CreateOrderParams): Promise<OrderRespo
     }
   } catch (error) {
     console.error('Razorpay order creation error:', error)
+    console.error('Error type:', typeof error)
+    console.error('Error details:', JSON.stringify(error, Object.getOwnPropertyNames(error)))
+    
     if (error instanceof Error) {
       throw new Error(`Failed to create payment order: ${error.message}`)
     }
-    throw new Error('Failed to create payment order: Unknown error')
+    
+    // Handle Razorpay specific error format
+    if (error && typeof error === 'object' && 'error' in error) {
+      const razorpayError = error as any
+      throw new Error(`Failed to create payment order: ${razorpayError.error?.description || razorpayError.error?.code || 'Razorpay error'}`)
+    }
+    
+    throw new Error(`Failed to create payment order: ${JSON.stringify(error)}`)
   }
 }
 
