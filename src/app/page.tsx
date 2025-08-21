@@ -9,11 +9,13 @@ import {
   ChevronRight,
   Sparkles,
   LogOut,
-  Star
+  Star,
+  Heart,
+  Phone,
+  Zap
 } from 'lucide-react'
 import LiveActivityTicker from '@/components/LiveActivityTicker'
 import DonationSnapshot from '@/components/DonationSnapshot'
-import FeaturedPitches from '@/components/FeaturedPitches'
 import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 
 export default function HomePage() {
@@ -76,20 +78,20 @@ export default function HomePage() {
           <div className="text-center">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/70 text-gray-800 rounded-full text-sm font-semibold mb-8 shadow-sm">
               <Sparkles className="h-4 w-4" />
-              Built for Veterans and Recruiters
+              World's Only AI-First, Community-Supported Hiring Platform
             </div>
 
             <h1 className="heading-hero mb-6">
-              Ultra-Fast Hiring Platform
-              <span className="block text-gradient-primary">for Military Veterans</span>
+              Fastest Way to Hire
+              <span className="block text-gradient-primary">Trusted Veterans</span>
             </h1>
 
             <h2 className="text-2xl lg:text-3xl font-semibold text-gray-700 max-w-4xl mx-auto leading-relaxed mb-6">
-              AI‑First · Resume‑Free · Community‑Supported
+              World's Only AI-First, Community-Supported Hiring Platform for Military Veterans
             </h2>
 
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed mb-10">
-              Post a pitch, get calls. Browse verified veterans with direct contact details.
+              Post a pitch, get direct calls from recruiters.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
@@ -157,6 +159,55 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Supporter Encouragement Section */}
+      <section className="py-16 bg-gradient-to-r from-green-50 to-emerald-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/70 text-gray-800 rounded-full text-sm font-semibold mb-6 shadow-sm">
+              <Heart className="h-4 w-4" />
+              Support Our Mission
+            </div>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              Help Veterans Get Hired Faster
+            </h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Your support directly connects veterans with opportunities. Every referral, endorsement, and donation makes a difference.
+            </p>
+          </div>
+          <div className="bg-white rounded-2xl shadow-lg p-8 max-w-4xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <div className="text-center">
+                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                  <Phone className="w-6 h-6 text-green-600" />
+                </div>
+                <h3 className="font-semibold text-gray-900 mb-1">Direct Connections</h3>
+                <p className="text-sm text-gray-600">Connect veterans with recruiters</p>
+              </div>
+              <div className="text-center">
+                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                  <Zap className="w-6 h-6 text-blue-600" />
+                </div>
+                <h3 className="font-semibold text-gray-900 mb-1">Fast Results</h3>
+                <p className="text-sm text-gray-600">See impact in real-time</p>
+              </div>
+              <div className="text-center">
+                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                  <Heart className="w-6 h-6 text-purple-600" />
+                </div>
+                <h3 className="font-semibold text-gray-900 mb-1">Community Impact</h3>
+                <p className="text-sm text-gray-600">Build lasting relationships</p>
+              </div>
+            </div>
+            <div className="text-center">
+              <Link href="/support-the-mission" className="btn-primary text-lg inline-flex items-center gap-2">
+                Support Veterans
+                <ArrowRight className="h-5 w-5" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Waitlist Section */}
       <section className="py-16 bg-gradient-to-r from-blue-50 to-indigo-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -206,21 +257,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Featured Pitches */}
-      <section className="py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Featured Veterans
-            </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Discover talented veterans ready for new opportunities
-            </p>
-          </div>
-          <FeaturedPitches />
-        </div>
-      </section>
-
       {/* Audience cards */}
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -255,23 +291,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
-      {/* Featured Pitches (empty state, no dummy data) */}
-      <section className="py-20 bg-white/60 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-10">
-            <h2 className="heading-large mb-3">Featured Veterans</h2>
-            <p className="text-gray-600">No featured pitches yet.</p>
-          </div>
-          <div className="flex items-center justify-center">
-            <Link href="/pitch/new" className="btn-primary inline-flex items-center gap-2">
-              Be the first to post
-              <ArrowRight className="h-5 w-5" />
-            </Link>
-          </div>
-        </div>
-      </section>
-
 
     </div>
   )
