@@ -28,6 +28,7 @@ export default function SavedFiltersClient({ initialFilters }: SavedFiltersClien
       const response = await fetch('/api/recruiter/saved-filters', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           name: filterName.trim(),
           filters: {} // This would be the current browse filters
@@ -49,7 +50,8 @@ export default function SavedFiltersClient({ initialFilters }: SavedFiltersClien
   const deleteFilter = async (filterId: string) => {
     try {
       const response = await fetch(`/api/recruiter/saved-filters/${filterId}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        credentials: 'include'
       });
       
       if (response.ok) {
