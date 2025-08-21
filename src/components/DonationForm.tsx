@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { createDonationAction } from '@/lib/actions/donations-server'
+import { createDonationActionLegacy } from '@/lib/actions/donations-server'
 import { logActivity } from '@/lib/actions/analytics-server'
 import { sendDonationReceipt } from '@/lib/email'
 import { downloadReceipt } from '@/lib/receipts'
@@ -44,7 +44,7 @@ export default function DonationForm() {
       formDataForAction.append('email', formData.email)
       formDataForAction.append('anonymous', formData.anonymous.toString())
       
-      const result = await createDonationAction(formDataForAction)
+      const result = await createDonationActionLegacy(formDataForAction)
       
       if (!result.success || !result.donation) {
         console.error('Donation creation failed:', result)
