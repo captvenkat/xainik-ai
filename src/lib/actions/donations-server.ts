@@ -28,18 +28,26 @@ export async function createDonation(donationData: Omit<DonationInsert, 'id'>): 
 // Server action wrapper for client components
 export async function createDonationAction(formData: FormData): Promise<{ success: boolean; donation?: Donation; error?: string }> {
   try {
+    console.log('createDonationAction: Starting...')
+    
     const amount = parseInt(formData.get('amount') as string)
     const donorName = formData.get('donor_name') as string
     const email = formData.get('email') as string
     const isAnonymous = formData.get('anonymous') === 'true'
     
+    console.log('createDonationAction: Parsed data:', { amount, donorName, email, isAnonymous })
+    
     if (!amount || amount < 10) {
+      console.log('createDonationAction: Invalid amount')
       return { success: false, error: 'Invalid amount. Minimum donation is ₹10.' }
     }
     
     if (!donorName || !email) {
+      console.log('createDonationAction: Missing required fields')
       return { success: false, error: 'Name and email are required.' }
     }
+    
+    console.log('createDonationAction: About to create donation...')
     
     const donation = await createDonation({
       user_id: null, // Anonymous donation
@@ -50,6 +58,7 @@ export async function createDonationAction(formData: FormData): Promise<{ succes
       created_at: new Date().toISOString()
     })
     
+    console.log('createDonationAction: Donation created successfully:', donation.id)
     return { success: true, donation }
   } catch (error) {
     console.error('Error in createDonationAction:', error)
