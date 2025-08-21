@@ -437,7 +437,8 @@ export default function SupporterDashboard() {
   }
 
   function getRandomIndianPitchTitle(): string {
-    return INDIAN_PITCH_TITLES[Math.floor(Math.random() * INDIAN_PITCH_TITLES.length)]
+    const index = Math.floor(Math.random() * INDIAN_PITCH_TITLES.length)
+    return INDIAN_PITCH_TITLES[index] || 'Professional Specialist'
   }
 
   // Show loading state
@@ -585,8 +586,22 @@ export default function SupporterDashboard() {
 
         {/* Tab Content */}
         {activeTab === 'mission' && <MissionTab metrics={metrics} userId={user?.id} onOpenInviteModal={() => setShowInvitationModal(true)} />}
-        {activeTab === 'veterans' && <VeteransTab metrics={metrics} userId={user?.id} />}
-        {activeTab === 'discover' && <DiscoverTab metrics={metrics} userId={user?.id} />}
+        {activeTab === 'veterans' && (
+          <VeteransTab 
+            metrics={metrics} 
+            userId={user?.id} 
+            setSelectedVeteranForShare={setSelectedVeteranForShare}
+            setShowShareModal={setShowShareModal}
+          />
+        )}
+        {activeTab === 'discover' && (
+          <DiscoverTab 
+            metrics={metrics} 
+            userId={user?.id}
+            setSelectedVeteranForShare={setSelectedVeteranForShare}
+            setShowShareModal={setShowShareModal}
+          />
+        )}
         {activeTab === 'community' && <CommunitySuggestions userId={user?.id} />}
       </div>
 
@@ -818,7 +833,7 @@ function MissionTab({ metrics, userId, onOpenInviteModal }: { metrics: Supporter
 }
 
 // VETERANS TAB - Personal Connections
-function VeteransTab({ metrics, userId }: { metrics: SupporterMetrics; userId: string }) {
+function VeteransTab({ metrics, userId, setSelectedVeteranForShare, setShowShareModal }: { metrics: SupporterMetrics; userId: string; setSelectedVeteranForShare: (v: any) => void; setShowShareModal: (b: boolean) => void }) {
   return (
     <div className="space-y-8">
       {/* PERSONAL CONNECTION HEADER */}
@@ -914,7 +929,7 @@ function VeteransTab({ metrics, userId }: { metrics: SupporterMetrics; userId: s
 }
 
 // DISCOVER TAB - Meet More Heroes
-function DiscoverTab({ metrics, userId }: { metrics: SupporterMetrics; userId: string }) {
+function DiscoverTab({ metrics, userId, setSelectedVeteranForShare, setShowShareModal }: { metrics: SupporterMetrics; userId: string; setSelectedVeteranForShare: (v: any) => void; setShowShareModal: (b: boolean) => void }) {
   return (
     <div className="space-y-8">
       {/* DISCOVERY HEADER */}
