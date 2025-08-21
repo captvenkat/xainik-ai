@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     const timestamp = new Date().toISOString()
 
     const { data, error } = await resend.emails.send({
-      from: 'Xainik Contact Form <noreply@xainik.com>',
+      from: 'Xainik Contact Form <onboarding@resend.dev>',
       to: [supportEmail],
       replyTo: email,
       subject: `Contact Form: ${subject}`,

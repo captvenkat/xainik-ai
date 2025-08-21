@@ -14,7 +14,7 @@ export interface EmailTemplate {
 export async function sendWelcomeEmail(userEmail: string, userName: string, role: string) {
   try {
     const { data, error } = await resend.emails.send({
-      from: 'Xainik <noreply@xainik.com>',
+      from: 'Xainik <onboarding@resend.dev>',
       to: [userEmail],
       subject: 'Welcome to Xainik - Your Veteran Career Journey Starts Here!',
       html: `
@@ -57,7 +57,7 @@ export async function sendResumeRequestEmail(
 ) {
   try {
     const { data, error } = await resend.emails.send({
-      from: 'Xainik <noreply@xainik.com>',
+      from: 'Xainik <onboarding@resend.dev>',
       to: [veteranEmail],
       subject: `Resume Request from ${companyName}`,
       html: `
@@ -95,7 +95,7 @@ export async function sendEndorsementEmail(
 ) {
   try {
     const { data, error } = await resend.emails.send({
-      from: 'Xainik <noreply@xainik.com>',
+      from: 'Xainik <onboarding@resend.dev>',
       to: [veteranEmail],
       subject: `New Endorsement for ${skill}`,
       html: `
@@ -136,7 +136,7 @@ export async function sendDonationReceipt(
     const financialYear = new Date().getFullYear() + '-' + (new Date().getFullYear() + 1).toString().slice(-2)
     
     const { data, error } = await resend.emails.send({
-      from: 'Xainik <noreply@xainik.com>',
+      from: 'Xainik <onboarding@resend.dev>',
       to: [donorEmail],
       subject: `Section 80G Receipt - ${receiptNumber} | Xainik`,
       html: `
