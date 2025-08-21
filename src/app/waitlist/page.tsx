@@ -334,9 +334,6 @@ export default function WaitlistPage() {
                   <option value="army">Indian Army</option>
                   <option value="navy">Indian Navy</option>
                   <option value="airforce">Indian Air Force</option>
-                  <option value="coastguard">Indian Coast Guard</option>
-                  <option value="paramilitary">Paramilitary Forces</option>
-                  <option value="other">Other</option>
                 </select>
               </div>
 
