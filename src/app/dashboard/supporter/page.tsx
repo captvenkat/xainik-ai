@@ -10,16 +10,16 @@ import {
   Target, Rocket, TrendingUp, Users, Eye, Heart, Share2, Gift, Phone, FileText,
   Flag, Shield, Medal, Handshake, Sparkles, Crown, Compass, MapPin
 } from 'lucide-react'
-import BarChart from '@/components/charts/BarChart'
-import PieChart from '@/components/charts/PieChart'
-import LineChart from '@/components/charts/LineChart'
-import SupporterAnalytics from '@/components/impact/SupporterAnalytics'
+// import BarChart from '@/components/charts/BarChart'
+// import PieChart from '@/components/charts/PieChart'
+// import LineChart from '@/components/charts/LineChart'
+// import SupporterAnalytics from '@/components/impact/SupporterAnalytics'
 import MissionInvitationModal from '@/components/mission/MissionInvitationModal'
-import MissionInvitationAnalytics from '@/components/mission/MissionInvitationAnalytics'
+// import MissionInvitationAnalytics from '@/components/mission/MissionInvitationAnalytics'
 import CommunitySuggestions from '@/components/community/CommunitySuggestions'
-import VeteransSupporting from '@/components/supporter/VeteransSupporting'
-import ConnectedPitches from '@/components/supporter/ConnectedPitches'
-import FOMOTicker from '@/components/analytics/FOMOTicker'
+// import VeteransSupporting from '@/components/supporter/VeteransSupporting'
+// import ConnectedPitches from '@/components/supporter/ConnectedPitches'
+// import FOMOTicker from '@/components/analytics/FOMOTicker'
 
 // =====================================================
 // EMOTIONAL CONNECTION SUPPORTER DASHBOARD
@@ -179,7 +179,7 @@ export default function SupporterDashboard() {
     try {
       const supabase = createSupabaseBrowser()
       
-      // Fetch basic supporter activities
+      // Fetch basic supporter activities - using simpler queries to avoid relationship ambiguity
       const [
         { count: totalEndorsements },
         { count: totalReferrals },
@@ -187,21 +187,36 @@ export default function SupporterDashboard() {
       ] = await Promise.all([
         supabase.from('endorsements').select('*', { count: 'exact', head: true }).eq('endorser_user_id', userId),
         supabase.from('referrals').select('*', { count: 'exact', head: true }).eq('user_id', userId),
-        supabase.from('endorsements').select(`
-          pitch_id,
-          pitches!endorsements_pitch_id_fkey (
-            id,
-            title,
-            user_id,
-            users!pitches_user_id_fkey (
-              name
-            )
-          )
-        `).eq('endorser_user_id', userId)
+        supabase.from('endorsements').select('pitch_id').eq('endorser_user_id', userId)
       ])
 
+      // Fetch pitch details separately to avoid relationship issues
+      let pitchDetails: any[] = []
+      if (endorsedPitches && endorsedPitches.length > 0) {
+        const pitchIds = endorsedPitches.map(e => e.pitch_id)
+        const { data: pitches } = await supabase
+          .from('pitches')
+          .select('id, title, user_id')
+          .in('id', pitchIds)
+        
+        if (pitches) {
+          // Fetch user names for these pitches
+          const userIds = pitches.map(p => p.user_id)
+          const { data: users } = await supabase
+            .from('users')
+            .select('id, name')
+            .in('id', userIds)
+          
+          // Combine the data
+          pitchDetails = pitches.map(pitch => ({
+            ...pitch,
+            user: users?.find(u => u.id === pitch.user_id)
+          }))
+        }
+      }
+
       // Build emotional connection data
-      const veteransHelping = buildVeteransHelping(endorsedPitches || [])
+      const veteransHelping = buildVeteransHelping(pitchDetails)
       const newVeteransToMeet = buildNewVeteransToMeet()
       const ongoingSupport = buildOngoingSupport(veteransHelping)
       const missionBadges = buildMissionBadges({
@@ -246,11 +261,11 @@ export default function SupporterDashboard() {
     }
   }
 
-  function buildVeteransHelping(endorsedPitches: any[]) {
-    return endorsedPitches.map((endorsement, index) => ({
-      id: endorsement.pitch_id,
-      name: endorsement.pitches?.users?.name || `Veteran ${index + 1}`,
-      pitchTitle: endorsement.pitches?.title || 'Professional Pitch',
+  function buildVeteransHelping(pitchDetails: any[]) {
+    return pitchDetails.map((pitch, index) => ({
+      id: pitch.id,
+      name: pitch.user?.name || `Veteran ${index + 1}`,
+      pitchTitle: pitch.title || 'Professional Pitch',
       lastInteraction: getRandomRecentDate(),
       progress: getRandomProgress(),
       needsSupport: Math.random() > 0.5,
