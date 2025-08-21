@@ -186,7 +186,7 @@ export default function SupporterDashboard() {
         { data: endorsedPitches }
       ] = await Promise.all([
         supabase.from('endorsements').select('*', { count: 'exact', head: true }).eq('endorser_user_id', userId),
-        supabase.from('referrals').select('*', { count: 'exact', head: true }).eq('user_id', userId),
+        supabase.from('referrals').select('*', { count: 'exact', head: true }).eq('referrer_user_id', userId),
         supabase.from('endorsements').select('pitch_id').eq('endorser_user_id', userId)
       ])
 
@@ -529,14 +529,14 @@ function MissionTab({ metrics, userId, onOpenInviteModal }: { metrics: Supporter
             <div className="text-3xl font-bold mb-2">{metrics.totalPitchViews.toLocaleString()}</div>
             <div className="text-lg opacity-90">Views Generated</div>
             <div className="text-sm opacity-75">Opportunities created</div>
-          </div>
+        </div>
           
           <div className="text-center">
             <div className="text-3xl font-bold mb-2">{metrics.totalOpportunities}</div>
             <div className="text-lg opacity-90">Opportunities</div>
             <div className="text-sm opacity-75">Jobs, connections, support</div>
-          </div>
-          
+      </div>
+
           <div className="text-center">
             <div className="text-3xl font-bold mb-2">{Math.round(metrics.missionProgress)}%</div>
             <div className="text-lg opacity-90">Mission Progress</div>
@@ -549,13 +549,13 @@ function MissionTab({ metrics, userId, onOpenInviteModal }: { metrics: Supporter
           <div className="flex justify-between text-sm mb-2">
             <span>Your Mission Progress</span>
             <span>{Math.round(metrics.missionProgress)}%</span>
-          </div>
+        </div>
           <div className="w-full bg-white bg-opacity-20 rounded-full h-2">
             <div 
               className="bg-white h-2 rounded-full transition-all duration-300"
               style={{ width: `${metrics.missionProgress}%` }}
             ></div>
-          </div>
+      </div>
           <div className="text-center text-sm mt-2">
             {metrics.totalVeteransHelped} veterans helped on your journey to 10
           </div>
@@ -570,7 +570,7 @@ function MissionTab({ metrics, userId, onOpenInviteModal }: { metrics: Supporter
             <Eye className="w-5 h-5" />
             Meet More Veterans
           </button>
-          <button 
+          <button
             onClick={onOpenInviteModal}
             className="bg-white bg-opacity-20 text-white px-6 py-3 rounded-lg font-semibold hover:bg-opacity-30 transition-colors flex items-center gap-2"
           >
@@ -598,24 +598,24 @@ function MissionTab({ metrics, userId, onOpenInviteModal }: { metrics: Supporter
                   <div className="font-semibold text-gray-900">{veteran.name}</div>
                   <div className="text-sm text-gray-600">{veteran.pitchTitle}</div>
                 </div>
-              </div>
-              
+      </div>
+
               <div className="space-y-2 text-sm">
-                <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                   <span className="text-gray-600">Last helped: {veteran.lastInteraction}</span>
-                </div>
-                <div className="flex items-center gap-2">
+              </div>
+              <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                   <span className="text-gray-600">Progress: {veteran.progress}</span>
-                </div>
+              </div>
                 {veteran.needsSupport && (
-                  <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2">
                     <div className="w-2 h-2 bg-red-500 rounded-full"></div>
                     <span className="text-red-600 font-medium">Needs your support</span>
-                  </div>
-                )}
               </div>
+                )}
+            </div>
               
               <div className="mt-3 pt-3 border-t border-gray-100">
                 <div className="text-xs text-gray-500">Recent impact:</div>
@@ -623,7 +623,7 @@ function MissionTab({ metrics, userId, onOpenInviteModal }: { metrics: Supporter
               </div>
             </div>
           ))}
-        </div>
+          </div>
         
         <div className="text-center mt-6">
           <button 
@@ -643,7 +643,7 @@ function MissionTab({ metrics, userId, onOpenInviteModal }: { metrics: Supporter
           Every badge represents a veteran whose life you've changed. Wear them with pride.
         </p>
         
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {metrics.missionBadges.map((badge) => (
             <div key={badge.id} className={`text-center p-4 rounded-lg transition-all duration-200 ${
               badge.earned 
@@ -653,15 +653,15 @@ function MissionTab({ metrics, userId, onOpenInviteModal }: { metrics: Supporter
               <div className={`text-3xl mb-2 ${badge.earned ? 'animate-bounce' : ''}`}>
                 {badge.icon}
               </div>
-              <p className="text-sm font-medium text-gray-900 mb-1">{badge.name}</p>
+                  <p className="text-sm font-medium text-gray-900 mb-1">{badge.name}</p>
               <div className="text-xs text-gray-600">{badge.description}</div>
               {badge.earned && (
                 <div className="mt-2 text-xs text-blue-600 font-medium">✓ Earned</div>
               )}
-            </div>
+                  </div>
           ))}
-        </div>
-      </div>
+                </div>
+              </div>
 
       {/* ONGOING SUPPORT - What You're Doing - Subtle */}
       <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100">
@@ -681,15 +681,15 @@ function MissionTab({ metrics, userId, onOpenInviteModal }: { metrics: Supporter
                   <div>
                     <div className="font-semibold text-gray-900">{support.veteranName}</div>
                     <div className="text-sm text-gray-600">Last: {support.lastAction}</div>
-                  </div>
-                </div>
-                
+          </div>
+        </div>
+
                 <div className="text-right">
                   <div className="text-sm font-medium text-blue-600">Next: {support.nextAction}</div>
                   <div className="text-xs text-gray-500">Impact: {support.impact}</div>
-                </div>
-              </div>
             </div>
+            </div>
+          </div>
           ))}
         </div>
       </div>
@@ -710,8 +710,8 @@ function VeteransTab({ metrics, userId }: { metrics: SupporterMetrics; userId: s
             These aren't just profiles - they're real people whose lives you're changing. 
             <strong> They're counting on your continued support.</strong>
           </p>
-        </div>
-      </div>
+          </div>
+          </div>
 
       {/* VETERAN RELATIONSHIPS */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -720,20 +720,20 @@ function VeteransTab({ metrics, userId }: { metrics: SupporterMetrics; userId: s
             <div className="text-center mb-4">
               <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white text-2xl mx-auto mb-3">
                 {veteran.name.charAt(0)}
-              </div>
+          </div>
               <h3 className="text-xl font-bold text-gray-900 mb-1">{veteran.name}</h3>
               <p className="text-gray-600">{veteran.pitchTitle}</p>
-            </div>
-            
+      </div>
+
             <div className="space-y-3 mb-4">
               <div className="flex items-center gap-2 text-sm">
                 <Calendar className="w-4 h-4 text-gray-400" />
                 <span className="text-gray-600">Last helped: {veteran.lastInteraction}</span>
-              </div>
+                </div>
               <div className="flex items-center gap-2 text-sm">
                 <TrendingUp className="w-4 h-4 text-gray-400" />
                 <span className="text-gray-600">Progress: {veteran.progress}</span>
-              </div>
+                </div>
               <div className="flex items-center gap-2 text-sm">
                 <Target className="w-4 h-4 text-gray-400" />
                 <span className="text-gray-600">Impact: {veteran.impact}</span>
@@ -746,7 +746,7 @@ function VeteransTab({ metrics, userId }: { metrics: SupporterMetrics; userId: s
                   <Bell className="w-4 h-4" />
                   <span className="text-sm font-medium">Needs your support now</span>
                 </div>
-              </div>
+                </div>
             )}
             
             <div className="space-y-2">
@@ -762,10 +762,10 @@ function VeteransTab({ metrics, userId }: { metrics: SupporterMetrics; userId: s
                 <MessageCircle className="w-4 h-4 inline mr-2" />
                 Send Message
               </button>
-            </div>
-          </div>
+                </div>
+                </div>
         ))}
-      </div>
+        </div>
 
       {/* CONTINUED SUPPORT MESSAGE */}
       <div className="bg-gradient-to-r from-saffron-50 to-green-50 rounded-xl p-6 border border-saffron-200 text-center">
@@ -782,8 +782,8 @@ function VeteransTab({ metrics, userId }: { metrics: SupporterMetrics; userId: s
           <Eye className="w-6 h-6" />
           Continue Your Mission
         </button>
-      </div>
-    </div>
+                </div>
+                </div>
   )
 }
 
@@ -800,9 +800,9 @@ function DiscoverTab({ metrics, userId }: { metrics: SupporterMetrics; userId: s
             There are more veterans waiting for someone like you. 
             <strong> You have the power to change more lives.</strong>
           </p>
-        </div>
-      </div>
-
+              </div>
+            </div>
+            
       {/* NEW VETERANS TO MEET */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {metrics.newVeteransToMeet.map((veteran) => (
@@ -820,16 +820,16 @@ function DiscoverTab({ metrics, userId }: { metrics: SupporterMetrics; userId: s
               <div className="text-right">
                 <div className="text-2xl font-bold text-purple-600">{veteran.matchScore}%</div>
                 <div className="text-xs text-gray-500">Match Score</div>
-              </div>
-            </div>
-            
+        </div>
+      </div>
+
             <div className="mb-4">
               <div className="text-sm text-gray-700 mb-2">
                 <strong>Why they need you:</strong>
-              </div>
+      </div>
               <p className="text-gray-600 text-sm">{veteran.whyTheyNeedYou}</p>
-            </div>
-            
+          </div>
+          
             <div className="space-y-2">
               <button className="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium">
                 <Eye className="w-4 h-4 inline mr-2" />
@@ -839,10 +839,10 @@ function DiscoverTab({ metrics, userId }: { metrics: SupporterMetrics; userId: s
                 <Share2 className="w-4 h-4 inline mr-2" />
                 Share Their Story
               </button>
+              </div>
             </div>
-          </div>
         ))}
-      </div>
+          </div>
 
       {/* DISCOVERY CALL TO ACTION */}
       <div className="bg-gradient-to-r from-saffron-50 to-green-50 rounded-xl p-6 border border-saffron-200 text-center">
@@ -860,7 +860,7 @@ function DiscoverTab({ metrics, userId }: { metrics: SupporterMetrics; userId: s
           Discover More Veterans
         </button>
       </div>
-    </div>
+      </div>
   )
 }
 
