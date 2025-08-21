@@ -1,7 +1,7 @@
 import { Suspense } from 'react'
 import { getDonationStats, getAllDonations } from '@/lib/actions/donations-server'
 import { Heart, TrendingUp, Calendar, Award, Users } from 'lucide-react'
-import DonationForm from '@/components/DonationForm'
+import SimpleDonationForm from '@/components/SimpleDonationForm'
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -78,7 +78,7 @@ export default async function DonationsPage() {
           <div className="bg-white rounded-xl shadow-lg p-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Make a Donation</h2>
             <Suspense fallback={<div>Loading donation form...</div>}>
-              <DonationForm />
+              <SimpleDonationForm />
             </Suspense>
           </div>
 
