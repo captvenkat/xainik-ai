@@ -8,6 +8,7 @@ import { createClient } from '@supabase/supabase-js';
 import { headers } from 'next/headers';
 import crypto from 'crypto';
 import { Database } from '@/types/live-schema';
+import { sendDonationReceipt } from '@/lib/email';
 
 // =====================================================
 // SUPABASE CLIENT
@@ -129,6 +130,21 @@ async function handlePaymentCaptured(payload: any): Promise<void> {
       // Generate donation receipt
       if (donation) {
         await generateDonationReceipt(donation, notes);
+      }
+
+      // Send donation receipt email (non-blocking)
+      if (donation && notes.donor_email) {
+        try {
+          await sendDonationReceipt(
+            notes.donor_email,
+            notes.donor_name || 'Anonymous Donor',
+            payment.amount / 100, // Convert paise to rupees
+            payment.id
+          );
+        } catch (emailError) {
+          console.error('Failed to send donation receipt email:', emailError);
+          // Don't fail the webhook if email fails
+        }
       }
     }
     
