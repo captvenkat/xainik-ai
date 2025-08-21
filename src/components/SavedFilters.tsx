@@ -29,7 +29,9 @@ export default function SavedFilters({ currentFilters, onApplyFilters, onExportC
 
   const loadSavedFilters = async () => {
     try {
-      const response = await fetch('/api/recruiter/saved-filters');
+      const response = await fetch('/api/recruiter/saved-filters', {
+        credentials: 'include'
+      });
       if (response.ok) {
         const data = await response.json();
         setSavedFilters(data);
@@ -46,6 +48,7 @@ export default function SavedFilters({ currentFilters, onApplyFilters, onExportC
       const response = await fetch('/api/recruiter/saved-filters', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           name: filterName.trim(),
           filters: currentFilters
@@ -66,7 +69,8 @@ export default function SavedFilters({ currentFilters, onApplyFilters, onExportC
   const deleteFilter = async (filterId: string) => {
     try {
       const response = await fetch(`/api/recruiter/saved-filters/${filterId}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        credentials: 'include'
       });
       
       if (response.ok) {
