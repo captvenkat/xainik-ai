@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
         *,
         pitch:pitch_id (
           *,
-          veteran:user_id (
+          users!fk_pitches_user_id (
             name,
             email
           )
@@ -56,6 +56,13 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error('Shortlist fetch error:', error)
+      
+      // If the table doesn't exist, return empty array instead of error
+      if (error.message && error.message.includes('Could not find the table')) {
+        console.log('Shortlist table does not exist, returning empty array')
+        return NextResponse.json([])
+      }
+      
       return NextResponse.json({ error: 'Database error' }, { status: 500 })
     }
 
@@ -114,6 +121,14 @@ export async function POST(request: NextRequest) {
       if (error.code === '23505') { // Unique constraint violation
         return NextResponse.json({ error: 'Pitch already in shortlist' }, { status: 409 })
       }
+      
+      // If the table doesn't exist, return a helpful error
+      if (error.message && error.message.includes('Could not find the table')) {
+        return NextResponse.json({ 
+          error: 'Shortlist feature not available - table not created yet' 
+        }, { status: 503 })
+      }
+      
       console.error('Shortlist insert error:', error)
       return NextResponse.json({ error: 'Database error' }, { status: 500 })
     }
