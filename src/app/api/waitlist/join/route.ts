@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if email already exists in users table
+    // Check if email already exists in users table (authenticated users)
     const { data: existingUser, error: userError } = await supabase
       .from('users')
       .select('id, role')
@@ -42,133 +42,79 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (existingUser) {
-      // Check if user already has a role (means they're already registered)
-      if (existingUser.role) {
-        return NextResponse.json(
-          { error: 'You already have an account. Please sign in instead.' },
-          { status: 400 }
-        )
-      }
+    if (existingUser && existingUser.role) {
+      return NextResponse.json(
+        { error: 'You already have an account. Please sign in instead.' },
+        { status: 400 }
+      )
+    }
+
+    // Check if email already exists in activity_log as a waitlist signup
+    const { data: existingWaitlist, error: waitlistError } = await supabase
+      .from('activity_log')
+      .select('id, meta')
+      .eq('event', 'veteran_joined_waitlist')
+      .contains('meta', { veteran_email: body.email })
+      .single()
+
+    console.log('Existing waitlist check:', { existingWaitlist: !!existingWaitlist, waitlistError: waitlistError?.message })
+
+    if (waitlistError && waitlistError.code !== 'PGRST116') {
+      console.error('Error checking existing waitlist entry:', waitlistError)
+      return NextResponse.json(
+        { error: 'Database error while checking waitlist' },
+        { status: 500 }
+      )
+    }
+
+    if (existingWaitlist) {
+      return NextResponse.json(
+        { error: 'Email already on waitlist' },
+        { status: 400 }
+      )
     }
 
     // Get current waitlist count for position
-    const { count: currentCount, error: countError } = await supabase
-      .from('user_profiles')
-      .select('*', { count: 'exact', head: true })
-      .eq('profile_type', 'veteran')
-      .eq('is_active', true)
+    const { data: waitlistEntries, error: countError } = await supabase
+      .from('activity_log')
+      .select('id')
+      .eq('event', 'veteran_joined_waitlist')
 
-    console.log('Waitlist count check:', { currentCount, countError: countError?.message })
+    console.log('Waitlist count check:', { count: waitlistEntries?.length || 0, countError: countError?.message })
 
-    if (countError) {
-      console.error('Error getting waitlist count:', countError)
-      // Continue with position 1 if we can't get the count
-    }
-
-    const position = (currentCount || 0) + 1
+    const position = (waitlistEntries?.length || 0) + 1
 
     // Generate referral code
     const referralCode = nanoid(8).toUpperCase()
 
-    // Prepare waitlist profile data
-    const waitlistProfileData = {
-      waitlist_status: 'waiting',
-      waitlist_position: position,
-      waitlist_joined_at: new Date().toISOString(),
-      waitlist_referral_code: referralCode,
-      waitlist_social_shares: 0,
-      service_branch: body.service_branch,
-      rank: body.rank
+    // Create waitlist entry in activity_log
+    const waitlistData = {
+      event: 'veteran_joined_waitlist',
+      meta: {
+        veteran_name: body.name,
+        veteran_email: body.email,
+        position: position,
+        service_branch: body.service_branch,
+        rank: body.rank,
+        referral_code: referralCode,
+        joined_at: new Date().toISOString()
+      }
     }
 
-    console.log('Preparing to save user with profile data:', waitlistProfileData)
+    console.log('Creating waitlist entry:', waitlistData)
 
-    if (existingUser) {
-      // Update existing user with role and create profile
-      const { error: updateError } = await supabase
-        .from('users')
-        .update({
-          name: body.name,
-          role: 'veteran'
-        })
-        .eq('id', existingUser.id)
+    const { error: insertError } = await supabase
+      .from('activity_log')
+      .insert(waitlistData)
 
-      console.log('Update existing user result:', { updateError: updateError?.message })
+    console.log('Insert waitlist entry result:', { insertError: insertError?.message })
 
-      if (updateError) {
-        console.error('Error updating user for waitlist:', updateError)
-        return NextResponse.json(
-          { error: 'Failed to join waitlist' },
-          { status: 500 }
-        )
-      }
-
-      // Create or update user profile
-      const { error: profileError } = await supabase
-        .from('user_profiles')
-        .upsert({
-          user_id: existingUser.id,
-          profile_type: 'veteran',
-          profile_data: waitlistProfileData,
-          is_active: true
-        })
-
-      console.log('Create/update profile result:', { profileError: profileError?.message })
-
-      if (profileError) {
-        console.error('Error creating user profile for waitlist:', profileError)
-        return NextResponse.json(
-          { error: 'Failed to join waitlist' },
-          { status: 500 }
-        )
-      }
-    } else {
-      // Create new user without auth dependency (for waitlist)
-      const newUserId = nanoid(16) // Generate a temporary ID
-      
-      const newUserData = {
-        id: newUserId,
-        email: body.email,
-        name: body.name,
-        role: 'veteran' as const
-      }
-
-      console.log('Creating new user with data:', newUserData)
-
-      const { error: insertError } = await supabase
-        .from('users')
-        .insert(newUserData)
-
-      console.log('Insert new user result:', { insertError: insertError?.message })
-
-      if (insertError) {
-        console.error('Error creating user for waitlist:', insertError)
-        return NextResponse.json(
-          { error: 'Failed to join waitlist' },
-          { status: 500 }
-        )
-      }
-
-      // Create user profile
-      const { error: profileError } = await supabase
-        .from('user_profiles')
-        .insert({
-          user_id: newUserId,
-          profile_type: 'veteran',
-          profile_data: waitlistProfileData,
-          is_active: true
-        })
-
-      console.log('Create profile result:', { profileError: profileError?.message })
-
-      if (profileError) {
-        console.error('Error creating user profile for waitlist:', profileError)
-        return NextResponse.json(
-          { error: 'Failed to join waitlist' },
-          { status: 500 }
-        )
-      }
+    if (insertError) {
+      console.error('Error creating waitlist entry:', insertError)
+      return NextResponse.json(
+        { error: 'Failed to join waitlist' },
+        { status: 500 }
+      )
     }
 
     // Send confirmation email (non-blocking)
