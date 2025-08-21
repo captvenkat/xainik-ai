@@ -8,35 +8,17 @@ type Donation = Database['public']['Tables']['donations']['Row']
 type DonationInsert = Database['public']['Tables']['donations']['Insert']
 
 export async function createDonation(donationData: Omit<DonationInsert, 'id'>): Promise<Donation> {
-  // For anonymous donations (user_id = null), we need to use service role to bypass RLS
-  if (!donationData.user_id) {
-    const supabaseAdmin = await createSupabaseServerOnly()
-    
-    const { data: donation, error } = await supabaseAdmin
-      .from('donations')
-      .insert(donationData)
-      .select()
-      .single()
-    
-    if (error) {
-      console.error('Error creating anonymous donation:', error)
-      throw new Error(`Failed to create donation: ${error.message}`)
-    }
-    
-    return donation
-  }
+  // Always use service role to bypass RLS issues
+  const supabaseAdmin = await createSupabaseServerOnly()
   
-  // For authenticated user donations, use regular client
-  const supabase = await createActionClient()
-  
-  const { data: donation, error } = await supabase
+  const { data: donation, error } = await supabaseAdmin
     .from('donations')
     .insert(donationData)
     .select()
     .single()
   
   if (error) {
-    console.error('Error creating authenticated donation:', error)
+    console.error('Error creating donation:', error)
     throw new Error(`Failed to create donation: ${error.message}`)
   }
   
