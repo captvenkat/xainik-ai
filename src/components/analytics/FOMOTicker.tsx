@@ -77,7 +77,7 @@ export default function FOMOTicker() {
         try {
           const { data: recentDonations, error: donationsError } = await supabase
             .from('donations')
-            .select('id, amount, donor_name, created_at')
+            .select('id, amount_cents, donor_name, created_at')
             .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
             .order('created_at', { ascending: false })
             .limit(2)
@@ -88,7 +88,7 @@ export default function FOMOTicker() {
                 id: `donation-${donation.id}`,
                 event: 'donation_received',
                 meta: {
-                  amount: donation.amount,
+                  amount: donation.amount_cents,
                   donor_name: donation.donor_name || 'Anonymous'
                 },
                 created_at: donation.created_at
@@ -174,95 +174,58 @@ export default function FOMOTicker() {
         return <Share2 className="w-4 h-4 text-green-500" />
       case 'supporter_call':
       case 'CALL_CLICKED':
-        return <Phone className="w-4 h-4 text-purple-500" />
+        return <Phone className="w-4 h-4 text-green-600" />
       case 'supporter_email':
       case 'EMAIL_CLICKED':
-        return <Mail className="w-4 h-4 text-orange-500" />
+        return <Mail className="w-4 h-4 text-blue-600" />
       case 'supporter_endorse':
         return <Award className="w-4 h-4 text-yellow-500" />
       case 'donation_received':
-        return <Heart className="w-4 h-4 text-pink-500" />
+        return <Heart className="w-4 h-4 text-red-500" />
       case 'new_pitch_posted':
-        return <TrendingUp className="w-4 h-4 text-green-500" />
+        return <Star className="w-4 h-4 text-purple-500" />
       default:
-        return <Zap className="w-4 h-4 text-blue-500" />
+        return <Zap className="w-4 h-4 text-gray-500" />
     }
   }
 
   const getEventMessage = (event: FOMOEvent) => {
-    const timeAgo = getTimeAgo(event.created_at)
-    
     switch (event.event) {
       case 'LINK_OPENED':
-        return `Someone opened a referral link for "${event.meta?.pitch_title || 'a veteran'}"`
+        return 'Someone opened a referral link'
       case 'PITCH_VIEWED':
-        return `A veteran's pitch was viewed via supporter referral`
+        return 'A veteran pitch was viewed'
       case 'SHARE_RESHARED':
-        return `A veteran's pitch was shared on ${event.meta?.platform || 'social media'}`
+        return 'A pitch was shared on social media'
       case 'CALL_CLICKED':
-        return `Someone called a veteran through supporter referral`
+        return 'Someone clicked to call a veteran'
       case 'EMAIL_CLICKED':
-        return `Someone emailed a veteran through supporter referral`
+        return 'Someone clicked to email a veteran'
       case 'supporter_endorse':
-        return `New endorsement for ${event.meta?.veteran_name || 'a veteran'}`
+        return 'A supporter endorsed a veteran'
       case 'donation_received':
-        return `New donation of ₹${event.meta?.amount} to support veterans`
+        const amount = event.meta?.amount ? `₹${event.meta.amount / 100}` : '₹100'
+        return `${event.meta?.donor_name || 'Anonymous'} donated ${amount}`
       case 'new_pitch_posted':
-        return `New pitch posted: "${event.meta?.title}"`
+        return `New pitch posted: "${event.meta?.title || 'Veteran Profile'}"`
       default:
-        return `New activity on the platform`
+        return 'New activity on the platform'
     }
   }
 
-  const getTimeAgo = (timestamp: string) => {
-    const now = new Date()
-    const eventTime = new Date(timestamp)
-    const diffInSeconds = Math.floor((now.getTime() - eventTime.getTime()) / 1000)
-
-    if (diffInSeconds < 60) return 'just now'
-    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`
-    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`
-    return `${Math.floor(diffInSeconds / 86400)}d ago`
-  }
-
   return (
-    <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-100 rounded-lg p-4 mb-6">
-      <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2 text-blue-600 font-semibold">
-          <TrendingUp className="w-5 h-5" />
-          <span className="text-sm">Live Activity</span>
-        </div>
-        
-        <div className="flex-1 flex items-center gap-2 text-sm text-gray-700">
-          {getEventIcon(currentEvent.event)}
-          <span>{getEventMessage(currentEvent)}</span>
-          <span className="text-gray-500">• {getTimeAgo(currentEvent.created_at)}</span>
-        </div>
-
-        <div className="flex items-center gap-1">
-          {events.map((_, index) => (
-            <div
-              key={index}
-              className={`w-2 h-2 rounded-full transition-colors ${
-                index === currentIndex ? 'bg-blue-500' : 'bg-gray-300'
-              }`}
-            />
-          ))}
-        </div>
-      </div>
-
-      {/* Urgency Message */}
-      <div className="mt-3 flex items-center gap-2 text-xs text-gray-600">
-        <Star className="w-3 h-3 text-yellow-500" />
-        <span>
-          {events.length} activities in the last 24 hours • Join the movement!
+    <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-100 rounded-lg p-3">
+      <div className="flex items-center gap-2 text-sm">
+        {getEventIcon(currentEvent.event)}
+        <span className="text-gray-700 font-medium">
+          {getEventMessage(currentEvent)}
         </span>
+        <span className="text-gray-500">• {getTimeAgo(currentEvent.created_at)}</span>
       </div>
     </div>
   )
 }
 
-// Mini FOMO ticker for smaller spaces
 export function MiniFOMOTicker() {
   const [events, setEvents] = useState<FOMOEvent[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -273,7 +236,7 @@ export function MiniFOMOTicker() {
         const supabase = createSupabaseBrowser()
         const realEvents: FOMOEvent[] = []
         
-        // Get recent referral events for mini ticker
+        // Get recent referral events
         try {
           const { data: referralEvents, error: referralError } = await supabase
             .from('referral_events')
@@ -325,7 +288,7 @@ export function MiniFOMOTicker() {
         try {
           const { data: recentDonations, error: donationsError } = await supabase
             .from('donations')
-            .select('id, amount, donor_name, created_at')
+            .select('id, amount_cents, donor_name, created_at')
             .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
             .order('created_at', { ascending: false })
             .limit(2)
@@ -336,7 +299,7 @@ export function MiniFOMOTicker() {
                 id: `donation-${donation.id}`,
                 event: 'donation_received',
                 meta: {
-                  amount: donation.amount,
+                  amount: donation.amount_cents,
                   donor_name: donation.donor_name || 'Anonymous'
                 },
                 created_at: donation.created_at
@@ -418,11 +381,19 @@ export function MiniFOMOTicker() {
 
 function getTimeAgo(timestamp: string) {
   const now = new Date()
-  const eventTime = new Date(timestamp)
-  const diffInSeconds = Math.floor((now.getTime() - eventTime.getTime()) / 1000)
+  const time = new Date(timestamp)
+  const diffInSeconds = Math.floor((now.getTime() - time.getTime()) / 1000)
 
-  if (diffInSeconds < 60) return 'just now'
-  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`
-  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`
-  return `${Math.floor(diffInSeconds / 86400)}d ago`
+  if (diffInSeconds < 60) {
+    return 'Just now'
+  } else if (diffInSeconds < 3600) {
+    const minutes = Math.floor(diffInSeconds / 60)
+    return `${minutes}m ago`
+  } else if (diffInSeconds < 86400) {
+    const hours = Math.floor(diffInSeconds / 3600)
+    return `${hours}h ago`
+  } else {
+    const days = Math.floor(diffInSeconds / 86400)
+    return `${days}d ago`
+  }
 }
