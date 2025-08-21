@@ -42,9 +42,11 @@ export default function DonationForm() {
       // Donations are open to everyone, no authentication required
       
       const donation = await createDonation({
-        donor_name: formData.anonymous ? 'Anonymous' : formData.donor_name,
+        user_id: null, // Anonymous donation
         amount_cents: amount,
         currency: 'INR',
+        is_anonymous: formData.anonymous,
+        razorpay_payment_id: null, // Will be set after payment
         created_at: new Date().toISOString()
       })
 
