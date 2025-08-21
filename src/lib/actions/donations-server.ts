@@ -19,6 +19,7 @@ export async function createDonation(donationData: Omit<DonationInsert, 'id'>): 
       .single()
     
     if (error) {
+      console.error('Error creating anonymous donation:', error)
       throw new Error(`Failed to create donation: ${error.message}`)
     }
     
@@ -35,6 +36,7 @@ export async function createDonation(donationData: Omit<DonationInsert, 'id'>): 
     .single()
   
   if (error) {
+    console.error('Error creating authenticated donation:', error)
     throw new Error(`Failed to create donation: ${error.message}`)
   }
   
