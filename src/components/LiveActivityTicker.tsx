@@ -141,7 +141,7 @@ export default function LiveActivityTicker({
       try {
         const { data: recentDonations, error: donationsError } = await supabase
           .from('donations')
-          .select('id, amount, donor_name, created_at')
+          .select('id, amount_cents, donor_name, created_at')
           .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
           .order('created_at', { ascending: false })
           .limit(2)
@@ -149,7 +149,7 @@ export default function LiveActivityTicker({
         if (!donationsError && recentDonations && recentDonations.length > 0) {
           recentDonations.forEach(donation => {
             const donorName = donation.donor_name || 'Anonymous'
-            const amount = donation.amount ? (donation.amount / 100).toFixed(0) : '0'
+            const amount = donation.amount_cents ? (donation.amount_cents / 100).toFixed(0) : '0'
             
             realActivities.push({
               id: `donation-${donation.id}`,
