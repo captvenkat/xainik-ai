@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { X, Mail, Copy, Check, MessageCircle, Users, Briefcase, Globe, Send, Sparkles, Target, Zap, ExternalLink, MessageSquare, Linkedin, Twitter, Facebook, Instagram, Youtube, Github, Heart, Star, Award } from 'lucide-react'
 import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
+import { createOrGetReferralClient, trackReferralShareClient } from '@/lib/referrals-client'
 
 interface SupporterShareModalProps {
   isOpen: boolean
@@ -352,34 +353,23 @@ ${supporterName}`,
 
   async function generateShareLink() {
     try {
-      const supabase = createSupabaseBrowser()
-      const { data: referral } = await supabase
-        .from('referrals')
-        .select('share_link')
-        .eq('supporter_id', supporterId)
-        .eq('pitch_id', pitchId)
-        .single()
-      
-      if (referral?.share_link) {
-        setShareLink(referral.share_link)
+      // Use the existing referral system
+      const result = await createOrGetReferralClient({
+        pitch_id: pitchId,
+        user_id: supporterId
+      })
+
+      if (result.success && result.data) {
+        setShareLink(result.data.share_link)
       } else {
-        // Create new referral if doesn't exist
-        const { data: newReferral } = await supabase
-          .from('referrals')
-          .insert({
-            supporter_id: supporterId,
-            pitch_id: pitchId,
-            share_link: `${window.location.origin}/refer/opened/${Math.random().toString(36).substr(2, 9)}`
-          })
-          .select()
-          .single()
-        
-        if (newReferral?.share_link) {
-          setShareLink(newReferral.share_link)
-        }
+        console.error('Error generating share link:', result.error)
+        // Fallback to a simple link
+        setShareLink(`${window.location.origin}/pitch/${pitchId}`)
       }
     } catch (error) {
       console.error('Error generating share link:', error)
+      // Fallback to a simple link
+      setShareLink(`${window.location.origin}/pitch/${pitchId}`)
     }
   }
 
@@ -463,17 +453,13 @@ ${supporterName}`,
       window.open(shareUrl, '_blank')
     }
 
-    // Track share event
+    // Track share event using the existing referral system
     try {
-      const supabase = createSupabaseBrowser()
-      await supabase
-        .from('referral_events')
-        .insert({
-          referral_id: shareLink.split('/').pop(),
-          event_type: 'SHARE_RESHARED',
-          platform: platform,
-          user_agent: navigator.userAgent
-        })
+      // Get the referral ID from the share link
+      const referralId = shareLink.split('/').pop()
+      if (referralId) {
+        await trackReferralShareClient(referralId, platform)
+      }
     } catch (error) {
       console.error('Error tracking share event:', error)
     }
@@ -572,7 +558,10 @@ ${supporterName}`,
                       }`}
                     >
                       <div className={`w-10 h-10 ${platform.color} rounded-full flex items-center justify-center mx-auto mb-2`}>
-                        <platform.icon className="h-5 w-5 text-white" />
+                        {(() => {
+                          const IconComponent = platform.icon
+                          return IconComponent ? <IconComponent className="h-5 w-5 text-white" /> : null
+                        })()}
                       </div>
                       <span className="text-sm font-medium text-gray-900">{platform.name}</span>
                       <p className="text-xs text-gray-500 mt-1">{platform.description}</p>
@@ -624,15 +613,23 @@ ${supporterName}`,
               <h3 className="text-lg font-semibold text-gray-900 mb-3">Message Preview</h3>
               <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <div className={`w-6 h-6 ${platforms.find(p => p.id === selectedPlatform)?.color} rounded-full flex items-center justify-center`}>
-                    <platforms.find(p => p.id === selectedPlatform)?.icon className="h-3 w-3 text-white" />
-                  </div>
-                  <span className="text-sm font-medium text-gray-700">
-                    {platforms.find(p => p.id === selectedPlatform)?.name}
-                  </span>
-                  <span className="text-xs text-gray-500">
-                    ({previewMessage.length} characters)
-                  </span>
+                  {(() => {
+                    const platform = platforms.find(p => p.id === selectedPlatform)
+                    const IconComponent = platform?.icon
+                    return (
+                      <>
+                        <div className={`w-6 h-6 ${platform?.color} rounded-full flex items-center justify-center`}>
+                          {IconComponent && <IconComponent className="h-3 w-3 text-white" />}
+                        </div>
+                        <span className="text-sm font-medium text-gray-700">
+                          {platform?.name}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          ({previewMessage.length} characters)
+                        </span>
+                      </>
+                    )
+                  })()}
                 </div>
                 <div className="bg-white border border-gray-200 rounded-lg p-3">
                   <p className="text-sm text-gray-800 whitespace-pre-wrap">{previewMessage}</p>
