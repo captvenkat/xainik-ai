@@ -300,6 +300,42 @@ export default function DonationForm() {
         )}
       </button>
 
+      {/* Test Button - Direct API Call */}
+      <button
+        type="button"
+        onClick={async () => {
+          console.log('Testing direct API call...')
+          try {
+            const response = await fetch('/api/donations/create-order', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                amount: 100,
+                donationId: 'test-' + Date.now(),
+                donor_name: 'Test User',
+                email: 'test@test.com'
+              })
+            })
+            
+            console.log('Direct API response status:', response.status)
+            const data = await response.json()
+            console.log('Direct API response data:', data)
+            
+            if (response.ok) {
+              alert('Direct API call successful! Order ID: ' + data.orderId)
+            } else {
+              alert('Direct API call failed: ' + data.error)
+            }
+          } catch (error) {
+            console.error('Direct API call error:', error)
+            alert('Direct API call error: ' + error)
+          }
+        }}
+        className="w-full mt-2 bg-gray-500 text-white py-2 px-4 rounded-lg font-medium hover:opacity-90 transition-opacity"
+      >
+        Test Direct API Call
+      </button>
+
       <p className="text-xs text-gray-500 text-center">
         Your donation is secure and will be processed by Razorpay. 
         You'll receive a confirmation email after successful payment.
