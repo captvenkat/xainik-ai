@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
         *,
         pitch:pitch_id (
           *,
-          veteran:veteran_id (
+          veteran:user_id (
             name,
             email
           )

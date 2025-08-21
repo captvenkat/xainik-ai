@@ -181,6 +181,26 @@ export default function RecruiterDashboard() {
     }
   }
 
+  const testDatabase = async () => {
+    try {
+      const response = await fetch('/api/test-db', {
+        credentials: 'include'
+      })
+      
+      const data = await response.json()
+      console.log('Test DB Result:', data)
+      
+      if (response.ok) {
+        alert('✅ Database test successful!\n\n' + JSON.stringify(data.tables, null, 2))
+      } else {
+        alert('❌ Database test failed: ' + data.error)
+      }
+    } catch (error) {
+      console.error('Test DB Error:', error)
+      alert('❌ Database test failed: ' + error)
+    }
+  }
+
   const filteredShortlist = shortlist.filter(item => {
     const matchesSearch = searchQuery === '' || 
       item.pitch.veteran.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -225,6 +245,12 @@ export default function RecruiterDashboard() {
                 className="flex items-center px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 transition-colors"
               >
                 Test Auth
+              </button>
+              <button
+                onClick={testDatabase}
+                className="flex items-center px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
+              >
+                Test DB
               </button>
               <button
                 onClick={() => router.push('/browse')}
