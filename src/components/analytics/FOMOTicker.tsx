@@ -42,14 +42,15 @@ export default function FOMOTicker() {
         if (referralEvents && referralEvents.length > 0) {
           referralEvents.forEach(event => {
             const referral = event.referral
-            if (referral) {
+            if (referral && Array.isArray(referral) && referral.length > 0) {
+              const referralData = referral[0] // Get first item from array
               realEvents.push({
                 id: `ref-${event.id}`,
                 event: event.event_type,
                 meta: {
                   platform: event.platform,
-                  pitch_title: referral.pitch?.title,
-                  supporter_name: referral.supporter?.name
+                  pitch_title: referralData.pitch?.[0]?.title,
+                  supporter_name: referralData.supporter?.[0]?.name
                 },
                 created_at: event.occurred_at
               })
@@ -71,12 +72,19 @@ export default function FOMOTicker() {
 
         if (recentEndorsements && recentEndorsements.length > 0) {
           recentEndorsements.forEach(endorsement => {
+            const veteranName = endorsement.veteran && Array.isArray(endorsement.veteran) && endorsement.veteran.length > 0 
+              ? endorsement.veteran[0]?.name 
+              : 'a veteran'
+            const endorserName = endorsement.endorser && Array.isArray(endorsement.endorser) && endorsement.endorser.length > 0 
+              ? endorsement.endorser[0]?.name 
+              : 'someone'
+            
             realEvents.push({
               id: `endorsement-${endorsement.id}`,
               event: 'supporter_endorse',
               meta: {
-                veteran_name: endorsement.veteran?.name,
-                endorser_name: endorsement.endorser?.name
+                veteran_name: veteranName,
+                endorser_name: endorserName
               },
               created_at: endorsement.created_at
             })
@@ -116,12 +124,16 @@ export default function FOMOTicker() {
 
         if (recentPitches && recentPitches.length > 0) {
           recentPitches.forEach(pitch => {
+            const veteranName = pitch.veteran && Array.isArray(pitch.veteran) && pitch.veteran.length > 0 
+              ? pitch.veteran[0]?.name 
+              : 'a veteran'
+            
             realEvents.push({
               id: `pitch-${pitch.id}`,
               event: 'new_pitch_posted',
               meta: {
                 title: pitch.title,
-                veteran_name: pitch.veteran?.name
+                veteran_name: veteranName
               },
               created_at: pitch.created_at
             })
@@ -292,15 +304,19 @@ export function MiniFOMOTicker() {
 
         if (referralEvents && referralEvents.length > 0) {
           referralEvents.forEach(event => {
-            realEvents.push({
-              id: `ref-${event.id}`,
-              event: event.event_type,
-              meta: {
-                platform: event.platform,
-                pitch_title: event.referral?.pitch?.title
-              },
-              created_at: event.occurred_at
-            })
+            const referral = event.referral
+            if (referral && Array.isArray(referral) && referral.length > 0) {
+              const referralData = referral[0] // Get first item from array
+              realEvents.push({
+                id: `ref-${event.id}`,
+                event: event.event_type,
+                meta: {
+                  platform: event.platform,
+                  pitch_title: referralData.pitch?.[0]?.title
+                },
+                created_at: event.occurred_at
+              })
+            }
           })
         }
 
