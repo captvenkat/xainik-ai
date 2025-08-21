@@ -14,8 +14,11 @@ export async function POST(request: NextRequest) {
     const supabase = await createSupabaseServerOnly()
     const body: WaitlistSignupData = await request.json()
 
+    console.log('Waitlist join request received:', { email: body.email, name: body.name })
+
     // Validate required fields
     if (!body.name || !body.email || !body.service_branch || !body.rank) {
+      console.log('Validation failed:', { name: !!body.name, email: !!body.email, service_branch: !!body.service_branch, rank: !!body.rank })
       return NextResponse.json(
         { error: 'All fields are required' },
         { status: 400 }
@@ -28,6 +31,8 @@ export async function POST(request: NextRequest) {
       .select('id, metadata, role')
       .eq('email', body.email)
       .single()
+
+    console.log('Existing user check:', { existingUser: !!existingUser, userError: userError?.message })
 
     if (userError && userError.code !== 'PGRST116') { // PGRST116 = no rows returned
       console.error('Error checking existing user:', userError)
@@ -70,6 +75,8 @@ export async function POST(request: NextRequest) {
       .select('*', { count: 'exact', head: true })
       .not('metadata->waitlist_status', 'is', null)
 
+    console.log('Waitlist count check:', { currentCount, countError: countError?.message })
+
     if (countError) {
       console.error('Error getting waitlist count:', countError)
       // Continue with position 1 if we can't get the count
@@ -91,6 +98,8 @@ export async function POST(request: NextRequest) {
       rank: body.rank
     }
 
+    console.log('Preparing to save user with metadata:', waitlistMetadata)
+
     if (existingUser) {
       // Update existing user with waitlist metadata
       const { error: updateError } = await supabase
@@ -104,6 +113,8 @@ export async function POST(request: NextRequest) {
         })
         .eq('id', existingUser.id)
 
+      console.log('Update existing user result:', { updateError: updateError?.message })
+
       if (updateError) {
         console.error('Error updating user for waitlist:', updateError)
         return NextResponse.json(
@@ -113,14 +124,23 @@ export async function POST(request: NextRequest) {
       }
     } else {
       // Create new user for waitlist
+      const newUserData = {
+        email: body.email,
+        name: body.name,
+        role: 'veteran' as const,
+        metadata: waitlistMetadata,
+        is_active: true,
+        email_verified: false,
+        phone_verified: false
+      }
+
+      console.log('Creating new user with data:', { ...newUserData, metadata: waitlistMetadata })
+
       const { error: insertError } = await supabase
         .from('users')
-        .insert({
-          email: body.email,
-          name: body.name,
-          role: 'veteran',
-          metadata: waitlistMetadata
-        })
+        .insert(newUserData)
+
+      console.log('Insert new user result:', { insertError: insertError?.message })
 
       if (insertError) {
         console.error('Error creating user for waitlist:', insertError)
@@ -181,6 +201,8 @@ export async function POST(request: NextRequest) {
       console.error('Failed to log activity:', logError)
       // Don't fail the request if logging fails
     }
+
+    console.log('Waitlist join successful:', { position, referralCode })
 
     return NextResponse.json({
       success: true,
