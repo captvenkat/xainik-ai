@@ -75,15 +75,16 @@ export default function DonationForm() {
       console.log('Response status:', response.status)
       console.log('Response headers:', Object.fromEntries(response.headers.entries()))
 
+      const responseData = await response.json()
+
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        console.error('Payment order creation failed:', errorData)
+        console.error('Payment order creation failed:', responseData)
         console.error('Response status:', response.status)
         console.error('Response status text:', response.statusText)
-        throw new Error(errorData.error || 'Failed to create payment order')
+        throw new Error(responseData.error || 'Failed to create payment order')
       }
 
-      const { orderId } = await response.json()
+      const { orderId } = responseData
 
       // Load Razorpay script
       const script = document.createElement('script')
