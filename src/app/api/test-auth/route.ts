@@ -1,46 +1,47 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseServerOnly } from '@/lib/supabaseServerOnly'
+import { createAdminClient } from '@/lib/supabaseAdmin'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     console.log('🔍 Testing authentication...')
     
-    const supabase = await createSupabaseServerOnly()
+    // Get user ID from headers
+    const userId = request.headers.get('X-User-ID')
+    console.log('🔍 Auth result: User ID from headers:', userId)
     
-    // Check authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    
-    console.log('🔍 Auth result:', { user: user?.id, error: authError?.message })
-    
-    if (authError || !user) {
+    if (!userId) {
       return NextResponse.json({ 
         error: 'Unauthorized', 
-        details: authError?.message || 'No user found',
+        details: 'No user ID in headers',
         timestamp: new Date().toISOString()
       }, { status: 401 })
     }
-
-    // Check if user is a recruiter
-    const { data: profile, error: profileError } = await supabase
+    
+    // Use admin client to verify user and role
+    const adminSupabase = createAdminClient()
+    
+    // Check if user exists and is a recruiter
+    const { data: profile, error: profileError } = await adminSupabase
       .from('users')
       .select('role, name')
-      .eq('id', user.id)
+      .eq('id', userId)
       .single()
 
     console.log('🔍 Profile result:', { profile, error: profileError?.message })
 
-    if (profileError) {
+    if (profileError || !profile) {
       return NextResponse.json({ 
-        error: 'Profile fetch failed', 
-        details: profileError.message,
+        error: 'User not found', 
+        details: profileError?.message || 'User not found in database',
         timestamp: new Date().toISOString()
-      }, { status: 500 })
+      }, { status: 404 })
     }
 
-    if (profile?.role !== 'recruiter') {
+    if (profile.role !== 'recruiter') {
       return NextResponse.json({ 
         error: 'Forbidden', 
-        details: `User role is ${profile?.role}, expected recruiter`,
+        details: `User role is ${profile.role}, expected recruiter`,
         timestamp: new Date().toISOString()
       }, { status: 403 })
     }

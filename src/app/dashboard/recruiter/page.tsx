@@ -64,8 +64,18 @@ export default function RecruiterDashboard() {
       // Add a small delay to ensure authentication is ready
       await new Promise(resolve => setTimeout(resolve, 500))
       
+      // Get the current user ID from the auth context
+      const userId = user?.id
+      if (!userId) {
+        setError('User not authenticated')
+        return
+      }
+      
       const response = await fetch('/api/recruiter/shortlist', {
-        credentials: 'include'
+        credentials: 'include',
+        headers: {
+          'X-User-ID': userId
+        }
       })
       if (response.ok) {
         const data = await response.json()
@@ -85,9 +95,18 @@ export default function RecruiterDashboard() {
 
   const handleStatusChange = async (id: string, status: string) => {
     try {
+      const userId = user?.id
+      if (!userId) {
+        console.error('User not authenticated')
+        return
+      }
+      
       const response = await fetch('/api/recruiter/shortlist', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'X-User-ID': userId
+        },
         credentials: 'include',
         body: JSON.stringify({ id, status })
       })
@@ -104,10 +123,19 @@ export default function RecruiterDashboard() {
 
   const handleContact = async (pitchId: string, contactType: 'call' | 'email') => {
     try {
+      const userId = user?.id
+      if (!userId) {
+        console.error('User not authenticated')
+        return
+      }
+      
       // Log the contact
       await fetch('/api/recruiter/contacts', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'X-User-ID': userId
+        },
         credentials: 'include',
         body: JSON.stringify({
           pitch_id: pitchId,
@@ -132,8 +160,17 @@ export default function RecruiterDashboard() {
 
   const testAuth = async () => {
     try {
+      const userId = user?.id
+      if (!userId) {
+        alert('User not authenticated')
+        return
+      }
+      
       const response = await fetch('/api/test-auth', {
-        credentials: 'include'
+        credentials: 'include',
+        headers: {
+          'X-User-ID': userId
+        }
       })
       const data = await response.json()
       console.log('Auth test result:', data)
