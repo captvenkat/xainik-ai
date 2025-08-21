@@ -1,6 +1,7 @@
 'use server'
 
 import { createActionClient } from '@/lib/supabase-server'
+import { createSupabaseServerOnly } from '@/lib/supabaseServerOnly'
 
 export interface AnalyticsData {
   totalViews: number
@@ -84,7 +85,10 @@ export async function logActivity(data: {
   activity_data?: Record<string, any>
 }): Promise<{ success: boolean; error?: string }> {
   try {
-    const supabaseAction = await createActionClient()
+    // For anonymous activities, we need to use service role
+    const supabaseAction = data.user_id === 'anonymous' 
+      ? await createSupabaseServerOnly()
+      : await createActionClient()
     
     // Note: user_activity_log table doesn't exist in live schema
     // Skip logging activity until schema is properly migrated

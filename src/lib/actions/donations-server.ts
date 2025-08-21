@@ -76,7 +76,7 @@ export async function getDonationsByUserId(userId: string): Promise<Donation[]> 
 }
 
 export async function getAllDonations(): Promise<Donation[]> {
-  const supabase = await createActionClient()
+  const supabase = await createSupabaseServerOnly()
   
   const { data: donations, error } = await supabase
     .from('donations')
@@ -84,6 +84,7 @@ export async function getAllDonations(): Promise<Donation[]> {
     .order('created_at', { ascending: false })
   
   if (error) {
+    console.error('Error getting all donations:', error)
     throw new Error(`Failed to get donations: ${error.message}`)
   }
   
@@ -95,7 +96,7 @@ export async function getDonationStats(): Promise<{
   totalAmount: number;
   recentDonations: Donation[];
 }> {
-  const supabase = await createActionClient()
+  const supabase = await createSupabaseServerOnly()
   
   const { count: totalDonations } = await supabase
     .from('donations')
