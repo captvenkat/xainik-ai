@@ -25,10 +25,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if email already exists in waitlist
+    // Check if email already exists in users table
     const { data: existingUser, error: userError } = await supabase
       .from('users')
-      .select('id, metadata, role')
+      .select('id, role')
       .eq('email', body.email)
       .single()
 
@@ -43,27 +43,10 @@ export async function POST(request: NextRequest) {
     }
 
     if (existingUser) {
-      // Check if user is already on waitlist
-      const waitlistStatus = existingUser.metadata?.waitlist_status
-      if (waitlistStatus && waitlistStatus !== 'expired') {
+      // Check if user already has a role (means they're already registered)
+      if (existingUser.role) {
         return NextResponse.json(
-          { error: 'You are already on the waitlist' },
-          { status: 400 }
-        )
-      }
-
-      // Check if user already has a Google Auth account with a role
-      if (existingUser.role && existingUser.role !== 'veteran') {
-        return NextResponse.json(
-          { error: 'You already have an account. Please sign in with Google instead.' },
-          { status: 400 }
-        )
-      }
-
-      // If user has Google Auth but no role, they should use Google Auth instead
-      if (existingUser.id && !existingUser.role) {
-        return NextResponse.json(
-          { error: 'You already have an account. Please sign in with Google to complete your registration.' },
+          { error: 'You already have an account. Please sign in instead.' },
           { status: 400 }
         )
       }
@@ -71,9 +54,10 @@ export async function POST(request: NextRequest) {
 
     // Get current waitlist count for position
     const { count: currentCount, error: countError } = await supabase
-      .from('users')
+      .from('user_profiles')
       .select('*', { count: 'exact', head: true })
-      .not('metadata->waitlist_status', 'is', null)
+      .eq('profile_type', 'veteran')
+      .eq('is_active', true)
 
     console.log('Waitlist count check:', { currentCount, countError: countError?.message })
 
@@ -87,8 +71,8 @@ export async function POST(request: NextRequest) {
     // Generate referral code
     const referralCode = nanoid(8).toUpperCase()
 
-    // Prepare waitlist metadata
-    const waitlistMetadata = {
+    // Prepare waitlist profile data
+    const waitlistProfileData = {
       waitlist_status: 'waiting',
       waitlist_position: position,
       waitlist_joined_at: new Date().toISOString(),
@@ -98,18 +82,15 @@ export async function POST(request: NextRequest) {
       rank: body.rank
     }
 
-    console.log('Preparing to save user with metadata:', waitlistMetadata)
+    console.log('Preparing to save user with profile data:', waitlistProfileData)
 
     if (existingUser) {
-      // Update existing user with waitlist metadata
+      // Update existing user with role and create profile
       const { error: updateError } = await supabase
         .from('users')
         .update({
           name: body.name,
-          metadata: {
-            ...existingUser.metadata,
-            ...waitlistMetadata
-          }
+          role: 'veteran'
         })
         .eq('id', existingUser.id)
 
@@ -122,19 +103,38 @@ export async function POST(request: NextRequest) {
           { status: 500 }
         )
       }
+
+      // Create or update user profile
+      const { error: profileError } = await supabase
+        .from('user_profiles')
+        .upsert({
+          user_id: existingUser.id,
+          profile_type: 'veteran',
+          profile_data: waitlistProfileData,
+          is_active: true
+        })
+
+      console.log('Create/update profile result:', { profileError: profileError?.message })
+
+      if (profileError) {
+        console.error('Error creating user profile for waitlist:', profileError)
+        return NextResponse.json(
+          { error: 'Failed to join waitlist' },
+          { status: 500 }
+        )
+      }
     } else {
-      // Create new user for waitlist
+      // Create new user without auth dependency (for waitlist)
+      const newUserId = nanoid(16) // Generate a temporary ID
+      
       const newUserData = {
+        id: newUserId,
         email: body.email,
         name: body.name,
-        role: 'veteran' as const,
-        metadata: waitlistMetadata,
-        is_active: true,
-        email_verified: false,
-        phone_verified: false
+        role: 'veteran' as const
       }
 
-      console.log('Creating new user with data:', { ...newUserData, metadata: waitlistMetadata })
+      console.log('Creating new user with data:', newUserData)
 
       const { error: insertError } = await supabase
         .from('users')
@@ -144,6 +144,26 @@ export async function POST(request: NextRequest) {
 
       if (insertError) {
         console.error('Error creating user for waitlist:', insertError)
+        return NextResponse.json(
+          { error: 'Failed to join waitlist' },
+          { status: 500 }
+        )
+      }
+
+      // Create user profile
+      const { error: profileError } = await supabase
+        .from('user_profiles')
+        .insert({
+          user_id: newUserId,
+          profile_type: 'veteran',
+          profile_data: waitlistProfileData,
+          is_active: true
+        })
+
+      console.log('Create profile result:', { profileError: profileError?.message })
+
+      if (profileError) {
+        console.error('Error creating user profile for waitlist:', profileError)
         return NextResponse.json(
           { error: 'Failed to join waitlist' },
           { status: 500 }

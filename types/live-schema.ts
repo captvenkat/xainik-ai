@@ -12,45 +12,59 @@ export interface Database {
           email: string
           name: string
           phone: string | null
-          avatar_url: string | null
           role: 'veteran' | 'recruiter' | 'supporter' | 'admin'
-          is_active: boolean
-          email_verified: boolean
-          phone_verified: boolean
+          avatar_url: string | null
           created_at: string
           updated_at: string
-          last_login_at: string | null
-          metadata: any
         }
         Insert: {
           id?: string
           email: string
           name: string
           phone?: string | null
-          avatar_url?: string | null
           role?: 'veteran' | 'recruiter' | 'supporter' | 'admin'
-          is_active?: boolean
-          email_verified?: boolean
-          phone_verified?: boolean
+          avatar_url?: string | null
           created_at?: string
           updated_at?: string
-          last_login_at?: string | null
-          metadata?: any
         }
         Update: {
           id?: string
           email?: string
           name?: string
           phone?: string | null
-          avatar_url?: string | null
           role?: 'veteran' | 'recruiter' | 'supporter' | 'admin'
-          is_active?: boolean
-          email_verified?: boolean
-          phone_verified?: boolean
+          avatar_url?: string | null
           created_at?: string
           updated_at?: string
-          last_login_at?: string | null
-          metadata?: any
+        }
+      }
+      user_profiles: {
+        Row: {
+          id: string
+          user_id: string
+          profile_type: 'veteran' | 'recruiter' | 'supporter' | 'admin'
+          profile_data: any
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          profile_type: 'veteran' | 'recruiter' | 'supporter' | 'admin'
+          profile_data?: any
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          profile_type?: 'veteran' | 'recruiter' | 'supporter' | 'admin'
+          profile_data?: any
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
         }
       }
       pitches: {
@@ -76,7 +90,6 @@ export interface Database {
           views_count: number
           created_at: string
           updated_at: string
-          metadata: any
         }
         Insert: {
           id?: string
@@ -100,7 +113,6 @@ export interface Database {
           views_count?: number
           created_at?: string
           updated_at?: string
-          metadata?: any
         }
         Update: {
           id?: string
@@ -124,28 +136,27 @@ export interface Database {
           views_count?: number
           created_at?: string
           updated_at?: string
-          metadata?: any
         }
       }
       referrals: {
         Row: {
           id: string
-          supporter_id: string
           pitch_id: string
+          user_id: string
           share_link: string
           created_at: string
         }
         Insert: {
           id?: string
-          supporter_id: string
           pitch_id: string
+          user_id: string
           share_link: string
           created_at?: string
         }
         Update: {
           id?: string
-          supporter_id?: string
           pitch_id?: string
+          user_id?: string
           share_link?: string
           created_at?: string
         }
@@ -154,31 +165,22 @@ export interface Database {
         Row: {
           id: string
           referral_id: string
-          event_type: 'LINK_OPENED' | 'PITCH_VIEWED' | 'CALL_CLICKED' | 'EMAIL_CLICKED' | 'SHARE_RESHARED' | 'SIGNUP_FROM_REFERRAL'
-          platform: string | null
-          user_agent: string | null
-          country: string | null
-          ip_hash: string | null
+          event_type: string
+          platform: string
           occurred_at: string
         }
         Insert: {
           id?: string
           referral_id: string
-          event_type: 'LINK_OPENED' | 'PITCH_VIEWED' | 'CALL_CLICKED' | 'EMAIL_CLICKED' | 'SHARE_RESHARED' | 'SIGNUP_FROM_REFERRAL'
-          platform?: string | null
-          user_agent?: string | null
-          country?: string | null
-          ip_hash?: string | null
+          event_type: string
+          platform: string
           occurred_at?: string
         }
         Update: {
           id?: string
           referral_id?: string
-          event_type?: 'LINK_OPENED' | 'PITCH_VIEWED' | 'CALL_CLICKED' | 'EMAIL_CLICKED' | 'SHARE_RESHARED' | 'SIGNUP_FROM_REFERRAL'
-          platform?: string | null
-          user_agent?: string | null
-          country?: string | null
-          ip_hash?: string | null
+          event_type?: string
+          platform?: string
           occurred_at?: string
         }
       }
@@ -188,116 +190,78 @@ export interface Database {
           user_id: string
           endorser_user_id: string | null
           text: string
-          rating: number | null
-          is_public: boolean
           created_at: string
-          updated_at: string
         }
         Insert: {
           id?: string
           user_id: string
           endorser_user_id?: string | null
           text: string
-          rating?: number | null
-          is_public?: boolean
           created_at?: string
-          updated_at?: string
         }
         Update: {
           id?: string
           user_id?: string
           endorser_user_id?: string | null
           text?: string
-          rating?: number | null
-          is_public?: boolean
           created_at?: string
-          updated_at?: string
         }
       }
       donations: {
         Row: {
           id: string
-          donor_name: string | null
-          amount: number
+          donor_name: string
+          amount_cents: number
           currency: string
           created_at: string
         }
         Insert: {
           id?: string
-          donor_name?: string | null
-          amount: number
+          donor_name: string
+          amount_cents: number
           currency?: string
           created_at?: string
         }
         Update: {
           id?: string
-          donor_name?: string | null
-          amount?: number
+          donor_name?: string
+          amount_cents?: number
           currency?: string
           created_at?: string
-        }
-      }
-      invoices: {
-        Row: {
-          id: string
-          invoice_number: string
-          user_id: string
-          amount: number
-          currency: string
-          status: string
-          due_date: string
-          created_at: string
-          paid_at: string | null
-        }
-        Insert: {
-          id?: string
-          invoice_number: string
-          user_id: string
-          amount: number
-          currency?: string
-          status?: string
-          due_date: string
-          created_at?: string
-          paid_at?: string | null
-        }
-        Update: {
-          id?: string
-          invoice_number?: string
-          user_id?: string
-          amount?: number
-          currency?: string
-          status?: string
-          due_date?: string
-          created_at?: string
-          paid_at?: string | null
         }
       }
       receipts: {
         Row: {
           id: string
           receipt_number: string
-          user_id: string
+          donation_date: string
+          donor_name: string
           amount: number
           currency: string
-          payment_method: string
+          payment_id: string | null
+          is_anonymous: boolean
           created_at: string
         }
         Insert: {
           id?: string
           receipt_number: string
-          user_id: string
+          donation_date: string
+          donor_name: string
           amount: number
           currency?: string
-          payment_method: string
+          payment_id?: string | null
+          is_anonymous?: boolean
           created_at?: string
         }
         Update: {
           id?: string
           receipt_number?: string
-          user_id?: string
+          donation_date?: string
+          donor_name?: string
           amount?: number
           currency?: string
-          payment_method?: string
+          payment_id?: string | null
+          is_anonymous?: boolean
           created_at?: string
         }
       }
@@ -331,6 +295,26 @@ export interface Database {
           status?: 'PENDING' | 'APPROVED' | 'DECLINED'
           created_at?: string
           responded_at?: string | null
+        }
+      }
+      activity_log: {
+        Row: {
+          id: string
+          event: string
+          meta: any
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          event: string
+          meta?: any
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          event?: string
+          meta?: any
+          created_at?: string
         }
       }
     }

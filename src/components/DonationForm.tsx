@@ -45,7 +45,7 @@ export default function DonationForm() {
       
       const donation = await createDonation({
         donor_name: formData.anonymous ? 'Anonymous' : formData.donor_name,
-        amount: amount, // Use amount directly
+        amount_cents: amount,
         currency: 'INR',
         created_at: new Date().toISOString()
       })
