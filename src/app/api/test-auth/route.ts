@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ 
       success: true, 
-      user: { id: user.id, role: profile.role, name: profile.name },
+      user: { id: userId, role: profile.role, name: profile.name },
       timestamp: new Date().toISOString()
     })
   } catch (error) {
