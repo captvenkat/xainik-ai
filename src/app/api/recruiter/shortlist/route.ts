@@ -1,36 +1,45 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseServerOnly } from '@/lib/supabaseServerOnly'
+import { createAdminClient } from '@/lib/supabaseAdmin'
 
 // GET: Retrieve recruiter's shortlist
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     console.log('🔍 Shortlist API: Starting authentication check...')
     
-    const supabase = await createSupabaseServerOnly()
+    // Get user ID from headers
+    const userId = request.headers.get('X-User-ID')
+    console.log('🔍 Shortlist API: User ID from headers:', userId)
     
-    // Check authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    
-    console.log('🔍 Shortlist API: Auth result:', { user: user?.id, error: authError?.message })
-    
-    if (authError || !user) {
-      console.log('🔍 Shortlist API: Authentication failed')
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    if (!userId) {
+      console.log('🔍 Shortlist API: No user ID in headers')
+      return NextResponse.json({ error: 'Unauthorized - No user ID' }, { status: 401 })
     }
-
-    // Check if user is a recruiter
-    const { data: profile } = await supabase
+    
+    // Use admin client to verify user and role
+    const adminSupabase = createAdminClient()
+    
+    // Check if user exists and is a recruiter
+    const { data: profile, error: profileError } = await adminSupabase
       .from('users')
       .select('role, name')
-      .eq('id', user.id)
+      .eq('id', userId)
       .single()
+    
+    console.log('🔍 Shortlist API: Profile result:', { profile, error: profileError?.message })
 
-    if (profile?.role !== 'recruiter') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    if (profileError || !profile) {
+      console.log('🔍 Shortlist API: User not found')
+      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    }
+
+    if (profile.role !== 'recruiter') {
+      console.log('🔍 Shortlist API: User is not a recruiter')
+      return NextResponse.json({ error: 'Forbidden - Not a recruiter' }, { status: 403 })
     }
 
     // Fetch shortlisted pitches with veteran details
-    const { data: shortlist, error } = await supabase
+    const { data: shortlist, error } = await adminSupabase
       .from('shortlist')
       .select(`
         *,
@@ -42,7 +51,7 @@ export async function GET() {
           )
         )
       `)
-      .eq('recruiter_user_id', user.id)
+      .eq('recruiter_user_id', userId)
       .order('created_at', { ascending: false })
 
     if (error) {
@@ -60,23 +69,29 @@ export async function GET() {
 // POST: Add pitch to shortlist
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createSupabaseServerOnly()
+    // Get user ID from headers
+    const userId = request.headers.get('X-User-ID')
     
-    // Check authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized - No user ID' }, { status: 401 })
     }
-
-    // Check if user is a recruiter
-    const { data: profile } = await supabase
+    
+    // Use admin client to verify user and role
+    const adminSupabase = createAdminClient()
+    
+    // Check if user exists and is a recruiter
+    const { data: profile, error: profileError } = await adminSupabase
       .from('users')
       .select('role, name')
-      .eq('id', user.id)
+      .eq('id', userId)
       .single()
 
-    if (profile?.role !== 'recruiter') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    if (profileError || !profile) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    }
+
+    if (profile.role !== 'recruiter') {
+      return NextResponse.json({ error: 'Forbidden - Not a recruiter' }, { status: 403 })
     }
 
     const { pitch_id, notes, priority } = await request.json()
@@ -86,10 +101,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Add to shortlist
-    const { data, error } = await supabase
+    const { data, error } = await adminSupabase
       .from('shortlist')
       .insert({
-        recruiter_user_id: user.id,
+        recruiter_user_id: userId,
         pitch_id
       })
       .select()
@@ -104,7 +119,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Log activity
-    await supabase
+    await adminSupabase
       .from('activity_log')
       .insert({
         event: 'recruiter_shortlisted',
@@ -125,23 +140,29 @@ export async function POST(request: NextRequest) {
 // PUT: Update shortlist item
 export async function PUT(request: NextRequest) {
   try {
-    const supabase = await createSupabaseServerOnly()
+    // Get user ID from headers
+    const userId = request.headers.get('X-User-ID')
     
-    // Check authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized - No user ID' }, { status: 401 })
     }
-
-    // Check if user is a recruiter
-    const { data: profile } = await supabase
+    
+    // Use admin client to verify user and role
+    const adminSupabase = createAdminClient()
+    
+    // Check if user exists and is a recruiter
+    const { data: profile, error: profileError } = await adminSupabase
       .from('users')
       .select('role, name')
-      .eq('id', user.id)
+      .eq('id', userId)
       .single()
 
-    if (profile?.role !== 'recruiter') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    if (profileError || !profile) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    }
+
+    if (profile.role !== 'recruiter') {
+      return NextResponse.json({ error: 'Forbidden - Not a recruiter' }, { status: 403 })
     }
 
     const { id, status, notes, priority } = await request.json()
@@ -151,13 +172,13 @@ export async function PUT(request: NextRequest) {
     }
 
     // Update shortlist item - for now just update the timestamp
-    const { data, error } = await supabase
+    const { data, error } = await adminSupabase
       .from('shortlist')
       .update({
         updated_at: new Date().toISOString()
       })
       .eq('id', id)
-      .eq('recruiter_user_id', user.id)
+      .eq('recruiter_user_id', userId)
       .select()
       .single()
 
