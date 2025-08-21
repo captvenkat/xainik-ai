@@ -14,9 +14,8 @@ export async function POST(request: NextRequest) {
     const envName = process.env.NODE_ENV || 'development'
     const timestamp = new Date().toISOString()
 
-    // Try with verified domain first, fallback to Resend's default domain
     const { data, error } = await resend.emails.send({
-      from: 'Xainik <onboarding@resend.dev>', // Use Resend's verified domain for testing
+      from: 'Xainik <noreply@xainik.com>',
       to: [recipientEmail],
       subject: `Test Email - ${envName} Environment`,
       html: `
@@ -35,8 +34,6 @@ export async function POST(request: NextRequest) {
           </div>
           
           <p>If you received this email, Resend is working correctly! 🎉</p>
-          
-          <p><strong>Note:</strong> This email is sent from Resend's test domain. Once xainik.com domain is verified, emails will come from noreply@xainik.com</p>
           
           <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
           <p style="color: #666; font-size: 12px;">
