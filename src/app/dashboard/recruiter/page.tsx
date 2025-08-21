@@ -61,7 +61,9 @@ export default function RecruiterDashboard() {
   const fetchShortlist = async () => {
     setLoading(true)
     try {
-      const response = await fetch('/api/recruiter/shortlist')
+      const response = await fetch('/api/recruiter/shortlist', {
+        credentials: 'include'
+      })
       if (response.ok) {
         const data = await response.json()
         setShortlist(data)
@@ -80,6 +82,7 @@ export default function RecruiterDashboard() {
       const response = await fetch('/api/recruiter/shortlist', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ id, status })
       })
       
@@ -99,6 +102,7 @@ export default function RecruiterDashboard() {
       await fetch('/api/recruiter/contacts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           pitch_id: pitchId,
           contact_type: contactType,
