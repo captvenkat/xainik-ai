@@ -7,8 +7,7 @@ import {
   Heart, Share2, TrendingUp, Eye, Phone, Mail, Award, Users, BarChart3, 
   Target, Zap, Star, Gift, Trophy, Calendar, ArrowUpRight, ArrowDownRight,
   ChevronRight, ExternalLink, Bell, Settings, Download, Filter, Activity, MessageCircle, Lightbulb,
-  Target, Rocket, TrendingUp, Users, Eye, Heart, Share2, Gift, Phone, FileText,
-  Flag, Shield, Medal, Handshake, Sparkles, Crown, Compass, MapPin
+  Rocket, FileText, Flag, Shield, Medal, Handshake, Sparkles, Crown, Compass, MapPin
 } from 'lucide-react'
 // import BarChart from '@/components/charts/BarChart'
 // import PieChart from '@/components/charts/PieChart'
@@ -261,9 +260,17 @@ export default function SupporterDashboard() {
     }
   }
 
-  function buildVeteransHelping(pitchDetails: any[]) {
+  function buildVeteransHelping(pitchDetails: any[]): Array<{
+    id: string
+    name: string
+    pitchTitle: string
+    lastInteraction: string
+    progress: string
+    needsSupport: boolean
+    impact: string
+  }> {
     return pitchDetails.map((pitch, index) => ({
-      id: pitch.id,
+      id: pitch.id || `veteran-${index}`,
       name: pitch.user?.name || `Veteran ${index + 1}`,
       pitchTitle: pitch.title || 'Professional Pitch',
       lastInteraction: getRandomRecentDate(),
@@ -314,29 +321,34 @@ export default function SupporterDashboard() {
     return 'honored'
   }
 
-  function getRandomRecentDate() {
+  function getRandomRecentDate(): string {
     const dates = ['2 days ago', '1 week ago', '3 days ago', '5 days ago']
-    return dates[Math.floor(Math.random() * dates.length)]
+    const index = Math.floor(Math.random() * dates.length)
+    return dates[index] || 'Recently'
   }
 
-  function getRandomProgress() {
+  function getRandomProgress(): string {
     const progress = ['Getting interviews', 'Building network', 'Skill development', 'Industry research']
-    return progress[Math.floor(Math.random() * progress.length)]
+    const index = Math.floor(Math.random() * progress.length)
+    return progress[index] || 'Making progress'
   }
 
-  function getRandomImpact() {
+  function getRandomImpact(): string {
     const impacts = ['Connected to 3 companies', 'Got 2 interview calls', 'Linked with industry mentor', 'Received job offer']
-    return impacts[Math.floor(Math.random() * impacts.length)]
+    const index = Math.floor(Math.random() * impacts.length)
+    return impacts[index] || 'Making connections'
   }
 
-  function getRandomRecentAction() {
+  function getRandomRecentAction(): string {
     const actions = ['Shared their pitch', 'Connected them to a contact', 'Endorsed their skills', 'Referred to a company']
-    return actions[Math.floor(Math.random() * actions.length)]
+    const index = Math.floor(Math.random() * actions.length)
+    return actions[index] || 'Supported veteran'
   }
 
-  function getRandomNextAction() {
+  function getRandomNextAction(): string {
     const actions = ['Follow up on interview', 'Introduce to new contact', 'Share updated pitch', 'Check on progress']
-    return actions[Math.floor(Math.random() * actions.length)]
+    const index = Math.floor(Math.random() * actions.length)
+    return actions[index] || 'Continue support'
   }
 
   // Show loading state
