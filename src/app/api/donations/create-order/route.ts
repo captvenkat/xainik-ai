@@ -53,19 +53,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create Razorpay order
-    console.log('About to create Razorpay order with params:', {
-      amount,
-      currency: 'INR',
-      receipt: `donation_${donationId}`,
-      notes: {
-        type: 'donation',
-        donation_id: donationId,
-        donor_name: donor_name || 'Anonymous',
-        user_id: user?.id || 'anonymous'
-      }
-    })
-    
-    const order = await createOrder({
+    const orderParams = {
       amount: amount * 100, // Convert to paise for Razorpay
       currency: 'INR',
       receipt: `donation_${donationId}`,
@@ -75,7 +63,12 @@ export async function POST(request: NextRequest) {
         donor_name: donor_name || 'Anonymous',
         user_id: user?.id || 'anonymous'
       }
-    })
+    }
+    
+    console.log('About to create Razorpay order with params:', orderParams)
+    console.log('Amount in paise:', amount * 100)
+    
+    const order = await createOrder(orderParams)
     
     console.log('Razorpay order created successfully:', order.id)
 
@@ -92,6 +85,10 @@ export async function POST(request: NextRequest) {
       message: error instanceof Error ? error.message : 'Unknown error',
       stack: error instanceof Error ? error.stack : 'No stack trace'
     })
+    
+    // Log the full error for debugging
+    console.error('Full error object:', JSON.stringify(error, Object.getOwnPropertyNames(error)))
+    
     return NextResponse.json(
       { error: 'Failed to create payment order' },
       { status: 500 }
