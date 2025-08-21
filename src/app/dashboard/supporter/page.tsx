@@ -16,6 +16,7 @@ import {
 import MissionInvitationModal from '@/components/mission/MissionInvitationModal'
 // import MissionInvitationAnalytics from '@/components/mission/MissionInvitationAnalytics'
 import CommunitySuggestions from '@/components/community/CommunitySuggestions'
+import SupporterShareModal from '@/components/SupporterShareModal'
 // import VeteransSupporting from '@/components/supporter/VeteransSupporting'
 // import ConnectedPitches from '@/components/supporter/ConnectedPitches'
 // import FOMOTicker from '@/components/analytics/FOMOTicker'
@@ -165,6 +166,9 @@ export default function SupporterDashboard() {
   const [activeTab, setActiveTab] = useState<'mission' | 'veterans' | 'discover' | 'community'>('mission')
   const [showInvitationModal, setShowInvitationModal] = useState(false)
   const [currentFactIndex, setCurrentFactIndex] = useState(0)
+  const [showMissionModal, setShowMissionModal] = useState(false)
+  const [showShareModal, setShowShareModal] = useState(false)
+  const [selectedVeteranForShare, setSelectedVeteranForShare] = useState<any>(null)
   const router = useRouter()
 
   // Facts ticker rotation
@@ -596,6 +600,25 @@ export default function SupporterDashboard() {
           onClose={() => setShowInvitationModal(false)}
         />
       )}
+
+      {/* Supporter Share Modal */}
+      {showShareModal && selectedVeteranForShare && (
+        <SupporterShareModal
+          isOpen={showShareModal}
+          onClose={() => {
+            setShowShareModal(false)
+            setSelectedVeteranForShare(null)
+          }}
+          supporterId={user?.id || ''}
+          pitchId={selectedVeteranForShare.id}
+          pitchTitle={selectedVeteranForShare.pitchTitle}
+          veteranName={selectedVeteranForShare.name}
+          veteranSkills={['Leadership', 'Team Management', 'Strategic Planning']}
+          veteranLocation="India"
+          veteranJobType="Professional"
+          veteranAvailability="Immediate"
+        />
+      )}
     </div>
   )
 }
@@ -851,7 +874,13 @@ function VeteransTab({ metrics, userId }: { metrics: SupporterMetrics; userId: s
                 <Eye className="w-4 h-4 inline mr-2" />
                 View Their Pitch
               </button>
-              <button className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors text-sm font-medium">
+              <button 
+                onClick={() => {
+                  setSelectedVeteranForShare(veteran)
+                  setShowShareModal(true)
+                }}
+                className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
+              >
                 <Share2 className="w-4 h-4 inline mr-2" />
                 Share Their Story
               </button>
@@ -859,7 +888,7 @@ function VeteransTab({ metrics, userId }: { metrics: SupporterMetrics; userId: s
                 <MessageCircle className="w-4 h-4 inline mr-2" />
                 Send Message
               </button>
-                </div>
+            </div>
                 </div>
         ))}
         </div>
@@ -932,7 +961,13 @@ function DiscoverTab({ metrics, userId }: { metrics: SupporterMetrics; userId: s
                 <Eye className="w-4 h-4 inline mr-2" />
                 Meet This Hero
               </button>
-              <button className="w-full bg-pink-600 text-white py-2 px-4 rounded-lg hover:bg-pink-700 transition-colors text-sm font-medium">
+              <button 
+                onClick={() => {
+                  setSelectedVeteranForShare(veteran)
+                  setShowShareModal(true)
+                }}
+                className="w-full bg-pink-600 text-white py-2 px-4 rounded-lg hover:bg-pink-700 transition-colors text-sm font-medium"
+              >
                 <Share2 className="w-4 h-4 inline mr-2" />
                 Share Their Story
               </button>
