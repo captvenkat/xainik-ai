@@ -1,12 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Eye, Heart, Share2, Star, TrendingUp, Users } from 'lucide-react'
+import { Eye, Heart, Share2, Star, TrendingUp, Users, Phone, Mail, Award } from 'lucide-react'
 import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 
 interface ActivityEvent {
   id: string
-  type: 'view' | 'like' | 'share' | 'endorsement' | 'milestone'
+  type: 'new_pitch' | 'referral' | 'endorsement' | 'like' | 'view' | 'call' | 'email'
   message: string
   timestamp: Date
   icon: string
@@ -28,58 +28,153 @@ export default function LiveActivityTicker({
 
   const supabase = createSupabaseBrowser()
 
-  // Generate mock activities for demonstration
-  const generateMockActivities = (): ActivityEvent[] => {
-    const mockActivities: ActivityEvent[] = [
-      {
-        id: '1',
-        type: 'view',
-        message: 'Someone viewed your pitch!',
-        timestamp: new Date(Date.now() - 1000 * 60 * 5), // 5 minutes ago
-        icon: 'Eye',
-        color: 'blue'
-      },
-      {
-        id: '2',
-        type: 'like',
-        message: 'Your pitch received a like!',
-        timestamp: new Date(Date.now() - 1000 * 60 * 15), // 15 minutes ago
-        icon: 'Heart',
-        color: 'pink'
-      },
-      {
-        id: '3',
-        type: 'share',
-        message: 'Your pitch was shared on LinkedIn!',
-        timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
-        icon: 'Share2',
-        color: 'orange'
-      },
-      {
-        id: '4',
-        type: 'endorsement',
-        message: 'You received an endorsement!',
-        timestamp: new Date(Date.now() - 1000 * 60 * 60), // 1 hour ago
-        icon: 'Star',
-        color: 'yellow'
-      },
-      {
-        id: '5',
-        type: 'milestone',
-        message: '🎉 You reached 50 views!',
-        timestamp: new Date(Date.now() - 1000 * 60 * 90), // 1.5 hours ago
-        icon: 'TrendingUp',
-        color: 'green'
-      }
-    ]
+  // Fetch real activity data from database
+  const fetchRealActivities = async (): Promise<ActivityEvent[]> => {
+    const realActivities: ActivityEvent[] = []
+    
+    try {
+      // 1. Get recent new pitches
+      const { data: recentPitches } = await supabase
+        .from('pitches')
+        .select('id, title, created_at, veteran:users(name)')
+        .eq('is_active', true)
+        .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()) // Last 24 hours
+        .order('created_at', { ascending: false })
+        .limit(3)
 
-    return mockActivities
+      if (recentPitches && recentPitches.length > 0) {
+        recentPitches.forEach(pitch => {
+          realActivities.push({
+            id: `pitch-${pitch.id}`,
+            type: 'new_pitch',
+            message: `New pitch posted: "${pitch.title}"`,
+            timestamp: new Date(pitch.created_at),
+            icon: 'TrendingUp',
+            color: 'green'
+          })
+        })
+      }
+
+      // 2. Get recent referral events
+      const { data: referralEvents } = await supabase
+        .from('referral_events')
+        .select(`
+          id, event_type, occurred_at, platform,
+          referral:referrals(
+            pitch:pitches(title),
+            supporter:users(name)
+          )
+        `)
+        .gte('occurred_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+        .order('occurred_at', { ascending: false })
+        .limit(3)
+
+      if (referralEvents && referralEvents.length > 0) {
+        referralEvents.forEach(event => {
+          const referral = event.referral
+          if (referral) {
+            let message = ''
+            let type: ActivityEvent['type'] = 'view'
+            
+            switch (event.event_type) {
+              case 'LINK_OPENED':
+                message = `Someone opened a referral link for "${referral.pitch?.title}"`
+                type = 'view'
+                break
+              case 'PITCH_VIEWED':
+                message = `A veteran's pitch was viewed via referral`
+                type = 'view'
+                break
+              case 'CALL_CLICKED':
+                message = `Someone called a veteran through supporter referral`
+                type = 'call'
+                break
+              case 'EMAIL_CLICKED':
+                message = `Someone emailed a veteran through supporter referral`
+                type = 'email'
+                break
+              case 'SHARE_RESHARED':
+                message = `A veteran's pitch was shared on ${event.platform || 'social media'}`
+                type = 'referral'
+                break
+              default:
+                message = `New activity on the platform`
+                type = 'view'
+            }
+
+            realActivities.push({
+              id: `ref-${event.id}`,
+              type,
+              message,
+              timestamp: new Date(event.occurred_at),
+              icon: type === 'call' ? 'Phone' : type === 'email' ? 'Mail' : 'Share2',
+              color: type === 'call' ? 'purple' : type === 'email' ? 'orange' : 'blue'
+            })
+          }
+        })
+      }
+
+      // 3. Get recent endorsements
+      const { data: recentEndorsements } = await supabase
+        .from('endorsements')
+        .select(`
+          id, created_at,
+          veteran:users(name),
+          endorser:users(name)
+        `)
+        .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+        .order('created_at', { ascending: false })
+        .limit(2)
+
+      if (recentEndorsements && recentEndorsements.length > 0) {
+        recentEndorsements.forEach(endorsement => {
+          realActivities.push({
+            id: `endorsement-${endorsement.id}`,
+            type: 'endorsement',
+            message: `New endorsement for ${endorsement.veteran?.name || 'a veteran'}`,
+            timestamp: new Date(endorsement.created_at),
+            icon: 'Award',
+            color: 'yellow'
+          })
+        })
+      }
+
+      // 4. Get recent donations
+      const { data: recentDonations } = await supabase
+        .from('donations')
+        .select('id, amount, donor_name, created_at')
+        .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+        .order('created_at', { ascending: false })
+        .limit(2)
+
+      if (recentDonations && recentDonations.length > 0) {
+        recentDonations.forEach(donation => {
+          realActivities.push({
+            id: `donation-${donation.id}`,
+            type: 'like', // Using like type for donations
+            message: `New donation of ₹${donation.amount} to support veterans`,
+            timestamp: new Date(donation.created_at),
+            icon: 'Heart',
+            color: 'pink'
+          })
+        })
+      }
+
+      // Sort by timestamp (most recent first) and take top 5
+      return realActivities
+        .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+        .slice(0, 5)
+
+    } catch (error) {
+      console.error('Error fetching real activities:', error)
+      return []
+    }
   }
 
   // Get icon component
   const getIcon = (iconName: string) => {
     const icons: Record<string, any> = {
-      Eye, Heart, Share2, Star, TrendingUp, Users
+      Eye, Heart, Share2, Star, TrendingUp, Users, Phone, Mail, Award
     }
     return icons[iconName] || Eye
   }
@@ -111,43 +206,18 @@ export default function LiveActivityTicker({
   }
 
   useEffect(() => {
-    // Initialize with mock activities
-    setActivities(generateMockActivities())
-    setIsVisible(true)
-
-    // Set up real-time subscription for actual data
-    if (pitchId) {
-      const channel = supabase
-        .channel('live_activity')
-        .on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'referral_events',
-            filter: `referral_id=eq.${pitchId}`
-          },
-          (payload) => {
-            // Handle real-time activity updates
-            const newActivity: ActivityEvent = {
-              id: payload.new.id,
-              type: 'view', // Map from event_type
-              message: `New activity on your pitch!`,
-              timestamp: new Date(),
-              icon: 'Eye',
-              color: 'blue'
-            }
-            
-            setActivities(prev => [newActivity, ...prev.slice(0, 4)])
-          }
-        )
-        .subscribe()
-
-      return () => {
-        supabase.removeChannel(channel)
-      }
+    const loadActivities = async () => {
+      const realActivities = await fetchRealActivities()
+      setActivities(realActivities)
+      setIsVisible(realActivities.length > 0)
     }
-  }, [pitchId])
+
+    loadActivities()
+
+    // Refresh activities every 30 seconds
+    const interval = setInterval(loadActivities, 30000)
+    return () => clearInterval(interval)
+  }, [])
 
   useEffect(() => {
     if (activities.length === 0) return
