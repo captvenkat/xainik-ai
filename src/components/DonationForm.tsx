@@ -80,8 +80,17 @@ export default function DonationForm() {
       document.body.appendChild(script)
 
       script.onload = () => {
+        // Check if Razorpay key is available
+        const razorpayKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID
+        console.log('Razorpay key available:', !!razorpayKey)
+        
+        if (!razorpayKey) {
+          alert('Payment gateway not configured. Please contact support.')
+          return
+        }
+        
         const options = {
-          key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+          key: razorpayKey,
           amount: amount * 100, // Razorpay expects amount in paise
           currency: 'INR',
           name: 'Xainik',
