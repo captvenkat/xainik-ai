@@ -1,12 +1,31 @@
 'use server'
 
 import { createActionClient } from '@/lib/supabase-server'
+import { createSupabaseServerOnly } from '@/lib/supabaseServerOnly'
 import { Database } from '@/types/live-schema'
 
 type Donation = Database['public']['Tables']['donations']['Row']
 type DonationInsert = Database['public']['Tables']['donations']['Insert']
 
 export async function createDonation(donationData: Omit<DonationInsert, 'id'>): Promise<Donation> {
+  // For anonymous donations (user_id = null), we need to use service role to bypass RLS
+  if (!donationData.user_id) {
+    const supabaseAdmin = await createSupabaseServerOnly()
+    
+    const { data: donation, error } = await supabaseAdmin
+      .from('donations')
+      .insert(donationData)
+      .select()
+      .single()
+    
+    if (error) {
+      throw new Error(`Failed to create donation: ${error.message}`)
+    }
+    
+    return donation
+  }
+  
+  // For authenticated user donations, use regular client
   const supabase = await createActionClient()
   
   const { data: donation, error } = await supabase
