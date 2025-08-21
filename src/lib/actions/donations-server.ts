@@ -65,7 +65,7 @@ export async function createDonationAction(data: {
     const order = await createOrder({
       amount: amount * 100, // Convert to paise
       currency: 'INR',
-      receipt: `donation_${donation.id}`,
+      receipt: `don_${donation.id.substring(0, 8)}`, // Short receipt ID (max 40 chars)
       notes: {
         type: 'donation',
         donation_id: donation.id,
