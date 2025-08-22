@@ -35,7 +35,7 @@ import LikeButton from '@/components/LikeButton'
 import SocialShareCard from '@/components/SocialShareCard'
 import ResumeRequestModal from '@/components/ResumeRequestModal'
 import EmailModal from '@/components/EmailModal'
-import ReferModal from '@/components/ReferModal'
+import ReferButton from '@/components/ReferButton'
 import type { FullPitchData } from '@/types/domain'
 
 interface FullPitchViewProps {
@@ -49,7 +49,6 @@ export default function FullPitchView({ pitch, currentUserId }: FullPitchViewPro
   const [showShareModal, setShowShareModal] = useState(false)
   const [showResumeModal, setShowResumeModal] = useState(false)
   const [showEmailModal, setShowEmailModal] = useState(false)
-  const [showReferModal, setShowReferModal] = useState(false)
   const [timeLeft, setTimeLeft] = useState<{ days: number } | null>(null)
   
   const {
@@ -451,22 +450,23 @@ export default function FullPitchView({ pitch, currentUserId }: FullPitchViewPro
               
               {/* Support Button */}
               {currentUserId ? (
-                <button
-                  onClick={() => setShowReferModal(true)}
+                <ReferButton
+                  pitchId={id}
+                  pitchTitle={title}
+                  veteranName={veteranName}
+                  userId={currentUserId}
+                  skills={skills}
+                  location={location}
+                />
+              ) : (
+                <Link
+                  href={`/auth?redirect=/role-selection&role=supporter&pitch_id=${id}&source=registration`}
                   className="mt-4 w-full bg-white text-blue-600 hover:bg-blue-50 px-6 py-3 rounded-2xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105"
                 >
                   <Share2 className="h-5 w-5" />
-                  Refer This Professional
-                </button>
-                             ) : (
-                 <Link
-                   href={`/auth?redirect=/role-selection&role=supporter&pitch_id=${id}&source=registration`}
-                   className="mt-4 w-full bg-white text-blue-600 hover:bg-blue-50 px-6 py-3 rounded-2xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105"
-                 >
-                   <Share2 className="h-5 w-5" />
-                   Become a Supporter & Refer
-                 </Link>
-               )}
+                  Become a Supporter & Refer
+                </Link>
+              )}
             </div>
           </div>
 
@@ -636,16 +636,7 @@ export default function FullPitchView({ pitch, currentUserId }: FullPitchViewPro
          currentUserId={currentUserId}
        />
 
-       {/* Refer Modal */}
-       {showReferModal && (
-         <ReferModal
-           pitchId={id}
-           pitchTitle={title}
-           veteranName={veteranName}
-           userId={currentUserId || ''}
-           onClose={() => setShowReferModal(false)}
-         />
-       )}
+
      </div>
    )
  }

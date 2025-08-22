@@ -1,9 +1,10 @@
 "use client"
 
 import { useState, useEffect } from 'react'
-import { Share2, Copy, ExternalLink, MessageCircle, Linkedin, Mail } from 'lucide-react'
+import { Share2, Copy, ExternalLink, MessageCircle, Linkedin, Mail, Twitter } from 'lucide-react'
 import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 import { createOrGetReferral, trackReferralEvent } from '@/lib/actions/referrals-server'
+import { generateShareMessage, generatePitchShareUrl } from '@/lib/sharing-messages'
 
 interface ReferModalProps {
   pitchId: string
@@ -11,6 +12,8 @@ interface ReferModalProps {
   veteranName: string
   userId: string
   onClose: () => void
+  skills?: string[]
+  location?: string
 }
 
 export default function ReferModal({ 
@@ -18,7 +21,9 @@ export default function ReferModal({
   pitchTitle, 
   veteranName, 
   userId,
-  onClose 
+  onClose,
+  skills = [],
+  location = ''
 }: ReferModalProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -76,20 +81,16 @@ export default function ReferModal({
   const createShareUrl = (platform: string) => {
     if (!referralLink) return '#'
     
-    const message = `Check out this veteran's pitch: ${pitchTitle} by ${veteranName}`
+    const message = generateShareMessage({
+      pitchTitle,
+      veteranName,
+      skills,
+      location,
+      platform: platform as 'whatsapp' | 'linkedin' | 'email' | 'twitter' | 'copy',
+      context: 'referral'
+    })
     
-    switch (platform) {
-      case 'whatsapp':
-        return `https://wa.me/?text=${encodeURIComponent(message + ' ' + referralLink)}`
-      case 'linkedin':
-        return `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(referralLink)}`
-      case 'email':
-        return `mailto:?subject=${encodeURIComponent('Veteran Pitch Referral')}&body=${encodeURIComponent(message + '\n\n' + referralLink)}`
-      case 'copy':
-        return referralLink
-      default:
-        return referralLink
-    }
+    return generatePitchShareUrl(platform, message, referralLink)
   }
 
   const handleShare = async (platform: string) => {
@@ -161,6 +162,12 @@ export default function ReferModal({
       color: 'bg-blue-600 hover:bg-blue-700'
     },
     {
+      platform: 'twitter',
+      label: 'Twitter',
+      icon: Twitter,
+      color: 'bg-sky-500 hover:bg-sky-600'
+    },
+    {
       platform: 'email',
       label: 'Email',
       icon: Mail,
@@ -223,7 +230,7 @@ export default function ReferModal({
         ) : (
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
-              {shareButtons.map(({ platform, label, icon: Icon, color }) => (
+              {shareButtons.slice(0, 4).map(({ platform, label, icon: Icon, color }) => (
                 <button
                   key={platform}
                   onClick={() => handleShare(platform)}
@@ -234,6 +241,16 @@ export default function ReferModal({
                   {label}
                 </button>
               ))}
+            </div>
+            <div className="mt-3">
+              <button
+                onClick={() => handleShare('copy')}
+                disabled={loading}
+                className="w-full bg-gray-500 hover:bg-gray-600 text-white px-4 py-3 rounded-lg font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                <Copy className="w-4 h-4" />
+                {copied === 'copy' ? 'Copied!' : 'Copy Link'}
+              </button>
             </div>
 
             {referralLink && (

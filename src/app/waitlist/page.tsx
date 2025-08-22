@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Shield, Users, Clock, Star, CheckCircle, Share2, ArrowRight } from 'lucide-react'
+import { generateWaitlistMessage, generatePitchShareUrl } from '@/lib/sharing-messages'
 
 interface WaitlistFormData {
   name: string
@@ -81,23 +82,12 @@ export default function WaitlistPage() {
   }
 
   const handleShare = async (platform: string) => {
-    const shareText = `Join the exclusive waitlist for military veterans! First 50 veterans get FREE access to the complete platform. I'm #${position} in line!`
+    if (!position) return
+    
+    const shareText = generateWaitlistMessage(position, platform as 'whatsapp' | 'linkedin' | 'email' | 'twitter' | 'copy')
     const shareUrl = `${window.location.origin}/waitlist?ref=${position}`
 
-    let shareLink = ''
-    switch (platform) {
-      case 'whatsapp':
-        shareLink = `https://wa.me/?text=${encodeURIComponent(shareText + ' ' + shareUrl)}`
-        break
-      case 'linkedin':
-        shareLink = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}&title=${encodeURIComponent('Join Veteran Waitlist')}&summary=${encodeURIComponent(shareText)}`
-        break
-      case 'twitter':
-        shareLink = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`
-        break
-      default:
-        shareLink = shareUrl
-    }
+    const shareLink = generatePitchShareUrl(platform, shareText, shareUrl)
 
     window.open(shareLink, '_blank')
 

@@ -11,12 +11,14 @@ import {
   Facebook,
   Instagram,
   Mail,
+  MessageCircle,
   Link as LinkIcon
 } from 'lucide-react'
 import html2canvas from 'html2canvas'
 
 import type { PitchCardData } from '../../types/domain'
 import ShareablePitchCard from './ShareablePitchCard'
+import { generateShareMessage, generatePitchShareUrl } from '@/lib/sharing-messages'
 
 type Props = { 
   data: PitchCardData;
@@ -30,33 +32,39 @@ export default function SocialShareCard({ data, onClose }: Props) {
 
   const shareUrl = `${window.location.origin}/pitch/${data.id}`
   
-  // Generate value-focused share text based on skills and experience
-  const generateShareText = () => {
+  // Generate platform-specific share messages
+  const generatePlatformShareText = (platform: string) => {
     const veteranName = data.user?.name || 'Veteran'
-    const skills = data.skills?.slice(0, 2).join(', ') || 'Leadership'
-    const experience = data.experience_years || 0
+    const skills = data.skills || []
     const location = data.location || ''
     
-    if (experience > 0) {
-      return `${veteranName} | ${experience}+ years ${skills} | ${location} | Available now`
-    } else {
-      return `${veteranName} | ${skills} specialist | ${location} | Ready to deploy`
-    }
+    return generateShareMessage({
+      pitchTitle: data.title,
+      veteranName,
+      skills,
+      location,
+      platform: platform as 'whatsapp' | 'linkedin' | 'email' | 'twitter' | 'copy',
+      context: 'general'
+    })
   }
-  
-  const shareText = generateShareText()
   
   const shareLinks = [
     {
+      name: 'WhatsApp',
+      icon: MessageCircle,
+      url: generatePitchShareUrl('whatsapp', generatePlatformShareText('whatsapp'), shareUrl),
+      color: 'text-green-500 hover:bg-green-50'
+    },
+    {
       name: 'Twitter',
       icon: Twitter,
-      url: `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`,
+      url: generatePitchShareUrl('twitter', generatePlatformShareText('twitter'), shareUrl),
       color: 'text-blue-500 hover:bg-blue-50'
     },
     {
       name: 'LinkedIn',
       icon: Linkedin,
-      url: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`,
+      url: generatePitchShareUrl('linkedin', generatePlatformShareText('linkedin'), shareUrl),
       color: 'text-blue-600 hover:bg-blue-50'
     },
     {
@@ -68,14 +76,16 @@ export default function SocialShareCard({ data, onClose }: Props) {
     {
       name: 'Email',
       icon: Mail,
-      url: `mailto:?subject=${encodeURIComponent(shareText)}&body=${encodeURIComponent(`High-impact professional available for immediate deployment:\n\n${shareText}\n\nView full profile: ${shareUrl}`)}`,
+      url: generatePitchShareUrl('email', generatePlatformShareText('email'), shareUrl),
       color: 'text-gray-600 hover:bg-gray-50'
     }
   ]
 
   const copyToClipboard = async () => {
     try {
-      await navigator.clipboard.writeText(shareUrl)
+      const shareText = generatePlatformShareText('copy')
+      const fullText = `${shareText}\n\n${shareUrl}`
+      await navigator.clipboard.writeText(fullText)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch (error) {
