@@ -368,31 +368,39 @@ export default function SupporterProfilePage() {
         {/* Profile Form */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           {/* Profile Photo Section */}
-          <div className="p-6 border-b border-gray-100">
-            <div className="flex items-center gap-6">
-              <div className="flex-shrink-0">
+          <div className="p-8 border-b border-gray-100">
+            <div className="text-center mb-6">
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Profile Photo</h3>
+              <p className="text-sm text-gray-600 max-w-md mx-auto">
+                {isEditing 
+                  ? "Upload a professional photo to build trust with veterans. Changes are auto-saved."
+                  : "A professional photo helps veterans trust your support and guidance."
+                }
+              </p>
+            </div>
+            
+            <div className="flex justify-center">
+              <div className="relative">
                 <PhotoUpload
                   profilePhotoUrl={profile?.avatar_url}
                   onPhotoChange={handlePhotoChange}
                   size="lg"
                   showCrop={true}
-                  className="w-24 h-24"
+                  className="w-32 h-32"
                 />
-              </div>
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Profile Photo</h3>
-                <p className="text-sm text-gray-600">
-                  {isEditing 
-                    ? "Upload a professional photo to build trust with veterans. Changes are auto-saved."
-                    : "A professional photo helps veterans trust your support and guidance."
-                  }
-                </p>
+                {isEditing && (
+                  <div className="mt-4 text-center">
+                    <p className="text-xs text-gray-500">
+                      Click to upload • Drag & drop supported • Recommended: Square image, high resolution
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
 
           {/* Core Information */}
-          <div className="p-6 space-y-6">
+          <div className="p-8 space-y-8">
             {/* Name & Location */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
@@ -433,7 +441,7 @@ export default function SupporterProfilePage() {
             </div>
 
             {/* Professional Details */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Professional Title
@@ -474,7 +482,7 @@ export default function SupporterProfilePage() {
             </div>
 
             {/* Industry */}
-            <div>
+            <div className="pt-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Industry
               </label>
@@ -497,7 +505,7 @@ export default function SupporterProfilePage() {
             </div>
 
             {/* Bio */}
-            <div>
+            <div className="pt-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Mission Statement
               </label>
@@ -523,7 +531,7 @@ export default function SupporterProfilePage() {
             </div>
 
             {/* LinkedIn */}
-            <div>
+            <div className="pt-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 LinkedIn Profile
               </label>
@@ -554,7 +562,7 @@ export default function SupporterProfilePage() {
             </div>
 
             {/* Areas of Support */}
-            <div>
+            <div className="pt-4">
               <label className="block text-sm font-medium text-gray-700 mb-3">
                 How You Support Veterans
               </label>
