@@ -374,7 +374,7 @@ export default function SupporterProfilePage() {
               <p className="text-sm text-gray-600 max-w-md mx-auto">
                 {isEditing 
                   ? "Upload a professional photo to build trust with veterans. Changes are auto-saved."
-                  : "A professional photo helps veterans trust your support and guidance."
+                  : "A professional photo helps veterans trust your support and guidance. Click 'Edit Profile' to upload or change your photo."
                 }
               </p>
             </div>
@@ -387,6 +387,8 @@ export default function SupporterProfilePage() {
                   size="lg"
                   showCrop={true}
                   className="w-32 h-32"
+                  disabled={!isEditing}
+                  readOnly={!isEditing}
                 />
                 {isEditing && (
                   <div className="mt-4 text-center">
