@@ -125,7 +125,7 @@ Military veterans bring incredible leadership and problem-solving skills!`
     }
   }
 
-  return baseMessages[context][platform] || baseMessages.general[platform]
+  return baseMessages[context as keyof typeof baseMessages]?.[platform] || baseMessages.general[platform]
 }
 
 export function generateWaitlistMessage(position: number, platform: 'whatsapp' | 'linkedin' | 'email' | 'twitter' | 'copy'): string {
