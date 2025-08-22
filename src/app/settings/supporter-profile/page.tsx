@@ -369,8 +369,8 @@ export default function SupporterProfilePage() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           {/* Profile Photo Section */}
           <div className="p-8 border-b border-gray-100">
-            <div className="text-center mb-6">
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Profile Photo</h3>
+            <div className="text-center mb-8">
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">Profile Photo</h3>
               <p className="text-sm text-gray-600 max-w-md mx-auto">
                 {isEditing 
                   ? "Upload a professional photo to build trust with veterans. Changes are auto-saved."
@@ -380,7 +380,7 @@ export default function SupporterProfilePage() {
             </div>
             
             <div className="flex justify-center">
-              <div className="relative">
+              <div className="flex flex-col items-center space-y-6">
                 <PhotoUpload
                   profilePhotoUrl={profile?.avatar_url}
                   onPhotoChange={handlePhotoChange}
@@ -391,8 +391,8 @@ export default function SupporterProfilePage() {
                   readOnly={!isEditing}
                 />
                 {isEditing && (
-                  <div className="mt-4 text-center">
-                    <p className="text-xs text-gray-500">
+                  <div className="text-center max-w-xs">
+                    <p className="text-xs text-gray-500 leading-relaxed">
                       Click to upload • Drag & drop supported • Recommended: Square image, high resolution
                     </p>
                   </div>

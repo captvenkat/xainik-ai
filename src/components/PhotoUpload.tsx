@@ -117,10 +117,10 @@ export default function PhotoUpload({
   const currentPhotoUrl = selectedPhoto || profilePhotoUrl
 
   return (
-    <div className={`space-y-4 ${className}`}>
+    <div className={`flex flex-col items-center space-y-6 ${className}`}>
       {/* Photo Display */}
       <div className="flex items-center justify-center">
-        <div className={`relative ${sizeClasses[size]} rounded-full overflow-hidden bg-gray-100 border-2 border-gray-200`}>
+        <div className={`relative ${sizeClasses[size]} rounded-full overflow-hidden bg-gray-100 border-2 border-gray-200 shadow-sm`}>
           {currentPhotoUrl ? (
             <img
               src={currentPhotoUrl}
@@ -135,7 +135,7 @@ export default function PhotoUpload({
           
           {/* Photo Status Indicator */}
           {isCustomPhoto && (
-            <div className="absolute top-1 right-1 bg-blue-500 text-white rounded-full p-1">
+            <div className="absolute top-2 right-2 bg-blue-500 text-white rounded-full p-1.5 shadow-sm">
               <Camera className="w-3 h-3" />
             </div>
           )}
@@ -143,15 +143,15 @@ export default function PhotoUpload({
       </div>
 
       {/* Photo Actions */}
-      <div className="flex flex-col gap-2 min-w-[120px]">
+      <div className="flex flex-col gap-3 w-full max-w-xs">
         {/* Upload New Photo */}
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={disabled || readOnly}
-          className={`flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm ${
+          className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-200 text-sm font-medium shadow-sm ${
             disabled || readOnly 
-              ? 'bg-gray-400 text-gray-600 cursor-not-allowed' 
-              : 'bg-blue-600 text-white hover:bg-blue-700'
+              ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200' 
+              : 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md active:scale-95 border border-blue-600'
           }`}
         >
           <Upload className="w-4 h-4" />
@@ -163,10 +163,10 @@ export default function PhotoUpload({
           <button
             onClick={handleUseProfilePhoto}
             disabled={disabled || readOnly}
-            className={`flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm ${
+            className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-200 text-sm font-medium shadow-sm ${
               disabled || readOnly 
-                ? 'bg-gray-400 text-gray-600 cursor-not-allowed' 
-                : 'bg-gray-600 text-white hover:bg-gray-700'
+                ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200' 
+                : 'bg-gray-600 text-white hover:bg-gray-700 hover:shadow-md active:scale-95 border border-gray-600'
             }`}
           >
             <User className="w-4 h-4" />
@@ -179,10 +179,10 @@ export default function PhotoUpload({
           <button
             onClick={handleRemovePhoto}
             disabled={disabled || readOnly}
-            className={`flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm ${
+            className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-200 text-sm font-medium shadow-sm ${
               disabled || readOnly 
-                ? 'bg-gray-400 text-gray-600 cursor-not-allowed' 
-                : 'bg-red-600 text-white hover:bg-red-700'
+                ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200' 
+                : 'bg-red-600 text-white hover:bg-red-700 hover:shadow-md active:scale-95 border border-red-600'
             }`}
           >
             <X className="w-4 h-4" />
@@ -202,15 +202,15 @@ export default function PhotoUpload({
 
       {/* Photo Source Info */}
       {currentPhotoUrl && (
-        <div className="text-sm text-gray-600 text-center">
+        <div className="text-xs text-gray-500 text-center bg-gray-50 rounded-lg px-3 py-2 border border-gray-100">
           {isCustomPhoto ? (
-            <span className="flex items-center justify-center gap-1">
-              <Camera className="w-4 h-4" />
+            <span className="flex items-center justify-center gap-1.5">
+              <Camera className="w-3 h-3" />
               Custom photo uploaded
             </span>
           ) : (
-            <span className="flex items-center justify-center gap-1">
-              <User className="w-4 h-4" />
+            <span className="flex items-center justify-center gap-1.5">
+              <User className="w-3 h-3" />
               Using profile photo
             </span>
           )}
@@ -219,22 +219,25 @@ export default function PhotoUpload({
 
       {/* Cropper Modal */}
       {showCropper && selectedPhoto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-2xl max-w-3xl w-full mx-4 max-h-[90vh] overflow-hidden">
             {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h3 className="text-xl font-bold text-gray-900">Crop Your Photo</h3>
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gray-50">
+              <div>
+                <h3 className="text-xl font-bold text-gray-900">Crop Your Photo</h3>
+                <p className="text-sm text-gray-600 mt-1">Adjust the crop area to frame your photo perfectly</p>
+              </div>
               <button
                 onClick={() => setShowCropper(false)}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                className="text-gray-400 hover:text-gray-600 transition-colors p-2 rounded-lg hover:bg-gray-100"
               >
-                <X className="w-6 h-6" />
+                <X className="w-5 h-5" />
               </button>
             </div>
             
             {/* Cropper Content */}
-            <div className="p-6">
-              <div className="flex justify-center">
+            <div className="p-8">
+              <div className="flex justify-center bg-gray-100 rounded-lg p-4">
                 <ReactCrop
                   crop={crop}
                   onChange={(c) => setCrop(c)}
@@ -247,15 +250,19 @@ export default function PhotoUpload({
                     ref={imgRef}
                     src={selectedPhoto}
                     alt="Crop preview"
-                    className="max-w-full h-auto"
+                    className="max-w-full h-auto rounded-lg"
                   />
                 </ReactCrop>
               </div>
               
               {/* Instructions */}
-              <div className="text-center mt-6">
-                <p className="text-sm text-gray-600">
-                  Drag to adjust the crop area. The image will be cropped to a perfect circle.
+              <div className="text-center mt-6 bg-blue-50 rounded-lg p-4 border border-blue-100">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <Crop className="w-4 h-4 text-blue-600" />
+                  <span className="text-sm font-medium text-blue-800">Crop Instructions</span>
+                </div>
+                <p className="text-sm text-blue-700">
+                  Drag the corners or edges to adjust the crop area. The image will be cropped to a perfect circle for your profile.
                 </p>
               </div>
             </div>
@@ -264,13 +271,13 @@ export default function PhotoUpload({
             <div className="flex items-center justify-between p-6 border-t border-gray-200 bg-gray-50">
               <button
                 onClick={() => setShowCropper(false)}
-                className="px-6 py-3 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                className="px-6 py-3 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all duration-200 font-medium shadow-sm"
               >
                 Cancel
               </button>
               <button
                 onClick={handleCropSave}
-                className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 font-medium shadow-sm hover:shadow-md"
               >
                 <Check className="w-4 h-4" />
                 Save Crop
