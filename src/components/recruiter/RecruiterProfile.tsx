@@ -80,8 +80,39 @@ export default function RecruiterProfile() {
         return
       }
 
-      // Get user profile
-      const { data: userProfile } = await supabase
+      // First, ensure user has a record in the users table with recruiter role
+      const { data: userProfile, error: userError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', user.id)
+        .single()
+
+      if (userError && userError.code === 'PGRST116') {
+        // User doesn't exist in users table, create them with recruiter role
+        const { data: newUser, error: createError } = await supabase
+          .from('users')
+          .insert({
+            id: user.id,
+            email: user.email || '',
+            name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Recruiter',
+            role: 'recruiter'
+          })
+          .select()
+          .single()
+
+        if (createError) {
+          console.error('Error creating user:', createError)
+          setError('Failed to create user profile')
+          return
+        }
+      } else if (userError) {
+        console.error('Error loading user:', userError)
+        setError('Failed to load user profile')
+        return
+      }
+
+      // Now get the user profile (either existing or newly created)
+      const { data: finalUserProfile } = await supabase
         .from('users')
         .select('*')
         .eq('id', user.id)
@@ -94,15 +125,15 @@ export default function RecruiterProfile() {
         .eq('user_id', user.id)
         .single()
 
-      if (userProfile) {
+      if (finalUserProfile) {
         setProfile({
-          name: userProfile.name || '',
-          email: userProfile.email || '',
-          phone: userProfile.phone || '',
+          name: finalUserProfile.name || '',
+          email: finalUserProfile.email || '',
+          phone: finalUserProfile.phone || '',
           company_name: recruiterProfile?.company_name || '',
           industry: recruiterProfile?.industry || '',
-          location: userProfile.location || '',
-          avatar_url: userProfile.avatar_url,
+          location: finalUserProfile.location || '',
+          avatar_url: finalUserProfile.avatar_url,
           bio: recruiterProfile?.bio || '',
           website: recruiterProfile?.website || '',
           linkedin_url: recruiterProfile?.linkedin_url || ''
@@ -189,23 +220,27 @@ export default function RecruiterProfile() {
         linkedin_url: profile.linkedin_url
       }
 
-      const { data: existingRecruiter } = await supabase
+      const { data: existingRecruiter, error: checkError } = await supabase
         .from('recruiters')
         .select('user_id')
         .eq('user_id', user.id)
         .single()
 
-      if (existingRecruiter) {
+      if (checkError && checkError.code === 'PGRST116') {
+        // Recruiter profile doesn't exist, create it
+        const { error: recruiterError } = await supabase
+          .from('recruiters')
+          .insert(recruiterData)
+
+        if (recruiterError) throw recruiterError
+      } else if (checkError) {
+        throw checkError
+      } else {
+        // Recruiter profile exists, update it
         const { error: recruiterError } = await supabase
           .from('recruiters')
           .update(recruiterData)
           .eq('user_id', user.id)
-
-        if (recruiterError) throw recruiterError
-      } else {
-        const { error: recruiterError } = await supabase
-          .from('recruiters')
-          .insert(recruiterData)
 
         if (recruiterError) throw recruiterError
       }
