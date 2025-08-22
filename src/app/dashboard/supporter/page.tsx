@@ -7,7 +7,7 @@ import {
   Heart, Share2, TrendingUp, Eye, Phone, Mail, Award, Users, BarChart3, 
   Target, Zap, Star, Gift, Trophy, Calendar, ArrowUpRight, ArrowDownRight,
   ChevronRight, ExternalLink, Bell, Settings, Download, Filter, Activity, MessageCircle, Lightbulb,
-  Rocket, FileText, Flag, Shield, Medal, Handshake, Sparkles, Crown, Compass, MapPin
+  Rocket, FileText, Flag, Shield, Medal, Handshake, Sparkles, Crown, Compass, MapPin, User, Edit
 } from 'lucide-react'
 // import BarChart from '@/components/charts/BarChart'
 // import PieChart from '@/components/charts/PieChart'
