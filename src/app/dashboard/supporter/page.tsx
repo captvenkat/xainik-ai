@@ -163,7 +163,7 @@ export default function SupporterDashboard() {
   const [metrics, setMetrics] = useState<SupporterMetrics | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<'mission' | 'veterans' | 'discover' | 'community'>('mission')
+  const [activeTab, setActiveTab] = useState<'mission' | 'veterans' | 'discover' | 'community' | 'profile'>('mission')
   const [showInvitationModal, setShowInvitationModal] = useState(false)
   const [currentFactIndex, setCurrentFactIndex] = useState(0)
   const [showMissionModal, setShowMissionModal] = useState(false)
@@ -559,7 +559,8 @@ export default function SupporterDashboard() {
               { id: 'mission', label: 'Your Mission', icon: Compass, color: 'blue' },
               { id: 'veterans', label: 'Your Veterans', icon: Shield, color: 'green' },
               { id: 'discover', label: 'Meet More Heroes', icon: Users, color: 'purple' },
-              { id: 'community', label: 'Mission Community', icon: Lightbulb, color: 'orange' }
+              { id: 'community', label: 'Mission Community', icon: Lightbulb, color: 'orange' },
+              { id: 'profile', label: 'Your Profile', icon: User, color: 'indigo' }
             ].map((tab) => {
               const Icon = tab.icon
               const isActive = activeTab === tab.id
@@ -603,6 +604,7 @@ export default function SupporterDashboard() {
           />
         )}
         {activeTab === 'community' && <CommunitySuggestions userId={user?.id} />}
+        {activeTab === 'profile' && <ProfileTab />}
       </div>
 
       {/* Mission Invitation Modal */}
@@ -826,6 +828,114 @@ function MissionTab({ metrics, userId, onOpenInviteModal }: { metrics: Supporter
             </div>
           </div>
           ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// PROFILE TAB - Supporter Profile Management
+function ProfileTab() {
+  const router = useRouter()
+  
+  return (
+    <div className="space-y-8">
+      {/* PROFILE HEADER */}
+      <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-8 border border-indigo-200">
+        <div className="text-center">
+          <div className="text-6xl mb-4">👤</div>
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">Your Supporter Profile</h2>
+          <p className="text-lg text-gray-600 mb-6">
+            Your profile helps veterans understand how you can support them. 
+            <strong> Make it count.</strong>
+          </p>
+        </div>
+      </div>
+
+      {/* PROFILE ACTIONS */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-all duration-200">
+          <div className="text-center mb-4">
+            <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white text-2xl mx-auto mb-3">
+              <User className="w-8 h-8" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Edit Profile</h3>
+            <p className="text-gray-600">Update your information and areas of support</p>
+          </div>
+          
+          <div className="space-y-3">
+            <button 
+              onClick={() => router.push('/settings/supporter-profile')}
+              className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+            >
+              <Edit className="w-4 h-4 inline mr-2" />
+              Edit Your Profile
+            </button>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-all duration-200">
+          <div className="text-center mb-4">
+            <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center text-white text-2xl mx-auto mb-3">
+              <Shield className="w-8 h-8" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Profile Visibility</h3>
+            <p className="text-gray-600">Control how veterans see your information</p>
+          </div>
+          
+          <div className="space-y-3">
+            <div className="text-center py-4">
+              <div className="text-2xl font-bold text-green-600 mb-2">Public</div>
+              <p className="text-sm text-gray-600">Veterans can see your profile</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* PROFILE IMPORTANCE MESSAGE */}
+      <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl p-6 border border-emerald-100">
+        <h3 className="text-2xl font-bold text-gray-900 mb-4">🪖 Why Your Profile Matters</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="text-center">
+            <div className="text-3xl mb-2">🎯</div>
+            <h4 className="font-semibold text-gray-900 mb-2">Build Trust</h4>
+            <p className="text-sm text-gray-600">Veterans need to trust you before accepting your support</p>
+          </div>
+          
+          <div className="text-center">
+            <div className="text-3xl mb-2">🔗</div>
+            <h4 className="font-semibold text-gray-900 mb-2">Show Expertise</h4>
+            <p className="text-sm text-gray-600">Demonstrate your professional background and capabilities</p>
+          </div>
+          
+          <div className="text-center">
+            <div className="text-3xl mb-2">💪</div>
+            <h4 className="font-semibold text-gray-900 mb-2">Match Veterans</h4>
+            <p className="text-sm text-gray-600">Help veterans find the right supporter for their needs</p>
+          </div>
+        </div>
+      </div>
+
+      {/* QUICK PROFILE TIPS */}
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100">
+        <h3 className="text-2xl font-bold text-gray-900 mb-4">💡 Quick Profile Tips</h3>
+        <div className="space-y-3 text-sm text-gray-700">
+          <div className="flex items-start gap-3">
+            <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+            <p><strong>Professional Photo:</strong> Use a clear, professional headshot to build trust</p>
+          </div>
+          <div className="flex items-start gap-3">
+            <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+            <p><strong>Clear Title:</strong> Specify your professional role and expertise</p>
+          </div>
+          <div className="flex items-start gap-3">
+            <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+            <p><strong>Mission Statement:</strong> Explain why you want to support veterans</p>
+          </div>
+          <div className="flex items-start gap-3">
+            <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+            <p><strong>Areas of Support:</strong> Check all the ways you can help veterans</p>
+          </div>
         </div>
       </div>
     </div>

@@ -8,6 +8,7 @@ import Link from 'next/link'
 
 export default function SettingsPage() {
   const [user, setUser] = useState<any>(null)
+  const [profile, setProfile] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
   const supabase = createSupabaseBrowser()
@@ -22,6 +23,15 @@ export default function SettingsPage() {
         }
         
         setUser(user)
+        
+        // Get user profile
+        const { data: profileData } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', user.id)
+          .single()
+        
+        setProfile(profileData)
       } catch (error) {
         console.error('Error fetching user:', error)
         router.push('/auth')
@@ -51,7 +61,7 @@ export default function SettingsPage() {
         {/* Header */}
         <div className="mb-8">
           <Link 
-            href="/dashboard/veteran" 
+            href={profile?.role === 'supporter' ? '/dashboard/supporter' : '/dashboard/veteran'} 
             className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-4"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -75,17 +85,20 @@ export default function SettingsPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
               <h2 className="text-xl font-semibold text-gray-900">
-                Profile Settings
+                {profile?.role === 'supporter' ? 'Supporter Profile' : 'Profile Settings'}
               </h2>
             </div>
             <p className="text-gray-600 mb-4">
-              Update your profile information and military service details
+              {profile?.role === 'supporter' 
+                ? 'Update your supporter profile and areas of expertise'
+                : 'Update your profile information and military service details'
+              }
             </p>
             <Link
-              href="/settings/profile"
+              href={profile?.role === 'supporter' ? '/settings/supporter-profile' : '/settings/profile'}
               className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
             >
-              Edit Profile
+              {profile?.role === 'supporter' ? 'Edit Supporter Profile' : 'Edit Profile'}
             </Link>
           </div>
 
