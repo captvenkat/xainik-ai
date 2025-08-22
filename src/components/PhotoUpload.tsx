@@ -117,7 +117,7 @@ export default function PhotoUpload({
   const currentPhotoUrl = selectedPhoto || profilePhotoUrl
 
   return (
-    <div className={`flex flex-col items-center space-y-6 ${className}`}>
+    <div className={`flex flex-col items-center space-y-4 ${className}`}>
       {/* Photo Display */}
       <div className="flex items-center justify-center">
         <div className={`relative ${sizeClasses[size]} rounded-full overflow-hidden bg-gray-100 border-2 border-gray-200 shadow-sm`}>
@@ -143,19 +143,19 @@ export default function PhotoUpload({
       </div>
 
       {/* Photo Actions */}
-      <div className="flex flex-col gap-3 w-full max-w-xs">
+      <div className="flex flex-row gap-2 w-full max-w-xs justify-center">
         {/* Upload New Photo */}
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={disabled || readOnly}
-          className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-200 text-sm font-medium shadow-sm ${
+          className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg transition-all duration-200 text-xs font-medium shadow-sm ${
             disabled || readOnly 
               ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200' 
               : 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md active:scale-95 border border-blue-600'
           }`}
         >
-          <Upload className="w-4 h-4" />
-          Upload Photo
+          <Upload className="w-3 h-3" />
+          Upload
         </button>
 
         {/* Use Profile Photo */}
@@ -163,14 +163,14 @@ export default function PhotoUpload({
           <button
             onClick={handleUseProfilePhoto}
             disabled={disabled || readOnly}
-            className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-200 text-sm font-medium shadow-sm ${
+            className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg transition-all duration-200 text-xs font-medium shadow-sm ${
               disabled || readOnly 
                 ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200' 
                 : 'bg-gray-600 text-white hover:bg-gray-700 hover:shadow-md active:scale-95 border border-gray-600'
             }`}
           >
-            <User className="w-4 h-4" />
-            Use Profile Photo
+            <User className="w-3 h-3" />
+            Profile
           </button>
         )}
 
@@ -179,14 +179,14 @@ export default function PhotoUpload({
           <button
             onClick={handleRemovePhoto}
             disabled={disabled || readOnly}
-            className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-200 text-sm font-medium shadow-sm ${
+            className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg transition-all duration-200 text-xs font-medium shadow-sm ${
               disabled || readOnly 
                 ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200' 
                 : 'bg-red-600 text-white hover:bg-red-700 hover:shadow-md active:scale-95 border border-red-600'
             }`}
           >
-            <X className="w-4 h-4" />
-            Remove Photo
+            <X className="w-3 h-3" />
+            Remove
         </button>
         )}
 
