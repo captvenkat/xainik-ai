@@ -456,7 +456,7 @@ export default function FullPitchView({ pitch, currentUserId }: FullPitchViewPro
                   veteranName={veteranName}
                   userId={currentUserId}
                   skills={skills}
-                  location={location}
+                  location={location || undefined}
                 />
               ) : (
                 <Link
