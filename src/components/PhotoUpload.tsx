@@ -11,6 +11,8 @@ interface PhotoUploadProps {
   className?: string
   size?: 'sm' | 'md' | 'lg'
   showCrop?: boolean
+  disabled?: boolean
+  readOnly?: boolean
 }
 
 export default function PhotoUpload({ 
@@ -18,7 +20,9 @@ export default function PhotoUpload({
   onPhotoChange, 
   className = '',
   size = 'md',
-  showCrop = true 
+  showCrop = true,
+  disabled = false,
+  readOnly = false
 }: PhotoUploadProps) {
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null)
   const [isCustomPhoto, setIsCustomPhoto] = useState(false)
@@ -143,7 +147,12 @@ export default function PhotoUpload({
         {/* Upload New Photo */}
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="flex items-center justify-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+          disabled={disabled || readOnly}
+          className={`flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm ${
+            disabled || readOnly 
+              ? 'bg-gray-400 text-gray-600 cursor-not-allowed' 
+              : 'bg-blue-600 text-white hover:bg-blue-700'
+          }`}
         >
           <Upload className="w-4 h-4" />
           Upload Photo
@@ -153,7 +162,12 @@ export default function PhotoUpload({
         {profilePhotoUrl && !isCustomPhoto && (
           <button
             onClick={handleUseProfilePhoto}
-            className="flex items-center justify-center gap-2 px-3 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm"
+            disabled={disabled || readOnly}
+            className={`flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm ${
+              disabled || readOnly 
+                ? 'bg-gray-400 text-gray-600 cursor-not-allowed' 
+                : 'bg-gray-600 text-white hover:bg-gray-700'
+            }`}
           >
             <User className="w-4 h-4" />
             Use Profile Photo
@@ -164,7 +178,12 @@ export default function PhotoUpload({
         {currentPhotoUrl && (
           <button
             onClick={handleRemovePhoto}
-            className="flex items-center justify-center gap-2 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
+            disabled={disabled || readOnly}
+            className={`flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm ${
+              disabled || readOnly 
+                ? 'bg-gray-400 text-gray-600 cursor-not-allowed' 
+                : 'bg-red-600 text-white hover:bg-red-700'
+            }`}
           >
             <X className="w-4 h-4" />
             Remove Photo
