@@ -17,13 +17,16 @@ import {
   Clock,
   Zap,
   Target,
-  Briefcase
+  Briefcase,
+  User,
+  Settings
 } from 'lucide-react'
 import { useAuth } from '@/lib/hooks/useAuth'
 import LoadingSpinner from '@/components/LoadingSpinner'
 import ErrorState from '@/components/ErrorState'
 import VeteranValueTicker from '@/components/VeteranValueTicker'
 import ShortlistCard from '@/components/recruiter/ShortlistCard'
+import RecruiterProfile from '@/components/recruiter/RecruiterProfile'
 
 interface ShortlistItem {
   id: string
@@ -50,6 +53,7 @@ export default function RecruiterDashboard() {
   const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
+  const [activeTab, setActiveTab] = useState<'shortlist' | 'profile'>('shortlist')
   const router = useRouter()
 
   useEffect(() => {
@@ -158,48 +162,7 @@ export default function RecruiterDashboard() {
     }
   }
 
-  const testAuth = async () => {
-    try {
-      const userId = user?.id
-      if (!userId) {
-        alert('User not authenticated')
-        return
-      }
-      
-      const response = await fetch('/api/test-auth', {
-        credentials: 'include',
-        headers: {
-          'X-User-ID': userId
-        }
-      })
-      const data = await response.json()
-      console.log('Auth test result:', data)
-      alert(`Auth test: ${response.ok ? 'SUCCESS' : 'FAILED'} - ${JSON.stringify(data)}`)
-    } catch (error) {
-      console.error('Auth test error:', error)
-      alert('Auth test failed')
-    }
-  }
 
-  const testDatabase = async () => {
-    try {
-      const response = await fetch('/api/test-db', {
-        credentials: 'include'
-      })
-      
-      const data = await response.json()
-      console.log('Test DB Result:', data)
-      
-      if (response.ok) {
-        alert('✅ Database test successful!\n\n' + JSON.stringify(data.tables, null, 2))
-      } else {
-        alert('❌ Database test failed: ' + data.error)
-      }
-    } catch (error) {
-      console.error('Test DB Error:', error)
-      alert('❌ Database test failed: ' + error)
-    }
-  }
 
   const filteredShortlist = shortlist.filter(item => {
     const matchesSearch = searchQuery === '' || 
@@ -241,18 +204,6 @@ export default function RecruiterDashboard() {
             </div>
             <div className="flex space-x-3">
               <button
-                onClick={testAuth}
-                className="flex items-center px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 transition-colors"
-              >
-                Test Auth
-              </button>
-              <button
-                onClick={testDatabase}
-                className="flex items-center px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
-              >
-                Test DB
-              </button>
-              <button
                 onClick={() => router.push('/browse')}
                 className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
               >
@@ -271,30 +222,59 @@ export default function RecruiterDashboard() {
         </div>
       </div>
 
-      {/* Quick Search */}
+      {/* Tab Navigation */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-          <div className="flex items-center space-x-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <input
-                  type="text"
-                  placeholder="Search by name, skills, or location..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+          <nav className="flex space-x-8 px-6">
+            {[
+              { id: 'shortlist', label: 'Shortlist', icon: Star },
+              { id: 'profile', label: 'Profile', icon: User }
+            ].map((tab) => {
+              const Icon = tab.icon
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as 'shortlist' | 'profile')}
+                  className={`flex items-center px-3 py-4 text-sm font-medium border-b-2 transition-colors ${
+                    activeTab === tab.id
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  <Icon className="w-4 h-4 mr-2" />
+                  {tab.label}
+                </button>
+              )
+            })}
+          </nav>
+        </div>
+
+        {/* Tab Content */}
+        {activeTab === 'shortlist' && (
+          <>
+            {/* Quick Search */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+              <div className="flex items-center space-x-4">
+                <div className="flex-1">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                    <input
+                      type="text"
+                      placeholder="Search by name, skills, or location..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+                <button
+                  onClick={() => router.push('/browse')}
+                  className="px-4 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  Browse Veterans
+                </button>
               </div>
             </div>
-                         <button
-               onClick={() => router.push('/browse')}
-               className="px-4 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-             >
-               Browse Veterans
-             </button>
-          </div>
-        </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
@@ -421,6 +401,12 @@ export default function RecruiterDashboard() {
             )}
           </div>
         </div>
+          </>
+        )}
+
+        {activeTab === 'profile' && (
+          <RecruiterProfile />
+        )}
       </div>
     </div>
   )
