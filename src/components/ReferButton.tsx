@@ -9,13 +9,17 @@ interface ReferButtonProps {
   pitchTitle: string
   veteranName: string
   userId?: string
+  skills?: string[]
+  location?: string
 }
 
 export default function ReferButton({ 
   pitchId, 
   pitchTitle, 
   veteranName, 
-  userId 
+  userId,
+  skills = [],
+  location = ''
 }: ReferButtonProps) {
   const [showModal, setShowModal] = useState(false)
 
@@ -45,6 +49,8 @@ export default function ReferButton({
           veteranName={veteranName}
           userId={userId}
           onClose={() => setShowModal(false)}
+          skills={skills}
+          location={location}
         />
       )}
     </>
