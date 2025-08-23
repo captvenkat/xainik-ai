@@ -176,26 +176,15 @@ export default function ContactPage() {
                 </div>
 
                 <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Phone className="w-5 h-5 text-green-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900">Phone</h3>
-                    <p className="text-gray-600">+91 98765 43210</p>
-                    <p className="text-sm text-gray-500">Monday - Friday, 9 AM - 6 PM IST</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-4">
                   <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
                     <MapPin className="w-5 h-5 text-purple-600" />
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900">Address</h3>
                     <p className="text-gray-600">
-                      Veteran Success Foundation<br />
-                      [Your Business Address]<br />
-                      India
+                      149, Road No. 6, Krushi Nagar<br />
+                      Nagole, Hyderabad, 500068<br />
+                      Telangana, India
                     </p>
                   </div>
                 </div>
