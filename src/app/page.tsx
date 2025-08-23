@@ -11,6 +11,7 @@ import SupportersIllustration from '@/components/SupportersIllustration'
 import RecruitersIllustration from '@/components/RecruitersIllustration'
 import ClosingCTAIllustration from '@/components/ClosingCTAIllustration'
 import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
+import HeroDonationsWidget from '@/components/HeroDonationsWidget'
 
 export default function HomePage() {
   const [user, setUser] = useState<any>(null)
@@ -172,7 +173,34 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 3) CLOSING CTA Section */}
+      {/* 3) DONATIONS Section */}
+      <section className="py-16 lg:py-24 bg-white">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+            We are a Section 8 non-profit.
+          </h2>
+          <p className="text-xl text-gray-700 mb-8 leading-relaxed">
+            Working for veterans' success through your generous support.
+          </p>
+          
+          {/* Donations Widget */}
+          <div className="max-w-2xl mx-auto mb-8">
+            <HeroDonationsWidget />
+          </div>
+          
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link 
+              href="/donations" 
+              className="btn-primary inline-flex items-center gap-2 px-8 py-4 text-lg font-semibold"
+            >
+              Support Our Mission
+              <ArrowRight className="w-5 h-5" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* 4) CLOSING CTA Section */}
       <section className="py-16 lg:py-24 bg-gradient-to-br from-blue-50 to-indigo-50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-8 leading-tight">
