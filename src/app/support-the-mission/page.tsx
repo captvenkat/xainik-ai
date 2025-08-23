@@ -101,7 +101,7 @@ export default function SupportTheMissionPage() {
                 Why Support Xainik?
               </h2>
               <p className="text-lg text-gray-600 mb-8">
-                As a Section 8 non-profit organization, we reinvest 100% of our resources back into serving veterans. Your support directly impacts the lives of veterans seeking meaningful careers.
+                As a Section 8 not-for-profit company operating under VETERAN SUCCESS FOUNDATION, we reinvest 100% of our resources back into serving veterans. Your support directly impacts the lives of veterans seeking meaningful careers.
               </p>
               
               <div className="space-y-4">

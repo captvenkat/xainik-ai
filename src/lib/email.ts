@@ -14,7 +14,7 @@ export interface EmailTemplate {
 export async function sendWelcomeEmail(userEmail: string, userName: string, role: string) {
   try {
     const { data, error } = await resend.emails.send({
-      from: 'Xainik <noreply@updates.xainik.com>',
+      from: 'Xainik (Veteran Success Foundation, Sec. 8 not for profit) <noreply@updates.xainik.com>',
       to: [userEmail],
       subject: 'Welcome to Xainik - Your Veteran Career Journey Starts Here!',
       html: `
@@ -57,7 +57,7 @@ export async function sendResumeRequestEmail(
 ) {
   try {
     const { data, error } = await resend.emails.send({
-      from: 'Xainik <noreply@updates.xainik.com>',
+      from: 'Xainik (Veteran Success Foundation, Sec. 8 not for profit) <noreply@updates.xainik.com>',
       to: [veteranEmail],
       subject: `Resume Request from ${companyName}`,
       html: `
@@ -95,7 +95,7 @@ export async function sendEndorsementEmail(
 ) {
   try {
     const { data, error } = await resend.emails.send({
-      from: 'Xainik <noreply@updates.xainik.com>',
+      from: 'Xainik (Veteran Success Foundation, Sec. 8 not for profit) <noreply@updates.xainik.com>',
       to: [veteranEmail],
       subject: `New Endorsement for ${skill}`,
       html: `
@@ -136,9 +136,9 @@ export async function sendDonationReceipt(
     const financialYear = new Date().getFullYear() + '-' + (new Date().getFullYear() + 1).toString().slice(-2)
     
     const { data, error } = await resend.emails.send({
-      from: 'Xainik <noreply@updates.xainik.com>',
+      from: 'Xainik (Veteran Success Foundation, Sec. 8 not for profit) <noreply@updates.xainik.com>',
       to: [donorEmail],
-      subject: `Section 80G Receipt - ${receiptNumber} | Xainik`,
+      subject: `Section 80G Receipt - ${receiptNumber} | VETERAN SUCCESS FOUNDATION`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 700px; margin: 0 auto; border: 2px solid #1f2937; border-radius: 8px; padding: 20px;">
           <!-- Header -->
@@ -151,8 +151,8 @@ export async function sendDonationReceipt(
               </div>
               <h1 style="color: #1f2937; margin: 0; font-size: 28px;">XAINIK</h1>
             </div>
-            <p style="color: #6b7280; margin: 0; font-size: 14px;">Section 8 Non-Profit Company</p>
-            <p style="color: #6b7280; margin: 0; font-size: 14px;">Registration No: U85300MH2024NPL000000</p>
+            <p style="color: #6b7280; margin: 0; font-size: 14px;">(Veteran Success Foundation, Sec. 8 Not for Profit)</p>
+            <p style="color: #6b7280; margin: 0; font-size: 14px;">Section 8 License No: 138784</p>
           </div>
 
           <!-- Receipt Title -->
@@ -206,10 +206,11 @@ export async function sendDonationReceipt(
           <div style="margin-bottom: 20px;">
             <h3 style="color: #1f2937; margin: 0 0 10px 0; font-size: 18px;">Section 80G Tax Exemption:</h3>
             <div style="background: #e8f4fd; padding: 15px; border-radius: 6px; border-left: 4px solid #3b82f6;">
-              <p style="margin: 0; color: #1f2937; font-size: 16px;"><strong>Organization:</strong> Xainik (Section 8 Non-Profit)</p>
-              <p style="margin: 5px 0 0 0; color: #1f2937; font-size: 16px;"><strong>80G Registration:</strong> Applied for Section 80G approval</p>
+              <p style="margin: 0; color: #1f2937; font-size: 16px;"><strong>Organization:</strong> Xainik (Veteran Success Foundation, Sec. 8 Not for Profit)</p>
+              <p style="margin: 5px 0 0 0; color: #1f2937; font-size: 16px;"><strong>80G Registration:</strong> Provisionally approved under Section 80G, Clause (iv)</p>
+              <p style="margin: 5px 0 0 0; color: #1f2937; font-size: 16px;"><strong>Approval Date:</strong> October 11, 2022</p>
+              <p style="margin: 5px 0 0 0; color: #1f2937; font-size: 16px;"><strong>Valid Period:</strong> From 11-10-2022 to AY 2025-2026</p>
               <p style="margin: 5px 0 0 0; color: #1f2937; font-size: 16px;"><strong>Tax Benefit:</strong> 50% of donation amount is tax deductible</p>
-              <p style="margin: 5px 0 0 0; color: #1f2937; font-size: 16px;"><strong>Deduction Limit:</strong> Up to 10% of gross total income</p>
             </div>
           </div>
 
@@ -217,10 +218,12 @@ export async function sendDonationReceipt(
           <div style="margin-bottom: 20px;">
             <h3 style="color: #1f2937; margin: 0 0 10px 0; font-size: 18px;">Organization Details:</h3>
             <div style="background: #f8fafc; padding: 15px; border-radius: 6px;">
-              <p style="margin: 0; color: #1f2937; font-size: 16px;"><strong>Name:</strong> Xainik</p>
+              <p style="margin: 0; color: #1f2937; font-size: 16px;"><strong>Organization:</strong> Xainik (Veteran Success Foundation, Sec. 8 Not for Profit)</p>
+              <p style="margin: 5px 0 0 0; color: #1f2937; font-size: 16px;"><strong>Legal Name:</strong> VETERAN SUCCESS FOUNDATION</p>
               <p style="margin: 5px 0 0 0; color: #1f2937; font-size: 16px;"><strong>Legal Status:</strong> Section 8 Non-Profit Company</p>
-              <p style="margin: 5px 0 0 0; color: #1f2937; font-size: 16px;"><strong>Registration No:</strong> U85300MH2024NPL000000</p>
-              <p style="margin: 5px 0 0 0; color: #1f2937; font-size: 16px;"><strong>Registered Office:</strong> Mumbai, Maharashtra, India</p>
+              <p style="margin: 5px 0 0 0; color: #1f2937; font-size: 16px;"><strong>Section 8 License No:</strong> 138784</p>
+              <p style="margin: 5px 0 0 0; color: #1f2937; font-size: 16px;"><strong>Incorporation Date:</strong> September 23, 2022</p>
+              <p style="margin: 5px 0 0 0; color: #1f2937; font-size: 16px;"><strong>Registered Office:</strong> 12-1-179/1, Plot No 149, Road No 6, Krushi Nagar Colony, Bandlaguda, Nagole, Hyderabad, Telangana, India, 500068</p>
               <p style="margin: 5px 0 0 0; color: #1f2937; font-size: 16px;"><strong>Email:</strong> ceo@faujnet.com</p>
               <p style="margin: 5px 0 0 0; color: #1f2937; font-size: 16px;"><strong>Website:</strong> https://xainik.com</p>
             </div>
@@ -251,11 +254,11 @@ export async function sendDonationReceipt(
           <div style="border-top: 2px solid #1f2937; padding-top: 20px; text-align: center;">
             <p style="margin: 0; color: #6b7280; font-size: 14px;">
               <strong>For any queries regarding this receipt, please contact:</strong><br>
-              Email: ceo@faujnet.com | Phone: +91-XXXXXXXXXX<br>
+              Email: ceo@faujnet.com<br>
               This is a computer-generated receipt and does not require a physical signature.
             </p>
             <p style="margin: 10px 0 0 0; color: #6b7280; font-size: 12px;">
-              © 2024 Xainik. All rights reserved. | Section 8 Non-Profit Company
+              © 2024 Xainik (Veteran Success Foundation, Sec. 8 Not for Profit). All rights reserved.
             </p>
           </div>
         </div>
@@ -280,7 +283,7 @@ export async function sendPasswordResetEmail(userEmail: string, resetToken: stri
     const resetUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/auth/reset-password?token=${resetToken}`
     
     const { data, error } = await resend.emails.send({
-      from: 'Xainik <noreply@updates.xainik.com>',
+      from: 'Xainik (Veteran Success Foundation, Sec. 8 not for profit) <noreply@updates.xainik.com>',
       to: [userEmail],
       subject: 'Reset your Xainik password',
       html: `
@@ -312,7 +315,7 @@ export async function sendPasswordResetEmail(userEmail: string, resetToken: stri
 export async function sendEmail(template: EmailTemplate) {
   try {
     const { data, error } = await resend.emails.send({
-      from: template.from || 'Xainik <noreply@updates.xainik.com>',
+      from: template.from || 'Xainik (Veteran Success Foundation, Sec. 8 not for profit) <noreply@updates.xainik.com>',
       to: [template.to],
       subject: template.subject,
       html: template.html

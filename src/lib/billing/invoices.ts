@@ -429,7 +429,7 @@ export async function sendInvoiceEmail(invoiceId: string, recipientEmail: string
     user_id: invoice.user_id,
     email_data: {
       recipient_email: recipientEmail,
-      subject: `Invoice ${invoice.invoice_number} from Xainik`,
+      subject: `Invoice ${invoice.invoice_number} from Xainik (Veteran Success Foundation, Sec. 8 Not for Profit)`,
       content: `Invoice ${invoice.invoice_number} has been sent to ${recipientEmail}`
     }
   });
@@ -450,7 +450,7 @@ export async function sendReceiptEmail(receiptId: string, recipientEmail: string
     user_id: receipt.user_id,
     email_data: {
       recipient_email: recipientEmail,
-      subject: `Receipt ${receipt.receipt_number} from Xainik`,
+      subject: `Receipt ${receipt.receipt_number} from Xainik (Veteran Success Foundation, Sec. 8 Not for Profit)`,
       content: `Receipt ${receipt.receipt_number} has been sent to ${recipientEmail}`
     }
   });
