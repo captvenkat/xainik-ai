@@ -33,30 +33,39 @@ export async function getSimpleHeroData(veteranId: string) {
       .eq('referrals.pitches.user_id', veteranId)
       .gte('occurred_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
 
+    // Check if veteran has any real data
+    const hasRealData = views && views.length > 0
+    
     return {
       pitchViews: {
         total: views?.length || 0,
         thisWeek: views?.length || 0,
-        change: '+23%' // Simplified for now
+        change: hasRealData ? '+23%' : 'Mock Data',
+        isMockData: !hasRealData
       },
       networkReach: {
         count: views?.length || 0,
-        potential: Math.max((views?.length || 0) * 5, 50), // Each view can reach 5 more people
-        description: 'people in your network'
+        potential: hasRealData ? Math.max(views.length * 5, 50) : 50,
+        description: 'people in your network',
+        isMockData: !hasRealData
       },
       potentialOpportunities: {
-        count: Math.max((views?.length || 0) * 2, 10), // Each view can lead to 2 opportunities
-        quality: (views?.length || 0) > 100 ? 'High' : (views?.length || 0) > 50 ? 'Medium' : 'Growing',
-        description: 'potential job opportunities'
+        count: hasRealData ? Math.max(views.length * 2, 10) : 10,
+        quality: hasRealData ? (views.length > 100 ? 'High' : views.length > 50 ? 'Medium' : 'Growing') : 'Mock Data',
+        description: 'potential job opportunities',
+        isMockData: !hasRealData
       },
       mainAction: {
-        text: 'Smart Share',
+        text: hasRealData ? 'Smart Share' : 'Create Your First Pitch',
         onClick: () => {
-          // This will be handled by the parent component
-          // The actual share functionality is in SharePitchModal
-          console.log('Smart share clicked - modal should open')
+          if (hasRealData) {
+            console.log('Smart share clicked - modal should open')
+          } else {
+            console.log('Redirect to pitch creation')
+          }
         }
-      }
+      },
+      isMockData: !hasRealData
     }
   } catch (error) {
     console.error('Failed to get hero data:', error)
@@ -97,31 +106,39 @@ export async function getSimpleMetricsData(veteranId: string) {
     const approvedRequests = resumeRequests?.filter(r => r.status === 'APPROVED').length || 0
     const responseRate = totalResumeRequests > 0 ? Math.round(((approvedRequests + (resumeRequests?.filter(r => r.status === 'DECLINED').length || 0)) / totalResumeRequests) * 100) : 0
 
+    // Check if veteran has any real data
+    const hasRealData = totalResumeRequests > 0 || (activity && activity.length > 0)
+    
     return {
       engagement: {
-        value: '75%',
-        subtitle: 'read your full pitch',
-        actionText: 'Improve Content',
-        action: () => console.log('Improve content')
+        value: hasRealData ? '75%' : 'Mock Data',
+        subtitle: hasRealData ? 'read your full pitch' : 'Create pitch to see real data',
+        actionText: hasRealData ? 'Improve Content' : 'Create Pitch',
+        action: () => console.log(hasRealData ? 'Improve content' : 'Create pitch'),
+        isMockData: !hasRealData
       },
       contacts: {
-        value: '12',
-        subtitle: 'people contacted you',
-        actionText: 'Update Contact',
-        action: () => console.log('Update contact')
+        value: hasRealData ? '12' : 'Mock Data',
+        subtitle: hasRealData ? 'people contacted you' : 'Share pitch to get contacts',
+        actionText: hasRealData ? 'Update Contact' : 'Share Pitch',
+        action: () => console.log(hasRealData ? 'Update contact' : 'Share pitch'),
+        isMockData: !hasRealData
       },
       shares: {
-        value: '89',
-        subtitle: 'times your pitch was shared',
-        actionText: 'Ask for More',
-        action: () => console.log('Ask for shares')
+        value: hasRealData ? '89' : 'Mock Data',
+        subtitle: hasRealData ? 'times your pitch was shared' : 'Start sharing to see real stats',
+        actionText: hasRealData ? 'Ask for More' : 'Share Now',
+        action: () => console.log(hasRealData ? 'Ask for shares' : 'Share pitch'),
+        isMockData: !hasRealData
       },
       resumeRequests: {
-        value: totalResumeRequests.toString(),
-        subtitle: `resume requests (${responseRate}% response rate)`,
-        actionText: pendingRequests > 0 ? `${pendingRequests} pending` : 'View All',
-        action: () => console.log('View resume requests')
-      }
+        value: totalResumeRequests > 0 ? totalResumeRequests.toString() : 'Mock Data',
+        subtitle: totalResumeRequests > 0 ? `resume requests (${responseRate}% response rate)` : 'Create pitch to get requests',
+        actionText: totalResumeRequests > 0 ? (pendingRequests > 0 ? `${pendingRequests} pending` : 'View All') : 'Create Pitch',
+        action: () => console.log(totalResumeRequests > 0 ? 'View resume requests' : 'Create pitch'),
+        isMockData: totalResumeRequests === 0
+      },
+      isMockData: !hasRealData
     }
   } catch (error) {
     console.error('Failed to get metrics data:', error)

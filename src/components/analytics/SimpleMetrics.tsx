@@ -9,25 +9,30 @@ interface SimpleMetricsProps {
       subtitle: string
       actionText: string
       action: () => void
+      isMockData?: boolean
     }
     contacts: {
       value: string
       subtitle: string
       actionText: string
       action: () => void
+      isMockData?: boolean
     }
     shares: {
       value: string
       subtitle: string
       actionText: string
       action: () => void
+      isMockData?: boolean
     }
     resumeRequests?: {
       value: string
       subtitle: string
       actionText: string
       action: () => void
+      isMockData?: boolean
     }
+    isMockData?: boolean
   } | null
 }
 
@@ -35,7 +40,23 @@ export default function SimpleMetrics({ data }: SimpleMetricsProps) {
   if (!data) return null
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="space-y-4">
+      {/* Mock Data Banner */}
+      {data.isMockData && (
+        <div className="bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-xl p-4 text-center">
+          <div className="flex items-center justify-center gap-3">
+            <div className="text-2xl">📊</div>
+            <div>
+              <div className="font-semibold text-amber-800">Demo Metrics</div>
+              <div className="text-sm text-amber-700">
+                These are example metrics. Create your pitch and start sharing to see your real performance data!
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       {/* Engagement */}
       <div className="bg-white rounded-xl p-4 shadow-sm border">
         <div className="flex items-center gap-3 mb-3">
@@ -45,6 +66,11 @@ export default function SimpleMetrics({ data }: SimpleMetricsProps) {
           <div>
             <div className="text-2xl font-bold text-gray-900">
               {data.engagement.value}
+              {data.engagement.isMockData && (
+                <span className="ml-2 text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded-full">
+                  Demo
+                </span>
+              )}
             </div>
             <div className="text-sm text-gray-600">
               {data.engagement.subtitle}
@@ -68,6 +94,11 @@ export default function SimpleMetrics({ data }: SimpleMetricsProps) {
           <div>
             <div className="text-2xl font-bold text-gray-900">
               {data.contacts.value}
+              {data.contacts.isMockData && (
+                <span className="ml-2 text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded-full">
+                  Demo
+                </span>
+              )}
             </div>
             <div className="text-sm text-gray-600">
               {data.contacts.subtitle}
@@ -91,6 +122,11 @@ export default function SimpleMetrics({ data }: SimpleMetricsProps) {
           <div>
             <div className="text-2xl font-bold text-gray-900">
               {data.shares.value}
+              {data.shares.isMockData && (
+                <span className="ml-2 text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded-full">
+                  Demo
+                </span>
+              )}
             </div>
             <div className="text-sm text-gray-600">
               {data.shares.subtitle}
@@ -115,6 +151,11 @@ export default function SimpleMetrics({ data }: SimpleMetricsProps) {
             <div>
               <div className="text-2xl font-bold text-gray-900">
                 {data.resumeRequests.value}
+                {data.resumeRequests.isMockData && (
+                  <span className="ml-2 text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded-full">
+                    Demo
+                  </span>
+                )}
               </div>
               <div className="text-sm text-gray-600">
                 {data.resumeRequests.subtitle}
