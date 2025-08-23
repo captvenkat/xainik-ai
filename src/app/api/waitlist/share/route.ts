@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseServerOnly } from '@/lib/supabaseServerOnly'
+import { applyRateLimit } from '@/middleware/rateLimit'
 
 interface ShareData {
   platform: string
@@ -9,6 +10,12 @@ interface ShareData {
 
 export async function POST(request: NextRequest) {
   try {
+    // Apply rate limiting to prevent abuse
+    const rateLimitResult = applyRateLimit(request, 'waitlistShare')
+    if (rateLimitResult) {
+      return rateLimitResult
+    }
+    
     const supabase = await createSupabaseServerOnly()
     const body: ShareData = await request.json()
 

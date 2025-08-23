@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseServerOnly } from '@/lib/supabaseServerOnly'
 import { nanoid } from 'nanoid'
 import { sendEmail } from '@/lib/email'
+import { applyMultipleRateLimits } from '@/middleware/rateLimit'
 
 interface WaitlistSignupData {
   name: string
@@ -12,6 +13,12 @@ interface WaitlistSignupData {
 
 export async function POST(request: NextRequest) {
   try {
+    // Apply rate limiting to prevent abuse
+    const rateLimitResult = applyMultipleRateLimits(request, ['waitlistJoin', 'emailSend', 'emailDaily'])
+    if (rateLimitResult) {
+      return rateLimitResult
+    }
+    
     const supabase = await createSupabaseServerOnly()
     const body: WaitlistSignupData = await request.json()
 

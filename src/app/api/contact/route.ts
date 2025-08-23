@@ -1,10 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
+import { applyMultipleRateLimits } from '@/middleware/rateLimit'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
 export async function POST(request: NextRequest) {
   try {
+    // Apply rate limiting to prevent spam
+    const rateLimitResult = applyMultipleRateLimits(request, ['contactForm', 'contactFormDaily', 'emailSend', 'emailDaily'])
+    if (rateLimitResult) {
+      return rateLimitResult
+    }
+    
     const { name, email, subject, message } = await request.json()
     
     // Validate required fields

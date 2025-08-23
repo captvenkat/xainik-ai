@@ -311,9 +311,12 @@ export async function sendPasswordResetEmail(userEmail: string, resetToken: stri
   }
 }
 
-// Generic email sender
+// Generic email sender with rate limiting
 export async function sendEmail(template: EmailTemplate) {
   try {
+    // Add small delay to prevent overwhelming Resend API
+    await new Promise(resolve => setTimeout(resolve, 200))
+    
     const { data, error } = await resend.emails.send({
       from: template.from || 'Xainik (Veteran Success Foundation, Sec. 8 not for profit) <noreply@updates.xainik.com>',
       to: [template.to],
