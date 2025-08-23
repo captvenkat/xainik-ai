@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
     const timestamp = new Date().toISOString()
 
     const emailResult = await resend.emails.send({
-              from: 'Xainik <noreply@updates.xainik.com>',
+      from: 'Xainik (Veteran Success Foundation, Sec. 8 not for profit) <noreply@updates.xainik.com>',
       to: [recipientEmail],
       subject: `Test Email - ${envName} Environment`,
       html: `

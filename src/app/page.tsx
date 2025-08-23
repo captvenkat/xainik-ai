@@ -75,11 +75,11 @@ export default function HomePage() {
             {/* Left Content - Text stack */}
             <div className="text-center lg:text-left mb-12 lg:mb-0">
               <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6 leading-tight">
-                Personalised Job-Referral Dashboard for Military Veterans
+                The personalised job referral dashboard.
               </h1>
 
               <h2 className="text-2xl md:text-3xl font-semibold text-gray-700 mb-8 leading-relaxed">
-                Automatically sends customised referral messages — and tracks who referred you, how often it's shared, where it's opened, and when it turns into calls.
+                The fastest automated way for veterans to get job referrals.
               </h2>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
@@ -177,7 +177,7 @@ export default function HomePage() {
       <section className="py-16 lg:py-24 bg-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
-            We are a Section 8 non-profit.
+            We are a Section 8 not-for-profit company operating under VETERAN SUCCESS FOUNDATION.
           </h2>
           <p className="text-xl text-gray-700 mb-8 leading-relaxed">
             Working for veterans' success through your generous support.

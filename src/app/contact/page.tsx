@@ -180,11 +180,17 @@ export default function ContactPage() {
                     <MapPin className="w-5 h-5 text-purple-600" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900">Address</h3>
+                    <h3 className="font-semibold text-gray-900">Registered Office</h3>
                     <p className="text-gray-600">
-                      149, Road No. 6, Krushi Nagar<br />
-                      Nagole, Hyderabad, 500068<br />
-                      Telangana, India
+                      VETERAN SUCCESS FOUNDATION<br />
+                      12-1-179/1, Plot No 149, Road No 6<br />
+                      Krushi Nagar Colony, Bandlaguda<br />
+                      Nagole, Hyderabad, Telangana, India<br />
+                      PIN: 500068
+                    </p>
+                    <p className="text-sm text-gray-500 mt-2">
+                      Section 8 Not for Profit Company<br />
+                      CIN: U85300TG2022NPL166977
                     </p>
                   </div>
                 </div>

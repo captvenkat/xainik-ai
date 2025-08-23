@@ -181,8 +181,19 @@ export default function AboutPage() {
             
             <div className="prose prose-lg max-w-none">
               <p className="text-gray-600 mb-6">
-                Xainik is registered as a Section 8 non-profit organization under the Companies Act, 2013. This means we operate for charitable purposes and reinvest all profits back into our mission of serving veterans.
+                Xainik operates under VETERAN SUCCESS FOUNDATION, a Section 8 non-profit company registered under the Companies Act, 2013. This means we operate for charitable purposes and reinvest all profits back into our mission of serving veterans.
               </p>
+              
+              <div className="bg-gray-50 rounded-lg p-6 mb-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">Legal & Registration Details:</h3>
+                <ul className="text-gray-600 space-y-2">
+                  <li>• <strong>Legal Name:</strong> VETERAN SUCCESS FOUNDATION</li>
+                  <li>• <strong>CIN:</strong> U85300TG2022NPL166977</li>
+                  <li>• <strong>Section 8 License No:</strong> 138784</li>
+                  <li>• <strong>Incorporation Date:</strong> September 23, 2022</li>
+                  <li>• <strong>Registered Office:</strong> Hyderabad, Telangana, India</li>
+                </ul>
+              </div>
               
               <div className="bg-gray-50 rounded-lg p-6 mb-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">Our Commitment:</h3>

@@ -127,20 +127,22 @@ async function handlePaymentCaptured(payload: any): Promise<void> {
         throw new Error('Failed to record donation');
       }
 
-      // Generate donation receipt
-      if (donation) {
-        await generateDonationReceipt(donation, notes);
-      }
-
       // Send donation receipt email (non-blocking)
       if (donation && notes.donor_email) {
         try {
-          await sendDonationReceipt(
+          console.log('📧 Sending donation receipt email to:', notes.donor_email);
+          const emailSent = await sendDonationReceipt(
             notes.donor_email,
             notes.donor_name || 'Anonymous Donor',
             payment.amount / 100, // Convert paise to rupees
             payment.id
           );
+          
+          if (emailSent) {
+            console.log('✅ Donation receipt email sent successfully to:', notes.donor_email);
+          } else {
+            console.error('❌ Failed to send donation receipt email to:', notes.donor_email);
+          }
         } catch (emailError) {
           console.error('Failed to send donation receipt email:', emailError);
           // Don't fail the webhook if email fails
@@ -186,32 +188,8 @@ async function handlePaymentCaptured(payload: any): Promise<void> {
   }
 }
 
-async function generateDonationReceipt(donation: any, notes: any): Promise<void> {
-  try {
-    // Import receipt generation function
-    const { generateDonationReceipt } = await import('@/lib/billing/receipts');
-    
-    const receiptData = {
-      amount_cents: donation.amount,
-      user_id: donation.user_id || 'anonymous',
-      currency: donation.currency,
-      payment_method: donation.payment_method,
-      razorpay_payment_id: donation.razorpay_payment_id,
-      donor_name: notes.donor_name,
-      is_anonymous: donation.is_anonymous,
-      metadata: notes
-    };
-
-    const receipt = await generateDonationReceipt(receiptData);
-    console.log('✅ Donation receipt generated:', receipt.receipt_number);
-    
-    // Send receipt email
-    await sendReceiptEmail(receipt, notes.donor_email);
-    
-  } catch (error) {
-    console.error('Error generating donation receipt:', error);
-  }
-}
+// Note: Donation receipt generation and email sending is now handled directly 
+// in the handlePaymentCaptured function using the sendDonationReceipt function
 
 async function generateServiceInvoice(invoice: any, notes: any): Promise<void> {
   try {
@@ -242,26 +220,8 @@ async function generateServiceInvoice(invoice: any, notes: any): Promise<void> {
   }
 }
 
-async function sendReceiptEmail(receipt: any, email: string): Promise<void> {
-  try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/send-email`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        to: email,
-        subject: `Donation Receipt - ${receipt.receipt_number}`,
-        template: 'receipt',
-        data: { receipt }
-      })
-    });
-    
-    if (response.ok) {
-      console.log('✅ Receipt email sent to:', email);
-    }
-  } catch (error) {
-    console.error('Error sending receipt email:', error);
-  }
-}
+// Note: Receipt email sending is now handled by the sendDonationReceipt function 
+// which uses the updated template with correct company information
 
 async function sendInvoiceEmail(invoice: any, email: string): Promise<void> {
   try {
