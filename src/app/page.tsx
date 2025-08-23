@@ -12,10 +12,15 @@ import {
   Star,
   Heart,
   Phone,
-  Zap
+  Zap,
+  Target,
+  TrendingUp,
+  CheckCircle,
+  XCircle
 } from 'lucide-react'
-import LiveActivityTicker from '@/components/LiveActivityTicker'
-import DonationSnapshot from '@/components/DonationSnapshot'
+import FOMOTicker from '@/components/FOMOTicker'
+import HeroDonationsWidget from '@/components/HeroDonationsWidget'
+import VeteranPitchCard from '@/components/VeteranPitchCard'
 import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 
 export default function HomePage() {
@@ -43,7 +48,6 @@ export default function HomePage() {
     console.log('Homepage: Signing out...')
     
     try {
-      // Clear user state immediately for better UX
       setUser(null)
       
       const { error } = await supabase.auth.signOut()
@@ -52,18 +56,15 @@ export default function HomePage() {
       } else {
         console.log('Sign out successful')
         
-        // Clear any local storage
         if (typeof window !== 'undefined') {
           localStorage.removeItem('xainik-auth-token')
           sessionStorage.clear()
         }
         
-        // Force page reload to clear all state
         window.location.href = '/'
       }
     } catch (error) {
       console.error('Sign out error:', error)
-      // Force page reload anyway
       window.location.href = '/'
     }
   }
@@ -71,247 +72,423 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
 
-      {/* Hero */}
+      {/* FOMO Ticker - above Hero, below nav */}
+      <section className="py-4 bg-white/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <FOMOTicker />
+        </div>
+      </section>
+
+      {/* Hero Section */}
       <section className="relative overflow-hidden py-20 lg:py-32">
         <div className="absolute inset-0 bg-gradient-hero-overlay"></div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/70 text-gray-800 rounded-full text-sm font-semibold mb-8 shadow-sm">
-              <Sparkles className="h-4 w-4" />
-              Built for the Best
+          <div className="lg:grid lg:grid-cols-2 lg:gap-12 lg:items-center">
+            {/* Left Content */}
+            <div className="text-center lg:text-left">
+              <h1 className="heading-hero mb-6">
+                👉 Your Referral Dashboard.
+              </h1>
+
+              <h2 className="text-2xl lg:text-3xl font-semibold text-gray-700 max-w-4xl mx-auto lg:mx-0 leading-relaxed mb-6">
+                Not another job board.
+                <br />
+                A personalized, trackable referral dashboard <strong>for job leads</strong> — activated only when you need it most.
+              </h2>
+
+              <p className="text-xl text-gray-600 max-w-3xl mx-auto lg:mx-0 leading-relaxed mb-8">
+                Job boards don't work. Resumes vanish into black holes.
+                <br /><br />
+                The best jobs come through referrals — but there's never been a way to manage them clearly.
+                <br /><br />
+                <strong>Xainik changes that.</strong>
+                <br />
+                Every referral, endorsement, and recruiter call is visible, trackable, and working for you — <strong>even when you're not.</strong>
+              </p>
+
+              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-8">
+                {!isLoading && !user ? (
+                  <Link href="/waitlist" className="btn-primary text-lg inline-flex items-center gap-2 justify-center py-4">
+                    Join the Waitlist — First 50 get 30 days full access
+                    <ArrowRight className="h-5 w-5" />
+                  </Link>
+                ) : !isLoading && user ? (
+                  <>
+                    <Link href="/dashboard" className="btn-primary text-lg inline-flex items-center gap-2">
+                      Go to Dashboard
+                      <ArrowRight className="h-5 w-5" />
+                    </Link>
+                    <button 
+                      onClick={handleSignOut}
+                      className="btn-secondary text-lg inline-flex items-center gap-2 border-red-200 hover:border-red-300 hover:bg-red-50"
+                    >
+                      Sign Out
+                      <LogOut className="h-5 w-5" />
+                    </button>
+                  </>
+                ) : (
+                  <Link href="/waitlist" className="btn-primary text-lg inline-flex items-center gap-2">
+                    Join the Waitlist — First 50 get 30 days full access
+                    <ArrowRight className="h-5 w-5" />
+                  </Link>
+                )}
+              </div>
             </div>
 
-            <h1 className="heading-hero mb-6">
-              Fastest Way to Hire
-              <span className="block text-gradient-primary">Trusted Veterans</span>
-            </h1>
-
-            <h2 className="text-2xl lg:text-3xl font-semibold text-gray-700 max-w-4xl mx-auto leading-relaxed mb-6">
-              World's Only AI-First, Community-Supported Hiring Platform for Military Veterans
-            </h2>
-
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed mb-10">
-              Post a pitch, get direct calls from recruiters.
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-              {!isLoading && !user ? (
-                <>
-                  <div className="flex flex-col sm:flex-row gap-4 justify-center w-full max-w-2xl mx-auto">
-                    {/* Veterans - Join Waitlist */}
-                    <div className="flex flex-col items-center">
-                      <Link href="/waitlist" className="btn-primary text-lg inline-flex flex-col items-center gap-2 w-full justify-center py-4">
-                        <div className="flex items-center gap-2">
-                          <Shield className="h-5 w-5" />
-                          <span>Veterans</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span>Join Waitlist</span>
-                          <ArrowRight className="h-5 w-5" />
-                        </div>
-                      </Link>
-                      <p className="text-sm text-gray-500 mt-2 text-center">New veterans join our waitlist</p>
-                    </div>
-                    
-                    {/* Recruiters & Supporters - Sign In */}
-                    <div className="flex flex-col items-center">
-                      <Link href="/auth" className="btn-secondary text-lg inline-flex flex-col items-center gap-2 w-full justify-center py-4">
-                        <div className="flex items-center gap-2">
-                          <Users className="h-5 w-5" />
-                          <span>Recruiters & Supporters</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span>Sign In</span>
-                          <ChevronRight className="h-5 w-5" />
-                        </div>
-                      </Link>
-                      <p className="text-sm text-gray-500 mt-2 text-center">Existing users access platform</p>
-                    </div>
-                  </div>
-                </>
-              ) : !isLoading && user ? (
-                <>
-                  <Link href="/dashboard" className="btn-primary text-lg inline-flex items-center gap-2">
-                    Go to Dashboard
-                    <ArrowRight className="h-5 w-5" />
-                  </Link>
-                  <Link href="/browse" className="btn-secondary text-lg inline-flex items-center gap-2">
-                    Browse Veterans
-                    <ChevronRight className="h-5 w-5" />
-                  </Link>
-                  <button 
-                    onClick={handleSignOut}
-                    className="btn-secondary text-lg inline-flex items-center gap-2 border-red-200 hover:border-red-300 hover:bg-red-50"
-                  >
-                    Sign Out
-                    <LogOut className="h-5 w-5" />
-                  </button>
-                </>
-              ) : (
-                <>
-                  <Link href="/pitch/new" className="btn-primary text-lg inline-flex items-center gap-2">
-                    Post My Pitch
-                    <ArrowRight className="h-5 w-5" />
-                  </Link>
-                  <Link href="/browse" className="btn-secondary text-lg inline-flex items-center gap-2">
-                    Browse Veterans
-                    <ChevronRight className="h-5 w-5" />
-                  </Link>
-                  <Link href="/support" className="btn-secondary text-lg inline-flex items-center gap-2">
-                    Refer a Pitch
-                    <ChevronRight className="h-5 w-5" />
-                  </Link>
-                </>
-              )}
+            {/* Right Content - Hero Visual + Donations Widget */}
+            <div className="mt-12 lg:mt-0 space-y-6">
+              <VeteranPitchCard />
+              <HeroDonationsWidget />
             </div>
           </div>
         </div>
       </section>
 
-      {/* Activity Ticker */}
-      <section className="py-8 bg-white/50">
+      {/* The Pain Section */}
+      <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <LiveActivityTicker />
+          <div className="lg:grid lg:grid-cols-2 lg:gap-12 lg:items-center">
+            <div>
+              <h2 className="text-3xl font-bold text-gray-900 mb-6">
+                Job boards don't get veterans hired. Referrals do.
+              </h2>
+              
+              <ul className="space-y-4 mb-6">
+                <li className="flex items-start gap-3">
+                  <XCircle className="w-6 h-6 text-red-500 mt-0.5 flex-shrink-0" />
+                  <span className="text-lg text-gray-700">Portals swallow resumes with no reply.</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <XCircle className="w-6 h-6 text-red-500 mt-0.5 flex-shrink-0" />
+                  <span className="text-lg text-gray-700">Referrals get buried in chats and emails.</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <XCircle className="w-6 h-6 text-red-500 mt-0.5 flex-shrink-0" />
+                  <span className="text-lg text-gray-700">Veterans are left guessing, with no visibility.</span>
+                </li>
+              </ul>
+              
+              <div className="text-xl font-semibold text-blue-600">
+                👉 Veterans deserve better.
+              </div>
+            </div>
+
+            <div className="mt-8 lg:mt-0">
+              <div className="bg-gray-100 rounded-lg p-8 text-center">
+                <div className="text-gray-500 mb-4">Visual: Before/After Contrast</div>
+                <div className="text-sm text-gray-400">
+                  OG route: /api/og/contrast?mode=before-after
+                  <br />
+                  Alt: "Before: buried in chats. After: one dashboard."
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Donation Snapshot */}
-      <section className="py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <DonationSnapshot />
-        </div>
-      </section>
-
-      {/* Supporter Encouragement Section */}
-      <section className="py-16 bg-gradient-to-r from-green-50 to-emerald-50">
+      {/* The Everyday Struggle Section */}
+      <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/70 text-gray-800 rounded-full text-sm font-semibold mb-6 shadow-sm">
-              <Heart className="h-4 w-4" />
-              Support Our Mission
-            </div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Help Veterans Get Hired Faster
+            <h2 className="text-3xl font-bold text-gray-900 mb-6">
+              What veterans do today to stay visible.
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Your support directly connects veterans with opportunities. Every referral, endorsement, and donation makes a difference.
-            </p>
           </div>
-          <div className="bg-white rounded-2xl shadow-lg p-8 max-w-4xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <div className="text-center">
-                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                  <Phone className="w-6 h-6 text-green-600" />
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-1">Direct Connections</h3>
-                <p className="text-sm text-gray-600">Connect veterans with recruiters</p>
-              </div>
-              <div className="text-center">
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                  <Zap className="w-6 h-6 text-blue-600" />
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-1">Fast Results</h3>
-                <p className="text-sm text-gray-600">See impact in real-time</p>
-              </div>
-              <div className="text-center">
-                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                  <Heart className="w-6 h-6 text-purple-600" />
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-1">Community Impact</h3>
-                <p className="text-sm text-gray-600">Build lasting relationships</p>
-              </div>
-            </div>
-            <div className="text-center">
-              <Link href="/support-the-mission" className="btn-primary text-lg inline-flex items-center gap-2">
-                Support Veterans
-                <ArrowRight className="h-5 w-5" />
-              </Link>
+          
+          <ul className="space-y-4 max-w-4xl mx-auto">
+            <li className="flex items-start gap-3">
+              <XCircle className="w-6 h-6 text-red-500 mt-0.5 flex-shrink-0" />
+              <span className="text-lg text-gray-700">Pay for Naukri subscriptions that don't deliver.</span>
+            </li>
+            <li className="flex items-start gap-3">
+              <XCircle className="w-6 h-6 text-red-500 mt-0.5 flex-shrink-0" />
+              <span className="text-lg text-gray-700">Post endlessly on LinkedIn, hoping someone notices.</span>
+            </li>
+            <li className="flex items-start gap-3">
+              <XCircle className="w-6 h-6 text-red-500 mt-0.5 flex-shrink-0" />
+              <span className="text-lg text-gray-700">Send referral requests on WhatsApp and email, again and again.</span>
+            </li>
+            <li className="flex items-start gap-3">
+              <XCircle className="w-6 h-6 text-red-500 mt-0.5 flex-shrink-0" />
+              <span className="text-lg text-gray-700">Keep tweaking resumes and writing custom notes.</span>
+            </li>
+            <li className="flex items-start gap-3">
+              <XCircle className="w-6 h-6 text-red-500 mt-0.5 flex-shrink-0" />
+              <span className="text-lg text-gray-700">Follow up awkwardly, never knowing what happened.</span>
+            </li>
+            <li className="flex items-start gap-3">
+              <XCircle className="w-6 h-6 text-red-500 mt-0.5 flex-shrink-0" />
+              <span className="text-lg text-gray-700">Unsure who can actually connect you to the right role.</span>
+            </li>
+          </ul>
+          
+          <div className="text-center mt-8">
+            <div className="text-xl font-semibold text-blue-600">
+              👉 A lot of effort. Very little clarity.
             </div>
           </div>
         </div>
       </section>
 
-      {/* Waitlist Section */}
+      {/* The Breakthrough Section */}
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="lg:grid lg:grid-cols-2 lg:gap-12 lg:items-center">
+            <div>
+              <h2 className="text-3xl font-bold text-gray-900 mb-6">
+                A Referral Dashboard built for veterans.
+              </h2>
+              
+              <ul className="space-y-4 mb-6">
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-6 h-6 text-green-500 mt-0.5 flex-shrink-0" />
+                  <span className="text-lg text-gray-700"><strong>AI turns your details into a powerful, shareable pitch.</strong></span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-6 h-6 text-green-500 mt-0.5 flex-shrink-0" />
+                  <span className="text-lg text-gray-700">Supporters share in one click.</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-6 h-6 text-green-500 mt-0.5 flex-shrink-0" />
+                  <span className="text-lg text-gray-700">Every share, click, and recruiter call shows up in your dashboard.</span>
+                </li>
+              </ul>
+              
+              <div className="text-xl font-semibold text-blue-600">
+                👉 Finally, you know what's working.
+              </div>
+            </div>
+
+            <div className="mt-8 lg:mt-0">
+              <div className="bg-gray-100 rounded-lg p-8 text-center">
+                <div className="text-gray-500 mb-4">Visual: AI Drafted Pitch</div>
+                <div className="text-sm text-gray-400">
+                  OG route: /api/og/step/pitch
+                  <br />
+                  Alt: "AI‑drafted pitch and one‑click share."
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* All in One Place Section */}
+      <section className="py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="lg:grid lg:grid-cols-2 lg:gap-12 lg:items-center">
+            <div>
+              <h2 className="text-3xl font-bold text-gray-900 mb-6">
+                All your referrals. In one place.
+              </h2>
+              
+              <ul className="space-y-4 mb-6">
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-6 h-6 text-green-500 mt-0.5 flex-shrink-0" />
+                  <span className="text-lg text-gray-700">Who referred you</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-6 h-6 text-green-500 mt-0.5 flex-shrink-0" />
+                  <span className="text-lg text-gray-700">Who opened, read, or clicked</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-6 h-6 text-green-500 mt-0.5 flex-shrink-0" />
+                  <span className="text-lg text-gray-700">Who endorsed or called</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-6 h-6 text-green-500 mt-0.5 flex-shrink-0" />
+                  <span className="text-lg text-gray-700">Which channels delivered results</span>
+                </li>
+              </ul>
+              
+              <div className="text-xl font-semibold text-blue-600">
+                👉 Like Google Analytics — but for your job search.
+              </div>
+            </div>
+
+            <div className="mt-8 lg:mt-0">
+              <div className="bg-gray-100 rounded-lg p-8 text-center">
+                <div className="text-gray-500 mb-4">Visual: Dashboard Snapshot</div>
+                <div className="text-sm text-gray-400">
+                  OG route: /api/og/dashboard?id=pitch_0
+                  <br />
+                  Alt: "Veteran dashboard snapshot."
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Why Referrals Matter Section */}
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="lg:grid lg:grid-cols-2 lg:gap-12 lg:items-center">
+            <div>
+              <h2 className="text-3xl font-bold text-gray-900 mb-6">
+                80% of high-quality veteran jobs come through referrals.
+              </h2>
+              
+              <p className="text-lg text-gray-700 mb-6">
+                Veterans already have strong networks. Supporters want to help.
+                <br /><br />
+                Until now, there's been no simple way to put that to work.
+              </p>
+              
+              <div className="text-xl font-semibold text-blue-600">
+                👉 Xainik makes referrals organized, measurable, and actionable.
+              </div>
+            </div>
+
+            <div className="mt-8 lg:mt-0">
+              <div className="bg-gray-100 rounded-lg p-8 text-center">
+                <div className="text-gray-500 mb-4">Visual: Referral Flow</div>
+                <div className="text-sm text-gray-400">
+                  OG route: /api/og/flow/referrals
+                  <br />
+                  Alt: "How referrals flow through Xainik."
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Mission Mode vs Standby Section */}
+      <section className="py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="lg:grid lg:grid-cols-2 lg:gap-12 lg:items-center">
+            <div>
+              <h2 className="text-3xl font-bold text-gray-900 mb-6">
+                Pay only when you're searching.
+              </h2>
+              
+              <ul className="space-y-4 mb-6">
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-6 h-6 text-green-500 mt-0.5 flex-shrink-0" />
+                  <span className="text-lg text-gray-700">Starter Mission: 7 days, ₹99</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-6 h-6 text-green-500 mt-0.5 flex-shrink-0" />
+                  <span className="text-lg text-gray-700">Plan 30, 60, 90: Active search</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-6 h-6 text-green-500 mt-0.5 flex-shrink-0" />
+                  <span className="text-lg text-gray-700">After that: Standby — your pitch saved but hidden, ready anytime.</span>
+                </li>
+              </ul>
+              
+              <div className="text-xl font-semibold text-blue-600">
+                👉 Fair. Focused. Veteran-first.
+              </div>
+            </div>
+
+            <div className="mt-8 lg:mt-0">
+              <div className="bg-gray-100 rounded-lg p-8 text-center">
+                <div className="text-gray-500 mb-4">Visual: Mission vs Standby Toggle</div>
+                <div className="text-sm text-gray-400">
+                  OG route: /api/og/mode/mission-vs-standby
+                  <br />
+                  Alt: "Mission vs Standby."
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Supporters & Recruiters Section */}
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid md:grid-cols-2 gap-12">
+            {/* Supporters */}
+            <div>
+              <h2 className="text-3xl font-bold text-gray-900 mb-6">
+                👉 Help faster. With minimal effort.
+              </h2>
+              
+              <p className="text-lg text-gray-700 mb-6">
+                Endorse in one click. Share anywhere, unlimited times, with ready referral messages.
+                <br /><br />
+                No manual work — no writing custom notes, no chasing, no updates. Messaging, tracking, and feedback are fully automated — visible to you, the veteran, and everyone in the loop.
+              </p>
+              
+              <Link href="/support" className="btn-primary text-lg inline-flex items-center gap-2">
+                Learn More → Supporters
+                <ArrowRight className="h-5 w-5" />
+              </Link>
+              
+              <div className="mt-6 bg-gray-100 rounded-lg p-6 text-center">
+                <div className="text-gray-500 mb-2">Visual: Supporter Endorsement</div>
+                <div className="text-sm text-gray-400">
+                  OG route: /api/og/supporter/endorsement?id=pitch_0
+                  <br />
+                  Alt: "Supporter endorsement and share."
+                </div>
+              </div>
+            </div>
+
+            {/* Recruiters */}
+            <div>
+              <h2 className="text-3xl font-bold text-gray-900 mb-6">
+                👉 Skip the noise. Hire faster — faster than LinkedIn or Naukri.
+              </h2>
+              
+              <p className="text-lg text-gray-700 mb-6">
+                Only verified veterans in active search. The most current profiles, available immediately.
+                <br /><br />
+                Instant connect by call, email, or resume request — no stale profiles, no wasted time.
+              </p>
+              
+              <Link href="/dashboard/recruiter" className="btn-primary text-lg inline-flex items-center gap-2">
+                Learn More → Recruiters
+                <ArrowRight className="h-5 w-5" />
+              </Link>
+              
+              <div className="mt-6 bg-gray-100 rounded-lg p-6 text-center">
+                <div className="text-gray-500 mb-2">Visual: Recruiter Connect Panel</div>
+                <div className="text-sm text-gray-400">
+                  OG route: /api/og/recruiter/action?id=pitch_0
+                  <br />
+                  Alt: "Recruiter connect panel."
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Live Proof Section */}
+      <section className="py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-6">
+              See the community in action.
+            </h2>
+          </div>
+          
+          <FOMOTicker />
+        </div>
+      </section>
+
+      {/* Closing CTA Section */}
       <section className="py-16 bg-gradient-to-r from-blue-50 to-indigo-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/70 text-gray-800 rounded-full text-sm font-semibold mb-6 shadow-sm">
-              <Shield className="h-4 w-4" />
-              Exclusive Early Access
-            </div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Join the First 50 Veterans
-            </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Get privileged access to the complete platform. First 50 veterans get FREE access with unlimited features.
-            </p>
-          </div>
-          <div className="bg-white rounded-2xl shadow-lg p-8 max-w-2xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <div className="text-center">
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                  <Shield className="w-6 h-6 text-blue-600" />
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-1">Complete Platform</h3>
-                <p className="text-sm text-gray-600">All features unlocked</p>
-              </div>
-              <div className="text-center">
-                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                  <Users className="w-6 h-6 text-green-600" />
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-1">Priority Support</h3>
-                <p className="text-sm text-gray-600">Dedicated assistance</p>
-              </div>
-              <div className="text-center">
-                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                  <Star className="w-6 h-6 text-purple-600" />
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-1">Founding Member</h3>
-                <p className="text-sm text-gray-600">Exclusive community</p>
-              </div>
-            </div>
-            <div className="text-center">
-              <Link href="/waitlist" className="btn-primary text-lg inline-flex items-center gap-2">
-                Join Waitlist Now
-                <ArrowRight className="h-5 w-5" />
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Audience cards */}
-      <section className="py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="text-center p-8 card-glass">
-              <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center mx-auto mb-4">
-                <Shield className="h-6 w-6 text-white" />
-              </div>
-              <h3 className="heading-medium mb-2">Veterans</h3>
-              <p className="text-gray-600">Create a concise pitch. Get contacted directly by recruiters.</p>
-              <div className="mt-6">
-                <Link href="/pitch/new" className="btn-primary inline-flex items-center gap-2">
-                  Post My Pitch
-                  <ArrowRight className="h-5 w-5" />
-                </Link>
-              </div>
-            </div>
-
-            <div className="text-center p-8 card-glass">
-              <div className="w-12 h-12 bg-gradient-success rounded-xl flex items-center justify-center mx-auto mb-4">
-                <Users className="h-6 w-6 text-white" />
-              </div>
-              <h3 className="heading-medium mb-2">Recruiters</h3>
-              <p className="text-gray-600">Browse ready-to-join veterans with verified details.</p>
-              <div className="mt-6">
-                <Link href="/browse" className="btn-secondary inline-flex items-center gap-2">
-                  Browse Veterans
-                  <ChevronRight className="h-5 w-5" />
-                </Link>
-              </div>
-            </div>
-          </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl font-bold text-gray-900 mb-6">
+            Stop chasing. Start getting results.
+          </h2>
+          
+          <p className="text-xl text-gray-700 max-w-3xl mx-auto mb-8">
+            Job boards vanish into black holes. High-quality referrals open doors.
+            <br />
+            Xainik makes them visible.
+          </p>
+          
+          <Link href="/waitlist" className="btn-primary text-lg inline-flex items-center gap-2">
+            👉 Join the Waitlist
+            <ArrowRight className="h-5 w-5" />
+          </Link>
         </div>
       </section>
 
