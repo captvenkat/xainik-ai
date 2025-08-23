@@ -99,20 +99,12 @@ export default function HomePage() {
             {/* Left Content - Text stack */}
             <div className="text-center lg:text-left mb-12 lg:mb-0">
               <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6 leading-tight">
-                👉 Get hired faster with your personalised, automated job-referral dashboard.
+                👉 Get hired faster.
               </h1>
 
               <h2 className="text-2xl md:text-3xl font-semibold text-gray-700 mb-8 leading-relaxed">
-                Built to solve what job boards or networking sites don't. Helping veterans unlock the power of referrals that work.
+                Stop waiting on job portals. Unlock referrals that work — with Xainik, your personalised job-referral dashboard. Built for military veterans.
               </h2>
-
-              <div className="space-y-4 text-base md:text-lg text-gray-600 mb-10 leading-relaxed">
-                <p>Job boards don't work. Resumes vanish into black holes.</p>
-                <p>The best jobs come through referrals — but there's never been a way to manage them clearly.</p>
-                <p className="text-lg font-semibold text-gray-800">
-                  <strong>Xainik changes that.</strong> Every referral, endorsement, and recruiter call is visible, trackable, and working for you — <strong>even when you're not.</strong>
-                </p>
-              </div>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 {!isLoading && !user ? (
