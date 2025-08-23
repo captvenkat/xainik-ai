@@ -170,7 +170,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900">Email</h3>
-                    <p className="text-gray-600">support@xainik.com</p>
+                    <p className="text-gray-600">ceo@faujnet.com</p>
                     <p className="text-sm text-gray-500">We typically respond within 24 hours</p>
                   </div>
                 </div>
@@ -193,7 +193,7 @@ export default function ContactPage() {
                   <div>
                     <h3 className="font-semibold text-gray-900">Address</h3>
                     <p className="text-gray-600">
-                      Xainik Headquarters<br />
+                      Veteran Success Foundation<br />
                       [Your Business Address]<br />
                       India
                     </p>
