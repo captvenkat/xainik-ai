@@ -280,7 +280,7 @@ export async function sendPasswordResetEmail(userEmail: string, resetToken: stri
     const resetUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/auth/reset-password?token=${resetToken}`
     
     const { data, error } = await resend.emails.send({
-      from: 'Xainik <noreply@xainik.com>',
+      from: 'Xainik <updates@xainik.com>',
       to: [userEmail],
       subject: 'Reset your Xainik password',
       html: `
@@ -312,7 +312,7 @@ export async function sendPasswordResetEmail(userEmail: string, resetToken: stri
 export async function sendEmail(template: EmailTemplate) {
   try {
     const { data, error } = await resend.emails.send({
-      from: template.from || 'Xainik <noreply@xainik.com>',
+      from: template.from || 'Xainik <updates@xainik.com>',
       to: [template.to],
       subject: template.subject,
       html: template.html

@@ -14,72 +14,34 @@ export async function POST(request: NextRequest) {
     const envName = process.env.NODE_ENV || 'development'
     const timestamp = new Date().toISOString()
 
-    // Try with xainik.com domain first, fallback to verified domain if needed
-    let emailResult
-    let error
-
-    try {
-      emailResult = await resend.emails.send({
-        from: 'Xainik <noreply@xainik.com>',
-        to: [recipientEmail],
-        subject: `Test Email - ${envName} Environment`,
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2>🧪 Test Email from Xainik</h2>
-            <p>This is a test email to verify Resend integration.</p>
-            
-            <div style="background: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
-              <h3>Environment Details:</h3>
-              <ul>
-                <li><strong>Environment:</strong> ${envName}</li>
-                <li><strong>Build Hash:</strong> ${buildHash}</li>
-                <li><strong>Timestamp:</strong> ${timestamp}</li>
-                <li><strong>Domain:</strong> ${process.env.NEXT_PUBLIC_SITE_URL || 'localhost'}</li>
-              </ul>
-            </div>
-            
-            <p>If you received this email, Resend is working correctly! 🎉</p>
-            
-            <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
-            <p style="color: #666; font-size: 12px;">
-              This is an automated test email. Please ignore if not expected.
-            </p>
+    const emailResult = await resend.emails.send({
+      from: 'Xainik <updates@xainik.com>',
+      to: [recipientEmail],
+      subject: `Test Email - ${envName} Environment`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2>🧪 Test Email from Xainik</h2>
+          <p>This is a test email to verify Resend integration.</p>
+          
+          <div style="background: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
+            <h3>Environment Details:</h3>
+            <ul>
+              <li><strong>Environment:</strong> ${envName}</li>
+              <li><strong>Build Hash:</strong> ${buildHash}</li>
+              <li><strong>Timestamp:</strong> ${timestamp}</li>
+              <li><strong>Domain:</strong> ${process.env.NEXT_PUBLIC_SITE_URL || 'localhost'}</li>
+            </ul>
           </div>
-        `
-      })
-    } catch (domainError) {
-      // If xainik.com domain fails, try with verified domain
-      console.log('xainik.com domain failed, trying with verified domain...')
-      emailResult = await resend.emails.send({
-        from: 'Xainik <onboarding@resend.dev>',
-        to: [recipientEmail],
-        subject: `Test Email - ${envName} Environment (via Resend)`,
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2>🧪 Test Email from Xainik</h2>
-            <p>This is a test email to verify Resend integration.</p>
-            
-            <div style="background: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
-              <h3>Environment Details:</h3>
-              <ul>
-                <li><strong>Environment:</strong> ${envName}</li>
-                <li><strong>Build Hash:</strong> ${buildHash}</li>
-                <li><strong>Timestamp:</strong> ${timestamp}</li>
-                <li><strong>Domain:</strong> ${process.env.NEXT_PUBLIC_SITE_URL || 'localhost'}</li>
-              </ul>
-            </div>
-            
-            <p>If you received this email, Resend is working correctly! 🎉</p>
-            <p><strong>Note:</strong> This email was sent via Resend's verified domain due to xainik.com domain verification issues.</p>
-            
-            <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
-            <p style="color: #666; font-size: 12px;">
-              This is an automated test email. Please ignore if not expected.
-            </p>
-          </div>
-        `
-      })
-    }
+          
+          <p>If you received this email, Resend is working correctly! 🎉</p>
+          
+          <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
+          <p style="color: #666; font-size: 12px;">
+            This is an automated test email. Please ignore if not expected.
+          </p>
+        </div>
+      `
+    })
 
     if (emailResult.error) {
       console.error('Resend error:', emailResult.error)
