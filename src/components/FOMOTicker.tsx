@@ -26,8 +26,30 @@ export default function FOMOTicker({ className = '' }: FOMOTickerProps) {
   }, [])
 
   useEffect(() => {
-    // Load mock events
-    const mockEvents = generateMockEvents(15)
+    // Generate mock events with the exact specified lines
+    const tickerLines = [
+      "Ravi shares 3 referrals today",
+      "An Infosys recruiter opens Col. Singh's pitch",
+      "7 supporters boost 56 veterans this week",
+      "10 recruiters join the platform this month",
+      "23 referral messages go out today",
+      "Two recruiters download Capt. Nair's pitch",
+      "Meera endorses 5 veterans in one click",
+      "Every veteran profile is updated within 90 days",
+      "Auto-sent messages arrive in under 2 seconds",
+      "A recruiter schedules a call from a referral",
+      "Anil's referral note opens at 3 companies",
+      "Supporters share across 15+ networks"
+    ]
+    
+    const mockEvents = tickerLines.map((message, index) => ({
+      id: `ticker-${index}`,
+      type: 'endorsement_added' as const,
+      actor: 'System',
+      message,
+      timestamp: new Date(Date.now() - index * 60000)
+    }))
+    
     setEvents(mockEvents)
   }, [])
 
