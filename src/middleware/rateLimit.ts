@@ -85,91 +85,65 @@ function getRateLimitKey(req: NextRequest): string {
   return `${ip}:${userId}:${route}`
 }
 
+// Rate limit configurations
+const rateLimitConfigs = {
+  webhook: { windowMs: 60 * 1000, maxRequests: 10 },
+  resumeRequest: { windowMs: 60 * 1000, maxRequests: 5 },
+  referralEvent: { windowMs: 60 * 1000, maxRequests: 20 },
+  aiPitchGeneration: { windowMs: 60 * 1000, maxRequests: 5 },
+  aiPitchGenerationDaily: { windowMs: 24 * 60 * 60 * 1000, maxRequests: 50 },
+  emailSend: { windowMs: 60 * 1000, maxRequests: 3 },
+  emailDaily: { windowMs: 24 * 60 * 60 * 1000, maxRequests: 50 },
+  contactForm: { windowMs: 60 * 1000, maxRequests: 2 },
+  contactFormDaily: { windowMs: 24 * 60 * 60 * 1000, maxRequests: 10 },
+  waitlistJoin: { windowMs: 60 * 1000, maxRequests: 1 },
+  waitlistShare: { windowMs: 60 * 1000, maxRequests: 5 },
+  auth: { windowMs: 60 * 1000, maxRequests: 5 },
+  authDaily: { windowMs: 24 * 60 * 60 * 1000, maxRequests: 20 },
+  general: { windowMs: 60 * 1000, maxRequests: 100 },
+  dashboard: { windowMs: 60 * 1000, maxRequests: 30 }
+}
+
 // Predefined rate limit configurations
 export const rateLimits = {
   // Webhook and payment endpoints
-  webhook: createRateLimit({
-    windowMs: 60 * 1000, // 1 minute
-    maxRequests: 10, // 10 requests per minute
-  }),
+  webhook: createRateLimit(rateLimitConfigs.webhook),
   
   // Resume and referral endpoints
-  resumeRequest: createRateLimit({
-    windowMs: 60 * 1000, // 1 minute
-    maxRequests: 5, // 5 requests per minute
-  }),
+  resumeRequest: createRateLimit(rateLimitConfigs.resumeRequest),
   
-  referralEvent: createRateLimit({
-    windowMs: 60 * 1000, // 1 minute
-    maxRequests: 20, // 20 requests per minute
-  }),
+  referralEvent: createRateLimit(rateLimitConfigs.referralEvent),
   
   // AI and content generation
-  aiPitchGeneration: createRateLimit({
-    windowMs: 60 * 1000, // 1 minute
-    maxRequests: 5, // 5 requests per minute per user
-  }),
+  aiPitchGeneration: createRateLimit(rateLimitConfigs.aiPitchGeneration),
   
-  aiPitchGenerationDaily: createRateLimit({
-    windowMs: 24 * 60 * 60 * 1000, // 24 hours
-    maxRequests: 50, // 50 requests per day per user
-  }),
+  aiPitchGenerationDaily: createRateLimit(rateLimitConfigs.aiPitchGenerationDaily),
   
   // Email endpoints - Critical for preventing spam
-  emailSend: createRateLimit({
-    windowMs: 60 * 1000, // 1 minute
-    maxRequests: 3, // 3 emails per minute per user/IP
-  }),
+  emailSend: createRateLimit(rateLimitConfigs.emailSend),
   
-  emailDaily: createRateLimit({
-    windowMs: 24 * 60 * 60 * 1000, // 24 hours
-    maxRequests: 50, // 50 emails per day per user/IP
-  }),
+  emailDaily: createRateLimit(rateLimitConfigs.emailDaily),
   
   // Contact form - Prevent spam
-  contactForm: createRateLimit({
-    windowMs: 60 * 1000, // 1 minute
-    maxRequests: 2, // 2 contact form submissions per minute per IP
-  }),
+  contactForm: createRateLimit(rateLimitConfigs.contactForm),
   
-  contactFormDaily: createRateLimit({
-    windowMs: 24 * 60 * 60 * 1000, // 24 hours
-    maxRequests: 10, // 10 contact form submissions per day per IP
-  }),
+  contactFormDaily: createRateLimit(rateLimitConfigs.contactFormDaily),
   
   // Waitlist endpoints - Prevent abuse
-  waitlistJoin: createRateLimit({
-    windowMs: 60 * 1000, // 1 minute
-    maxRequests: 1, // 1 waitlist join per minute per IP
-  }),
+  waitlistJoin: createRateLimit(rateLimitConfigs.waitlistJoin),
   
-  waitlistShare: createRateLimit({
-    windowMs: 60 * 1000, // 1 minute
-    maxRequests: 5, // 5 waitlist shares per minute per IP
-  }),
+  waitlistShare: createRateLimit(rateLimitConfigs.waitlistShare),
   
   // Authentication endpoints - Prevent brute force
-  auth: createRateLimit({
-    windowMs: 60 * 1000, // 1 minute
-    maxRequests: 5, // 5 auth attempts per minute per IP
-  }),
+  auth: createRateLimit(rateLimitConfigs.auth),
   
-  authDaily: createRateLimit({
-    windowMs: 24 * 60 * 60 * 1000, // 24 hours
-    maxRequests: 20, // 20 auth attempts per day per IP
-  }),
+  authDaily: createRateLimit(rateLimitConfigs.authDaily),
   
   // General API endpoints
-  general: createRateLimit({
-    windowMs: 60 * 1000, // 1 minute
-    maxRequests: 100, // 100 requests per minute
-  }),
+  general: createRateLimit(rateLimitConfigs.general),
   
   // Dashboard endpoints - Prevent abuse
-  dashboard: createRateLimit({
-    windowMs: 60 * 1000, // 1 minute
-    maxRequests: 30, // 30 dashboard requests per minute per user
-  })
+  dashboard: createRateLimit(rateLimitConfigs.dashboard)
 }
 
 // Clean up old entries periodically
@@ -206,18 +180,19 @@ export function applyMultipleRateLimits(req: NextRequest, limitTypes: (keyof typ
 export function getRateLimitInfo(req: NextRequest, limitType: keyof typeof rateLimits) {
   const key = getRateLimitKey(req)
   const entry = rateLimitStore.get(key)
+  const config = rateLimitConfigs[limitType]
   
   if (!entry) {
     return {
-      limit: rateLimits[limitType].maxRequests,
-      remaining: rateLimits[limitType].maxRequests,
-      resetTime: new Date(Date.now() + rateLimits[limitType].windowMs).toISOString()
+      limit: config.maxRequests,
+      remaining: config.maxRequests,
+      resetTime: new Date(Date.now() + config.windowMs).toISOString()
     }
   }
   
   return {
-    limit: rateLimits[limitType].maxRequests,
-    remaining: Math.max(0, rateLimits[limitType].maxRequests - entry.count),
+    limit: config.maxRequests,
+    remaining: Math.max(0, config.maxRequests - entry.count),
     resetTime: new Date(entry.resetTime).toISOString()
   }
 }
