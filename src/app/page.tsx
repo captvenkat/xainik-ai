@@ -114,7 +114,7 @@ export default function HomePage() {
                 Supporters
               </h3>
               <h4 className="text-xl md:text-2xl font-semibold text-gray-700 mb-8 leading-tight">
-                👉 Help faster. With minimal effort.
+                👉 Help military job seekers with minimal effort.
               </h4>
               
               <div className="space-y-4 mb-8">
@@ -145,7 +145,7 @@ export default function HomePage() {
                 Recruiters
               </h3>
               <h4 className="text-xl md:text-2xl font-semibold text-gray-700 mb-8 leading-tight">
-                👉 Skip the noise. Get qualified candidates.
+                👉 Hire trusted veterans faster.
               </h4>
               
               <div className="space-y-4 mb-8">
