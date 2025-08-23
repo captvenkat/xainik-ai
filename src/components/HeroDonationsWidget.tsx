@@ -59,21 +59,23 @@ export default function HeroDonationsWidget({ className = '' }: HeroDonationsWid
       className={`bg-white/90 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-white/20 ${className}`}
       aria-label="Live donation totals"
     >
-      <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">
+      <h3 className="text-base font-semibold text-gray-900 mb-4 text-center">
         Donations Today
       </h3>
       
-      <div className="space-y-3 text-center">
+      <div className="space-y-4 text-center">
         <div className="text-2xl font-bold text-green-600">
           {formatCurrency(stats.todayTotal)}
         </div>
         
-        <div className="text-sm text-gray-600 space-y-1">
-          <div>
-            <span className="font-medium">Highest Today:</span> {formatCurrency(stats.todayHighest)}
+        <div className="text-sm text-gray-600 space-y-2">
+          <div className="flex justify-between items-center">
+            <span className="font-medium">Highest Today:</span>
+            <span className="font-semibold">{formatCurrency(stats.todayHighest)}</span>
           </div>
-          <div>
-            <span className="font-medium">This Week:</span> {formatCurrency(stats.weekTotal)}
+          <div className="flex justify-between items-center">
+            <span className="font-medium">This Week:</span>
+            <span className="font-semibold">{formatCurrency(stats.weekTotal)}</span>
           </div>
         </div>
         
