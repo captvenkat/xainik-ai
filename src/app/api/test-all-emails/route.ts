@@ -27,6 +27,8 @@ export async function POST(request: NextRequest) {
     try {
       await sendResumeRequestEmail(recipientEmail, 'Venky Test', 'Tech Recruiter', 'Software Engineer Pitch', 'Interested in your profile')
       results.push({ type: 'Resume Request Email', status: '✅ Sent', details: 'Resume request notification' })
+      // Add delay to respect Resend rate limit
+      await new Promise(resolve => setTimeout(resolve, 500))
     } catch (error) {
       results.push({ type: 'Resume Request Email', status: '❌ Failed', details: error instanceof Error ? error.message : 'Unknown error' })
     }
@@ -35,6 +37,8 @@ export async function POST(request: NextRequest) {
     try {
       await sendEndorsementEmail(recipientEmail, 'Venky Test', 'John Doe', 'Leadership')
       results.push({ type: 'Endorsement Email', status: '✅ Sent', details: 'New endorsement notification' })
+      // Add delay to respect Resend rate limit
+      await new Promise(resolve => setTimeout(resolve, 500))
     } catch (error) {
       results.push({ type: 'Endorsement Email', status: '❌ Failed', details: error instanceof Error ? error.message : 'Unknown error' })
     }
@@ -43,6 +47,8 @@ export async function POST(request: NextRequest) {
     try {
       await sendPasswordResetEmail(recipientEmail, 'test-reset-token-123')
       results.push({ type: 'Password Reset Email', status: '✅ Sent', details: 'Password reset link' })
+      // Add delay to respect Resend rate limit
+      await new Promise(resolve => setTimeout(resolve, 500))
     } catch (error) {
       results.push({ type: 'Password Reset Email', status: '❌ Failed', details: error instanceof Error ? error.message : 'Unknown error' })
     }
@@ -70,12 +76,17 @@ export async function POST(request: NextRequest) {
         `
       })
       results.push({ type: 'Generic Email Template', status: '✅ Sent', details: 'Custom template email' })
+      // Add delay to respect Resend rate limit
+      await new Promise(resolve => setTimeout(resolve, 500))
     } catch (error) {
       results.push({ type: 'Generic Email Template', status: '❌ Failed', details: error instanceof Error ? error.message : 'Unknown error' })
     }
     
     // 6. Test Contact Form Email
     try {
+      // Add delay to respect Resend rate limit (2 requests per second)
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      
       // Import and use the contact form logic directly instead of making HTTP request
       const { Resend } = await import('resend')
       const resend = new Resend(process.env.RESEND_API_KEY)
