@@ -14,7 +14,7 @@ export interface EmailTemplate {
 export async function sendWelcomeEmail(userEmail: string, userName: string, role: string) {
   try {
     const { data, error } = await resend.emails.send({
-      from: 'Xainik <updates@xainik.com>',
+      from: 'Xainik <noreply@updates.xainik.com>',
       to: [userEmail],
       subject: 'Welcome to Xainik - Your Veteran Career Journey Starts Here!',
       html: `
@@ -57,7 +57,7 @@ export async function sendResumeRequestEmail(
 ) {
   try {
     const { data, error } = await resend.emails.send({
-      from: 'Xainik <updates@xainik.com>',
+      from: 'Xainik <noreply@updates.xainik.com>',
       to: [veteranEmail],
       subject: `Resume Request from ${companyName}`,
       html: `
@@ -95,7 +95,7 @@ export async function sendEndorsementEmail(
 ) {
   try {
     const { data, error } = await resend.emails.send({
-      from: 'Xainik <updates@xainik.com>',
+      from: 'Xainik <noreply@updates.xainik.com>',
       to: [veteranEmail],
       subject: `New Endorsement for ${skill}`,
       html: `
@@ -136,7 +136,7 @@ export async function sendDonationReceipt(
     const financialYear = new Date().getFullYear() + '-' + (new Date().getFullYear() + 1).toString().slice(-2)
     
     const { data, error } = await resend.emails.send({
-      from: 'Xainik <updates@xainik.com>',
+      from: 'Xainik <noreply@updates.xainik.com>',
       to: [donorEmail],
       subject: `Section 80G Receipt - ${receiptNumber} | Xainik`,
       html: `
@@ -280,7 +280,7 @@ export async function sendPasswordResetEmail(userEmail: string, resetToken: stri
     const resetUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/auth/reset-password?token=${resetToken}`
     
     const { data, error } = await resend.emails.send({
-      from: 'Xainik <updates@xainik.com>',
+      from: 'Xainik <noreply@updates.xainik.com>',
       to: [userEmail],
       subject: 'Reset your Xainik password',
       html: `
@@ -312,7 +312,7 @@ export async function sendPasswordResetEmail(userEmail: string, resetToken: stri
 export async function sendEmail(template: EmailTemplate) {
   try {
     const { data, error } = await resend.emails.send({
-      from: template.from || 'Xainik <updates@xainik.com>',
+      from: template.from || 'Xainik <noreply@updates.xainik.com>',
       to: [template.to],
       subject: template.subject,
       html: template.html
