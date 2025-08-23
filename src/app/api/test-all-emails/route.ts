@@ -76,22 +76,47 @@ export async function POST(request: NextRequest) {
     
     // 6. Test Contact Form Email
     try {
-      const contactResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/contact`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: 'Venky Test',
-          email: recipientEmail,
-          subject: 'Test Contact Form',
-          message: 'This is a test message from the contact form to verify email functionality.'
-        })
+      // Import and use the contact form logic directly instead of making HTTP request
+      const { Resend } = await import('resend')
+      const resend = new Resend(process.env.RESEND_API_KEY)
+      
+      const supportEmail = process.env.SUPPORT_EMAIL || 'ceo@faujnet.com'
+      const timestamp = new Date().toISOString()
+      
+      const { data, error } = await resend.emails.send({
+        from: 'Xainik (Veteran Success Foundation, Sec. 8 not for profit) <noreply@updates.xainik.com>',
+        to: [supportEmail],
+        replyTo: recipientEmail,
+        subject: 'Test Contact Form',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2>📧 Test Contact Form Email</h2>
+            
+            <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h3>Contact Details:</h3>
+              <p><strong>Name:</strong> Venky Test</p>
+              <p><strong>Email:</strong> ${recipientEmail}</p>
+              <p><strong>Subject:</strong> Test Contact Form</p>
+              <p><strong>Timestamp:</strong> ${timestamp}</p>
+            </div>
+            
+            <div style="background: #e8f4fd; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h3>Message:</h3>
+              <p style="white-space: pre-wrap;">This is a test message from the contact form to verify email functionality.</p>
+            </div>
+            
+            <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
+            <p style="color: #666; font-size: 12px;">
+              This is a test email from the Xainik contact form testing system.
+            </p>
+          </div>
+        `
       })
       
-      if (contactResponse.ok) {
-        results.push({ type: 'Contact Form Email', status: '✅ Sent', details: 'Contact form submission' })
+      if (error) {
+        results.push({ type: 'Contact Form Email', status: '❌ Failed', details: error.message || 'Contact form failed' })
       } else {
-        const errorData = await contactResponse.json()
-        results.push({ type: 'Contact Form Email', status: '❌ Failed', details: errorData.error || 'Contact form failed' })
+        results.push({ type: 'Contact Form Email', status: '✅ Sent', details: 'Contact form submission' })
       }
     } catch (error) {
       results.push({ type: 'Contact Form Email', status: '❌ Failed', details: error instanceof Error ? error.message : 'Unknown error' })
