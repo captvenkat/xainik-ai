@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     
     // 3. Test Endorsement Email
     try {
-      await sendEndorsementEmail(recipientEmail, 'Venky Test', 'Leadership', 'John Doe', 'Great leadership skills!')
+      await sendEndorsementEmail(recipientEmail, 'Venky Test', 'John Doe', 'Leadership')
       results.push({ type: 'Endorsement Email', status: '✅ Sent', details: 'New endorsement notification' })
     } catch (error) {
       results.push({ type: 'Endorsement Email', status: '❌ Failed', details: error instanceof Error ? error.message : 'Unknown error' })
