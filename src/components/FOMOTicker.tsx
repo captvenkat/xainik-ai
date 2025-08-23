@@ -26,6 +26,10 @@ export default function FOMOTicker({ className = '' }: FOMOTickerProps) {
   }, [])
 
   useEffect(() => {
+    // Check for reduced motion preference
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+    setPrefersReducedMotion(mediaQuery.matches)
+
     // Generate mock events with the exact specified lines
     const tickerLines = [
       "Ravi shares 3 referrals today",
@@ -42,13 +46,22 @@ export default function FOMOTicker({ className = '' }: FOMOTickerProps) {
       "Supporters share across 15+ networks"
     ]
     
-    const mockEvents = tickerLines.map((message, index) => ({
-      id: `ticker-${index}`,
-      type: 'endorsement_added' as const,
-      actor: 'System',
-      message,
-      timestamp: new Date(Date.now() - index * 60000)
-    }))
+    // Create more realistic mock events with varied types and timestamps
+    const mockEvents = tickerLines.map((message, index) => {
+      const eventTypes: MockEvent['type'][] = ['endorsement_added', 'referral_shared', 'recruiter_called', 'resume_requested', 'veteran_joined']
+      const actors = ['Ravi', 'Meera', 'Col. Singh', 'Capt. Nair', 'Anil', 'Infosys Recruiter', 'System']
+      
+      const eventType = eventTypes[index % eventTypes.length]!
+      const actor = actors[index % actors.length]!
+      
+      return {
+        id: `ticker-${index}`,
+        type: eventType,
+        actor: actor,
+        target: message, // Use target instead of message
+        timestamp: new Date(Date.now() - (index * 300000)) // 5 minutes apart
+      }
+    })
     
     setEvents(mockEvents)
   }, [])
@@ -138,7 +151,7 @@ export default function FOMOTicker({ className = '' }: FOMOTickerProps) {
               className="flex-shrink-0 w-full flex items-center gap-3 text-xs text-blue-500 py-1"
             >
               <span className="font-medium opacity-80">
-                {getEventMessage(event)}
+                {event.target}
               </span>
               <span className="text-blue-400 text-xs opacity-60">
                 {event.timestamp.toLocaleTimeString('en-IN', { 

@@ -9,7 +9,6 @@ import FOMOTicker from '@/components/FOMOTicker'
 import HeroDashboardIllustration from '@/components/HeroDashboardIllustration'
 import SupportersIllustration from '@/components/SupportersIllustration'
 import RecruitersIllustration from '@/components/RecruitersIllustration'
-import DonationsIllustration from '@/components/DonationsIllustration'
 import ClosingCTAIllustration from '@/components/ClosingCTAIllustration'
 import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 
@@ -173,44 +172,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 3) DONATIONS Section */}
-      <section className="py-16 lg:py-24 bg-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
-            We are a Section 8 non-profit.
-          </h2>
-          <p className="text-xl text-gray-700 mb-8 leading-relaxed">
-            Supported by generous donations that power referrals for those who served.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link 
-              href="/donations" 
-              className="btn-primary inline-flex items-center gap-2 px-8 py-4 text-lg font-semibold"
-            >
-              Support with ₹499
-            </Link>
-            <Link 
-              href="/donations" 
-              className="btn-secondary inline-flex items-center gap-2 px-8 py-4 text-lg font-semibold"
-            >
-              Support with ₹999
-            </Link>
-            <Link 
-              href="/donations" 
-              className="btn-secondary inline-flex items-center gap-2 px-8 py-4 text-lg font-semibold"
-            >
-              Support with ₹1999
-            </Link>
-          </div>
-
-          {/* Donations Visual */}
-          <div className="mt-8 max-w-2xl mx-auto">
-            <DonationsIllustration />
-          </div>
-        </div>
-      </section>
-
-      {/* 4) CLOSING CTA Section */}
+      {/* 3) CLOSING CTA Section */}
       <section className="py-16 lg:py-24 bg-gradient-to-br from-blue-50 to-indigo-50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-8 leading-tight">
