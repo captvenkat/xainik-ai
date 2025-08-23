@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
       veteranName,
       recruiterName: recruiter,
       pitchTitle: pitch,
-      message: msg,
+      requestMessage: msg,
       timestamp: new Date().toISOString()
     })
     
