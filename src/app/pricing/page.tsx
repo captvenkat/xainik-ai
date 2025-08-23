@@ -21,8 +21,7 @@ export const metadata: Metadata = {
 export default async function PricingPage() {
   const supabase = createSupabaseServerOnly()
   
-  // Check if user is logged in and get their trial status
-  let canUseTrialPlan = true
+  // Check if user is logged in
   let userId: string | null = null
   
   try {
@@ -30,16 +29,9 @@ export default async function PricingPage() {
     const { data: { user } } = await supabaseClient.auth.getUser()
     if (user) {
       userId = user.id
-      const { data: existingPitches } = await supabaseClient
-        .from('pitches')
-        .select('plan_tier')
-        .eq('user_id', user.id)
-      
-      canUseTrialPlan = canUseTrial(user.id, existingPitches || [])
     }
   } catch (error) {
-    // User not logged in, can use trial
-    canUseTrialPlan = true
+    // User not logged in
   }
 
   return (
@@ -58,13 +50,13 @@ export default async function PricingPage() {
         </div>
 
         {/* Pricing Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
           <Suspense fallback={<PricingCardSkeleton />}>
             {Object.values(PLANS).map((plan) => (
               <PricingCard
                 key={plan.id}
                 plan={plan}
-                canUseTrial={plan.id === 'trial_14' ? canUseTrialPlan : true}
+                canUseTrial={true}
                 userId={userId}
                 isPopular={plan.id === 'plan_60'}
               />
@@ -143,7 +135,7 @@ export default async function PricingPage() {
 function PricingCardSkeleton() {
   return (
     <>
-      {Array.from({ length: 5 }).map((_, i) => (
+      {Array.from({ length: 4 }).map((_, i) => (
         <div key={i} className="bg-white rounded-xl shadow-lg p-6 animate-pulse">
           <div className="h-6 bg-gray-200 rounded mb-4"></div>
           <div className="h-8 bg-gray-200 rounded mb-2"></div>

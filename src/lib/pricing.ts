@@ -8,19 +8,6 @@ export interface Plan {
 }
 
 export const PLANS: Record<string, Plan> = {
-  trial_14: {
-    id: 'trial_14',
-    name: '14-Day Trial',
-    price: 1,
-    duration: 14,
-    description: 'Perfect for testing the platform',
-    features: [
-      'Full pitch visibility',
-      'Recruiter contact',
-      'Analytics dashboard',
-      'Email support'
-    ]
-  },
   plan_7: {
     id: 'plan_7',
     name: '7-Day Plan',
