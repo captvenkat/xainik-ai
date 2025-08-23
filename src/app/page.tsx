@@ -35,6 +35,11 @@ import FOMOTicker from '@/components/FOMOTicker'
 import VeteranPitchCard from '@/components/VeteranPitchCard'
 import { SmartImage } from '@/components/SmartImage'
 import LiveCommunityEvents from '@/components/LiveCommunityEvents'
+import HeroDashboardIllustration from '@/components/HeroDashboardIllustration'
+import SupportersIllustration from '@/components/SupportersIllustration'
+import RecruitersIllustration from '@/components/RecruitersIllustration'
+import DonationsIllustration from '@/components/DonationsIllustration'
+import ClosingCTAIllustration from '@/components/ClosingCTAIllustration'
 import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 
 export default function HomePage() {
@@ -99,45 +104,30 @@ export default function HomePage() {
             {/* Left Content - Text stack */}
             <div className="text-center lg:text-left mb-12 lg:mb-0">
               <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6 leading-tight">
-                👉 Get hired faster.
+                Personalised Job-Referral Dashboard for Military Veterans
               </h1>
 
               <h2 className="text-2xl md:text-3xl font-semibold text-gray-700 mb-8 leading-relaxed">
-                Stop waiting on job portals. Unlock referrals that work — with Xainik, your personalised job-referral dashboard. Built for military veterans.
+                Automatically sends customised referral messages — and tracks who referred you, how often it's shared, where it's opened, and when it turns into calls.
               </h2>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                {!isLoading && !user ? (
-                  <Link href="/waitlist" className="btn-primary text-lg inline-flex items-center gap-2 justify-center py-4 px-8">
-                    Join the Waitlist — First 50 get 30 days full access
-                    <ArrowRight className="h-5 w-5" />
-                  </Link>
-                ) : !isLoading && user ? (
-                  <>
-                    <Link href="/dashboard" className="btn-primary text-lg inline-flex items-center gap-2 px-8 py-4">
-                      Go to Dashboard
-                      <ArrowRight className="h-5 w-5" />
-                    </Link>
-                    <button 
-                      onClick={handleSignOut}
-                      className="btn-secondary text-lg inline-flex items-center gap-2 border-red-200 hover:border-red-300 hover:bg-red-50 px-8 py-4"
-                    >
-                      Sign Out
-                      <LogOut className="h-5 w-5" />
-                    </button>
-                  </>
-                ) : (
-                  <Link href="/waitlist" className="btn-primary text-lg inline-flex items-center gap-2 px-8 py-4">
-                    Join the Waitlist — First 50 get 30 days full access
-                    <ArrowRight className="h-5 w-5" />
-                  </Link>
-                )}
+                <Link 
+                  href="/waitlist" 
+                  className="btn-primary inline-flex items-center gap-2 px-8 py-4 text-lg font-semibold"
+                >
+                  Join the Waitlist
+                  <ArrowRight className="w-5 h-5" />
+                </Link>
+                <p className="text-sm text-gray-600 mt-2 lg:mt-0 lg:ml-4 lg:self-center">
+                  First 50 get 30 days of full access free
+                </p>
               </div>
             </div>
 
-            {/* Right Content - Only Veteran Pitch Card */}
-            <div className="mt-12 lg:mt-0">
-              <VeteranPitchCard />
+            {/* Right Content - Visual */}
+            <div className="flex justify-center lg:justify-end">
+              <HeroDashboardIllustration />
             </div>
           </div>
         </div>
@@ -459,24 +449,25 @@ export default function HomePage() {
               </h4>
               
               <div className="space-y-4 mb-8">
-                <p className="text-base md:text-lg text-gray-700 leading-relaxed">Endorse in one click. Share anywhere, unlimited times, with ready referral messages.</p>
-                <p className="text-base md:text-lg text-gray-700 leading-relaxed">No manual work — no writing custom notes, no chasing, no updates. Messaging, tracking, and feedback are fully automated — visible to you, the veteran, and everyone in the loop.</p>
+                <p className="text-base md:text-lg text-gray-700 leading-relaxed">
+                  Automated referral system with custom messages, tracking, and feedback — visible to you, the veteran, and everyone in the loop.
+                </p>
               </div>
 
-              <div className="mb-8">
-                <Link href="/support" className="btn-secondary text-lg inline-flex items-center gap-2 px-8 py-4">
-                  Learn More → Supporters
-                  <ArrowRight className="h-5 w-5" />
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Link 
+                  href="/supporter" 
+                  className="btn-primary inline-flex items-center gap-2 px-6 py-3 text-base font-semibold"
+                >
+                  Become a Supporter
+                  <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>
 
               {/* Supporters Visual */}
-              <SmartImage 
-                src="/api/og/supporter/endorsement"
-                alt="Supporter endorsement interface"
-                fallbackLabel="Supporter Actions Illustration"
-                className="rounded-2xl border shadow-sm w-full h-full object-cover min-h-[220px]"
-              />
+              <div className="mt-8">
+                <SupportersIllustration />
+              </div>
             </div>
 
             {/* Recruiters */}
@@ -485,28 +476,29 @@ export default function HomePage() {
                 Recruiters
               </h3>
               <h4 className="text-xl md:text-2xl font-semibold text-gray-700 mb-8 leading-tight">
-                👉 Skip the noise. Hire faster — faster than LinkedIn or Naukri.
+                👉 Skip the noise. Get qualified candidates.
               </h4>
               
               <div className="space-y-4 mb-8">
-                <p className="text-base md:text-lg text-gray-700 leading-relaxed">Only verified veterans in active search. The most current profiles, available immediately.</p>
-                <p className="text-base md:text-lg text-gray-700 leading-relaxed">Instant connect by call, email, or resume request — no stale profiles, no wasted time.</p>
+                <p className="text-base md:text-lg text-gray-700 leading-relaxed">
+                  Every profile is current and active — no profile is more than 90 days old. Instantly reachable by call or email, or request a resume in one click.
+                </p>
               </div>
 
-              <div className="mb-8">
-                <Link href="/support" className="btn-secondary text-lg inline-flex items-center gap-2 px-8 py-4">
-                  Learn More → Recruiters
-                  <ArrowRight className="h-5 w-5" />
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Link 
+                  href="/recruiter" 
+                  className="btn-primary inline-flex items-center gap-2 px-6 py-3 text-base font-semibold"
+                >
+                  Start Hiring
+                  <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>
 
               {/* Recruiters Visual */}
-              <SmartImage 
-                src="/api/og/recruiter/action"
-                alt="Recruiter action panel"
-                fallbackLabel="Recruiter Panel Illustration"
-                className="rounded-2xl border shadow-sm w-full h-full object-cover min-h-[220px]"
-              />
+              <div className="mt-8">
+                <RecruitersIllustration />
+              </div>
             </div>
           </div>
         </div>
@@ -528,24 +520,34 @@ export default function HomePage() {
           {/* Donations mini-card */}
           <div className="max-w-4xl mx-auto">
             <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl border border-green-200 shadow-sm p-8">
-              <h3 className="text-xl font-semibold text-gray-900 mb-6 text-center">Donations Today</h3>
-              <div className="grid grid-cols-3 gap-6 text-center">
-                <div>
-                  <div className="text-2xl font-bold text-green-600">₹10,500</div>
-                  <div className="text-sm text-gray-600">Today</div>
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-blue-600">₹8,200</div>
-                  <div className="text-sm text-gray-600">Highest Today</div>
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-purple-600">₹45,300</div>
-                  <div className="text-sm text-gray-600">This Week</div>
-                </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-6 text-center">We are a Section 8 non-profit.</h3>
+              <p className="text-base text-gray-700 mb-6 text-center">
+                Supported by generous donations that power referrals for those who served.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link 
+                  href="/donations" 
+                  className="btn-primary inline-flex items-center gap-2 px-6 py-3 text-base font-semibold"
+                >
+                  Support with ₹499
+                </Link>
+                <Link 
+                  href="/donations" 
+                  className="btn-secondary inline-flex items-center gap-2 px-6 py-3 text-base font-semibold"
+                >
+                  Support with ₹999
+                </Link>
+                <Link 
+                  href="/donations" 
+                  className="btn-secondary inline-flex items-center gap-2 px-6 py-3 text-base font-semibold"
+                >
+                  Support with ₹1999
+                </Link>
               </div>
-              <div className="mt-4 flex items-center justify-center gap-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-xs text-green-600 font-medium">Live Updates</span>
+
+              {/* Donations Visual */}
+              <div className="mt-8">
+                <DonationsIllustration />
               </div>
             </div>
           </div>
@@ -556,12 +558,11 @@ export default function HomePage() {
       <section className="py-16 lg:py-24 bg-gradient-to-br from-blue-50 to-indigo-50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-8 leading-tight">
-            Stop chasing. Start getting results.
+            Get hired faster.
           </h2>
           
           <p className="text-base md:text-lg text-gray-700 mb-10 max-w-2xl mx-auto leading-relaxed">
-            Job boards vanish into black holes. High-quality referrals open doors.
-            Xainik makes them visible.
+            The referral advantage, built for you.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -569,6 +570,11 @@ export default function HomePage() {
               Join the Waitlist
               <ArrowRight className="h-5 w-5" />
             </Link>
+          </div>
+
+          {/* Closing CTA Visual */}
+          <div className="mt-8 max-w-2xl mx-auto">
+            <ClosingCTAIllustration />
           </div>
         </div>
       </section>
