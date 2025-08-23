@@ -3,6 +3,8 @@
 import { createActionClient } from '@/lib/supabase-server'
 import { revalidatePath } from 'next/cache'
 import { sendResumeRequestEmail } from '@/lib/email'
+import { headers } from 'next/headers'
+import { applyRateLimit } from '@/middleware/rateLimit'
 
 export interface CreateResumeRequestData {
   pitch_id: string
@@ -14,6 +16,28 @@ export interface CreateResumeRequestData {
 
 export async function createResumeRequest(data: CreateResumeRequestData) {
   try {
+    // Apply rate limiting to prevent abuse
+    const headersList = await headers()
+    const forwardedFor = headersList.get('x-forwarded-for')
+    const realIp = headersList.get('x-real-ip')
+    
+    // Create a mock request object for rate limiting
+    const mockRequest = {
+      headers: {
+        get: (name: string) => {
+          if (name === 'x-forwarded-for') return forwardedFor
+          if (name === 'x-real-ip') return realIp
+          return null
+        }
+      },
+      nextUrl: { pathname: '/api/resume/request' }
+    } as any
+    
+    const rateLimitResult = applyRateLimit(mockRequest, 'resumeRequest')
+    if (rateLimitResult) {
+      return { success: false, error: 'Rate limit exceeded. Please try again later.' }
+    }
+    
     const supabase = await createActionClient()
     
     const { data: resumeRequest, error } = await supabase

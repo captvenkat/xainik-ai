@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { applyRateLimit } from './middleware/rateLimit';
 
 const PUBLIC_PATHS = [
   '/', '/browse', '/pricing', '/donations', '/auth', '/auth/callback', '/about', '/contact', '/terms', '/privacy'
@@ -7,6 +8,42 @@ const PUBLIC_PATHS = [
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+
+  // Apply rate limiting to API endpoints
+  if (pathname.startsWith('/api/')) {
+    // Contact form - strict rate limiting
+    if (pathname === '/api/contact') {
+      const rateLimitResult = applyRateLimit(req, 'contactForm')
+      if (rateLimitResult) return rateLimitResult
+    }
+    
+    // Waitlist endpoints
+    if (pathname === '/api/waitlist/join') {
+      const rateLimitResult = applyRateLimit(req, 'waitlistJoin')
+      if (rateLimitResult) return rateLimitResult
+    }
+    
+    if (pathname === '/api/waitlist/share') {
+      const rateLimitResult = applyRateLimit(req, 'waitlistShare')
+      if (rateLimitResult) return rateLimitResult
+    }
+    
+    // Resume request endpoints
+    if (pathname.startsWith('/api/resume/')) {
+      const rateLimitResult = applyRateLimit(req, 'resumeRequest')
+      if (rateLimitResult) return rateLimitResult
+    }
+    
+    // AI generation endpoints
+    if (pathname.startsWith('/api/ai/')) {
+      const rateLimitResult = applyRateLimit(req, 'aiPitchGeneration')
+      if (rateLimitResult) return rateLimitResult
+    }
+    
+    // General API rate limiting
+    const generalRateLimit = applyRateLimit(req, 'general')
+    if (generalRateLimit) return generalRateLimit
+  }
 
   // Allow all static and public paths
   if (
