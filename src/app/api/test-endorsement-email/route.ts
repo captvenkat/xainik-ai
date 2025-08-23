@@ -3,14 +3,13 @@ import { sendEndorsementEmail } from '@/lib/email'
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, name, skill, endorserName, message } = await request.json()
+    const { email, name, skill, endorserName } = await request.json()
     const recipientEmail = email || 'venky24aug@gmail.com'
     const veteranName = name || 'Venky Test'
     const skillName = skill || 'Leadership'
     const endorser = endorserName || 'John Doe'
-    const msg = message || 'Great leadership skills demonstrated in the project!'
     
-    await sendEndorsementEmail(recipientEmail, veteranName, skillName, endorser, msg)
+    await sendEndorsementEmail(recipientEmail, veteranName, endorser, skillName)
     
     return NextResponse.json({
       success: true,
@@ -19,7 +18,6 @@ export async function POST(request: NextRequest) {
       veteranName,
       skill: skillName,
       endorserName: endorser,
-      message: msg,
       timestamp: new Date().toISOString()
     })
     
