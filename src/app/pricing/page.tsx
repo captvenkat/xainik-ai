@@ -58,7 +58,7 @@ export default async function PricingPage() {
         </div>
 
         {/* Pricing Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-16">
           <Suspense fallback={<PricingCardSkeleton />}>
             {Object.values(PLANS).map((plan) => (
               <PricingCard
@@ -66,7 +66,7 @@ export default async function PricingPage() {
                 plan={plan}
                 canUseTrial={plan.id === 'trial_14' ? canUseTrialPlan : true}
                 userId={userId}
-                isPopular={plan.id === 'plan_30'}
+                isPopular={plan.id === 'plan_60'}
               />
             ))}
           </Suspense>
@@ -143,7 +143,7 @@ export default async function PricingPage() {
 function PricingCardSkeleton() {
   return (
     <>
-      {Array.from({ length: 4 }).map((_, i) => (
+      {Array.from({ length: 5 }).map((_, i) => (
         <div key={i} className="bg-white rounded-xl shadow-lg p-6 animate-pulse">
           <div className="h-6 bg-gray-200 rounded mb-4"></div>
           <div className="h-8 bg-gray-200 rounded mb-2"></div>
