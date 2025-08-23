@@ -50,24 +50,24 @@ export default function FOMOTicker({ className = '' }: FOMOTickerProps) {
 
   return (
     <div 
-      className={`bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4 ${className}`}
+      className={`bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-100 ${className}`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onFocus={handleMouseEnter}
       onBlur={handleMouseLeave}
     >
-      <div className="flex items-center gap-3 mb-3">
+      <div className="flex items-center gap-3 py-2">
         <div className="flex-shrink-0">
-          <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+          <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
         </div>
-        <h3 className="text-sm font-medium text-blue-900">Live Activity</h3>
+        <span className="text-xs font-medium text-blue-700">Live Activity</span>
         <div className="flex-1"></div>
         <div className="flex space-x-1">
           {events.slice(0, 5).map((_, index) => (
             <div
               key={index}
-              className={`w-1.5 h-1.5 rounded-full transition-colors ${
-                index === currentIndex ? 'bg-blue-600' : 'bg-blue-300'
+              className={`w-1 h-1 rounded-full transition-colors ${
+                index === currentIndex ? 'bg-blue-500' : 'bg-blue-300'
               }`}
             />
           ))}
@@ -91,12 +91,12 @@ export default function FOMOTicker({ className = '' }: FOMOTickerProps) {
           {events.map((event, index) => (
             <div
               key={event.id}
-              className="flex-shrink-0 w-full flex items-center gap-3 text-sm text-blue-800"
+              className="flex-shrink-0 w-full flex items-center gap-3 text-xs text-blue-700 py-1"
             >
               <span className="font-medium">
                 {getEventMessage(event)}
               </span>
-              <span className="text-blue-600 text-xs">
+              <span className="text-blue-500 text-xs">
                 {event.timestamp.toLocaleTimeString('en-IN', { 
                   hour: '2-digit', 
                   minute: '2-digit' 
@@ -108,10 +108,10 @@ export default function FOMOTicker({ className = '' }: FOMOTickerProps) {
       </div>
 
       {prefersReducedMotion && (
-        <div className="mt-3 flex justify-between">
+        <div className="py-2 flex justify-between items-center">
           <button
             onClick={() => setCurrentIndex(prev => Math.max(0, prev - 1))}
-            className="text-xs text-blue-600 hover:text-blue-800 disabled:opacity-50"
+            className="text-xs text-blue-600 hover:text-blue-800 disabled:opacity-50 px-2 py-1 rounded"
             disabled={currentIndex === 0}
           >
             ← Previous
@@ -121,7 +121,7 @@ export default function FOMOTicker({ className = '' }: FOMOTickerProps) {
           </span>
           <button
             onClick={() => setCurrentIndex(prev => (prev + 1) % events.length)}
-            className="text-xs text-blue-600 hover:text-blue-800"
+            className="text-xs text-blue-600 hover:text-blue-800 px-2 py-1 rounded"
           >
             Next →
           </button>
