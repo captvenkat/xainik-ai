@@ -85,58 +85,58 @@ export default function HomePage() {
       </section>
 
       {/* Hero Section - Strong entry point with left text, right visuals */}
-      <section className="py-20 lg:py-28 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      <section className="py-24 lg:py-32 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="lg:grid lg:grid-cols-2 lg:gap-16 lg:items-center">
+          <div className="lg:grid lg:grid-cols-2 lg:gap-20 lg:items-center">
             {/* Left Content - Text */}
-            <div className="text-center lg:text-left mb-12 lg:mb-0">
-              <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6 leading-tight">
+            <div className="text-center lg:text-left mb-16 lg:mb-0">
+              <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 mb-8 leading-tight">
                 👉 Your Referral Dashboard.
               </h1>
 
-              <h2 className="text-xl lg:text-2xl font-semibold text-gray-700 mb-8 leading-relaxed">
+              <h2 className="text-xl lg:text-2xl font-semibold text-gray-700 mb-10 leading-relaxed">
                 Not another job board. A personalized, trackable referral dashboard <strong>for job leads</strong> — activated only when you need it most.
               </h2>
 
-              <div className="space-y-4 text-lg text-gray-600 mb-10">
+              <div className="space-y-6 text-lg text-gray-600 mb-12">
                 <p>Job boards don't work. Resumes vanish into black holes.</p>
                 <p>The best jobs come through referrals — but there's never been a way to manage them clearly.</p>
-                <p className="font-semibold text-gray-800">
+                <p className="text-xl font-semibold text-gray-800">
                   <strong>Xainik changes that.</strong> Every referral, endorsement, and recruiter call is visible, trackable, and working for you — <strong>even when you're not.</strong>
                 </p>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-8">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 {!isLoading && !user ? (
-                  <Link href="/waitlist" className="btn-primary text-lg inline-flex items-center gap-2 justify-center py-4 px-8">
+                  <Link href="/waitlist" className="btn-primary text-lg inline-flex items-center gap-2 justify-center py-5 px-10 text-lg">
                     Join the Waitlist — First 50 get 30 days full access
-                    <ArrowRight className="h-5 w-5" />
+                    <ArrowRight className="h-6 w-6" />
                   </Link>
                 ) : !isLoading && user ? (
                   <>
-                    <Link href="/dashboard" className="btn-primary text-lg inline-flex items-center gap-2 px-8 py-4">
+                    <Link href="/dashboard" className="btn-primary text-lg inline-flex items-center gap-2 px-10 py-5">
                       Go to Dashboard
-                      <ArrowRight className="h-5 w-5" />
+                      <ArrowRight className="h-6 w-6" />
                     </Link>
                     <button 
                       onClick={handleSignOut}
-                      className="btn-secondary text-lg inline-flex items-center gap-2 border-red-200 hover:border-red-300 hover:bg-red-50 px-8 py-4"
+                      className="btn-secondary text-lg inline-flex items-center gap-2 border-red-200 hover:border-red-300 hover:bg-red-50 px-10 py-5"
                     >
                       Sign Out
-                      <LogOut className="h-5 w-5" />
+                      <LogOut className="h-6 w-6" />
                     </button>
                   </>
                 ) : (
-                  <Link href="/waitlist" className="btn-primary text-lg inline-flex items-center gap-2 px-8 py-4">
+                  <Link href="/waitlist" className="btn-primary text-lg inline-flex items-center gap-2 px-10 py-5">
                     Join the Waitlist — First 50 get 30 days full access
-                    <ArrowRight className="h-5 w-5" />
+                    <ArrowRight className="h-6 w-6" />
                   </Link>
                 )}
               </div>
             </div>
 
             {/* Right Content - Hero Visual + Donations Widget */}
-            <div className="space-y-6">
+            <div className="space-y-8">
               <VeteranPitchCard />
               <HeroDonationsWidget />
             </div>
@@ -540,12 +540,21 @@ export default function HomePage() {
       {/* Supporters & Recruiters Section - Two columns */}
       <section className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-8 leading-tight">
+              Supporters & Recruiters
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Two sides of the same mission: helping veterans get hired through quality referrals.
+            </p>
+          </div>
+          
           <div className="grid lg:grid-cols-2 gap-16">
             {/* Supporters */}
             <div>
-              <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-8 leading-tight">
+              <h3 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-8 leading-tight">
                 👉 Help faster. With minimal effort.
-              </h2>
+              </h3>
               
               <div className="space-y-6 mb-8">
                 <p className="text-lg text-gray-700">Endorse in one click. Share anywhere, unlimited times, with ready referral messages.</p>
@@ -571,9 +580,9 @@ export default function HomePage() {
 
             {/* Recruiters */}
             <div>
-              <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-8 leading-tight">
+              <h3 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-8 leading-tight">
                 👉 Skip the noise. Hire faster — faster than LinkedIn or Naukri.
-              </h2>
+              </h3>
               
               <div className="space-y-6 mb-8">
                 <p className="text-lg text-gray-700">Only verified veterans in active search. The most current profiles, available immediately.</p>
