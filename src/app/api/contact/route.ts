@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const supportEmail = process.env.SUPPORT_EMAIL || 'support@xainik.com'
+    const supportEmail = process.env.SUPPORT_EMAIL || 'ceo@faujnet.com'
     const timestamp = new Date().toISOString()
 
     const { data, error } = await resend.emails.send({
@@ -83,6 +83,6 @@ export async function POST(request: NextRequest) {
 export async function GET() {
   return NextResponse.json({
     message: 'Contact form endpoint ready',
-    supportEmail: process.env.SUPPORT_EMAIL || 'support@xainik.com'
+    supportEmail: process.env.SUPPORT_EMAIL || 'ceo@faujnet.com'
   })
 }
