@@ -21,12 +21,25 @@ export const PLANS: Record<string, Plan> = {
       'Email support'
     ]
   },
+  plan_7: {
+    id: 'plan_7',
+    name: '7-Day Plan',
+    price: 99,
+    duration: 7,
+    description: 'Quick visibility boost',
+    features: [
+      'Full pitch visibility',
+      'Recruiter contact',
+      'Analytics dashboard',
+      'Email support'
+    ]
+  },
   plan_30: {
     id: 'plan_30',
     name: '30-Day Plan',
-    price: 299,
+    price: 499,
     duration: 30,
-    description: 'Most popular choice',
+    description: 'Standard monthly visibility',
     features: [
       'Full pitch visibility',
       'Recruiter contact',
@@ -38,9 +51,9 @@ export const PLANS: Record<string, Plan> = {
   plan_60: {
     id: 'plan_60',
     name: '60-Day Plan',
-    price: 499,
+    price: 899,
     duration: 60,
-    description: 'Better value for longer searches',
+    description: 'Most popular choice',
     features: [
       'Full pitch visibility',
       'Recruiter contact',
@@ -53,7 +66,7 @@ export const PLANS: Record<string, Plan> = {
   plan_90: {
     id: 'plan_90',
     name: '90-Day Plan',
-    price: 599,
+    price: 999,
     duration: 90,
     description: 'Best value for extended visibility',
     features: [
