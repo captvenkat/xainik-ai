@@ -177,7 +177,7 @@ export default function HomePage() {
       <section className="py-16 lg:py-24 bg-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
-            We are a Section 8 not-for-profit company operating under VETERAN SUCCESS FOUNDATION.
+            We are a Section 8 not-for-profit company.
           </h2>
           <p className="text-xl text-gray-700 mb-8 leading-relaxed">
             Working for veterans' success through your generous support.
