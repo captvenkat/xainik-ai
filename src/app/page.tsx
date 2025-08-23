@@ -34,6 +34,7 @@ import {
 import FOMOTicker from '@/components/FOMOTicker'
 import VeteranPitchCard from '@/components/VeteranPitchCard'
 import { SmartImage } from '@/components/SmartImage'
+import LiveCommunityEvents from '@/components/LiveCommunityEvents'
 import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 
 export default function HomePage() {
@@ -98,11 +99,11 @@ export default function HomePage() {
             {/* Left Content - Text stack */}
             <div className="text-center lg:text-left mb-12 lg:mb-0">
               <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6 leading-tight">
-                👉 Your Referral Dashboard.
+                👉 Get hired faster with your personalised, automated job-referral dashboard.
               </h1>
 
               <h2 className="text-2xl md:text-3xl font-semibold text-gray-700 mb-8 leading-relaxed">
-                Not another job board. A personalized, trackable referral dashboard <strong>for job leads</strong> — activated only when you need it most.
+                Built to solve what job boards or networking sites don't. Helping veterans unlock the power of referrals that work.
               </h2>
 
               <div className="space-y-4 text-base md:text-lg text-gray-600 mb-10 leading-relaxed">
@@ -458,9 +459,12 @@ export default function HomePage() {
           <div className="grid lg:grid-cols-2 gap-16">
             {/* Supporters */}
             <div>
-              <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-8 leading-tight">
-                👉 Help faster. With minimal effort.
+              <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2 leading-tight">
+                Supporters
               </h3>
+              <h4 className="text-xl md:text-2xl font-semibold text-gray-700 mb-8 leading-tight">
+                👉 Help faster. With minimal effort.
+              </h4>
               
               <div className="space-y-4 mb-8">
                 <p className="text-base md:text-lg text-gray-700 leading-relaxed">Endorse in one click. Share anywhere, unlimited times, with ready referral messages.</p>
@@ -478,16 +482,19 @@ export default function HomePage() {
               <SmartImage 
                 src="/api/og/supporter/endorsement"
                 alt="Supporter endorsement interface"
-                fallbackLabel="Supporter Actions"
+                fallbackLabel="Supporter Actions Illustration"
                 className="rounded-2xl border shadow-sm w-full h-full object-cover min-h-[220px]"
               />
             </div>
 
             {/* Recruiters */}
             <div>
-              <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-8 leading-tight">
-                👉 Skip the noise. Hire faster — faster than LinkedIn or Naukri.
+              <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2 leading-tight">
+                Recruiters
               </h3>
+              <h4 className="text-xl md:text-2xl font-semibold text-gray-700 mb-8 leading-tight">
+                👉 Skip the noise. Hire faster — faster than LinkedIn or Naukri.
+              </h4>
               
               <div className="space-y-4 mb-8">
                 <p className="text-base md:text-lg text-gray-700 leading-relaxed">Only verified veterans in active search. The most current profiles, available immediately.</p>
@@ -505,7 +512,7 @@ export default function HomePage() {
               <SmartImage 
                 src="/api/og/recruiter/action"
                 alt="Recruiter action panel"
-                fallbackLabel="Recruiter Panel"
+                fallbackLabel="Recruiter Panel Illustration"
                 className="rounded-2xl border shadow-sm w-full h-full object-cover min-h-[220px]"
               />
             </div>
@@ -523,17 +530,7 @@ export default function HomePage() {
           </div>
           
           <div className="max-w-4xl mx-auto mb-12">
-            <div className="space-y-4 text-base md:text-lg text-gray-700 text-center">
-              <p>"Meera endorsed Capt. Arjun Singh"</p>
-              <p>"Col. Sharma's pitch opened 23 times today"</p>
-              <p>"Recruiter called Anita Rao"</p>
-              <p>"₹10,500 donated today to support veteran hiring"</p>
-            </div>
-          </div>
-
-          {/* Live Activity Ticker */}
-          <div className="max-w-4xl mx-auto mb-12">
-            <FOMOTicker />
+            <LiveCommunityEvents />
           </div>
 
           {/* Donations mini-card */}
