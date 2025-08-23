@@ -148,15 +148,15 @@ export function getEventMessage(event: MockEvent): string {
     case 'veteran_joined':
       return `${event.actor} joined Xainik`
     case 'endorsement_added':
-      return `${event.actor} endorsed ${event.target}`
+      return event.target ? `${event.actor} endorsed ${event.target}` : `${event.actor} endorsed a veteran`
     case 'referral_shared':
-      return `${event.actor} referred ${event.target}'s pitch`
+      return event.target ? `${event.actor} referred ${event.target}'s pitch` : `${event.actor} shared a referral`
     case 'recruiter_called':
-      return `Recruiter called ${event.target}`
+      return event.target ? `Recruiter called ${event.target}` : 'Recruiter made a call'
     case 'resume_requested':
-      return `Resume requested: ${event.target}`
+      return event.target ? `Resume requested: ${event.target}` : 'Resume requested'
     case 'resume_approved':
-      return `Resume approved: ${event.target}`
+      return event.target ? `Resume approved: ${event.target}` : 'Resume approved'
     default:
       return 'New activity on platform'
   }
