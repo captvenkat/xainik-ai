@@ -38,7 +38,7 @@ export default function FOMOTicker({ className = '' }: FOMOTickerProps) {
       if (!isPaused) {
         setCurrentIndex((prev) => (prev + 1) % events.length)
       }
-    }, 4000) // Change every 4 seconds
+    }, 6000) // Slower motion: change every 6 seconds
 
     return () => clearInterval(interval)
   }, [events.length, isPaused, prefersReducedMotion])
@@ -46,11 +46,33 @@ export default function FOMOTicker({ className = '' }: FOMOTickerProps) {
   const handleMouseEnter = () => setIsPaused(true)
   const handleMouseLeave = () => setIsPaused(false)
 
-  if (events.length === 0) return null
+  // If feed empty, show soft placeholders
+  if (events.length === 0) {
+    return (
+      <div className={`${className}`}>
+        <div className="flex items-center gap-3 py-2">
+          <div className="flex-shrink-0">
+            <div className="w-2 h-2 bg-blue-300 rounded-full animate-pulse"></div>
+          </div>
+          <span className="text-xs font-medium text-blue-500">Live Activity</span>
+          <div className="flex-1"></div>
+          <div className="text-xs text-blue-400">Loading...</div>
+        </div>
+        
+        <div className="py-1">
+          <div className="text-xs text-blue-400">
+            <span className="opacity-60">Meera endorsed Capt. Arjun Singh</span>
+            <span className="mx-3">•</span>
+            <span className="opacity-60">Col. Sharma's pitch opened 23 times today</span>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div 
-      className={`bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-100 ${className}`}
+      className={`${className}`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onFocus={handleMouseEnter}
@@ -58,16 +80,16 @@ export default function FOMOTicker({ className = '' }: FOMOTickerProps) {
     >
       <div className="flex items-center gap-3 py-2">
         <div className="flex-shrink-0">
-          <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+          <div className="w-2 h-2 bg-blue-300 rounded-full animate-pulse"></div>
         </div>
-        <span className="text-xs font-medium text-blue-700">Live Activity</span>
+        <span className="text-xs font-medium text-blue-500">Live Activity</span>
         <div className="flex-1"></div>
         <div className="flex space-x-1">
           {events.slice(0, 5).map((_, index) => (
             <div
               key={index}
               className={`w-1 h-1 rounded-full transition-colors ${
-                index === currentIndex ? 'bg-blue-500' : 'bg-blue-300'
+                index === currentIndex ? 'bg-blue-400' : 'bg-blue-200'
               }`}
             />
           ))}
@@ -81,7 +103,7 @@ export default function FOMOTicker({ className = '' }: FOMOTickerProps) {
         aria-label="Recent activity"
       >
         <div 
-          className={`flex transition-transform duration-1000 ${
+          className={`flex transition-transform duration-1500 ${
             prefersReducedMotion ? '' : 'transform-gpu'
           }`}
           style={{
@@ -91,12 +113,12 @@ export default function FOMOTicker({ className = '' }: FOMOTickerProps) {
           {events.map((event, index) => (
             <div
               key={event.id}
-              className="flex-shrink-0 w-full flex items-center gap-3 text-xs text-blue-700 py-1"
+              className="flex-shrink-0 w-full flex items-center gap-3 text-xs text-blue-500 py-1"
             >
-              <span className="font-medium">
+              <span className="font-medium opacity-80">
                 {getEventMessage(event)}
               </span>
-              <span className="text-blue-500 text-xs">
+              <span className="text-blue-400 text-xs opacity-60">
                 {event.timestamp.toLocaleTimeString('en-IN', { 
                   hour: '2-digit', 
                   minute: '2-digit' 
@@ -111,17 +133,17 @@ export default function FOMOTicker({ className = '' }: FOMOTickerProps) {
         <div className="py-2 flex justify-between items-center">
           <button
             onClick={() => setCurrentIndex(prev => Math.max(0, prev - 1))}
-            className="text-xs text-blue-600 hover:text-blue-800 disabled:opacity-50 px-2 py-1 rounded"
+            className="text-xs text-blue-400 hover:text-blue-600 disabled:opacity-50 px-2 py-1 rounded transition-colors"
             disabled={currentIndex === 0}
           >
             ← Previous
           </button>
-          <span className="text-xs text-blue-600">
+          <span className="text-xs text-blue-400 opacity-60">
             {currentIndex + 1} of {events.length}
           </span>
           <button
             onClick={() => setCurrentIndex(prev => (prev + 1) % events.length)}
-            className="text-xs text-blue-600 hover:text-blue-800 px-2 py-1 rounded"
+            className="text-xs text-blue-400 hover:text-blue-600 px-2 py-1 rounded transition-colors"
           >
             Next →
           </button>
