@@ -173,7 +173,11 @@ export default function FullPitchView({
     plan_expires_at_type: typeof plan_expires_at,
     plan_expires_at_value: plan_expires_at,
     plan_expires_at_truthy: !!plan_expires_at,
-    shouldShowCountdown: !!plan_expires_at
+    user_metadata_plan_expires_at: (pitch as any).users?.metadata?.plan_expires_at,
+    user_metadata_plan_expires_at_type: typeof (pitch as any).users?.metadata?.plan_expires_at,
+    user_metadata_plan_expires_at_truthy: !!(pitch as any).users?.metadata?.plan_expires_at,
+    shouldShowCountdown: !!(plan_expires_at || (pitch as any).users?.metadata?.plan_expires_at),
+    final_expiry_date: plan_expires_at || (pitch as any).users?.metadata?.plan_expires_at
   })
 
   const veteranName = pitchUser?.name || 'Veteran'
@@ -601,7 +605,7 @@ export default function FullPitchView({
             </div>
 
             {/* Pitch Expiration Countdown Widget */}
-            {(plan_expires_at || true) && (
+            {(plan_expires_at || (pitch as any).users?.metadata?.plan_expires_at || true) && (
               <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-3xl p-6 border border-amber-200 shadow-sm">
                 <div className="text-center">
                   <div className="w-12 h-12 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-3">
@@ -611,8 +615,8 @@ export default function FullPitchView({
                     Pitch Visibility
                   </h3>
                   <div className="mb-4">
-                    {plan_expires_at ? (
-                      <CountdownTimer expiryDate={plan_expires_at} />
+                    {(plan_expires_at || (pitch as any).users?.metadata?.plan_expires_at) ? (
+                      <CountdownTimer expiryDate={plan_expires_at || (pitch as any).users?.metadata?.plan_expires_at} />
                     ) : (
                       <div className="text-center">
                         <div className="text-lg font-bold text-amber-700 mb-1">
@@ -625,7 +629,7 @@ export default function FullPitchView({
                     )}
                   </div>
                   <p className="text-sm text-amber-700 mb-4 leading-relaxed">
-                    {plan_expires_at 
+                    {(plan_expires_at || (pitch as any).users?.metadata?.plan_expires_at)
                       ? "This pitch will expire soon. Help this veteran by referring them to opportunities in your network."
                       : "Help this veteran by referring them to opportunities in your network."
                     }
