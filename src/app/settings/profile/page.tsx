@@ -99,7 +99,8 @@ export default function ProfileSettingsPage() {
           location_current: veteranData?.location_current || '',
           locations_preferred: veteranData?.locations_preferred || [],
           web_links: (veteranData?.web_links as any) || [],
-          retirement_date: veteranData?.retirement_date || ''
+          retirement_date: veteranData?.retirement_date || '',
+          photo_url: profileData?.avatar_url || ''
         });
         
       } catch (error) {
@@ -133,9 +134,30 @@ export default function ProfileSettingsPage() {
     // photoUrl is the data URL or file URL
     // isCustom indicates if it's a user-uploaded photo
     
-    // TODO: Implement photo upload to storage and update profile
-    // For now, just store the photo URL in local state
-    // This will be implemented when photo upload functionality is ready
+    if (photoUrl) {
+      // Update the profile state with the new photo
+      setProfile(prev => ({
+        ...prev,
+        avatar_url: photoUrl
+      }));
+      
+      // Store the photo URL for later upload
+      setFormData(prev => ({
+        ...prev,
+        photo_url: photoUrl
+      }));
+    } else {
+      // Remove the photo
+      setProfile(prev => ({
+        ...prev,
+        avatar_url: null
+      }));
+      
+      setFormData(prev => ({
+        ...prev,
+        photo_url: ''
+      }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -165,6 +187,7 @@ export default function ProfileSettingsPage() {
             name: formData.name,
             phone: formData.phone,
             role: 'veteran',
+            avatar_url: formData.photo_url || null,
             created_at: new Date().toISOString()
           })
           .select()
@@ -183,7 +206,8 @@ export default function ProfileSettingsPage() {
           .from('users')
           .update({
             name: formData.name,
-            phone: formData.phone
+            phone: formData.phone,
+            avatar_url: formData.photo_url || null
           })
           .eq('id', user.id);
 
