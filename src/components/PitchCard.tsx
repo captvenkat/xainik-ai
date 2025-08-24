@@ -70,7 +70,16 @@ export default function PitchCard({ data, variant = 'default' }: Props) {
                   src={photo_url} 
                   alt={veteranName}
                   className="w-16 h-16 rounded-2xl object-cover shadow-lg ring-4 ring-white"
+                  onError={(e) => {
+                    // Fallback to default avatar if image fails to load
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                    target.nextElementSibling?.classList.remove('hidden');
+                  }}
                 />
+                <div className="hidden w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg ring-4 ring-white">
+                  <Shield className="h-8 w-8 text-white" />
+                </div>
                 <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
                   <Shield className="h-3 w-3 text-white" />
                 </div>
@@ -89,7 +98,7 @@ export default function PitchCard({ data, variant = 'default' }: Props) {
               <div className="font-bold text-gray-900 text-lg">{veteranName}</div>
               <div className="text-sm text-gray-500 font-medium flex items-center gap-2">
                 <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                Verified Veteran
+                Active Veteran
               </div>
             </div>
           </div>
@@ -153,35 +162,43 @@ export default function PitchCard({ data, variant = 'default' }: Props) {
         </div>
 
         {/* Stats - Modern Card Design */}
-        <div className="grid grid-cols-4 gap-3 mb-6 p-4 bg-gradient-to-r from-gray-50 to-blue-50 rounded-2xl border border-gray-100">
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-1 mb-1">
-              <Eye className="h-4 w-4 text-blue-500" />
-              <span className="text-lg font-bold text-gray-900">{views_count}</span>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6 p-4 bg-gradient-to-r from-gray-50 to-blue-50 rounded-2xl border border-gray-100">
+          {views_count > 0 && (
+            <div className="text-center">
+              <div className="flex items-center justify-center gap-1 mb-1">
+                <Eye className="h-4 w-4 text-blue-500" />
+                <span className="text-lg font-bold text-gray-900">{views_count}</span>
+              </div>
+              <div className="text-xs text-gray-500 font-medium">Views</div>
             </div>
-            <div className="text-xs text-gray-500 font-medium">Views</div>
-          </div>
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-1 mb-1">
-              <Heart className="h-4 w-4 text-red-500" />
-              <span className="text-lg font-bold text-gray-900">{likes_count}</span>
+          )}
+          {likes_count > 0 && (
+            <div className="text-center">
+              <div className="flex items-center justify-center gap-1 mb-1">
+                <Heart className="h-4 w-4 text-red-500" />
+                <span className="text-lg font-bold text-gray-900">{likes_count}</span>
+              </div>
+              <div className="text-xs text-gray-500 font-medium">Likes</div>
             </div>
-            <div className="text-xs text-gray-500 font-medium">Likes</div>
-          </div>
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-1 mb-1">
-              <TrendingUp className="h-4 w-4 text-green-500" />
-              <span className="text-lg font-bold text-gray-900">{endorsements_count}</span>
+          )}
+          {endorsements_count > 0 && (
+            <div className="text-center">
+              <div className="flex items-center justify-center gap-1 mb-1">
+                <TrendingUp className="h-4 w-4 text-green-500" />
+                <span className="text-lg font-bold text-gray-900">{endorsements_count}</span>
+              </div>
+              <div className="text-xs text-gray-500 font-medium">Endorsed</div>
             </div>
-            <div className="text-xs text-gray-500 font-medium">Endorsed</div>
-          </div>
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-1 mb-1">
-              <Users className="h-4 w-4 text-purple-500" />
-              <span className="text-lg font-bold text-gray-900">{supporters_count}</span>
+          )}
+          {supporters_count > 0 && (
+            <div className="text-center">
+              <div className="flex items-center justify-center gap-1 mb-1">
+                <Users className="h-4 w-4 text-purple-500" />
+                <span className="text-lg font-bold text-gray-900">{supporters_count}</span>
+              </div>
+              <div className="text-xs text-gray-500 font-medium">Supporters</div>
             </div>
-            <div className="text-xs text-gray-500 font-medium">Supporters</div>
-          </div>
+          )}
         </div>
 
         {/* Action Buttons */}
