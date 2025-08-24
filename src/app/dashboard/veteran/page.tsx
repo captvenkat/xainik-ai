@@ -253,7 +253,8 @@ function AnalyticsTab({ userId, router, onSharePitch }: { userId: string; router
   const [actionsData, setActionsData] = useState<any>(null)
   const [activityData, setActivityData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
-  const [userProgress, setUserProgress] = useState<'step1' | 'step2' | 'complete'>('step1')
+  const [userProgress, setUserProgress] = useState<'step1' | 'step2' | 'step3' | 'complete'>('step1')
+  const [hasProfile, setHasProfile] = useState(false)
   const [hasPitches, setHasPitches] = useState(false)
   const [hasSharedPitch, setHasSharedPitch] = useState(false)
 
@@ -280,11 +281,23 @@ function AnalyticsTab({ userId, router, onSharePitch }: { userId: string; router
         const userHasShared = false // We can enhance this later
         setHasSharedPitch(userHasShared)
 
-        // Determine user progress
-        if (!userHasPitches) {
-          setUserProgress('step1')
+        // Check if user has completed profile (basic check)
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('full_name, bio, location, skills')
+          .eq('id', userId)
+          .single()
+
+        const userHasProfile = profile && profile.full_name && profile.bio && profile.location
+        setHasProfile(userHasProfile)
+
+        // Determine user progress - Profile first, then pitch, then share
+        if (!userHasProfile) {
+          setUserProgress('step1') // Complete Profile
+        } else if (!userHasPitches) {
+          setUserProgress('step2') // Create Pitch
         } else if (!userHasShared) {
-          setUserProgress('step2')
+          setUserProgress('step3') // Smart Share
         } else {
           setUserProgress('complete')
         }
@@ -324,11 +337,15 @@ function AnalyticsTab({ userId, router, onSharePitch }: { userId: string; router
 
   // Progressive Onboarding Flow
   if (userProgress === 'step1') {
-    return <Step1CreatePitch router={router} />
+    return <Step1CompleteProfile router={router} />
   }
 
   if (userProgress === 'step2') {
-    return <Step2SmartShare onSharePitch={onSharePitch} router={router} />
+    return <Step2CreatePitch router={router} />
+  }
+
+  if (userProgress === 'step3') {
+    return <Step3SmartShare onSharePitch={onSharePitch} router={router} />
   }
 
   // Full dashboard for completed users
@@ -363,6 +380,128 @@ function AnalyticsTab({ userId, router, onSharePitch }: { userId: string; router
     {/* Recent Activity */}
     <SimpleActivityFeed data={activityData} />
   </div>
+  )
+}
+
+// Step 3: Smart Share Your Pitch
+function Step3SmartShare({ onSharePitch, router }: { onSharePitch: () => void; router: any }) {
+  return (
+    <div className="max-w-4xl mx-auto">
+      {/* Progress Indicator */}
+      <div className="mb-8">
+        <div className="flex items-center justify-center space-x-4">
+          <div className="flex items-center">
+            <div className="w-10 h-10 bg-green-500 text-white rounded-full flex items-center justify-center font-semibold">
+              ✓
+            </div>
+            <span className="ml-3 text-lg font-semibold text-green-600">Profile Complete</span>
+          </div>
+          <div className="w-16 h-1 bg-green-500 rounded"></div>
+          <div className="flex items-center">
+            <div className="w-10 h-10 bg-green-500 text-white rounded-full flex items-center justify-center font-semibold">
+              ✓
+            </div>
+            <span className="ml-3 text-lg font-semibold text-green-600">Pitch Created</span>
+          </div>
+          <div className="w-16 h-1 bg-blue-500 rounded"></div>
+          <div className="flex items-center">
+            <div className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold">
+              3
+            </div>
+            <span className="ml-3 text-lg font-semibold text-blue-600">Smart Share</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="bg-gradient-to-br from-green-50 to-blue-50 rounded-2xl p-8 text-center shadow-lg border border-green-100">
+        <div className="mb-6">
+          <div className="text-6xl mb-4">🎉</div>
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">
+            Awesome! Your Pitch is Ready
+          </h2>
+          <p className="text-xl text-gray-600 mb-6 max-w-2xl mx-auto">
+            Now let's get it in front of the right people. Use our Smart Share feature to reach recruiters, supporters, and your network.
+          </p>
+        </div>
+
+        {/* Share Benefits */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="bg-white rounded-lg p-6 shadow-sm">
+            <Share className="w-12 h-12 text-blue-600 mx-auto mb-3" />
+            <h3 className="font-semibold text-gray-900 mb-2">Smart Distribution</h3>
+            <p className="text-sm text-gray-600">AI-powered targeting to reach the most relevant audience</p>
+          </div>
+          <div className="bg-white rounded-lg p-6 shadow-sm">
+            <TrendingUp className="w-12 h-12 text-green-600 mx-auto mb-3" />
+            <h3 className="font-semibold text-gray-900 mb-2">Track Performance</h3>
+            <p className="text-sm text-gray-600">See who viewed, liked, and shared your pitch</p>
+          </div>
+          <div className="bg-white rounded-lg p-6 shadow-sm">
+            <Target className="w-12 h-12 text-purple-600 mx-auto mb-3" />
+            <h3 className="font-semibold text-gray-900 mb-2">Network Growth</h3>
+            <p className="text-sm text-gray-600">Build connections with recruiters and supporters</p>
+          </div>
+        </div>
+
+        {/* Call to Action */}
+        <div className="space-y-4">
+          <button
+            onClick={onSharePitch}
+            className="bg-gradient-to-r from-green-500 to-blue-500 text-white px-8 py-4 rounded-lg hover:from-green-600 hover:to-blue-600 transition-all duration-200 text-lg font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center gap-2 mx-auto"
+          >
+            <Share className="w-6 h-6" />
+            Start Smart Sharing
+          </button>
+          <div className="flex items-center justify-center gap-4 text-sm">
+            <button
+              onClick={() => router.push('/pitch')}
+              className="text-blue-600 hover:text-blue-700 underline"
+            >
+              View My Pitch First
+            </button>
+            <span className="text-gray-400">•</span>
+            <button
+              onClick={() => router.push('/dashboard/veteran?tab=pitches')}
+              className="text-blue-600 hover:text-blue-700 underline"
+            >
+              Edit My Pitch
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Sharing Tips */}
+      <div className="mt-8 bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">📈 Maximize Your Reach</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
+          <div className="flex items-start gap-3">
+            <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+              <span className="text-green-600 text-xs">✓</span>
+            </div>
+            <span>Share on LinkedIn for maximum professional visibility</span>
+          </div>
+          <div className="flex items-start gap-3">
+            <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+              <span className="text-green-600 text-xs">✓</span>
+            </div>
+            <span>Use our built-in templates for different platforms</span>
+          </div>
+          <div className="flex items-start gap-3">
+            <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+              <span className="text-green-600 text-xs">✓</span>
+            </div>
+            <span>Tag relevant hashtags like #VeteranTalent #HireVeterans</span>
+          </div>
+          <div className="flex items-start gap-3">
+            <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+              <span className="text-green-600 text-xs">✓</span>
+            </div>
+            <span>Share during peak hours (9-11 AM or 1-3 PM)</span>
+          </div>
+        </div>
+      </div>
+    </div>
   )
 }
 
@@ -732,8 +871,8 @@ function ChartCard({ title, children }: { title: string; children: React.ReactNo
   )
 }
 
-// Step 1: Create Your First Pitch
-function Step1CreatePitch({ router }: { router: any }) {
+// Step 1: Complete Your Profile
+function Step1CompleteProfile({ router }: { router: any }) {
   return (
     <div className="max-w-4xl mx-auto">
       {/* Progress Indicator */}
@@ -743,21 +882,21 @@ function Step1CreatePitch({ router }: { router: any }) {
             <div className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold">
               1
             </div>
-            <span className="ml-3 text-lg font-semibold text-blue-600">Create Your Pitch</span>
+            <span className="ml-3 text-lg font-semibold text-blue-600">Complete Profile</span>
           </div>
           <div className="w-16 h-1 bg-gray-200 rounded"></div>
           <div className="flex items-center">
             <div className="w-10 h-10 bg-gray-200 text-gray-400 rounded-full flex items-center justify-center font-semibold">
               2
             </div>
-            <span className="ml-3 text-lg text-gray-400">Smart Share</span>
+            <span className="ml-3 text-lg text-gray-400">Create Pitch</span>
           </div>
           <div className="w-16 h-1 bg-gray-200 rounded"></div>
           <div className="flex items-center">
             <div className="w-10 h-10 bg-gray-200 text-gray-400 rounded-full flex items-center justify-center font-semibold">
               3
             </div>
-            <span className="ml-3 text-lg text-gray-400">Full Dashboard</span>
+            <span className="ml-3 text-lg text-gray-400">Smart Share</span>
           </div>
         </div>
       </div>
@@ -765,16 +904,128 @@ function Step1CreatePitch({ router }: { router: any }) {
       {/* Main Content */}
       <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl p-8 text-center shadow-lg border border-blue-100">
         <div className="mb-6">
-          <div className="text-6xl mb-4">🚀</div>
+          <div className="text-6xl mb-4">👤</div>
           <h2 className="text-3xl font-bold text-gray-900 mb-4">
-            Welcome to Your Veteran Journey!
+            Complete Your Profile First
           </h2>
           <p className="text-xl text-gray-600 mb-6 max-w-2xl mx-auto">
-            Let's start by creating your professional pitch. This will be the foundation of your success on our platform.
+            Before creating your pitch, let's make sure your profile is complete. A strong profile helps you create a more effective pitch and attracts the right opportunities.
           </p>
         </div>
 
         {/* Benefits */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="bg-white rounded-lg p-6 shadow-sm">
+            <Target className="w-12 h-12 text-blue-600 mx-auto mb-3" />
+            <h3 className="font-semibold text-gray-900 mb-2">Better Pitch Quality</h3>
+            <p className="text-sm text-gray-600">Complete profile data helps create more targeted pitches</p>
+          </div>
+          <div className="bg-white rounded-lg p-6 shadow-sm">
+            <Users className="w-12 h-12 text-green-600 mx-auto mb-3" />
+            <h3 className="font-semibold text-gray-900 mb-2">Professional Image</h3>
+            <p className="text-sm text-gray-600">Show recruiters you're serious about your career</p>
+          </div>
+          <div className="bg-white rounded-lg p-6 shadow-sm">
+            <Trophy className="w-12 h-12 text-purple-600 mx-auto mb-3" />
+            <h3 className="font-semibold text-gray-900 mb-2">AI Optimization</h3>
+            <p className="text-sm text-gray-600">Our AI can better match you with opportunities</p>
+          </div>
+        </div>
+
+        {/* Call to Action */}
+        <div className="space-y-4">
+          <button
+            onClick={() => router.push('/settings/profile')}
+            className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 text-lg font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center gap-2 mx-auto"
+          >
+            <User className="w-6 h-6" />
+            Complete Your Profile
+          </button>
+          <p className="text-sm text-gray-500">
+            Takes only 3 minutes • Professional appearance • Better opportunities
+          </p>
+        </div>
+      </div>
+
+      {/* Tips */}
+      <div className="mt-8 bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">💡 Pro Tips for Your Profile</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
+          <div className="flex items-start gap-3">
+            <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+              <span className="text-blue-600 text-xs">✓</span>
+            </div>
+            <span>Use your full legal name as it appears on official documents</span>
+          </div>
+          <div className="flex items-start gap-3">
+            <div className="flex items-start gap-3">
+              <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                <span className="text-blue-600 text-xs">✓</span>
+              </div>
+              <span>Write a compelling bio that highlights your military experience</span>
+            </div>
+          </div>
+          <div className="flex items-start gap-3">
+            <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+              <span className="text-blue-600 text-xs">✓</span>
+            </div>
+            <span>Add your current location to help with local opportunities</span>
+          </div>
+          <div className="flex items-start gap-3">
+            <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+              <span className="text-blue-600 text-xs">✓</span>
+            </div>
+            <span>List key skills that translate from military to civilian work</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Step 2: Create Your First Pitch
+function Step2CreatePitch({ router }: { router: any }) {
+  return (
+    <div className="max-w-4xl mx-auto">
+      {/* Progress Indicator */}
+      <div className="mb-8">
+        <div className="flex items-center justify-center space-x-4">
+          <div className="flex items-center">
+            <div className="w-10 h-10 bg-green-500 text-white rounded-full flex items-center justify-center font-semibold">
+              ✓
+            </div>
+            <span className="ml-3 text-lg font-semibold text-green-600">Profile Complete</span>
+          </div>
+          <div className="w-16 h-1 bg-green-500 rounded"></div>
+          <div className="flex items-center">
+            <div className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold">
+              2
+            </div>
+            <span className="ml-3 text-lg font-semibold text-blue-600">Create Pitch</span>
+          </div>
+          <div className="w-16 h-1 bg-gray-200 rounded"></div>
+          <div className="flex items-center">
+            <div className="w-10 h-10 bg-gray-200 text-gray-400 rounded-full flex items-center justify-center font-semibold">
+              3
+            </div>
+            <span className="ml-3 text-lg text-gray-400">Smart Share</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="bg-gradient-to-br from-green-50 to-blue-50 rounded-2xl p-8 text-center shadow-lg border border-green-100">
+        <div className="mb-6">
+          <div className="text-6xl mb-4">🚀</div>
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">
+            Great! Now Create Your First Pitch
+          </h2>
+          <p className="text-xl text-gray-600 mb-6 max-w-2xl mx-auto">
+            With your profile complete, you're ready to create a compelling pitch that showcases your military experience and civilian potential.
+          </p>
+        </div>
+
+        {/* Pitch Benefits */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-white rounded-lg p-6 shadow-sm">
             <Target className="w-12 h-12 text-blue-600 mx-auto mb-3" />
@@ -797,7 +1048,7 @@ function Step1CreatePitch({ router }: { router: any }) {
         <div className="space-y-4">
           <button
             onClick={() => router.push('/pitch/new/ai-first')}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 text-lg font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center gap-2 mx-auto"
+            className="bg-gradient-to-r from-green-600 to-blue-600 text-white px-8 py-4 rounded-lg hover:from-green-700 hover:to-blue-700 transition-all duration-200 text-lg font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center gap-2 mx-auto"
           >
             <Plus className="w-6 h-6" />
             Create Your First Pitch
@@ -808,155 +1059,33 @@ function Step1CreatePitch({ router }: { router: any }) {
         </div>
       </div>
 
-      {/* Tips */}
+      {/* Pitch Tips */}
       <div className="mt-8 bg-white rounded-xl p-6 shadow-sm border border-gray-100">
         <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">💡 Pro Tips for Your Pitch</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
           <div className="flex items-start gap-3">
-            <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-              <span className="text-blue-600 text-xs">✓</span>
+            <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+              <span className="text-green-600 text-xs">✓</span>
             </div>
             <span>Highlight your military skills and how they translate to civilian roles</span>
           </div>
           <div className="flex items-start gap-3">
-            <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-              <span className="text-blue-600 text-xs">✓</span>
+            <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+              <span className="text-green-600 text-xs">✓</span>
             </div>
             <span>Be specific about your achievements and leadership experience</span>
           </div>
           <div className="flex items-start gap-3">
-            <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-              <span className="text-blue-600 text-xs">✓</span>
+            <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+              <span className="text-green-600 text-xs">✓</span>
             </div>
             <span>Use our AI assistant to help craft the perfect message</span>
           </div>
           <div className="flex items-start gap-3">
-            <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-              <span className="text-blue-600 text-xs">✓</span>
+            <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+              <span className="text-green-600 text-xs">✓</span>
             </div>
             <span>Keep it concise but impactful - quality over quantity</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// Step 2: Smart Share Your Pitch
-function Step2SmartShare({ onSharePitch, router }: { onSharePitch: () => void; router: any }) {
-  return (
-    <div className="max-w-4xl mx-auto">
-      {/* Progress Indicator */}
-      <div className="mb-8">
-        <div className="flex items-center justify-center space-x-4">
-          <div className="flex items-center">
-            <div className="w-10 h-10 bg-green-500 text-white rounded-full flex items-center justify-center font-semibold">
-              ✓
-            </div>
-            <span className="ml-3 text-lg font-semibold text-green-600">Pitch Created</span>
-          </div>
-          <div className="w-16 h-1 bg-green-500 rounded"></div>
-          <div className="flex items-center">
-            <div className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold">
-              2
-            </div>
-            <span className="ml-3 text-lg font-semibold text-blue-600">Smart Share</span>
-          </div>
-          <div className="w-16 h-1 bg-gray-200 rounded"></div>
-          <div className="flex items-center">
-            <div className="w-10 h-10 bg-gray-200 text-gray-400 rounded-full flex items-center justify-center font-semibold">
-              3
-            </div>
-            <span className="ml-3 text-lg text-gray-400">Full Dashboard</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="bg-gradient-to-br from-green-50 to-blue-50 rounded-2xl p-8 text-center shadow-lg border border-green-100">
-        <div className="mb-6">
-          <div className="text-6xl mb-4">🎉</div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">
-            Awesome! Your Pitch is Ready
-          </h2>
-          <p className="text-xl text-gray-600 mb-6 max-w-2xl mx-auto">
-            Now let's get it in front of the right people. Use our Smart Share feature to reach recruiters, supporters, and your network.
-          </p>
-        </div>
-
-        {/* Share Benefits */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-lg p-6 shadow-sm">
-            <Share className="w-12 h-12 text-blue-600 mx-auto mb-3" />
-            <h3 className="font-semibold text-gray-900 mb-2">Smart Distribution</h3>
-            <p className="text-sm text-gray-600">AI-powered targeting to reach the most relevant audience</p>
-          </div>
-          <div className="bg-white rounded-lg p-6 shadow-sm">
-            <TrendingUp className="w-12 h-12 text-green-600 mx-auto mb-3" />
-            <h3 className="font-semibold text-gray-900 mb-2">Track Performance</h3>
-            <p className="text-sm text-gray-600">See who viewed, liked, and shared your pitch</p>
-          </div>
-          <div className="bg-white rounded-lg p-6 shadow-sm">
-            <Zap className="w-12 h-12 text-purple-600 mx-auto mb-3" />
-            <h3 className="font-semibold text-gray-900 mb-2">Instant Impact</h3>
-            <p className="text-sm text-gray-600">Start getting noticed by potential employers immediately</p>
-          </div>
-        </div>
-
-        {/* Call to Action */}
-        <div className="space-y-4">
-          <button
-            onClick={onSharePitch}
-            className="bg-gradient-to-r from-green-600 to-blue-600 text-white px-8 py-4 rounded-lg hover:from-green-700 hover:to-blue-700 transition-all duration-200 text-lg font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center gap-2 mx-auto"
-          >
-            <Share className="w-6 h-6" />
-            Start Smart Sharing
-          </button>
-          <div className="flex items-center justify-center gap-4 text-sm">
-            <button
-              onClick={() => router.push('/pitch')}
-              className="text-blue-600 hover:text-blue-700 underline"
-            >
-              View My Pitch First
-            </button>
-            <span className="text-gray-400">•</span>
-            <button
-              onClick={() => router.push('/dashboard/veteran?tab=pitches')}
-              className="text-blue-600 hover:text-blue-700 underline"
-            >
-              Edit My Pitch
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Sharing Tips */}
-      <div className="mt-8 bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">📈 Maximize Your Reach</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
-          <div className="flex items-start gap-3">
-            <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-              <span className="text-green-600 text-xs">✓</span>
-            </div>
-            <span>Share on LinkedIn for maximum professional visibility</span>
-          </div>
-          <div className="flex items-start gap-3">
-            <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-              <span className="text-green-600 text-xs">✓</span>
-            </div>
-            <span>Use our built-in templates for different platforms</span>
-          </div>
-          <div className="flex items-start gap-3">
-            <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-              <span className="text-green-600 text-xs">✓</span>
-            </div>
-            <span>Tag relevant hashtags like #VeteranTalent #HireVeterans</span>
-          </div>
-          <div className="flex items-start gap-3">
-            <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-              <span className="text-green-600 text-xs">✓</span>
-            </div>
-            <span>Share during peak hours (9-11 AM or 1-3 PM)</span>
           </div>
         </div>
       </div>
