@@ -86,14 +86,14 @@ export default function EnhancedProfileSettingsPage() {
         setFormData({
           name: profileData?.name || '',
           phone: profileData?.phone || '',
-          military_rank: veteranData?.military_rank || '',
-          service_branch: veteranData?.service_branch || '',
-          years_experience: veteranData?.years_experience?.toString() || '',
-          bio: veteranData?.bio || '',
-          location_current: veteranData?.location_current || '',
-          locations_preferred: veteranData?.locations_preferred || [],
-          web_links: (veteranData?.web_links as any) || [],
-          retirement_date: veteranData?.retirement_date || '',
+          military_rank: veteranData?.profile_data?.military_rank || '',
+          service_branch: veteranData?.profile_data?.service_branch || '',
+          years_experience: veteranData?.profile_data?.years_experience?.toString() || '',
+          bio: veteranData?.profile_data?.bio || '',
+          location_current: veteranData?.profile_data?.location_current || '',
+          locations_preferred: veteranData?.profile_data?.locations_preferred || [],
+          web_links: (veteranData?.profile_data?.web_links as any) || [],
+          retirement_date: veteranData?.profile_data?.retirement_date || '',
           photo_url: profileData?.avatar_url || ''
         });
         
