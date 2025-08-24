@@ -94,8 +94,8 @@ export default function EndorsementsList({
       // Create endorsement
       const result = await createEndorsement(pitch.user_id as string, userId, formData.text.trim())
       
-      if (result.error) {
-        throw new Error(result.error)
+      if (!result) {
+        throw new Error('Failed to create endorsement')
       }
 
       setSuccess(true)

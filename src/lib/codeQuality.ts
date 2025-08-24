@@ -378,7 +378,9 @@ export function applyAutomaticFixes(
         // Apply the fix based on the rule type
         const rule = CODE_QUALITY_RULES.find(r => r.id === violation.ruleId)
         if (rule) {
-          lines[lineIndex] = applyFixToLine(lines[lineIndex], rule, violation)
+          if (lines[lineIndex]) {
+            lines[lineIndex] = applyFixToLine(lines[lineIndex], rule, violation)
+          }
           fixedContent = lines.join('\n')
         }
       }
@@ -437,7 +439,7 @@ export function generateQualityReport(
   if (summary.averageScore < 80) {
     report += '  • Focus on improving code quality score\n'
   }
-  if (summary.categoryBreakdown.security > 0) {
+  if (summary.categoryBreakdown.security && summary.categoryBreakdown.security > 0) {
     report += '  • Address security vulnerabilities first\n'
   }
   
