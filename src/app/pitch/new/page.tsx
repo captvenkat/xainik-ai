@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 import AIPitchHelper from '@/components/AIPitchHelper'
 import LocationAutocomplete from '@/components/LocationAutocomplete'
+import PhotoUpload from '@/components/PhotoUpload'
 import { Shield, CheckCircle, AlertCircle } from 'lucide-react'
 
 interface FormData {
@@ -82,7 +83,7 @@ export default function NewPitchPage() {
           availability: formData.availability || '',
           phone: formData.phone || '',
           linkedin_url: formData.linkedin_url || '',
-          photo_url: '',
+          photo_url: formData.photo_url || null,
           resume_url: null,
           resume_share_enabled: false,
           plan_tier: '',
@@ -281,6 +282,24 @@ function Step0Basics({ formData, updateFormData, onNext }: any) {
             placeholder="+1234567890"
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
+        </div>
+
+        {/* Photo Upload */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Profile Photo
+          </label>
+          <PhotoUpload
+            profilePhotoUrl={null}
+            onPhotoChange={(photoUrl, isCustom) => updateFormData({ photo_url: photoUrl })}
+            size="md"
+            showCrop={true}
+            disabled={false}
+            readOnly={false}
+          />
+          <p className="text-xs text-gray-500 mt-2">
+            Upload a professional photo to make your pitch stand out
+          </p>
         </div>
       </div>
 
