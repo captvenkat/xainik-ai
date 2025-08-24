@@ -48,21 +48,43 @@ export default function ProfileSettingsPage() {
         
         setUser(user);
         
-        // Get user profile
-        const { data: profileData } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', user.id)
-          .single();
+        // Get user profile - handle case where user might not exist in users table
+        let profileData = null;
+        try {
+          const { data, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', user.id)
+            .single();
+          
+          if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+            console.error('Error fetching user profile:', error);
+          } else {
+            profileData = data;
+          }
+        } catch (error) {
+          console.error('Error in user profile query:', error);
+        }
         
         setProfile(profileData);
         
-        // Get veteran profile
-        const { data: veteranData } = await supabase
-          .from('veterans')
-          .select('*')
-          .eq('user_id', user.id)
-          .single();
+        // Get veteran profile - handle case where veteran profile might not exist
+        let veteranData = null;
+        try {
+          const { data, error } = await supabase
+            .from('veterans')
+            .select('*')
+            .eq('user_id', user.id)
+            .single();
+          
+          if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+            console.error('Error fetching veteran profile:', error);
+          } else {
+            veteranData = data;
+          }
+        } catch (error) {
+          console.error('Error in veteran profile query:', error);
+        }
         
         setVeteranProfile(veteranData);
         
@@ -131,16 +153,42 @@ export default function ProfileSettingsPage() {
     setSuccess(null);
 
     try {
-      // Update user profile
-      const { error: userError } = await supabase
-        .from('users')
-        .update({
-          name: formData.name,
-          phone: formData.phone
-        })
-        .eq('id', user.id);
+      // First, ensure user exists in users table
+      let userProfile = profile;
+      if (!userProfile) {
+        // Create user profile if it doesn't exist
+        const { data: newUserProfile, error: createUserError } = await supabase
+          .from('users')
+          .insert({
+            id: user.id,
+            email: user.email,
+            name: formData.name,
+            phone: formData.phone,
+            role: 'veteran',
+            created_at: new Date().toISOString()
+          })
+          .select()
+          .single();
+        
+        if (createUserError) {
+          console.error('Error creating user profile:', createUserError);
+          throw new Error('Failed to create user profile');
+        }
+        
+        userProfile = newUserProfile;
+        setProfile(userProfile);
+      } else {
+        // Update existing user profile
+        const { error: userError } = await supabase
+          .from('users')
+          .update({
+            name: formData.name,
+            phone: formData.phone
+          })
+          .eq('id', user.id);
 
-      if (userError) throw userError;
+        if (userError) throw userError;
+      }
 
       // Prepare veteran profile data
       const veteranData = {
