@@ -8,50 +8,56 @@ export async function getSimpleHeroData(veteranId: string) {
   try {
     const supabaseAction = createSupabaseBrowser()
     
-    // Get pitch views for this veteran from referral_events
+    // Get pitch views for this veteran - simplified query
     const { data: views } = await supabaseAction
       .from('referral_events')
       .select(`
-        *,
+        id,
+        event_type,
+        occurred_at,
         referrals!referral_events_referral_id_fkey (
           pitch_id,
           pitches!referrals_pitch_id_fkey (
-            user_id
+            veteran_id
           )
         )
       `)
-      .eq('referrals.pitches.user_id', veteranId)
+      .eq('referrals.pitches.veteran_id', veteranId)
       .eq('event_type', 'PITCH_VIEWED')
       .gte('occurred_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
 
-    // Get total views (all time)
+    // Get total views (all time) - simplified query
     const { data: totalViews } = await supabaseAction
       .from('referral_events')
       .select(`
-        *,
+        id,
+        event_type,
+        occurred_at,
         referrals!referral_events_referral_id_fkey (
           pitch_id,
           pitches!referrals_pitch_id_fkey (
-            user_id
+            veteran_id
           )
         )
       `)
-      .eq('referrals.pitches.user_id', veteranId)
+      .eq('referrals.pitches.veteran_id', veteranId)
       .eq('event_type', 'PITCH_VIEWED')
 
     // Get active opportunities (referral events)
     const { data: opportunities } = await supabaseAction
       .from('referral_events')
       .select(`
-        *,
+        id,
+        event_type,
+        occurred_at,
         referrals!referral_events_referral_id_fkey (
           pitch_id,
           pitches!referrals_pitch_id_fkey (
-            user_id
+            veteran_id
           )
         )
       `)
-      .eq('referrals.pitches.user_id', veteranId)
+      .eq('referrals.pitches.veteran_id', veteranId)
       .gte('occurred_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
 
     // Always use real data - no mock data
@@ -102,19 +108,22 @@ export async function getSimpleMetricsData(veteranId: string) {
   try {
     const supabaseAction = createSupabaseBrowser()
     
-    // Get real activity data from referral_events
+    // Get real activity data from referral_events - simplified query
     const { data: activity } = await supabaseAction
       .from('referral_events')
       .select(`
-        *,
+        id,
+        event_type,
+        occurred_at,
+        platform,
         referrals!referral_events_referral_id_fkey (
           pitch_id,
           pitches!referrals_pitch_id_fkey (
-            user_id
+            veteran_id
           )
         )
       `)
-      .eq('referrals.pitches.user_id', veteranId)
+      .eq('referrals.pitches.veteran_id', veteranId)
       .order('occurred_at', { ascending: false })
       .limit(100)
 
@@ -189,19 +198,22 @@ export async function getVeteranOutreachData(veteranId: string) {
   try {
     const supabaseAction = createSupabaseBrowser()
     
-    // Get veteran's own outreach activities from referral_events
+    // Get veteran's own outreach activities from referral_events - simplified query
     const { data: veteranActivities } = await supabaseAction
       .from('referral_events')
       .select(`
-        *,
+        id,
+        event_type,
+        occurred_at,
+        platform,
         referrals!referral_events_referral_id_fkey (
           pitch_id,
           pitches!referrals_pitch_id_fkey (
-            user_id
+            veteran_id
           )
         )
       `)
-      .eq('referrals.pitches.user_id', veteranId)
+      .eq('referrals.pitches.veteran_id', veteranId)
       .in('event_type', ['SHARE_RESHARED', 'LINK_OPENED'])
       .order('occurred_at', { ascending: false })
       .limit(50)
@@ -327,19 +339,22 @@ export async function getSimpleActionsData(veteranId: string) {
   try {
     const supabaseAction = createSupabaseBrowser()
     
-    // Get real activity data from referral_events
+    // Get real activity data from referral_events - simplified query
     const { data: activity } = await supabaseAction
       .from('referral_events')
       .select(`
-        *,
+        id,
+        event_type,
+        occurred_at,
+        platform,
         referrals!referral_events_referral_id_fkey (
           pitch_id,
           pitches!referrals_pitch_id_fkey (
-            user_id
+            veteran_id
           )
         )
       `)
-      .eq('referrals.pitches.user_id', veteranId)
+      .eq('referrals.pitches.veteran_id', veteranId)
       .order('occurred_at', { ascending: false })
       .limit(100)
 
@@ -478,7 +493,7 @@ export async function getSimpleActionsData(veteranId: string) {
         supporterCount: totalShares,
         endorsementCount: 0, // Could be enhanced with endorsements table
         hasPhoto: pitchData?.photo_url ? true : false,
-        hasRecentActivity: activity && activity.length > 0 && new Date(activity[0].occurred_at).getTime() > Date.now() - 7 * 24 * 60 * 60 * 1000
+        hasRecentActivity: activity && activity.length > 0 && activity[0] && new Date(activity[0].occurred_at).getTime() > Date.now() - 7 * 24 * 60 * 60 * 1000
       }
     }
   } catch (error) {
@@ -491,19 +506,22 @@ export async function getSimpleActivityData(veteranId: string) {
   try {
     const supabaseAction = createSupabaseBrowser()
     
-    // Get real activity data from referral_events
+    // Get real activity data from referral_events - simplified query
     const { data: activity } = await supabaseAction
       .from('referral_events')
       .select(`
-        *,
+        id,
+        event_type,
+        occurred_at,
+        platform,
         referrals!referral_events_referral_id_fkey (
           pitch_id,
           pitches!referrals_pitch_id_fkey (
-            user_id
+            veteran_id
           )
         )
       `)
-      .eq('referrals.pitches.user_id', veteranId)
+      .eq('referrals.pitches.veteran_id', veteranId)
       .order('occurred_at', { ascending: false })
       .limit(10)
 
