@@ -2,43 +2,14 @@
 
 import { useState, useEffect } from 'react'
 import { 
-  Shield, 
-  Heart, 
-  Phone, 
-  MapPin, 
-  Clock, 
-  Award,
-  Eye,
-  Calendar,
-  FileText,
-  Link as LinkIcon,
-  Share2,
-  Download,
-  Star,
-  User,
-  MessageCircle,
-  TrendingUp,
-  CheckCircle,
-  ArrowRight,
-  Mail,
-  ExternalLink,
-  Copy,
-  Check,
-  AlertTriangle,
-  Zap,
-  Target,
-  Users,
-  Timer,
-  MessageSquare,
-  Briefcase,
-  Activity
+  Shield, CheckCircle, Eye, Heart, TrendingUp, Users, MapPin, Calendar, 
+  Phone, LinkIcon, FileText, Star, User, Zap, MessageSquare, 
+  Target, Users as UsersIcon, Timer, MessageSquare as MessageSquareIcon,
+  Briefcase, Activity
 } from 'lucide-react'
 import Link from 'next/link'
-import LikeButton from '@/components/LikeButton'
-import SocialShareCard from '@/components/SocialShareCard'
 import ResumeRequestModal from '@/components/ResumeRequestModal'
-import EmailModal from '@/components/EmailModal'
-import ReferButton from '@/components/ReferButton'
+
 import type { FullPitchData } from '@/types/domain'
 
 interface FullPitchViewProps {
@@ -54,6 +25,8 @@ export default function FullPitchView({
   endorsements, 
   isCommunityVerified 
 }: FullPitchViewProps) {
+  const [showResumeModal, setShowResumeModal] = useState(false)
+  
   const {
     id,
     title,
@@ -412,6 +385,19 @@ export default function FullPitchView({
                   </div>
                 </div>
               )}
+
+              {/* Resume Request Button */}
+              {resume_url && resume_share_enabled && user && user.id !== pitchUser?.id && (
+                <div className="mt-6 pt-4 border-t border-gray-100">
+                  <button
+                    onClick={() => setShowResumeModal(true)}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl hover:from-orange-600 hover:to-red-600 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
+                  >
+                    <FileText className="h-4 w-4" />
+                    Request Resume
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Pitch Activity */}
@@ -440,6 +426,15 @@ export default function FullPitchView({
           </div>
         </div>
       </div>
+
+      {/* Resume Request Modal */}
+      <ResumeRequestModal
+        isOpen={showResumeModal}
+        onClose={() => setShowResumeModal(false)}
+        veteranName={veteranName}
+        pitchId={id}
+        currentUserId={user?.id}
+      />
     </div>
   )
 }
