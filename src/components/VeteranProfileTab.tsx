@@ -49,11 +49,13 @@ export default function VeteranProfileTab() {
           .eq('id', user.id)
           .single()
         
-        // Get veteran profile
+        // Get veteran profile from user_profiles table
         const { data: veteranData } = await supabase
-          .from('veterans')
+          .from('user_profiles')
           .select('*')
           .eq('user_id', user.id)
+          .eq('profile_type', 'veteran')
+          .eq('is_active', true)
           .single()
         
         setVeteranProfile(veteranData)
@@ -65,14 +67,14 @@ export default function VeteranProfileTab() {
         setFormData({
           name: profileData?.name || '',
           phone: profileData?.phone || '',
-          military_rank: veteranData?.military_rank || '',
-          service_branch: veteranData?.service_branch || '',
-          years_experience: veteranData?.years_experience?.toString() || '',
-          bio: veteranData?.bio || '',
-          location_current: veteranData?.location_current || '',
-          locations_preferred: veteranData?.locations_preferred || [],
-          web_links: (veteranData?.web_links as any) || [],
-          retirement_date: veteranData?.retirement_date || ''
+          military_rank: veteranData?.profile_data?.military_rank || '',
+          service_branch: veteranData?.profile_data?.service_branch || '',
+          years_experience: veteranData?.profile_data?.years_experience?.toString() || '',
+          bio: veteranData?.profile_data?.bio || '',
+          location_current: veteranData?.profile_data?.location_current || '',
+          locations_preferred: veteranData?.profile_data?.locations_preferred || [],
+          web_links: veteranData?.profile_data?.web_links || [],
+          retirement_date: veteranData?.profile_data?.retirement_date || ''
         })
       } catch (error) {
         console.error('Error loading profile:', error)
@@ -204,13 +206,19 @@ export default function VeteranProfileTab() {
       }
 
       // Always use upsert to handle both create and update cases
-      const { error: veteranError } = await supabase
-        .from('veterans')
-        .upsert(veteranData, {
-          onConflict: 'user_id'
+      const { error: profileError } = await supabase
+        .from('user_profiles')
+        .upsert({
+          user_id: user.id,
+          profile_type: 'veteran',
+          profile_data: veteranData,
+          is_active: true,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'user_id,profile_type'
         })
 
-      if (veteranError) throw veteranError
+      if (profileError) throw profileError
 
       if (showSuccess) {
         setSuccess('Profile updated successfully!')
