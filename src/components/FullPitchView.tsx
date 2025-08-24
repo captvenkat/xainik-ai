@@ -611,22 +611,10 @@ export default function FullPitchView({
                   <div className="w-12 h-12 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-3">
                     <Clock className="h-6 w-6 text-white" />
                   </div>
-                  <h3 className="text-lg font-bold text-amber-900 mb-2">
-                    Pitch Visibility
-                  </h3>
                   <div className="mb-4">
                     {(plan_expires_at || (pitch as any).users?.metadata?.plan_expires_at) ? (
                       <CountdownTimer expiryDate={plan_expires_at || (pitch as any).users?.metadata?.plan_expires_at} />
-                    ) : (
-                      <div className="text-center">
-                        <div className="text-lg font-bold text-amber-700 mb-1">
-                          Active Pitch
-                        </div>
-                        <div className="text-sm text-amber-600">
-                          This pitch is currently visible
-                        </div>
-                      </div>
-                    )}
+                    ) : null}
                   </div>
                   <p className="text-sm text-amber-700 mb-4 leading-relaxed">
                     {(plan_expires_at || (pitch as any).users?.metadata?.plan_expires_at)
