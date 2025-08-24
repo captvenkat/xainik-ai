@@ -27,6 +27,21 @@ export default function FullPitchView({
 }: FullPitchViewProps) {
   const [showResumeModal, setShowResumeModal] = useState(false)
   
+  // Comprehensive debugging - log all incoming props
+  console.log('FullPitchView Props Debug:', {
+    pitch: {
+      id: pitch.id,
+      title: pitch.title,
+      user: pitch.user,
+      militaryData: (pitch as any).militaryData,
+      bio: (pitch as any).bio
+    },
+    user,
+    endorsements,
+    isCommunityVerified,
+    fullPitchObject: pitch
+  })
+  
   const {
     id,
     title,
@@ -49,8 +64,19 @@ export default function FullPitchView({
     created_at,
     updated_at,
     user: pitchUser,
-    militaryData
+    militaryData,
+    bio
   } = pitch
+
+  // Additional debugging for military data
+  console.log('FullPitchView Military Data Debug:', {
+    militaryData,
+    militaryDataType: typeof militaryData,
+    militaryDataKeys: militaryData ? Object.keys(militaryData) : 'undefined',
+    bio,
+    bioType: typeof bio,
+    pitchKeys: Object.keys(pitch)
+  })
 
   const veteranName = pitchUser?.name || 'Veteran'
   const veteranRole = 'veteran'
