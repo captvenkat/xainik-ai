@@ -614,19 +614,20 @@ export default function FullPitchView({
                   <div className="mb-4">
                     {(plan_expires_at || (pitch as any).users?.metadata?.plan_expires_at) ? (
                       <CountdownTimer expiryDate={plan_expires_at || (pitch as any).users?.metadata?.plan_expires_at} />
-                    ) : null}
+                    ) : (
+                      <div className="text-center">
+                        <div className="text-lg font-bold text-amber-700 mb-1">
+                          Active Pitch
+                        </div>
+                        <div className="text-sm text-amber-600">
+                          This pitch is currently visible
+                        </div>
+                      </div>
+                    )}
                   </div>
                   <p className="text-sm text-amber-700 mb-4 leading-relaxed">
                     {(plan_expires_at || (pitch as any).users?.metadata?.plan_expires_at)
-                      ? `Can you refer this pitch to relevant opportunities? Please hurry. This pitch expires in ${(() => {
-                          const expiryDate = plan_expires_at || (pitch as any).users?.metadata?.plan_expires_at;
-                          if (!expiryDate) return 'x';
-                          const now = new Date().getTime();
-                          const expiry = new Date(expiryDate).getTime();
-                          const diffTime = Math.abs(expiry - now);
-                          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                          return diffDays === 0 ? 'today' : `${diffDays} day${diffDays !== 1 ? 's' : ''}`;
-                        })()} days.`
+                      ? "Can you refer this pitch to relevant opportunities? Please hurry. This pitch expires in 'x' days."
                       : "Can you refer this pitch to relevant opportunities? Please hurry."
                     }
                   </p>
