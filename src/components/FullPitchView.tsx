@@ -40,10 +40,12 @@ import type { FullPitchData } from '@/types/domain'
 
 interface FullPitchViewProps {
   pitch: FullPitchData
-  currentUserId?: string
+  user?: any
+  endorsements?: any[]
+  isCommunityVerified?: boolean
 }
 
-export default function FullPitchView({ pitch, currentUserId }: FullPitchViewProps) {
+export default function FullPitchView({ pitch, user, endorsements = [], isCommunityVerified = false }: FullPitchViewProps) {
   const [showContactInfo, setShowContactInfo] = useState(false)
   const [copiedEmail, setCopiedEmail] = useState(false)
   const [showShareModal, setShowShareModal] = useState(false)
@@ -73,11 +75,11 @@ export default function FullPitchView({ pitch, currentUserId }: FullPitchViewPro
     plan_expires_at,
     created_at,
     updated_at,
-    endorsements,
-    user
+    endorsements: pitchEndorsements,
+    user: pitchUser
   } = pitch
 
-  const veteranName = user?.name || 'Veteran'
+  const veteranName = pitchUser?.name || 'Veteran'
   const veteranRole = 'veteran'
 
   // Countdown timer effect - updates daily
@@ -171,8 +173,8 @@ export default function FullPitchView({ pitch, currentUserId }: FullPitchViewPro
   }
 
   const copyEmail = async () => {
-    if (user?.email) {
-      await navigator.clipboard.writeText(user.email)
+    if (pitchUser?.email) {
+      await navigator.clipboard.writeText(pitchUser.email)
       setCopiedEmail(true)
       setTimeout(() => setCopiedEmail(false), 2000)
     }
@@ -383,14 +385,14 @@ export default function FullPitchView({ pitch, currentUserId }: FullPitchViewPro
                  )}
 
           {/* Endorsements */}
-          {endorsements && endorsements.length > 0 && (
+          {pitchEndorsements && pitchEndorsements.length > 0 && (
             <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm">
               <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
                 <Star className="h-5 w-5 text-yellow-500" />
                 Community Validation
               </h3>
               <div className="space-y-4">
-                {endorsements.slice(0, 5).map((endorsement, index) => (
+                {pitchEndorsements.slice(0, 5).map((endorsement, index) => (
                   <div key={(endorsement as any).id || `endorsement-${index}`} className="bg-gradient-to-r from-red-50 to-orange-50 rounded-2xl p-6 border border-red-100">
                     <div className="flex items-start gap-4">
                       <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-orange-600 rounded-full flex items-center justify-center flex-shrink-0">
@@ -449,12 +451,12 @@ export default function FullPitchView({ pitch, currentUserId }: FullPitchViewPro
               )}
               
               {/* Support Button */}
-              {currentUserId ? (
+              {user ? (
                 <ReferButton
                   pitchId={id}
                   pitchTitle={title}
                   veteranName={veteranName}
-                  userId={currentUserId}
+                  userId={user.id}
                   skills={skills}
                   location={location || undefined}
                 />
@@ -486,7 +488,7 @@ export default function FullPitchView({ pitch, currentUserId }: FullPitchViewPro
             <h4 className="text-lg font-bold text-gray-900 mb-4">🚀 Connect Now</h4>
             
             {/* Edit Button (only for pitch owner) */}
-            {currentUserId && user?.id === currentUserId && (
+            {user?.id === pitchUser?.id && (
               <Link
                 href={`/pitch/${id}/edit`}
                 className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white px-6 py-3 rounded-2xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105"
@@ -559,7 +561,7 @@ export default function FullPitchView({ pitch, currentUserId }: FullPitchViewPro
                 )}
                 
                 {/* Email Section */}
-                {user?.email && (
+                {pitchUser?.email && (
                   <div className="space-y-3">
                     <button
                       onClick={() => setShowEmailModal(true)}
@@ -624,7 +626,7 @@ export default function FullPitchView({ pitch, currentUserId }: FullPitchViewPro
          onClose={() => setShowResumeModal(false)}
          veteranName={veteranName}
          pitchId={id}
-         currentUserId={currentUserId}
+         currentUserId={user?.id}
        />
 
        {/* Email Modal */}
@@ -633,7 +635,7 @@ export default function FullPitchView({ pitch, currentUserId }: FullPitchViewPro
          onClose={() => setShowEmailModal(false)}
          veteranName={veteranName}
          pitchId={id}
-         currentUserId={currentUserId}
+         currentUserId={user?.id}
        />
 
 
