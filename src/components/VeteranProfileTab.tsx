@@ -158,9 +158,12 @@ export default function VeteranProfileTab() {
     if (!user) return false
 
     try {
+      console.log('Starting profile save with data:', data)
+      
       // Validate form
       const validationResult = validateProfileForm(data)
       if (!validationResult.isValid) {
+        console.log('Validation failed:', validationResult.errors)
         setErrors(validationResult.errors)
         return false
       }
@@ -173,6 +176,7 @@ export default function VeteranProfileTab() {
         .filter(loc => loc.trim())
         .map(loc => parseLocationString(loc))
 
+      console.log('Updating user profile...')
       // Update user profile
       const { error: userError } = await supabase
         .from('users')
@@ -183,7 +187,11 @@ export default function VeteranProfileTab() {
         })
         .eq('id', user.id)
 
-      if (userError) throw userError
+      if (userError) {
+        console.error('User update error:', userError)
+        throw userError
+      }
+      console.log('User profile updated successfully')
 
       // Update or create veteran profile in the veterans table
       const veteranData = {
@@ -196,14 +204,23 @@ export default function VeteranProfileTab() {
         locations_preferred: data.locations_preferred.filter(loc => loc.trim())
       }
 
+      console.log('Saving veteran data:', veteranData)
+      console.log('Attempting to upsert to veterans table...')
+
       // Always use upsert to handle both create and update cases
-      const { error: profileError } = await supabase
+      const { data: veteranResult, error: profileError } = await supabase
         .from('veterans')
         .upsert(veteranData, {
           onConflict: 'user_id'
         })
+        .select()
 
-      if (profileError) throw profileError
+      if (profileError) {
+        console.error('Veteran profile save error:', profileError)
+        throw profileError
+      }
+
+      console.log('Veteran profile saved successfully:', veteranResult)
 
       if (showSuccess) {
         setSuccess('Profile updated successfully!')
@@ -215,6 +232,7 @@ export default function VeteranProfileTab() {
       lastSavedDataRef.current = { ...data }
       return true
     } catch (err) {
+      console.error('Profile save error:', err)
       setError(err instanceof Error ? err.message : 'Failed to update profile')
       return false
     }
