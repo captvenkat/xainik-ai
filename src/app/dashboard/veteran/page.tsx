@@ -19,11 +19,8 @@ import {
 import SimpleHeroSection from '@/components/analytics/SimpleHeroSection'
 import SimpleMetrics from '@/components/analytics/SimpleMetrics'
 import SimpleActionPlan from '@/components/analytics/SimpleActionPlan'
-import SupporterPerformanceList from '@/components/analytics/SupporterPerformanceList'
-import VeteranOutreachList from '@/components/analytics/VeteranOutreachList'
 import SimpleActivityFeed from '@/components/analytics/SimpleActivityFeed'
 import SharePitchModal from '@/components/SharePitchModal'
-import ResumeRequestMetrics from '@/components/ResumeRequestMetrics'
 import AIContactSuggestions from '@/components/AIContactSuggestions'
 import SmartNotifications from '@/components/SmartNotifications'
 import AIInsights from '@/components/AIInsights'
@@ -384,11 +381,43 @@ function AnalyticsTab({ userId, router, onSharePitch, searchParams }: { userId: 
     console.log('User just created pitch, showing full dashboard')
     // Continue to full dashboard below
   } else if (userProgress === 'step1') {
-    return <Step1CompleteProfile router={router} />
+    // Step 1: Complete Profile - Simple, focused approach
+    return (
+      <div className="text-center py-12">
+        <div className="max-w-md mx-auto">
+          <div className="text-6xl mb-6">🎯</div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Complete Your Profile</h2>
+          <p className="text-gray-600 mb-8">
+            Add your military experience and skills to get started
+          </p>
+          <button
+            onClick={() => router.push('/dashboard/veteran?tab=profile')}
+            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+          >
+            Complete Profile
+          </button>
+        </div>
+      </div>
+    )
   } else if (userProgress === 'step2') {
-    return <Step2CreatePitch router={router} />
-  } else if (userProgress === 'step3') {
-    return <Step3SmartShare onSharePitch={onSharePitch} router={router} />
+    // Step 2: Create Pitch - Simple, focused approach
+    return (
+      <div className="text-center py-12">
+        <div className="max-w-md mx-auto">
+          <div className="text-6xl mb-6">🚀</div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Create Your First Pitch</h2>
+          <p className="text-gray-600 mb-8">
+            Showcase your military experience to recruiters and supporters
+          </p>
+          <button
+            onClick={() => router.push('/pitch/new/ai-first')}
+            className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-6 py-3 rounded-lg hover:from-blue-600 hover:to-indigo-600 transition-colors font-semibold"
+          >
+            Create Pitch
+          </button>
+        </div>
+      </div>
+    )
   }
 
   // Full dashboard for completed users
@@ -420,37 +449,32 @@ function AnalyticsTab({ userId, router, onSharePitch, searchParams }: { userId: 
                 Ready to Share
               </span>
             </div>
-            <div className="flex items-center justify-center gap-4">
-              <button
-                onClick={onSharePitch}
-                className="bg-gradient-to-r from-green-500 to-blue-500 text-white px-6 py-3 rounded-lg hover:from-green-600 hover:to-blue-600 transition-all duration-200 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
-              >
-                <Share className="w-5 h-5 inline mr-2" />
-                Start Smart Sharing
-              </button>
-              <button
-                onClick={() => router.push('/pitch')}
-                className="text-blue-600 hover:text-blue-700 underline px-4 py-2"
-              >
-                View My Pitch
-              </button>
-            </div>
+            <button
+              onClick={onSharePitch}
+              className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-8 py-3 rounded-lg hover:from-blue-600 hover:to-indigo-600 transition-all duration-200 text-lg font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center gap-2 mx-auto"
+            >
+              <Share className="w-5 h-5" />
+              Start Smart Sharing
+            </button>
           </div>
         </div>
       )}
 
-      {/* Hero Section */}
-      <SimpleHeroSection 
-        data={heroData} 
-        onSharePitch={onSharePitch}
-      />
-      
-      {/* Simple Metrics */}
-      <SimpleMetrics data={metricsData} />
-    
-      {/* Quick Actions */}
-      <SimpleActionPlan data={actionsData} />
-      
+      {/* Clean Analytics Dashboard - Focused on Primary KRA: Pitch Views */}
+      <div className="space-y-6">
+        {/* Hero Section - Primary KRA: Pitch Views */}
+        <SimpleHeroSection data={heroData} onSharePitch={onSharePitch} />
+        
+        {/* Metrics - Key Performance Indicators */}
+        <SimpleMetrics data={metricsData} />
+        
+        {/* Action Plan - Mentor's Advice */}
+        <SimpleActionPlan data={actionsData} />
+        
+        {/* Activity Feed - Recent Activity */}
+        <SimpleActivityFeed data={activityData} />
+      </div>
+
       {/* AI-Powered Features Section */}
       {userPitchId && (
         <div className="space-y-6">
@@ -463,220 +487,41 @@ function AnalyticsTab({ userId, router, onSharePitch, searchParams }: { userId: 
           {searchParams.get('created') === 'true' && (
             <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200 shadow-lg">
               <div className="text-center mb-4">
-                <Share className="w-12 h-12 text-blue-600 mx-auto mb-3" />
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">Ready to Share Your Pitch?</h3>
-                <p className="text-gray-600 mb-4">
-                  Use our Smart Share features to reach recruiters, supporters, and your network
-                </p>
-                <button
-                  onClick={onSharePitch}
-                  className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-6 py-3 rounded-lg hover:from-blue-600 hover:to-indigo-600 transition-all duration-200 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
-                >
-                  <Share className="w-5 h-5 inline mr-2" />
-                  Start Smart Sharing
-                </button>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Ready to Maximize Your Reach?</h3>
+                <p className="text-gray-600">Use AI-powered smart sharing to get discovered by the right people</p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="text-center p-4 bg-white rounded-lg border border-blue-100">
+                  <div className="text-2xl mb-2">📱</div>
+                  <h4 className="font-semibold text-gray-900">Smart Share</h4>
+                  <p className="text-sm text-gray-600">AI-optimized sharing across platforms</p>
+                </div>
+                <div className="text-center p-4 bg-white rounded-lg border border-blue-100">
+                  <div className="text-2xl mb-2">🎯</div>
+                  <h4 className="font-semibold text-gray-900">Target Audience</h4>
+                  <p className="text-sm text-gray-600">Reach the right recruiters and supporters</p>
+                </div>
+                <div className="text-center p-4 bg-white rounded-lg border border-blue-100">
+                  <div className="text-2xl mb-2">📊</div>
+                  <h4 className="font-semibold text-gray-900">Track Results</h4>
+                  <p className="text-sm text-gray-600">Monitor views, shares, and engagement</p>
+                </div>
               </div>
             </div>
           )}
           
-          {/* AI Contact Suggestions */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <Users className="w-5 h-5 text-blue-600" />
-              AI Contact Suggestions
-            </h3>
-            <AIContactSuggestions userId={userId} pitchId={userPitchId} />
-          </div>
-          
-          {/* AI Smart Notifications */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <Bell className="w-5 h-5 text-green-600" />
-              AI Smart Notifications
-            </h3>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* AI Contact Suggestions */}
+            <AIContactSuggestions userId={userId} />
+            
+            {/* Smart Notifications */}
             <SmartNotifications userId={userId} pitchId={userPitchId} />
           </div>
           
           {/* AI Insights */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <Brain className="w-5 h-5 text-purple-600" />
-              AI Career Insights
-            </h3>
-            <AIInsights userId={userId} pitchId={userPitchId} />
-          </div>
+          <AIInsights userId={userId} />
         </div>
       )}
-    
-      {/* Your Outreach Efforts */}
-      <VeteranOutreachList veteranId={userId} />
-      
-      {/* Resume Request Metrics */}
-      <ResumeRequestMetrics 
-        userId={userId} 
-        userRole="veteran" 
-        showDetails={true}
-        className="mb-6"
-      />
-      
-      {/* Supporter Performance */}
-      <SupporterPerformanceList veteranId={userId} />
-      
-      {/* Recent Activity */}
-      <SimpleActivityFeed data={activityData} />
-    </div>
-  )
-}
-
-// Step 3: Smart Share Your Pitch
-function Step3SmartShare({ onSharePitch, router }: { onSharePitch: () => void; router: any }) {
-  return (
-    <div className="max-w-4xl mx-auto">
-      {/* Progress Indicator */}
-      <div className="mb-8">
-        <div className="flex items-center justify-center space-x-4">
-          <div className="flex items-center">
-            <div className="w-10 h-10 bg-green-500 text-white rounded-full flex items-center justify-center font-semibold">
-              ✓
-            </div>
-            <span className="ml-3 text-lg font-semibold text-green-600">Profile Complete</span>
-          </div>
-          <div className="w-16 h-1 bg-green-500 rounded"></div>
-          <div className="flex items-center">
-            <div className="w-10 h-10 bg-green-500 text-white rounded-full flex items-center justify-center font-semibold">
-              ✓
-            </div>
-            <span className="ml-3 text-lg font-semibold text-green-600">Pitch Created</span>
-          </div>
-          <div className="w-16 h-1 bg-blue-500 rounded"></div>
-          <div className="flex items-center">
-            <div className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold">
-              3
-            </div>
-            <span className="ml-3 text-lg font-semibold text-blue-600">Smart Share</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="bg-gradient-to-br from-green-50 to-blue-50 rounded-2xl p-8 text-center shadow-lg border border-green-100">
-        <div className="mb-6">
-          <div className="text-6xl mb-4">🎉</div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">
-            Awesome! Your Pitch is Ready
-          </h2>
-          <p className="text-xl text-gray-600 mb-6 max-w-2xl mx-auto">
-            Now let's get it in front of the right people. Use our Smart Share feature to reach recruiters, supporters, and your network.
-          </p>
-        </div>
-
-        {/* Share Benefits */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-lg p-6 shadow-sm">
-            <Share className="w-12 h-12 text-blue-600 mx-auto mb-3" />
-            <h3 className="font-semibold text-gray-900 mb-2">Smart Distribution</h3>
-            <p className="text-sm text-gray-600">AI-powered targeting to reach the most relevant audience</p>
-          </div>
-          <div className="bg-white rounded-lg p-6 shadow-sm">
-            <TrendingUp className="w-12 h-12 text-green-600 mx-auto mb-3" />
-            <h3 className="font-semibold text-gray-900 mb-2">Track Performance</h3>
-            <p className="text-sm text-gray-600">See who viewed, liked, and shared your pitch</p>
-          </div>
-          <div className="bg-white rounded-lg p-6 shadow-sm">
-            <Target className="w-12 h-12 text-purple-600 mx-auto mb-3" />
-            <h3 className="font-semibold text-gray-900 mb-2">Network Growth</h3>
-            <p className="text-sm text-gray-600">Build connections with recruiters and supporters</p>
-          </div>
-        </div>
-
-        {/* Call to Action */}
-        <div className="space-y-4">
-          <button
-            onClick={onSharePitch}
-            className="bg-gradient-to-r from-green-500 to-blue-500 text-white px-8 py-4 rounded-lg hover:from-green-600 hover:to-blue-600 transition-all duration-200 text-lg font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center gap-2 mx-auto"
-          >
-            <Share className="w-6 h-6" />
-            Start Smart Sharing
-          </button>
-          <div className="flex items-center justify-center gap-4 text-sm">
-            <button
-              onClick={() => router.push('/pitch')}
-              className="text-blue-600 hover:text-blue-700 underline"
-            >
-              View My Pitch First
-            </button>
-            <span className="text-gray-400">•</span>
-            <button
-              onClick={() => router.push('/dashboard/veteran?tab=pitches')}
-              className="text-blue-600 hover:text-blue-700 underline"
-            >
-              Edit My Pitch
-            </button>
-          </div>
-        </div>
-        
-        {/* Smart Share Features Preview */}
-        <div className="mt-8 bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">🚀 Smart Share Features</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
-            <div className="flex items-start gap-3">
-              <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                <span className="text-blue-600 text-xs">📱</span>
-              </div>
-              <span>AI-powered targeting to reach the most relevant recruiters</span>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                <span className="text-green-600 text-xs">📊</span>
-              </div>
-              <span>Track who viewed, liked, and shared your pitch</span>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                <span className="text-purple-600 text-xs">🔗</span>
-              </div>
-              <span>Multi-platform sharing (LinkedIn, WhatsApp, Email)</span>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="w-6 h-6 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                <span className="text-orange-600 text-xs">🎯</span>
-              </div>
-              <span>Build connections with recruiters and supporters</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Sharing Tips */}
-      <div className="mt-8 bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">📈 Maximize Your Reach</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
-          <div className="flex items-start gap-3">
-            <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-              <span className="text-green-600 text-xs">✓</span>
-            </div>
-            <span>Share on LinkedIn for maximum professional visibility</span>
-          </div>
-          <div className="flex items-start gap-3">
-            <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-              <span className="text-green-600 text-xs">✓</span>
-            </div>
-            <span>Use our built-in templates for different platforms</span>
-          </div>
-          <div className="flex items-start gap-3">
-            <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-              <span className="text-green-600 text-xs">✓</span>
-            </div>
-            <span>Tag relevant hashtags like #VeteranTalent #HireVeterans</span>
-          </div>
-          <div className="flex items-start gap-3">
-            <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-              <span className="text-green-600 text-xs">✓</span>
-            </div>
-            <span>Share during peak hours (9-11 AM or 1-3 PM)</span>
-          </div>
-        </div>
-      </div>
     </div>
   )
 }
