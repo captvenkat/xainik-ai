@@ -2,15 +2,104 @@
 
 import { useState, useEffect } from 'react'
 import { 
-  Shield, CheckCircle, Eye, Heart, TrendingUp, Users, MapPin, Calendar, 
+  Shield, CheckCircle, MapPin, Calendar, Eye, Heart, TrendingUp, Users, 
   Phone, LinkIcon, FileText, Star, User, Zap, MessageSquare, 
   Target, Users as UsersIcon, Timer, MessageSquare as MessageSquareIcon,
-  Briefcase, Activity
+  Briefcase, Activity, Clock
 } from 'lucide-react'
 import Link from 'next/link'
 import ResumeRequestModal from '@/components/ResumeRequestModal'
 
 import type { FullPitchData } from '@/types/domain'
+
+// Countdown Timer Component
+function CountdownTimer({ expiryDate }: { expiryDate: string }) {
+  const [timeLeft, setTimeLeft] = useState(() => {
+    const now = new Date().getTime()
+    const expiry = new Date(expiryDate).getTime()
+    const difference = expiry - now
+    
+    if (difference <= 0) {
+      return { days: 0, hours: 0, minutes: 0, seconds: 0, expired: true }
+    }
+    
+    const days = Math.floor(difference / (1000 * 60 * 60 * 24))
+    const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+    const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60))
+    const seconds = Math.floor((difference % (1000 * 60)) / 1000)
+    
+    return { days, hours, minutes, seconds, expired: false }
+  })
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const now = new Date().getTime()
+      const expiry = new Date(expiryDate).getTime()
+      const difference = expiry - now
+      
+      if (difference <= 0) {
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0, expired: true })
+        clearInterval(timer)
+        return
+      }
+      
+      const days = Math.floor(difference / (1000 * 60 * 60 * 24))
+      const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+      const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60))
+      const seconds = Math.floor((difference % (1000 * 60)) / 1000)
+      
+      setTimeLeft({ days, hours, minutes, seconds, expired: false })
+    }, 1000)
+
+    return () => clearInterval(timer)
+  }, [expiryDate])
+
+  if (timeLeft.expired) {
+    return (
+      <div className="text-center">
+        <div className="text-lg font-bold text-red-600 mb-1">Expired</div>
+        <div className="text-sm text-red-500">This pitch is no longer visible</div>
+      </div>
+    )
+  }
+
+  if (timeLeft.days === 0 && timeLeft.hours === 0) {
+    return (
+      <div className="text-center">
+        <div className="text-lg font-bold text-orange-600 mb-1">
+          Expires Today!
+        </div>
+        <div className="text-sm text-orange-500">
+          {timeLeft.minutes}m {timeLeft.seconds}s remaining
+        </div>
+      </div>
+    )
+  }
+
+  if (timeLeft.days === 0) {
+    return (
+      <div className="text-center">
+        <div className="text-lg font-bold text-orange-600 mb-1">
+          Expires Soon!
+        </div>
+        <div className="text-sm text-orange-500">
+          {timeLeft.hours}h {timeLeft.minutes}m remaining
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="text-center">
+      <div className="text-lg font-bold text-amber-700 mb-1">
+        Expires in {timeLeft.days} day{timeLeft.days !== 1 ? 's' : ''}
+      </div>
+      <div className="text-sm text-amber-600">
+        {timeLeft.hours}h {timeLeft.minutes}m remaining
+      </div>
+    </div>
+  )
+}
 
 interface FullPitchViewProps {
   pitch: FullPitchData
@@ -501,6 +590,36 @@ export default function FullPitchView({
                 </div>
               )}
             </div>
+
+            {/* Pitch Expiration Countdown Widget */}
+            {plan_expires_at && (
+              <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-3xl p-6 border border-amber-200 shadow-sm">
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <Clock className="h-6 w-6 text-white" />
+                  </div>
+                  <h3 className="text-lg font-bold text-amber-900 mb-2">
+                    Pitch Visibility
+                  </h3>
+                  <div className="mb-4">
+                    <CountdownTimer expiryDate={plan_expires_at} />
+                  </div>
+                  <p className="text-sm text-amber-700 mb-4 leading-relaxed">
+                    This pitch will expire soon. Help this veteran by referring them to opportunities in your network.
+                  </p>
+                  <a
+                    href={`/refer/opened?pitch=${id}&veteran=${pitchUser?.name || 'Veteran'}`}
+                    className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-6 py-3 rounded-xl font-medium hover:from-amber-600 hover:to-orange-600 transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105"
+                  >
+                    <Heart className="h-4 w-4" />
+                    Become a Supporter
+                  </a>
+                  <p className="text-xs text-amber-600 mt-2">
+                    It only takes 30 seconds to help!
+                  </p>
+                </div>
+              </div>
+            )}
 
             {/* Pitch Activity */}
             <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
