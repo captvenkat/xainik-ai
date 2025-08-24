@@ -158,17 +158,17 @@ export default function FullPitchView({
   } = pitch
 
   // Additional debugging for military data
-  console.log('FullPitchView Military Data Debug:', {
+  console.log('FullPitchView Military Data Debug:', JSON.stringify({
     militaryData,
     militaryDataType: typeof militaryData,
     militaryDataKeys: militaryData ? Object.keys(militaryData) : 'undefined',
     bio,
     bioType: typeof bio,
     pitchKeys: Object.keys(pitch)
-  })
+  }, null, 2))
 
   // Debug countdown widget visibility
-  console.log('FullPitchView Countdown Widget Debug:', {
+  console.log('FullPitchView Countdown Widget Debug:', JSON.stringify({
     plan_expires_at,
     plan_expires_at_type: typeof plan_expires_at,
     plan_expires_at_value: plan_expires_at,
@@ -178,16 +178,16 @@ export default function FullPitchView({
     user_metadata_plan_expires_at_truthy: !!(pitch as any).users?.metadata?.plan_expires_at,
     shouldShowCountdown: !!(plan_expires_at || (pitch as any).users?.metadata?.plan_expires_at),
     final_expiry_date: plan_expires_at || (pitch as any).users?.metadata?.plan_expires_at
-  })
+  }, null, 2))
 
   // Debug photo display
-  console.log('FullPitchView Photo Debug:', {
+  console.log('FullPitchView Photo Debug:', JSON.stringify({
     photo_url,
     photo_url_type: typeof photo_url,
     photo_url_truthy: !!photo_url,
     photo_url_length: photo_url ? photo_url.length : 'N/A',
-    photo_url_starts_with: photo_url ? photo_url.substring(0, 50) : 'N/A'
-  })
+    photo_url_starts_with: photo_url ? photo_url.substring(0, 50) + '...' : 'N/A'
+  }, null, 2))
 
   const veteranName = pitchUser?.name || 'Veteran'
   const veteranRole = 'veteran'
