@@ -56,28 +56,30 @@ export default function EnhancedProfileSettingsPage() {
         
         setProfile(profileData);
         
-        // Get veteran profile with enhanced fields
+        // Get veteran profile with enhanced fields from user_profiles table
         const { data: veteranData } = await supabase
-          .from('veterans')
-          .select('*')
+          .from('user_profiles')
+          .select('profile_data')
           .eq('user_id', user.id)
+          .eq('profile_type', 'veteran')
+          .eq('is_active', true)
           .single();
         
         setVeteranProfile(veteranData ? {
-          ...veteranData,
-          military_rank: veteranData.military_rank || '',
-          service_branch: veteranData.service_branch || '',
-          bio: veteranData.bio || '',
-          location_current: veteranData.location_current || '',
-          location_current_city: veteranData.location_current_city || '',
-          location_current_country: veteranData.location_current_country || '',
-          locations_preferred: veteranData.locations_preferred || [],
-          locations_preferred_structured: (veteranData.locations_preferred_structured as any) || [],
-          web_links: (veteranData.web_links as any) || [],
-          years_experience: veteranData.years_experience || 0,
-          created_at: veteranData.created_at || new Date().toISOString(),
-          updated_at: veteranData.updated_at || new Date().toISOString(),
-          retirement_date: veteranData.retirement_date || undefined
+          ...veteranData.profile_data,
+          military_rank: veteranData.profile_data?.military_rank || '',
+          service_branch: veteranData.profile_data?.service_branch || '',
+          bio: veteranData.profile_data?.bio || '',
+          location_current: veteranData.profile_data?.location_current || '',
+          location_current_city: veteranData.profile_data?.location_current_city || '',
+          location_current_country: veteranData.profile_data?.location_current_country || '',
+          locations_preferred: veteranData.profile_data?.locations_preferred || [],
+          locations_preferred_structured: (veteranData.profile_data?.locations_preferred_structured as any) || [],
+          web_links: (veteranData.profile_data?.web_links as any) || [],
+          years_experience: veteranData.profile_data?.years_experience || 0,
+          created_at: veteranData.profile_data?.created_at || new Date().toISOString(),
+          updated_at: veteranData.profile_data?.updated_at || new Date().toISOString(),
+          retirement_date: veteranData.profile_data?.retirement_date || undefined
         } : null);
         
         // Initialize form data with existing values
@@ -190,27 +192,38 @@ export default function EnhancedProfileSettingsPage() {
 
       if (veteranProfile) {
         // Update existing veteran profile
-        const { error: veteranError } = await supabase
-          .from('veterans')
+        const { error: profileError } = await supabase
+          .from('user_profiles')
           .update({
-            ...veteranData,
-            locations_preferred_structured: veteranData.locations_preferred_structured as any,
-            web_links: veteranData.web_links as any
+            profile_data: {
+              ...veteranData,
+              locations_preferred_structured: veteranData.locations_preferred_structured as any,
+              web_links: veteranData.web_links as any
+            },
+            updated_at: new Date().toISOString()
           })
-          .eq('user_id', user.id);
+          .eq('user_id', user.id)
+          .eq('profile_type', 'veteran');
 
-        if (veteranError) throw veteranError;
+        if (profileError) throw profileError;
       } else {
         // Create new veteran profile
-        const { error: veteranError } = await supabase
-          .from('veterans')
+        const { error: profileError } = await supabase
+          .from('user_profiles')
           .insert({
-            ...veteranData,
-            locations_preferred_structured: veteranData.locations_preferred_structured as any,
-            web_links: veteranData.web_links as any
+            user_id: user.id,
+            profile_type: 'veteran',
+            profile_data: {
+              ...veteranData,
+              locations_preferred_structured: veteranData.locations_preferred_structured as any,
+              web_links: veteranData.web_links as any
+            },
+            is_active: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
           });
 
-        if (veteranError) throw veteranError;
+        if (profileError) throw profileError;
       }
 
       if (showSuccess) {
