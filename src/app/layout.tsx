@@ -62,7 +62,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <head>
-        <link rel="canonical" href={`${process.env.NEXT_PUBLIC_SITE_URL || 'https://xainik.com'}${typeof window !== 'undefined' ? window.location.pathname : '/'}`} />
+        {/* Optimize CSS loading */}
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="dns-prefetch" href="//fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" crossOrigin="anonymous" />
       </head>
       <body>
         <Navigation />
