@@ -18,12 +18,12 @@ export async function searchPitches(
   try {
     const supabaseAction = await createActionClient()
 
-    // Use the actual pitches table with user data joined
+    // Use the actual pitches table with specific user data join
     let queryBuilder = supabaseAction
       .from('pitches')
       .select(`
         *,
-        users!inner(
+        users!pitches_user_id_fkey(
           id,
           name,
           email,

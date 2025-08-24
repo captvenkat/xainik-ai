@@ -17,7 +17,7 @@ async function fetchPitch(id: string) {
     .from('pitches')
     .select(`
       *,
-      users!inner(
+      users!pitches_user_id_fkey(
         id,
         name,
         email,

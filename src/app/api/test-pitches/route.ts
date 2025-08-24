@@ -14,7 +14,7 @@ export async function GET() {
         is_active,
         created_at,
         user_id,
-        users!inner(name, email)
+        users!pitches_user_id_fkey(name, email)
       `)
       .eq('is_active', true)
       .order('created_at', { ascending: false })
