@@ -118,19 +118,7 @@ export default function FullPitchView({
   const [photoBlobUrl, setPhotoBlobUrl] = useState<string | null>(null)
   
   // Comprehensive debugging - log all incoming props
-  console.log('FullPitchView Props Debug:', JSON.stringify({
-    pitch: {
-      id: pitch.id,
-      title: pitch.title,
-      user: pitch.user,
-      militaryData: (pitch as any).militaryData,
-      bio: (pitch as any).bio
-    },
-    user,
-    endorsements,
-    isCommunityVerified,
-    fullPitchObject: pitch
-  }, null, 2))
+
   
   const {
     id,
@@ -168,27 +156,9 @@ export default function FullPitchView({
     pitchKeys: Object.keys(pitch)
   }, null, 2))
 
-  // Debug countdown widget visibility
-  console.log('FullPitchView Countdown Widget Debug:', JSON.stringify({
-    plan_expires_at,
-    plan_expires_at_type: typeof plan_expires_at,
-    plan_expires_at_value: plan_expires_at,
-    plan_expires_at_truthy: !!plan_expires_at,
-    user_metadata_plan_expires_at: (pitch as any).users?.metadata?.plan_expires_at,
-    user_metadata_plan_expires_at_type: typeof (pitch as any).users?.metadata?.plan_expires_at,
-    user_metadata_plan_expires_at_truthy: !!(pitch as any).users?.metadata?.plan_expires_at,
-    shouldShowCountdown: !!(plan_expires_at || (pitch as any).users?.metadata?.plan_expires_at),
-    final_expiry_date: plan_expires_at || (pitch as any).users?.metadata?.plan_expires_at
-  }, null, 2))
 
-  // Debug photo display
-  console.log('FullPitchView Photo Debug:', JSON.stringify({
-    photo_url,
-    photo_url_type: typeof photo_url,
-    photo_url_truthy: !!photo_url,
-    photo_url_length: photo_url ? photo_url.length : 'N/A',
-    photo_url_starts_with: photo_url ? photo_url.substring(0, 50) + '...' : 'N/A'
-  }, null, 2))
+
+
 
 
 
@@ -249,15 +219,7 @@ export default function FullPitchView({
 
   const preferredCities = formatPreferredLocations(preferredLocations)
 
-  // Debug logging
-  console.log('FullPitchView Debug:', {
-    militaryData,
-    bio: pitch.bio,
-    resume_url,
-    resume_share_enabled,
-    user: user?.id,
-    pitchUser: pitchUser?.id
-  })
+
 
   // Convert base64 photo to blob URL for better performance
   useEffect(() => {
