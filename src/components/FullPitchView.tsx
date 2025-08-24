@@ -115,6 +115,7 @@ export default function FullPitchView({
   isCommunityVerified 
 }: FullPitchViewProps) {
   const [showResumeModal, setShowResumeModal] = useState(false)
+  const [photoBlobUrl, setPhotoBlobUrl] = useState<string | null>(null)
   
   // Comprehensive debugging - log all incoming props
   console.log('FullPitchView Props Debug:', JSON.stringify({
@@ -191,10 +192,11 @@ export default function FullPitchView({
 
   // Visible debug display for troubleshooting
   const debugInfo = {
-    photo_url,
+    photo_url: photo_url ? `${photo_url.substring(0, 50)}...` : null,
     photo_url_type: typeof photo_url,
     photo_url_truthy: !!photo_url,
     photo_url_length: photo_url ? photo_url.length : 'N/A',
+    photoBlobUrl: photoBlobUrl ? 'Converted to blob URL' : 'Not converted',
     plan_expires_at,
     user_metadata_plan_expires_at: (pitch as any).users?.metadata?.plan_expires_at,
     militaryData: !!militaryData,
@@ -268,6 +270,46 @@ export default function FullPitchView({
     pitchUser: pitchUser?.id
   })
 
+  // Convert base64 photo to blob URL for better performance
+  useEffect(() => {
+    if (photo_url && photo_url.startsWith('data:image/')) {
+      try {
+        // Convert base64 to blob
+        const parts = photo_url.split(',')
+        if (parts.length < 2) {
+          console.error('Invalid base64 format')
+          setPhotoBlobUrl(photo_url) // Fallback to original
+          return
+        }
+        
+        const byteString = atob(parts[1] || '')
+        const mimeString = parts[0]?.split(':')[1]?.split(';')[0] || 'image/jpeg'
+        const ab = new ArrayBuffer(byteString.length)
+        const ia = new Uint8Array(ab)
+        
+        for (let i = 0; i < byteString.length; i++) {
+          ia[i] = byteString.charCodeAt(i)
+        }
+        
+        const blob = new Blob([ab], { type: mimeString })
+        const blobUrl = URL.createObjectURL(blob)
+        setPhotoBlobUrl(blobUrl)
+        
+        // Cleanup function
+        return () => {
+          if (blobUrl) {
+            URL.revokeObjectURL(blobUrl)
+          }
+        }
+      } catch (error) {
+        console.error('Error converting base64 to blob:', error)
+        setPhotoBlobUrl(photo_url) // Fallback to original
+      }
+    } else if (photo_url) {
+      setPhotoBlobUrl(photo_url) // Already a regular URL
+    }
+  }, [photo_url])
+
   // Calculate time since creation
   const timeSinceCreation = created_at 
     ? Math.floor((Date.now() - new Date(created_at).getTime()) / (1000 * 60 * 60 * 24))
@@ -293,10 +335,10 @@ export default function FullPitchView({
           <div className="text-center">
             {/* Veteran Photo and Basic Info */}
             <div className="flex flex-col items-center mb-8">
-              {photo_url ? (
+              {photoBlobUrl ? (
                 <div className="relative mb-6">
                   <img 
-                    src={photo_url} 
+                    src={photoBlobUrl} 
                     alt={veteranName}
                     className="w-24 h-24 md:w-32 md:h-32 rounded-3xl object-cover shadow-2xl ring-4 ring-white"
                     onError={(e) => {
