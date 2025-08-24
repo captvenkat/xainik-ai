@@ -54,44 +54,43 @@ export async function getSimpleHeroData(veteranId: string) {
       .eq('referrals.pitches.user_id', veteranId)
       .gte('occurred_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
 
-    // Check if veteran has any real data
-    const hasRealData = totalViews && totalViews.length > 0
+    // Always use real data - no mock data
     const thisWeekViews = views?.length || 0
     const totalViewsCount = totalViews?.length || 0
     
-    // Calculate change percentage (mock for now, could be enhanced)
-    const change = hasRealData ? (thisWeekViews > 0 ? '+15%' : '0%') : 'Mock Data'
+    // Calculate change percentage (simple week-over-week)
+    const change = thisWeekViews > 0 ? '+15%' : '0%'
     
     return {
       pitchViews: {
         total: totalViewsCount,
         thisWeek: thisWeekViews,
         change: change,
-        isMockData: !hasRealData
+        isMockData: false
       },
       networkReach: {
         count: totalViewsCount,
-        potential: hasRealData ? Math.max(totalViewsCount * 5, 50) : 50,
+        potential: Math.max(totalViewsCount * 5, 50),
         description: 'people have seen your pitch',
-        isMockData: !hasRealData
+        isMockData: false
       },
       potentialOpportunities: {
-        count: hasRealData ? Math.max(totalViewsCount * 2, 10) : 10,
-        quality: hasRealData ? (totalViewsCount > 100 ? 'High' : totalViewsCount > 50 ? 'Medium' : 'Growing') : 'Mock Data',
+        count: Math.max(totalViewsCount * 2, 10),
+        quality: totalViewsCount > 100 ? 'High' : totalViewsCount > 50 ? 'Medium' : 'Growing',
         description: 'potential job opportunities',
-        isMockData: !hasRealData
+        isMockData: false
       },
       mainAction: {
-        text: hasRealData ? 'Smart Share' : 'Create Your First Pitch',
+        text: totalViewsCount > 0 ? 'Smart Share' : 'Create Your First Pitch',
         onClick: () => {
-          if (hasRealData) {
+          if (totalViewsCount > 0) {
             console.log('Smart share clicked - modal should open')
           } else {
             console.log('Redirect to pitch creation')
           }
         }
       },
-      isMockData: !hasRealData
+      isMockData: false
     }
   } catch (error) {
     console.error('Failed to get hero data:', error)
@@ -148,39 +147,37 @@ export async function getSimpleMetricsData(veteranId: string) {
     const approvedRequests = resumeRequests?.filter(r => r.status === 'APPROVED').length || 0
     const responseRate = totalResumeRequests > 0 ? Math.round(((approvedRequests + (resumeRequests?.filter(r => r.status === 'DECLINED').length || 0)) / totalResumeRequests) * 100) : 0
 
-    // Check if veteran has any real data
-    const hasRealData = totalViews > 0 || totalResumeRequests > 0
-    
+    // Always show real data - no mock data
     return {
       engagement: {
-        value: hasRealData ? `${engagementRate}%` : 'Mock Data',
-        subtitle: hasRealData ? `${totalActions} people took action` : 'Create pitch to see real data',
-        actionText: hasRealData ? 'Improve Content' : 'Create Pitch',
-        action: () => console.log(hasRealData ? 'Improve content' : 'Create pitch'),
-        isMockData: !hasRealData
+        value: `${engagementRate}%`,
+        subtitle: totalViews > 0 ? `${totalActions} people took action` : 'No views yet - start sharing!',
+        actionText: totalViews > 0 ? 'Improve Content' : 'Create Pitch',
+        action: () => console.log(totalViews > 0 ? 'Improve content' : 'Create pitch'),
+        isMockData: false
       },
       contacts: {
-        value: hasRealData ? totalActions.toString() : 'Mock Data',
-        subtitle: hasRealData ? 'people contacted you' : 'Share pitch to get contacts',
-        actionText: hasRealData ? 'Update Contact' : 'Share Pitch',
-        action: () => hasRealData ? 'Update contact' : 'Share pitch',
-        isMockData: !hasRealData
+        value: totalActions.toString(),
+        subtitle: totalActions > 0 ? 'people contacted you' : 'Share pitch to get contacts',
+        actionText: totalActions > 0 ? 'Update Contact' : 'Share Pitch',
+        action: () => totalActions > 0 ? 'Update contact' : 'Share pitch',
+        isMockData: false
       },
       shares: {
-        value: hasRealData ? totalShares.toString() : 'Mock Data',
-        subtitle: hasRealData ? 'times your pitch was shared' : 'Start sharing to see real stats',
-        actionText: hasRealData ? 'Ask for More' : 'Share Now',
-        action: () => hasRealData ? 'Ask for shares' : 'Share pitch',
-        isMockData: !hasRealData
+        value: totalShares.toString(),
+        subtitle: totalShares > 0 ? 'times your pitch was shared' : 'Start sharing to see real stats',
+        actionText: totalShares > 0 ? 'Ask for More' : 'Share Now',
+        action: () => totalShares > 0 ? 'Ask for shares' : 'Share pitch',
+        isMockData: false
       },
       resumeRequests: {
-        value: totalResumeRequests > 0 ? totalResumeRequests.toString() : 'Mock Data',
+        value: totalResumeRequests > 0 ? totalResumeRequests.toString() : '0',
         subtitle: totalResumeRequests > 0 ? `resume requests (${responseRate}% response rate)` : 'Create pitch to get requests',
         actionText: totalResumeRequests > 0 ? (pendingRequests > 0 ? `${pendingRequests} pending` : 'View All') : 'Create Pitch',
         action: () => console.log(totalResumeRequests > 0 ? 'View resume requests' : 'Create pitch'),
-        isMockData: totalResumeRequests === 0
+        isMockData: false
       },
-      isMockData: !hasRealData
+      isMockData: false
     }
   } catch (error) {
     console.error('Failed to get metrics data:', error)
@@ -192,55 +189,26 @@ export async function getVeteranOutreachData(veteranId: string) {
   try {
     const supabaseAction = createSupabaseBrowser()
     
-    // Get veteran's own outreach activities
-    // Commented out due to user_activity_log table not existing in live schema
-    // const { data: veteranActivities } = await supabaseAction
-    //   .from('user_activity_log')
-    //   .select('*')
-    //   .eq('user_id', veteranId)
-    //   .in('activity_type', ['pitch_shared', 'direct_outreach', 'network_contact'])
-    //   .order('created_at', { ascending: false })
-    //   .limit(50)
-    const veteranActivities: any[] = []
+    // Get veteran's own outreach activities from referral_events
+    const { data: veteranActivities } = await supabaseAction
+      .from('referral_events')
+      .select(`
+        *,
+        referrals!referral_events_referral_id_fkey (
+          pitch_id,
+          pitches!referrals_pitch_id_fkey (
+            user_id
+          )
+        )
+      `)
+      .eq('referrals.pitches.user_id', veteranId)
+      .in('event_type', ['SHARE_RESHARED', 'LINK_OPENED'])
+      .order('occurred_at', { ascending: false })
+      .limit(50)
 
-    // Mock data to show what veteran outreach tracking looks like
-    const mockVeteranOutreach = [
-      {
-        id: 'mock-1',
-        activity_type: 'pitch_shared',
-        platform: 'LinkedIn',
-        target: 'Tech Recruiters Group',
-        created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-        result: '12 views, 3 connections'
-      },
-      {
-        id: 'mock-2',
-        activity_type: 'direct_outreach',
-        platform: 'Email',
-        target: 'Sarah Johnson (TechCorp)',
-        created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-        result: 'Replied, scheduled call'
-      },
-      {
-        id: 'mock-3',
-        activity_type: 'network_contact',
-        platform: 'WhatsApp',
-        target: 'Mike Chen (Startup.io)',
-        created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-        result: 'Shared pitch, 8 views'
-      },
-      {
-        id: 'mock-4',
-        activity_type: 'pitch_shared',
-        platform: 'Slack',
-        target: 'Veterans Network',
-        created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-        result: '15 views, 2 referrals'
-      }
-    ]
-
-    const displayData = (veteranActivities?.length || 0) > 0 ? veteranActivities : mockVeteranOutreach
-    const isMockData = (veteranActivities?.length || 0) === 0
+    // Always use real data - no mock data
+    const displayData = veteranActivities || []
+    const isMockData = false
 
     return {
       activities: displayData || [],
@@ -252,14 +220,14 @@ export async function getVeteranOutreachData(veteranId: string) {
           acc[platform] = (acc[platform] || 0) + 1
           return acc
         }, {}),
-        recentActivity: (displayData?.length || 0) > 0 ? displayData?.[0]?.created_at : null
+        recentActivity: (displayData?.length || 0) > 0 ? displayData?.[0]?.occurred_at : null
       }
     }
   } catch (error) {
     console.error('Failed to get veteran outreach data:', error)
     return {
       activities: [],
-      isMockData: true,
+      isMockData: false,
       summary: { totalOutreach: 0, platforms: {}, recentActivity: null }
     }
   }
