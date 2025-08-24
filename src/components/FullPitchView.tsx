@@ -218,7 +218,16 @@ export default function FullPitchView({ pitch, user, endorsements = [], isCommun
                     src={photo_url} 
                     alt={veteranName}
                     className="w-24 h-24 md:w-32 md:h-32 rounded-3xl object-cover shadow-2xl ring-4 ring-white"
+                    onError={(e) => {
+                      // Fallback to default avatar if image fails to load
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                      target.nextElementSibling?.classList.remove('hidden');
+                    }}
                   />
+                  <div className="hidden w-24 h-24 md:w-32 md:h-32 bg-gradient-to-br from-red-500 to-orange-600 rounded-3xl flex items-center justify-center shadow-2xl ring-4 ring-white">
+                    <Shield className="h-12 w-12 md:h-16 md:w-16 text-white" />
+                  </div>
                   <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-red-500 rounded-full flex items-center justify-center shadow-lg animate-pulse">
                     <Zap className="h-4 w-4 text-white" />
                   </div>
@@ -244,10 +253,13 @@ export default function FullPitchView({ pitch, user, endorsements = [], isCommun
                     <User className="h-5 w-5" />
                     <span className="font-semibold text-lg">{veteranName}</span>
                   </div>
-                  <div className="flex items-center gap-1 text-green-600 bg-green-50 px-3 py-1.5 rounded-full border border-green-200">
-                    <CheckCircle className="h-4 w-4" />
-                    <span className="text-sm font-semibold">Verified Veteran</span>
-                  </div>
+                  {/* Only show verified tag if actually verified */}
+                  {isCommunityVerified && (
+                    <div className="flex items-center gap-1 text-green-600 bg-green-50 px-3 py-1.5 rounded-full border border-green-200">
+                      <CheckCircle className="h-4 w-4" />
+                      <span className="text-sm font-semibold">Verified Veteran</span>
+                    </div>
+                  )}
                   <div className="flex items-center gap-1 text-red-600 bg-red-50 px-3 py-1.5 rounded-full border border-red-200 animate-pulse">
                     <Timer className="h-4 w-4" />
                     <span className="text-sm font-semibold">Active Now</span>
@@ -257,40 +269,48 @@ export default function FullPitchView({ pitch, user, endorsements = [], isCommun
             </div>
             
             {/* Urgency Stats */}
-            <div className="grid grid-cols-4 gap-3 lg:gap-4">
-              <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-4 border border-red-100 shadow-sm">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <Eye className="h-5 w-5 text-blue-500" />
-                  <span className="text-2xl md:text-3xl font-bold text-gray-900">{views_count}</span>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 lg:gap-4">
+              {views_count > 0 && (
+                <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-4 border border-red-100 shadow-sm">
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <Eye className="h-5 w-5 text-blue-500" />
+                    <span className="text-2xl md:text-3xl font-bold text-gray-900">{views_count}</span>
+                  </div>
+                  <div className="text-xs text-gray-500 font-medium text-center">People Watching</div>
                 </div>
-                <div className="text-xs text-gray-500 font-medium text-center">People Watching</div>
-              </div>
-              <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-4 border border-red-100 shadow-sm">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <Heart className="h-5 w-5 text-red-500" />
-                  <span className="text-2xl md:text-3xl font-bold text-gray-900">{likes_count}</span>
+              )}
+              {likes_count > 0 && (
+                <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-4 border border-red-100 shadow-sm">
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <Heart className="h-5 w-5 text-red-500" />
+                    <span className="text-2xl md:text-3xl font-bold text-gray-900">{likes_count}</span>
+                  </div>
+                  <div className="text-xs text-gray-500 font-medium text-center">Interested</div>
                 </div>
-                <div className="text-xs text-gray-500 font-medium text-center">Interested</div>
-              </div>
-              <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-4 border border-red-100 shadow-sm">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <TrendingUp className="h-5 w-5 text-green-500" />
-                  <span className="text-2xl md:text-3xl font-bold text-gray-900">{endorsements_count}</span>
+              )}
+              {endorsements_count > 0 && (
+                <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-4 border border-red-100 shadow-sm">
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <TrendingUp className="h-5 w-5 text-green-500" />
+                    <span className="text-2xl md:text-3xl font-bold text-gray-900">{endorsements_count}</span>
+                  </div>
+                  <div className="text-xs text-gray-500 font-medium text-center">Endorsed</div>
                 </div>
-                <div className="text-xs text-gray-500 font-medium text-center">Endorsed</div>
-              </div>
-              <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-4 border border-red-100 shadow-sm">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <Users className="h-5 w-5 text-purple-500" />
-                  <span className="text-2xl md:text-3xl font-bold text-gray-900">{supporters_count}</span>
+              )}
+              {supporters_count > 0 && (
+                <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-4 border border-red-100 shadow-sm">
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <Users className="h-5 w-5 text-purple-500" />
+                    <span className="text-2xl md:text-3xl font-bold text-gray-900">{supporters_count}</span>
+                  </div>
+                  <div className="text-xs text-gray-500 font-medium text-center">Supporting</div>
                 </div>
-                <div className="text-xs text-gray-500 font-medium text-center">Supporting</div>
-              </div>
+              )}
             </div>
           </div>
 
           {/* Urgency Info Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {location && (
               <div className="flex items-center gap-3 bg-white/90 backdrop-blur-sm rounded-2xl p-4 border border-red-100 shadow-sm">
                 <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
@@ -300,13 +320,15 @@ export default function FullPitchView({ pitch, user, endorsements = [], isCommun
                 </div>
               </div>
             )}
-            <div className="flex items-center gap-3 bg-white/90 backdrop-blur-sm rounded-2xl p-4 border border-red-100 shadow-sm">
-              <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-              <div>
-                <div className="text-xs text-gray-500 font-medium">Interested to work</div>
-                <div className="font-semibold text-gray-900">Remote & On-site</div>
+            {availability && (
+              <div className="flex items-center gap-3 bg-white/90 backdrop-blur-sm rounded-2xl p-4 border border-red-100 shadow-sm">
+                <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                <div>
+                  <div className="text-xs text-gray-500 font-medium">Availability</div>
+                  <div className="font-semibold text-gray-900">{availability}</div>
+                </div>
               </div>
-            </div>
+            )}
             {job_type && (
               <div className="flex items-center gap-3 bg-white/90 backdrop-blur-sm rounded-2xl p-4 border border-red-100 shadow-sm">
                 <Target className="h-5 w-5 text-green-500" />
@@ -316,16 +338,7 @@ export default function FullPitchView({ pitch, user, endorsements = [], isCommun
                 </div>
               </div>
             )}
-            {availability && (
-              <div className="flex items-center gap-3 bg-white/90 backdrop-blur-sm rounded-2xl p-4 border border-red-100 shadow-sm">
-                <Clock className="h-5 w-5 text-orange-500" />
-                <div>
-                  <div className="text-xs text-gray-500 font-medium">Available</div>
-                  <div className="font-semibold text-gray-900">{availability}</div>
-                </div>
-              </div>
-            )}
-            {experience_years && (
+            {experience_years && experience_years > 0 && (
               <div className="flex items-center gap-3 bg-white/90 backdrop-blur-sm rounded-2xl p-4 border border-red-100 shadow-sm">
                 <Award className="h-5 w-5 text-purple-500" />
                 <div>
@@ -343,7 +356,7 @@ export default function FullPitchView({ pitch, user, endorsements = [], isCommun
         {/* Left Column - Main Content */}
         <div className="lg:col-span-2 space-y-8">
           {/* Skills Section */}
-          <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm">
+          <div className="bg-white rounded-3xl p-6 md:p-8 border border-gray-100 shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
               <Target className="h-5 w-5 text-red-500" />
               Core Competencies
@@ -361,7 +374,7 @@ export default function FullPitchView({ pitch, user, endorsements = [], isCommun
           </div>
 
           {/* Pitch */}
-          <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm">
+          <div className="bg-white rounded-3xl p-6 md:p-8 border border-gray-100 shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
               <FileText className="h-5 w-5 text-blue-500" />
               Pitch
@@ -371,22 +384,22 @@ export default function FullPitchView({ pitch, user, endorsements = [], isCommun
             </div>
           </div>
 
-                           {/* Bio Section */}
-                 {pitch.veterans?.[0]?.bio && (
-                   <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm">
-                     <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                       <User className="h-5 w-5 text-green-500" />
-                       About {veteranName}
-                     </h3>
-                     <div className="prose prose-gray max-w-none">
-                       <p className="text-gray-700 leading-relaxed text-lg">{pitch.veterans[0].bio}</p>
-                     </div>
-                   </div>
-                 )}
+          {/* Bio Section */}
+          {pitch.veterans?.[0]?.bio && (
+            <div className="bg-white rounded-3xl p-6 md:p-8 border border-gray-100 shadow-sm">
+              <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                <User className="h-5 w-5 text-green-500" />
+                About {veteranName}
+              </h3>
+              <div className="prose prose-gray max-w-none">
+                <p className="text-gray-700 leading-relaxed text-lg">{pitch.veterans[0].bio}</p>
+              </div>
+            </div>
+          )}
 
           {/* Endorsements */}
           {pitchEndorsements && pitchEndorsements.length > 0 && (
-            <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm">
+            <div className="bg-white rounded-3xl p-6 md:p-8 border border-gray-100 shadow-sm">
               <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
                 <Star className="h-5 w-5 text-yellow-500" />
                 Community Validation
@@ -432,15 +445,19 @@ export default function FullPitchView({ pitch, user, endorsements = [], isCommun
                   : 'Help connect them with opportunities'
                 }
               </p>
-              <div className="text-2xl font-bold mb-2">
-                {supporters_count} referrals
-              </div>
-              <div className="text-sm opacity-90 mb-3">
-                {timeLeft && timeLeft.days <= 15 
-                  ? 'Time is running out - refer them now!' 
-                  : 'Join the community referring this professional'
-                }
-              </div>
+              {supporters_count > 0 && (
+                <>
+                  <div className="text-2xl font-bold mb-2">
+                    {supporters_count} referrals
+                  </div>
+                  <div className="text-sm opacity-90 mb-3">
+                    {timeLeft && timeLeft.days <= 15 
+                      ? 'Time is running out - refer them now!' 
+                      : 'Join the community referring this professional'
+                    }
+                  </div>
+                </>
+              )}
               {timeLeft && timeLeft.days > 0 && (
                 <div className="text-sm opacity-90 border-t border-white/20 pt-3">
                   {timeLeft.days <= 7 

@@ -79,32 +79,32 @@ export default async function BrowsePage({ searchParams }: BrowsePageProps) {
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <Shield className="w-8 h-8 text-blue-600" />
-            <h1 className="text-3xl font-bold text-gray-900">Browse Veterans</h1>
+        <div className="text-center mb-10">
+          <div className="flex items-center justify-center gap-3 mb-6">
+            <Shield className="w-10 h-10 text-blue-600" />
+            <h1 className="text-4xl font-bold text-gray-900">Browse Veterans</h1>
           </div>
-          <p className="text-gray-600 max-w-2xl mx-auto">
+          <p className="text-gray-600 max-w-3xl mx-auto text-lg leading-relaxed">
             Discover talented military veterans ready for civilian opportunities. 
             Filter by skills, location, and availability to find the perfect match.
           </p>
         </div>
 
         {/* Filters */}
-        <div className="mb-8">
+        <div className="mb-10">
           <Filters searchParams={params} />
         </div>
 
         {/* Results Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-2">
-            <Search className="w-5 h-5 text-gray-500" />
-            <span className="text-gray-700">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+          <div className="flex items-center gap-3">
+            <Search className="h-6 w-6 text-blue-500" />
+            <span className="text-lg font-semibold text-gray-800">
               {totalCount} veteran{totalCount !== 1 ? 's' : ''} found
             </span>
           </div>
           {params.q && (
-            <div className="text-sm text-gray-500">
+            <div className="text-sm text-gray-600 bg-gray-100 px-3 py-2 rounded-lg">
               Search: "{params.q}"
             </div>
           )}
@@ -112,7 +112,7 @@ export default async function BrowsePage({ searchParams }: BrowsePageProps) {
 
         {/* Debug Info */}
         {process.env.NODE_ENV === 'development' && (
-          <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
             <p className="text-sm text-blue-800">
               <strong>Debug:</strong> Raw pitches count: {pitchesResult?.length || 0}, 
               Mapped pitches: {pitches?.length || 0}
@@ -126,7 +126,7 @@ export default async function BrowsePage({ searchParams }: BrowsePageProps) {
             <EmptyState searchParams={params} />
           ) : (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 mb-10">
                 {pitches.map((pitch: any) => (
                   <PitchCard key={pitch.id} data={pitch} />
                 ))}
@@ -134,11 +134,13 @@ export default async function BrowsePage({ searchParams }: BrowsePageProps) {
 
               {/* Pagination */}
               {totalPages > 1 && (
-                <Pagination 
-                  currentPage={page} 
-                  totalPages={totalPages} 
-                  searchParams={params} 
-                />
+                <div className="flex justify-center">
+                  <Pagination 
+                    currentPage={page} 
+                    totalPages={totalPages} 
+                    searchParams={params} 
+                  />
+                </div>
               )}
             </>
           )}
