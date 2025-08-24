@@ -275,7 +275,18 @@ export default function FullPitchView({
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content - 2/3 width */}
           <div className="lg:col-span-2 space-y-8">
-            {/* Bio Section */}
+            {/* Pitch Content - Moved to top */}
+            <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm">
+              <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                <MessageSquare className="h-5 w-5 text-blue-500" />
+                Professional Pitch
+              </h3>
+              <div className="prose prose-gray max-w-none">
+                <p className="text-gray-700 leading-relaxed text-lg">{pitch_text}</p>
+              </div>
+            </div>
+
+            {/* Bio Section - Moved below pitch */}
             {pitch.bio && (
               <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm">
                 <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
@@ -287,17 +298,6 @@ export default function FullPitchView({
                 </div>
               </div>
             )}
-
-            {/* Pitch Content */}
-            <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm">
-              <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                <MessageSquare className="h-5 w-5 text-blue-500" />
-                Professional Pitch
-              </h3>
-              <div className="prose prose-gray max-w-none">
-                <p className="text-gray-700 leading-relaxed text-lg">{pitch_text}</p>
-              </div>
-            </div>
 
             {/* Skills Section */}
             {skills && skills.length > 0 && (
@@ -374,28 +374,28 @@ export default function FullPitchView({
                     <span className="font-semibold text-gray-900">{retirementStatus}</span>
                   </div>
                 )}
+              </div>
+            </div>
+
+            {/* Preferences - Renamed from Job Details */}
+            <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
+              <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <Briefcase className="h-5 w-5 text-blue-500" />
+                Preferences
+              </h3>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">Preferred Job Type</span>
+                  <span className="font-semibold text-gray-900 capitalize">{job_type?.replace('_', ' ')}</span>
+                </div>
                 {preferredCities.length > 0 && (
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Preferred Locations</span>
                     <span className="font-semibold text-gray-900">{preferredCities.join(', ')}</span>
                   </div>
                 )}
-              </div>
-            </div>
-
-            {/* Job Details */}
-            <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
-              <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <Briefcase className="h-5 w-5 text-blue-500" />
-                Job Details
-              </h3>
-              <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Job Type</span>
-                  <span className="font-semibold text-gray-900 capitalize">{job_type?.replace('_', ' ')}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Location</span>
+                  <span className="text-sm text-gray-600">Current Location</span>
                   <span className="font-semibold text-gray-900">{location}</span>
                 </div>
                 <div className="flex items-center justify-between">
