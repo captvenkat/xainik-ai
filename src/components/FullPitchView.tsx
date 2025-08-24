@@ -167,6 +167,15 @@ export default function FullPitchView({
     pitchKeys: Object.keys(pitch)
   })
 
+  // Debug countdown widget visibility
+  console.log('FullPitchView Countdown Widget Debug:', {
+    plan_expires_at,
+    plan_expires_at_type: typeof plan_expires_at,
+    plan_expires_at_value: plan_expires_at,
+    plan_expires_at_truthy: !!plan_expires_at,
+    shouldShowCountdown: !!plan_expires_at
+  })
+
   const veteranName = pitchUser?.name || 'Veteran'
   const veteranRole = 'veteran'
 
@@ -592,7 +601,7 @@ export default function FullPitchView({
             </div>
 
             {/* Pitch Expiration Countdown Widget */}
-            {plan_expires_at && (
+            {(plan_expires_at || true) && (
               <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-3xl p-6 border border-amber-200 shadow-sm">
                 <div className="text-center">
                   <div className="w-12 h-12 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-3">
@@ -602,10 +611,24 @@ export default function FullPitchView({
                     Pitch Visibility
                   </h3>
                   <div className="mb-4">
-                    <CountdownTimer expiryDate={plan_expires_at} />
+                    {plan_expires_at ? (
+                      <CountdownTimer expiryDate={plan_expires_at} />
+                    ) : (
+                      <div className="text-center">
+                        <div className="text-lg font-bold text-amber-700 mb-1">
+                          Active Pitch
+                        </div>
+                        <div className="text-sm text-amber-600">
+                          This pitch is currently visible
+                        </div>
+                      </div>
+                    )}
                   </div>
                   <p className="text-sm text-amber-700 mb-4 leading-relaxed">
-                    This pitch will expire soon. Help this veteran by referring them to opportunities in your network.
+                    {plan_expires_at 
+                      ? "This pitch will expire soon. Help this veteran by referring them to opportunities in your network."
+                      : "Help this veteran by referring them to opportunities in your network."
+                    }
                   </p>
                   <a
                     href={`/refer/opened?pitch=${id}&veteran=${pitchUser?.name || 'Veteran'}`}
