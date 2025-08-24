@@ -23,7 +23,8 @@ async function fetchPitch(id: string) {
         email,
         avatar_url,
         role,
-        phone
+        phone,
+        metadata
       )
     `)
     .eq('id', id)
@@ -74,6 +75,22 @@ async function fetchPitch(id: string) {
     }
   } catch (error) {
     console.error('Error fetching veteran profile:', error)
+  }
+
+  // Check for fallback military data in user metadata if veterans table failed
+  if (!militaryData && pitch.users?.metadata?.veteran_profile) {
+    const fallbackData = pitch.users.metadata.veteran_profile
+    console.log('Using fallback military data from user metadata:', fallbackData)
+    
+    militaryData = {
+      rank: fallbackData.military_rank || fallbackData.rank,
+      service_branch: fallbackData.service_branch,
+      years_experience: fallbackData.years_experience
+    }
+    
+    if (!bio && fallbackData.bio) {
+      bio = fallbackData.bio
+    }
   }
 
   // Get endorsements
