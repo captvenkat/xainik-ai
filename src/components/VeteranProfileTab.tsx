@@ -74,10 +74,12 @@ export default function VeteranProfileTab() {
           location_current: veteranData?.profile_data?.location_current || '',
           locations_preferred: veteranData?.profile_data?.locations_preferred || [],
           web_links: veteranData?.profile_data?.web_links || [],
-          retirement_date: veteranData?.profile_data?.retirement_date || ''
+          retirement_date: veteranData?.profile_data?.retirement_date || '',
+          photo_url: profileData?.avatar_url || ''
         })
       } catch (error) {
-        console.error('Error loading profile:', error)
+        // Silently handle profile loading errors
+        setError('Failed to load profile data')
       }
     }
 
@@ -128,7 +130,7 @@ export default function VeteranProfileTab() {
     if (!user) return
     
     try {
-      console.log('Photo changed:', { photoUrl, isCustom })
+      // Photo change initiated
       
       // Update the user's avatar_url in the database immediately
       const supabase = createSupabaseBrowser()
@@ -138,7 +140,6 @@ export default function VeteranProfileTab() {
         .eq('id', user.id)
       
       if (error) {
-        console.error('Error saving photo:', error)
         setError('Failed to save photo')
         return
       }
@@ -151,7 +152,6 @@ export default function VeteranProfileTab() {
       setTimeout(() => setSuccess(''), 3000)
       
     } catch (err) {
-      console.error('Error handling photo change:', err)
       setError('Failed to update photo')
     }
   }
