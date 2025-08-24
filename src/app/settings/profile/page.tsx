@@ -119,9 +119,9 @@ export default function ProfileSettingsPage() {
     e.preventDefault();
     
     // Validate form
-    const validationErrors = validateProfileForm(formData);
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
+    const validationResult = validateProfileForm(formData);
+    if (!validationResult.isValid) {
+      setErrors(validationResult.errors);
       return;
     }
 
