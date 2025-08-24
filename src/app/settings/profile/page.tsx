@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createSupabaseBrowser } from '@/lib/supabaseBrowser';
-import { Shield, ArrowLeft, Save, User, MapPin, Star, Link as LinkIcon, FileText, Globe } from 'lucide-react';
+import { Shield, ArrowLeft, Save, User, MapPin, Star, Link as LinkIcon, FileText, Globe, Sparkles, CheckCircle, Lightbulb } from 'lucide-react';
 import Link from 'next/link';
 import LocationAutocomplete from '@/components/LocationAutocomplete';
 import WebLinksEditor from '@/components/WebLinksEditor';
@@ -27,12 +27,15 @@ export default function ProfileSettingsPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [currentStep, setCurrentStep] = useState(1);
   const router = useRouter();
   const supabase = createSupabaseBrowser();
 
   // Enhanced form state
   const [formData, setFormData] = useState<ProfileFormData>(getDefaultProfileFormData());
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const totalSteps = 4;
 
   useEffect(() => {
     const getUser = async () => {
@@ -103,97 +106,52 @@ export default function ProfileSettingsPage() {
     }
   };
 
-  const handlePhotoChange = (photoUrl: string, isCustom: boolean) => {
-    // Update the profile state with the new photo
-    setProfile((prev: any) => ({
-      ...prev,
-      avatar_url: photoUrl
-    }));
-    
-    // Clear any photo-related errors
-    if (errors.avatar_url) {
-      setErrors((prev: Record<string, string>) => ({
-        ...prev,
-        avatar_url: ''
-      }));
+  const handlePhotoChange = async (file: File) => {
+    try {
+      // Handle photo upload logic here
+      console.log('Photo changed:', file);
+    } catch (error) {
+      console.error('Error uploading photo:', error);
     }
-  };
-
-  const handleLocationAdd = () => {
-    if (formData.locations_preferred.length < 3) {
-      setFormData(prev => ({
-        ...prev,
-        locations_preferred: [...prev.locations_preferred, '']
-      }));
-    }
-  };
-
-  const handleLocationRemove = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      locations_preferred: prev.locations_preferred.filter((_, i) => i !== index)
-    }));
-  };
-
-  const handleLocationChange = (index: number, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      locations_preferred: prev.locations_preferred.map((loc, i) => 
-        i === index ? value : loc
-      )
-    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSaving(true);
-    setError(null);
-    setSuccess(null);
-    setErrors({});
-
+    
     // Validate form
-    const validationResult = validateProfileForm(formData);
-    if (!validationResult.isValid) {
-      setErrors(validationResult.errors);
-      setIsSaving(false);
+    const validationErrors = validateProfileForm(formData);
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
       return;
     }
 
-    try {
-      // Parse locations for structured storage
-      const locationCurrentParsed = parseLocationString(formData.location_current);
-      const locationsPreferredParsed = formData.locations_preferred
-        .filter(loc => loc.trim())
-        .map(loc => parseLocationString(loc));
+    setIsSaving(true);
+    setError(null);
+    setSuccess(null);
 
+    try {
       // Update user profile
       const { error: userError } = await supabase
         .from('users')
         .update({
           name: formData.name,
-          phone: formData.phone,
-          location: formData.location_current, // Also update users.location for pitch creation
-          avatar_url: profile?.avatar_url || null
+          phone: formData.phone
         })
         .eq('id', user.id);
 
       if (userError) throw userError;
 
-      // Update or create veteran profile
+      // Prepare veteran profile data
       const veteranData = {
         user_id: user.id,
-        rank: formData.military_rank,
         military_rank: formData.military_rank,
         service_branch: formData.service_branch,
-        years_experience: formData.years_experience ? parseInt(formData.years_experience) : 0,
+        years_experience: formData.years_experience ? parseInt(formData.years_experience) : null,
         bio: formData.bio,
         location_current: formData.location_current,
-        location_current_city: locationCurrentParsed.city,
-        location_current_country: locationCurrentParsed.country,
-        locations_preferred: formData.locations_preferred.filter(loc => loc.trim()),
-        locations_preferred_structured: locationsPreferredParsed as any,
-        web_links: formData.web_links as any,
-        retirement_date: null
+        locations_preferred: formData.locations_preferred,
+        web_links: formData.web_links,
+        retirement_date: formData.retirement_date
       };
 
       if (veteranProfile) {
@@ -240,10 +198,25 @@ export default function ProfileSettingsPage() {
     }
   };
 
+  const nextStep = () => {
+    if (currentStep < totalSteps) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const prevStep = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading your profile...</p>
+        </div>
       </div>
     );
   }
@@ -253,368 +226,470 @@ export default function ProfileSettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
       <div className="max-w-4xl mx-auto py-8 px-4">
         {/* Header */}
         <div className="mb-8">
           <Link 
             href="/dashboard/veteran" 
-            className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-4"
+            className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-4 transition-colors"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Dashboard
           </Link>
           
-          <div className="flex items-center gap-3 mb-4">
-            <Shield className="h-8 w-8 text-blue-600" />
-            <h1 className="text-3xl font-bold text-gray-900">
-              Profile Settings
-            </h1>
+          <div className="text-center mb-8">
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                <Shield className="h-6 w-6 text-white" />
+              </div>
+              <h1 className="text-4xl font-bold text-gray-900">
+                Complete Your Profile
+              </h1>
+            </div>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Let's get your profile ready so Xainik can work its magic! 
+              <span className="block text-sm text-blue-600 mt-2">
+                🤖 Our AI will optimize everything for maximum impact
+              </span>
+            </p>
           </div>
-          <p className="text-gray-600">
-            Update your profile information and military service details - Enhanced Form v2.0
-          </p>
+
+          {/* Progress Steps */}
+          <div className="mb-8">
+            <div className="flex items-center justify-center space-x-4">
+              {[1, 2, 3, 4].map((step) => (
+                <div key={step} className="flex items-center">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-all duration-200 ${
+                    step <= currentStep 
+                      ? 'bg-blue-500 text-white shadow-lg' 
+                      : 'bg-gray-200 text-gray-400'
+                  }`}>
+                    {step < currentStep ? <CheckCircle className="w-5 h-5" /> : step}
+                  </div>
+                  {step < totalSteps && (
+                    <div className={`w-16 h-1 mx-2 rounded transition-all duration-200 ${
+                      step < currentStep ? 'bg-blue-500' : 'bg-gray-200'
+                    }`}></div>
+                  )}
+                </div>
+              ))}
+            </div>
+            <div className="text-center mt-4">
+              <p className="text-sm text-gray-600">
+                Step {currentStep} of {totalSteps}: {
+                  currentStep === 1 ? 'Basic Info' :
+                  currentStep === 2 ? 'Military Service' :
+                  currentStep === 3 ? 'Location & Bio' :
+                  'Review & Save'
+                }
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Success/Error Messages */}
         {success && (
-          <div className="bg-green-50 border border-green-200 rounded-md p-4 mb-6">
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <div className="ml-3">
-                <p className="text-sm font-medium text-green-800">{success}</p>
-              </div>
-            </div>
+          <div className="bg-green-50 border border-green-200 rounded-xl p-6 mb-6 text-center">
+            <CheckCircle className="h-8 w-8 text-green-500 mx-auto mb-2" />
+            <p className="text-lg font-medium text-green-800">{success}</p>
           </div>
         )}
 
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-6">
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <div className="ml-3">
-                <p className="text-sm font-medium text-red-800">{error}</p>
-              </div>
-            </div>
+          <div className="bg-red-50 border border-red-200 rounded-xl p-6 mb-6 text-center">
+            <div className="text-lg font-medium text-red-800">{error}</div>
           </div>
         )}
 
         {/* Enhanced Profile Form */}
-        <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-sm border">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-medium text-gray-900">Enhanced Profile Information</h2>
-          </div>
-          
-          <div className="p-6 space-y-8">
-            {/* Profile Photo */}
-            <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
-                <User className="h-5 w-5 text-gray-400" />
-                Profile Photo
-              </h3>
-              <div className="flex items-center space-x-6">
-                <div className="flex-shrink-0">
+        <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+          {/* Step Content */}
+          <div className="p-8">
+            {currentStep === 1 && (
+              <div className="space-y-8">
+                <div className="text-center mb-8">
+                  <div className="text-4xl mb-4">👤</div>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-2">Basic Information</h2>
+                  <p className="text-gray-600">Let's start with the essentials</p>
+                </div>
+
+                {/* Profile Photo */}
+                <div className="text-center">
                   <PhotoUpload
                     profilePhotoUrl={profile?.avatar_url}
                     onPhotoChange={handlePhotoChange}
                     size="lg"
                     showCrop={true}
-                    className="w-32 h-32"
+                    className="w-32 h-32 mx-auto"
                   />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-gray-600 mb-2">
-                    Upload a professional photo to make your profile stand out. 
-                    This photo will be used across the platform including your pitches.
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    Recommended: Square image, high resolution, professional attire
+                  <p className="text-sm text-gray-600 mt-3">
+                    A professional photo helps you stand out
                   </p>
                 </div>
-              </div>
-            </div>
 
-            {/* Basic Information */}
-            <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
-                <User className="h-5 w-5 text-gray-400" />
-                Basic Information
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                    Full Name *
-                  </label>
-                  <input
-                    type="text"
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => handleInputChange('name', e.target.value)}
-                    className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${
-                      errors.name 
-                        ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
-                        : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
-                    }`}
-                    required
-                  />
-                  {errors.name && (
-                    <p className="mt-1 text-sm text-red-600">{errors.name}</p>
-                  )}
+                {/* Basic Fields */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-2">
+                      Full Name *
+                    </label>
+                    <input
+                      type="text"
+                      id="name"
+                      value={formData.name}
+                      onChange={(e) => handleInputChange('name', e.target.value)}
+                      className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 ${
+                        errors.name 
+                          ? 'border-red-300 focus:ring-red-200 focus:border-red-500' 
+                          : 'border-gray-200 focus:ring-blue-200 focus:border-blue-500'
+                      } focus:ring-4 focus:outline-none`}
+                      placeholder="Your full name"
+                      required
+                    />
+                    {errors.name && (
+                      <p className="mt-2 text-sm text-red-600">{errors.name}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label htmlFor="phone" className="block text-sm font-semibold text-gray-700 mb-2">
+                      Phone Number
+                    </label>
+                    <input
+                      type="tel"
+                      id="phone"
+                      value={formData.phone}
+                      onChange={(e) => handleInputChange('phone', e.target.value)}
+                      className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 ${
+                        errors.phone 
+                          ? 'border-red-300 focus:ring-red-200 focus:border-red-500' 
+                          : 'border-gray-200 focus:ring-blue-200 focus:border-blue-500'
+                      } focus:ring-4 focus:outline-none`}
+                      placeholder="+91XXXXXXXXXX"
+                    />
+                    {errors.phone && (
+                      <p className="mt-2 text-sm text-red-600">{errors.phone}</p>
+                    )}
+                  </div>
                 </div>
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+
+                {/* Email (Read-only) */}
+                <div className="bg-gray-50 rounded-xl p-4">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
                     Email Address
                   </label>
                   <input
                     type="email"
-                    id="email"
                     value={profile?.email || ''}
-                    className="mt-1 block w-full rounded-md shadow-sm sm:text-sm border-gray-300 bg-gray-50 cursor-not-allowed"
+                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 bg-gray-100 cursor-not-allowed"
                     disabled
-                    title="Email cannot be changed - set during signup"
                   />
-                  <p className="mt-1 text-xs text-gray-500">
+                  <p className="text-xs text-gray-500 mt-2">
                     Email is set during signup and cannot be modified
                   </p>
                 </div>
-                <div>
-                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
-                    Phone Number
-                  </label>
-                  <input
-                    type="tel"
-                    id="phone"
-                    value={formData.phone}
-                    onChange={(e) => handleInputChange('phone', e.target.value)}
-                    className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${
-                      errors.phone 
-                        ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
-                        : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
-                    }`}
-                    placeholder="+91XXXXXXXXXX"
-                  />
-                  {errors.phone && (
-                    <p className="mt-1 text-sm text-red-600">{errors.phone}</p>
-                  )}
-                </div>
               </div>
-            </div>
+            )}
 
-            {/* Bio Section */}
-            <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
-                <FileText className="h-5 w-5 text-gray-400" />
-                Bio
-              </h3>
-              <div>
-                <label htmlFor="bio" className="block text-sm font-medium text-gray-700">
-                  Tell us about yourself
-                </label>
-                <div className="mt-1 relative">
-                  <textarea
-                    id="bio"
-                    rows={4}
-                    value={formData.bio}
-                    onChange={(e) => handleInputChange('bio', e.target.value)}
-                    className={`block w-full rounded-md shadow-sm sm:text-sm ${
-                      errors.bio 
-                        ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
-                        : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
-                    }`}
-                    placeholder="Share your story, achievements, or what you're looking for..."
-                  />
-                  <div className="absolute bottom-2 right-2 text-xs text-gray-400">
-                    {formData.bio.length}/600
-                  </div>
+            {currentStep === 2 && (
+              <div className="space-y-8">
+                <div className="text-center mb-8">
+                  <div className="text-4xl mb-4">🎖️</div>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-2">Military Service</h2>
+                  <p className="text-gray-600">Your military background helps Xainik AI match you with the right opportunities</p>
                 </div>
-                {errors.bio && (
-                  <p className="mt-1 text-sm text-red-600">{errors.bio}</p>
-                )}
-              </div>
-            </div>
 
-            {/* Military Service */}
-            <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
-                <Star className="h-5 w-5 text-gray-400" />
-                Military Service
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div>
-                  <label htmlFor="service_branch" className="block text-sm font-medium text-gray-700">
-                    Service Branch
-                  </label>
-                  <select
-                    id="service_branch"
-                    value={formData.service_branch}
-                    onChange={(e) => handleInputChange('service_branch', e.target.value)}
-                    className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${
-                      errors.service_branch 
-                        ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
-                        : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
-                    }`}
-                  >
-                    <option value="">Select Branch</option>
-                    {SERVICE_BRANCHES.map(branch => (
-                      <option key={branch} value={branch}>{branch}</option>
-                    ))}
-                  </select>
-                  {errors.service_branch && (
-                    <p className="mt-1 text-sm text-red-600">{errors.service_branch}</p>
-                  )}
-                </div>
-                <div>
-                  <label htmlFor="military_rank" className="block text-sm font-medium text-gray-700">
-                    Military Rank
-                  </label>
-                  <select
-                    id="military_rank"
-                    value={formData.military_rank}
-                    onChange={(e) => handleInputChange('military_rank', e.target.value)}
-                    className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${
-                      errors.military_rank 
-                        ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
-                        : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
-                    }`}
-                  >
-                    <option value="">Select Rank</option>
-                    {formData.service_branch && ALL_MILITARY_RANKS[formData.service_branch as keyof typeof ALL_MILITARY_RANKS] ? (
-                      Object.values(ALL_MILITARY_RANKS[formData.service_branch as keyof typeof ALL_MILITARY_RANKS]).flat().map(rank => (
-                        <option key={rank} value={rank}>{rank}</option>
-                      ))
-                    ) : (
-                      Object.values(ALL_MILITARY_RANKS['Indian Army']).flat().map(rank => (
-                        <option key={rank} value={rank}>{rank}</option>
-                      ))
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label htmlFor="service_branch" className="block text-sm font-semibold text-gray-700 mb-2">
+                      Service Branch *
+                    </label>
+                    <select
+                      id="service_branch"
+                      value={formData.service_branch}
+                      onChange={(e) => handleInputChange('service_branch', e.target.value)}
+                      className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 ${
+                        errors.service_branch 
+                          ? 'border-red-300 focus:ring-red-200 focus:border-red-500' 
+                          : 'border-gray-200 focus:ring-blue-200 focus:border-blue-500'
+                      } focus:ring-4 focus:outline-none`}
+                    >
+                      <option value="">Select your service branch</option>
+                      {SERVICE_BRANCHES.map(branch => (
+                        <option key={branch} value={branch}>{branch}</option>
+                      ))}
+                    </select>
+                    {errors.service_branch && (
+                      <p className="mt-2 text-sm text-red-600">{errors.service_branch}</p>
                     )}
-                  </select>
-                  {errors.military_rank && (
-                    <p className="mt-1 text-sm text-red-600">{errors.military_rank}</p>
-                  )}
-                </div>
-                <div>
-                  <label htmlFor="years_experience" className="block text-sm font-medium text-gray-700">
-                    Years of Experience
-                  </label>
-                  <input
-                    type="number"
-                    id="years_experience"
-                    value={formData.years_experience}
-                    onChange={(e) => handleInputChange('years_experience', e.target.value)}
-                    className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${
-                      errors.years_experience 
-                        ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
-                        : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
-                    }`}
-                    min="0"
-                    max="50"
-                    placeholder="e.g., 15"
-                  />
-                  {errors.years_experience && (
-                    <p className="mt-1 text-sm text-red-600">{errors.years_experience}</p>
-                  )}
-                </div>
-              </div>
-            </div>
+                  </div>
 
-            {/* Location Information */}
-            <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
-                <MapPin className="h-5 w-5 text-gray-400" />
-                Location Information
-              </h3>
-              <div className="space-y-6">
-                <div>
-                  <label htmlFor="location_current" className="block text-sm font-medium text-gray-700">
-                    Current Location
-                  </label>
-                  <LocationAutocomplete
-                    value={formData.location_current}
-                    onChange={(value) => handleInputChange('location_current', value)}
-                    placeholder="Search for your current location..."
-                    error={errors.location_current}
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Preferred Locations (up to 3)
-                  </label>
-                  <div className="space-y-3">
-                    {formData.locations_preferred.map((location, index) => (
-                      <div key={index} className="flex items-center gap-2">
-                        <LocationAutocomplete
-                          value={location}
-                          onChange={(value) => handleLocationChange(index, value)}
-                          placeholder={`Preferred location ${index + 1}...`}
-                          className="flex-1"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => handleLocationRemove(index)}
-                          className="px-3 py-2 text-sm font-medium text-red-600 hover:text-red-800"
-                        >
-                          Remove
-                        </button>
-                      </div>
-                    ))}
-                    {formData.locations_preferred.length < 3 && (
-                      <button
-                        type="button"
-                        onClick={handleLocationAdd}
-                        className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                      >
-                        Add Location
-                      </button>
+                  <div>
+                    <label htmlFor="military_rank" className="block text-sm font-semibold text-gray-700 mb-2">
+                      Military Rank *
+                    </label>
+                    <select
+                      id="military_rank"
+                      value={formData.military_rank}
+                      onChange={(e) => handleInputChange('military_rank', e.target.value)}
+                      className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 ${
+                        errors.military_rank 
+                          ? 'border-red-300 focus:ring-red-200 focus:border-red-500' 
+                          : 'border-gray-200 focus:ring-blue-200 focus:border-blue-500'
+                      } focus:ring-4 focus:outline-none`}
+                    >
+                      <option value="">Select your rank</option>
+                      {formData.service_branch && ALL_MILITARY_RANKS[formData.service_branch as keyof typeof ALL_MILITARY_RANKS] ? (
+                        Object.values(ALL_MILITARY_RANKS[formData.service_branch as keyof typeof ALL_MILITARY_RANKS]).flat().map(rank => (
+                          <option key={rank} value={rank}>{rank}</option>
+                        ))
+                      ) : (
+                        Object.values(ALL_MILITARY_RANKS['Indian Army']).flat().map(rank => (
+                          <option key={rank} value={rank}>{rank}</option>
+                        ))
+                      )}
+                    </select>
+                    {errors.military_rank && (
+                      <p className="mt-2 text-sm text-red-600">{errors.military_rank}</p>
                     )}
                   </div>
                 </div>
-              </div>
-            </div>
 
-            {/* Web Links */}
-            <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
-                <LinkIcon className="h-5 w-5 text-gray-400" />
-                Web Links
-              </h3>
-              <WebLinksEditor
-                links={formData.web_links}
-                onChange={(links) => handleInputChange('web_links', links)}
-                error={errors.web_links}
-              />
-            </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label htmlFor="years_experience" className="block text-sm font-semibold text-gray-700 mb-2">
+                      Years of Service
+                    </label>
+                    <input
+                      type="number"
+                      id="years_experience"
+                      value={formData.years_experience}
+                      onChange={(e) => handleInputChange('years_experience', e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:ring-4 focus:ring-blue-200 focus:border-blue-500 focus:outline-none transition-all duration-200"
+                      placeholder="e.g., 15"
+                      min="0"
+                      max="50"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="retirement_date" className="block text-sm font-semibold text-gray-700 mb-2">
+                      Retirement Date
+                    </label>
+                    <input
+                      type="date"
+                      id="retirement_date"
+                      value={formData.retirement_date}
+                      onChange={(e) => handleInputChange('retirement_date', e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:ring-4 focus:ring-blue-200 focus:border-blue-500 focus:outline-none transition-all duration-200"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {currentStep === 3 && (
+              <div className="space-y-8">
+                <div className="text-center mb-8">
+                  <div className="text-4xl mb-4">📍</div>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-2">Location & Bio</h2>
+                  <p className="text-gray-600">Help recruiters find you and understand your story</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label htmlFor="location_current" className="block text-sm font-semibold text-gray-700 mb-2">
+                      Current Location *
+                    </label>
+                    <LocationAutocomplete
+                      value={formData.location_current}
+                      onChange={(value) => handleInputChange('location_current', value)}
+                      placeholder="Enter your current city"
+                      className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 ${
+                        errors.location_current 
+                          ? 'border-red-300 focus:ring-red-200 focus:border-red-500' 
+                          : 'border-gray-200 focus:ring-blue-200 focus:border-blue-500'
+                      } focus:ring-4 focus:outline-none`}
+                    />
+                    {errors.location_current && (
+                      <p className="mt-2 text-sm text-red-600">{errors.location_current}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label htmlFor="locations_preferred" className="block text-sm font-semibold text-gray-700 mb-2">
+                      Preferred Locations
+                    </label>
+                    <input
+                      type="text"
+                      id="locations_preferred"
+                      value={formData.locations_preferred.join(', ')}
+                      onChange={(e) => handleInputChange('locations_preferred', e.target.value.split(',').map(s => s.trim()).filter(Boolean))}
+                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:ring-4 focus:ring-blue-200 focus:border-blue-500 focus:outline-none transition-all duration-200"
+                      placeholder="Mumbai, Delhi, Bangalore"
+                    />
+                    <p className="text-xs text-gray-500 mt-2">
+                      Enter up to 3 cities, separated by commas
+                    </p>
+                  </div>
+                </div>
+
+                <div>
+                  <label htmlFor="bio" className="block text-sm font-semibold text-gray-700 mb-2">
+                    Your Story *
+                  </label>
+                  <div className="relative">
+                    <textarea
+                      id="bio"
+                      rows={6}
+                      value={formData.bio}
+                      onChange={(e) => handleInputChange('bio', e.target.value)}
+                      className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 ${
+                        errors.bio 
+                          ? 'border-red-300 focus:ring-red-200 focus:border-red-500' 
+                          : 'border-gray-200 focus:ring-blue-200 focus:border-blue-500'
+                      } focus:ring-4 focus:outline-none resize-none`}
+                      placeholder="Tell us about your military experience, achievements, and what you're looking for in your civilian career..."
+                    />
+                    <div className="absolute bottom-3 right-3 text-xs text-gray-400 bg-white px-2 py-1 rounded">
+                      {formData.bio.length}/600
+                    </div>
+                  </div>
+                  {errors.bio && (
+                    <p className="mt-2 text-sm text-red-600">{errors.bio}</p>
+                  )}
+                  <p className="text-xs text-gray-500 mt-2">
+                    💡 Don't worry about perfect wording - Xainik AI will help optimize this
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {currentStep === 4 && (
+              <div className="space-y-8">
+                <div className="text-center mb-8">
+                  <div className="text-4xl mb-4">✨</div>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-2">Review & Save</h2>
+                  <p className="text-gray-600">Let's review your information before saving</p>
+                </div>
+
+                <div className="bg-gray-50 rounded-xl p-6 space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <span className="text-sm font-medium text-gray-500">Name:</span>
+                      <p className="text-gray-900">{formData.name || 'Not provided'}</p>
+                    </div>
+                    <div>
+                      <span className="text-sm font-medium text-gray-500">Phone:</span>
+                      <p className="text-gray-900">{formData.phone || 'Not provided'}</p>
+                    </div>
+                    <div>
+                      <span className="text-sm font-medium text-gray-500">Service Branch:</span>
+                      <p className="text-gray-900">{formData.service_branch || 'Not provided'}</p>
+                    </div>
+                    <div>
+                      <span className="text-sm font-medium text-gray-500">Military Rank:</span>
+                      <p className="text-gray-900">{formData.military_rank || 'Not provided'}</p>
+                    </div>
+                    <div>
+                      <span className="text-sm font-medium text-gray-500">Current Location:</span>
+                      <p className="text-gray-900">{formData.location_current || 'Not provided'}</p>
+                    </div>
+                    <div>
+                      <span className="text-sm font-medium text-gray-500">Years of Service:</span>
+                      <p className="text-gray-900">{formData.years_experience || 'Not provided'}</p>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <span className="text-sm font-medium text-gray-500">Bio:</span>
+                    <p className="text-gray-900 mt-1">{formData.bio || 'Not provided'}</p>
+                  </div>
+                </div>
+
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 text-center">
+                  <Sparkles className="h-8 w-8 text-blue-500 mx-auto mb-3" />
+                  <h3 className="text-lg font-semibold text-blue-900 mb-2">Ready to Launch!</h3>
+                  <p className="text-blue-700">
+                    Once you save, Xainik AI will automatically optimize your profile for maximum impact with recruiters and opportunities.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Form Actions */}
-          <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end">
+          {/* Navigation Buttons */}
+          <div className="px-8 py-6 bg-gray-50 border-t border-gray-200 flex justify-between">
             <button
-              type="submit"
-              disabled={isSaving}
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              type="button"
+              onClick={prevStep}
+              disabled={currentStep === 1}
+              className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
+                currentStep === 1
+                  ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                  : 'bg-white text-gray-700 border-2 border-gray-200 hover:bg-gray-50 hover:border-gray-300'
+              }`}
             >
-              {isSaving ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <Save className="h-4 w-4 mr-2" />
-                  Save Changes
-                </>
-              )}
+              Previous
             </button>
+
+            <div className="flex gap-3">
+              {currentStep < totalSteps ? (
+                <button
+                  type="button"
+                  onClick={nextStep}
+                  className="px-8 py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors duration-200"
+                >
+                  Next Step
+                </button>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={isSaving}
+                  className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-medium hover:from-blue-700 hover:to-purple-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  {isSaving ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4" />
+                      Save Profile
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
           </div>
         </form>
+
+        {/* AI Assistance Footer */}
+        <div className="mt-8 text-center">
+          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+            <Lightbulb className="h-8 w-8 text-yellow-500 mx-auto mb-3" />
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Need Help?</h3>
+            <p className="text-gray-600 mb-4">
+              Xainik AI is here to help optimize your profile for maximum impact
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <div className="bg-blue-50 rounded-lg p-3">
+                <div className="font-semibold text-blue-600">🤖 AI Optimization</div>
+                <div className="text-sm text-blue-600">Automated profile enhancement</div>
+              </div>
+              <div className="bg-green-50 rounded-lg p-3">
+                <div className="font-semibold text-green-600">🎯 Smart Matching</div>
+                <div className="text-sm text-green-600">Connect with right opportunities</div>
+              </div>
+              <div className="bg-purple-50 rounded-lg p-3">
+                <div className="font-semibold text-purple-600">📊 Performance Tracking</div>
+                <div className="text-sm text-purple-600">Monitor your success</div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
