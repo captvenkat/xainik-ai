@@ -22,7 +22,8 @@ async function fetchPitch(id: string) {
         name,
         email,
         avatar_url,
-        role
+        role,
+        phone
       )
     `)
     .eq('id', id)

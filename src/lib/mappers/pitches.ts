@@ -20,7 +20,7 @@ export function toPitchCardData(pitch: RawPitchRow): PitchCardData {
     linkedin_url: pitch.linkedin_url || null,
     resume_url: pitch.resume_url || null,
     phone: pitch.phone || null,
-    bio: null, // Not available in current schema
+    bio: null, // Bio not available in current schema
     likes_count: pitch.likes_count || 0,
     views_count: pitch.views_count || 0,
     created_at: pitch.created_at,
@@ -29,8 +29,8 @@ export function toPitchCardData(pitch: RawPitchRow): PitchCardData {
       name: pitch.users?.name || 'Veteran',
       email: pitch.users?.email || ''
     },
-    endorsements_count: (pitch as any).endorsements_count || 0,
-    supporters_count: (pitch as any).supporters_count || 0,
+    endorsements_count: 0, // Will be calculated separately
+    supporters_count: 0, // Will be calculated separately
     is_subscription_active: Boolean(pitch.plan_tier && 
                            pitch.plan_tier !== 'free' && 
                            pitch.plan_expires_at && 
@@ -46,8 +46,8 @@ export function toFullPitchData(pitch: RawPitchRow): FullPitchData {
   return {
     ...toPitchCardData(pitch),
     phone: pitch.phone || null,
-    bio: null, // Not available in current schema
-    supporters_count: (pitch as any).supporters_count || 0,
+    bio: null, // Bio not available in current schema
+    supporters_count: 0, // Will be calculated separately
     resume_share_enabled: pitch.resume_share_enabled || false,
     plan_tier: pitch.plan_tier || 'free',
     plan_expires_at: pitch.plan_expires_at || null,
