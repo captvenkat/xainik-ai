@@ -7,7 +7,7 @@ import {
   Heart, Share2, TrendingUp, Eye, Phone, Mail, Award, Users, BarChart3, 
   Target, Zap, Star, Gift, Trophy, Calendar, ArrowUpRight, ArrowDownRight,
   ChevronRight, ExternalLink, Bell, Settings, Download, Filter, Activity, MessageCircle, Lightbulb,
-  Rocket, FileText, Flag, Shield, Medal, Handshake, Sparkles, Crown, Compass, MapPin, User, Edit
+  Rocket, FileText, Flag, Shield, Medal, Handshake, Sparkles, Crown, Compass, MapPin, User, Edit, Brain
 } from 'lucide-react'
 // import BarChart from '@/components/charts/BarChart'
 // import PieChart from '@/components/charts/PieChart'
@@ -20,6 +20,9 @@ import SupporterShareModal from '@/components/SupporterShareModal'
 // import VeteransSupporting from '@/components/supporter/VeteransSupporting'
 // import ConnectedPitches from '@/components/supporter/ConnectedPitches'
 // import FOMOTicker from '@/components/analytics/FOMOTicker'
+import AIContactSuggestions from '@/components/AIContactSuggestions'
+import SmartNotifications from '@/components/SmartNotifications'
+import AIInsights from '@/components/AIInsights'
 
 // =====================================================
 // EMOTIONAL CONNECTION SUPPORTER DASHBOARD
@@ -598,13 +601,51 @@ export default function SupporterDashboard() {
         {activeTab === 'discover' && (
           <DiscoverTab 
             metrics={metrics} 
-            userId={user?.id}
+            userId={user?.id} 
             setSelectedVeteranForShare={setSelectedVeteranForShare}
             setShowShareModal={setShowShareModal}
           />
         )}
         {activeTab === 'community' && <CommunitySuggestions userId={user?.id} />}
-        {activeTab === 'profile' && <ProfileTab />}
+        {activeTab === 'profile' && <ProfileTab profile={profile} />}
+        
+        {/* AI-Powered Features Section - Always Visible */}
+        <div className="mt-12 space-y-6">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">🤖 AI-Powered Mission Intelligence</h2>
+            <p className="text-gray-600">Get intelligent insights and recommendations to maximize your impact</p>
+          </div>
+          
+          {/* AI Contact Suggestions for Supporters */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <Users className="w-5 h-5 text-blue-600" />
+              AI Contact Suggestions
+            </h3>
+            <p className="text-gray-600 mb-4">Get AI-powered suggestions for companies and contacts that would benefit from veteran talent</p>
+            <AIContactSuggestions userId={user?.id} />
+          </div>
+          
+          {/* AI Smart Notifications for Supporters */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <Bell className="w-5 h-5 text-green-600" />
+              AI Smart Notifications
+            </h3>
+            <p className="text-gray-600 mb-4">Receive intelligent notifications about opportunities to help veterans</p>
+            <SmartNotifications userId={user?.id} />
+          </div>
+          
+          {/* AI Insights for Supporters */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <Brain className="w-5 h-5 text-purple-600" />
+              AI Mission Insights
+            </h3>
+            <p className="text-gray-600 mb-4">Get strategic insights on how to maximize your impact as a supporter</p>
+            <AIInsights userId={user?.id} />
+          </div>
+        </div>
       </div>
 
       {/* Mission Invitation Modal */}
@@ -835,7 +876,7 @@ function MissionTab({ metrics, userId, onOpenInviteModal }: { metrics: Supporter
 }
 
 // PROFILE TAB - Supporter Profile Management
-function ProfileTab() {
+function ProfileTab({ profile }: { profile: any }) {
   const router = useRouter()
   
   return (
