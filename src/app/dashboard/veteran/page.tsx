@@ -927,36 +927,37 @@ function Step1CompleteProfile({ router }: { router: any }) {
         </div>
       </div>
 
-      {/* Tips */}
-      <div className="mt-8 bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">💡 Pro Tips for Your Profile</h3>
+      {/* AI-Powered Tips */}
+      <div className="mt-8 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 shadow-sm border border-blue-100">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">🤖 Let Xainik AI Do the Magic</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
           <div className="flex items-start gap-3">
-            <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-              <span className="text-blue-600 text-xs">✓</span>
+            <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+              <span className="text-white text-xs">✨</span>
             </div>
-            <span>Use your full legal name as it appears on official documents</span>
+            <span>Just add basic details - our AI will optimize your profile</span>
           </div>
           <div className="flex items-start gap-3">
-            <div className="flex items-start gap-3">
-              <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                <span className="text-blue-600 text-xs">✓</span>
-              </div>
-              <span>Write a compelling bio that highlights your military experience</span>
+            <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+              <span className="text-white text-xs">✨</span>
             </div>
+            <span>AI automatically highlights your military strengths</span>
           </div>
           <div className="flex items-start gap-3">
-            <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-              <span className="text-blue-600 text-xs">✓</span>
+            <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+              <span className="text-white text-xs">✨</span>
             </div>
-            <span>Add your current location to help with local opportunities</span>
+            <span>Smart matching with recruiters and opportunities</span>
           </div>
           <div className="flex items-start gap-3">
-            <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-              <span className="text-blue-600 text-xs">✓</span>
+            <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+              <span className="text-white text-xs">✨</span>
             </div>
-            <span>List key skills that translate from military to civilian work</span>
+            <span>AI-powered insights for career growth</span>
           </div>
+        </div>
+        <div className="mt-4 text-center">
+          <p className="text-sm text-blue-600 font-medium">🎯 Focus on your story - we'll handle the optimization!</p>
         </div>
       </div>
     </div>
@@ -1039,34 +1040,37 @@ function Step2CreatePitch({ router }: { router: any }) {
         </div>
       </div>
 
-      {/* Pitch Tips */}
-      <div className="mt-8 bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">💡 Pro Tips for Your Pitch</h3>
+      {/* AI-Powered Pitch Tips */}
+      <div className="mt-8 bg-gradient-to-r from-green-50 to-blue-50 rounded-xl p-6 shadow-sm border border-green-100">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">🤖 AI-Powered Pitch Creation</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
           <div className="flex items-start gap-3">
-            <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-              <span className="text-green-600 text-xs">✓</span>
+            <div className="w-6 h-6 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+              <span className="text-white text-xs">✨</span>
             </div>
-            <span>Highlight your military skills and how they translate to civilian roles</span>
+            <span>Our AI analyzes your military experience automatically</span>
           </div>
           <div className="flex items-start gap-3">
-            <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-              <span className="text-green-600 text-xs">✓</span>
+            <div className="w-6 h-6 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+              <span className="text-white text-xs">✨</span>
             </div>
-            <span>Be specific about your achievements and leadership experience</span>
+            <span>Smart suggestions for civilian skill translation</span>
           </div>
           <div className="flex items-start gap-3">
-            <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-              <span className="text-green-600 text-xs">✓</span>
+            <div className="w-6 h-6 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+              <span className="text-white text-xs">✨</span>
             </div>
-            <span>Use our AI assistant to help craft the perfect message</span>
+            <span>AI-powered optimization for maximum impact</span>
           </div>
           <div className="flex items-start gap-3">
-            <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-              <span className="text-green-600 text-xs">✓</span>
+            <div className="w-6 h-6 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+              <span className="text-white text-xs">✨</span>
             </div>
-            <span>Keep it concise but impactful - quality over quantity</span>
+            <span>Intelligent targeting for the right opportunities</span>
           </div>
+        </div>
+        <div className="mt-4 text-center">
+          <p className="text-sm text-green-600 font-medium">🎯 Share your story - AI handles the optimization!</p>
         </div>
       </div>
     </div>
