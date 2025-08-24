@@ -203,7 +203,6 @@ export default function AdminDashboard() {
       setDonations(recentDonations || []);
 
     } catch (error) {
-      console.error('Error fetching dashboard data:', error);
       setError('Failed to load dashboard data');
     } finally {
       setLoading(false);

@@ -55,7 +55,6 @@ export async function createOrder(options: CreateOrderOptions): Promise<OrderRes
       status: order.status || 'created'
     };
   } catch (error) {
-    console.error('Failed to create Razorpay order:', error);
     throw new Error('Failed to create payment order');
   }
 }
@@ -101,7 +100,6 @@ export async function createSubscription(options: CreateSubscriptionOptions): Pr
       current_end: subscription.current_end || 0
     };
   } catch (error) {
-    console.error('Failed to create Razorpay subscription:', error);
     throw new Error('Failed to create subscription');
   }
 }
@@ -126,7 +124,6 @@ export function verifyPaymentSignature(data: PaymentVerificationData): boolean {
     
     return signature === data.razorpay_signature;
   } catch (error) {
-    console.error('Payment signature verification failed:', error);
     return false;
   }
 }
@@ -144,27 +141,25 @@ export interface WebhookEvent {
 
 export async function processWebhookEvent(event: WebhookEvent): Promise<void> {
   try {
-    console.log('Processing webhook event:', event.event, event.id);
-
     // TODO: Implement webhook processing logic
     // This will be implemented once the billing services are ready
     
     switch (event.event) {
       case 'payment.captured':
-        console.log('Payment captured:', event.payload.payment?.id);
+        // Payment captured logic
         break;
       case 'subscription.activated':
-        console.log('Subscription activated:', event.payload.subscription?.id);
+        // Subscription activated logic
         break;
       case 'subscription.charged':
-        console.log('Subscription charged:', event.payload.subscription?.id);
+        // Subscription charged logic
         break;
       default:
-        console.log('Unhandled event type:', event.event);
+        // Unhandled event type
+        break;
     }
 
   } catch (error) {
-    console.error('Error processing webhook event:', error);
     throw error;
   }
 }
@@ -194,7 +189,6 @@ export async function processRefund(options: RefundOptions): Promise<any> {
     const refund = await razorpay.payments.refund(options.payment_id, refundParams);
     return refund;
   } catch (error) {
-    console.error('Failed to process refund:', error);
     throw new Error('Failed to process refund');
   }
 }

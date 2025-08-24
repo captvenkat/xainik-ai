@@ -167,7 +167,6 @@ export async function POST(request: NextRequest) {
     const error = new Error('exec_sql RPC function not available - apply migration manually in SQL Editor');
     
     if (error) {
-      console.error('Migration error:', error);
       return NextResponse.json({ error: 'Migration failed', details: error.message }, { status: 500 });
     }
     
@@ -186,7 +185,6 @@ export async function POST(request: NextRequest) {
     });
     
   } catch (error) {
-    console.error('Migration failed:', error);
     return NextResponse.json({ error: 'Migration failed' }, { status: 500 });
   }
 }
