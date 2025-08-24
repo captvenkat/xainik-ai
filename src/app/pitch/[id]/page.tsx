@@ -185,7 +185,12 @@ export default async function PitchDetailPage({
   ])
 
   // Transform pitch data for FullPitchView
-  const fullPitchData = toFullPitchData(pitch as any)
+  const fullPitchData = {
+    ...toFullPitchData(pitch as any),
+    // Preserve military data and bio from fetchPitch
+    militaryData: (pitch as any).militaryData || null,
+    bio: (pitch as any).bio || null
+  }
 
   // Log referral event if referral ID is present
   if (ref) {
