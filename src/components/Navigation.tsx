@@ -26,7 +26,6 @@ export default function Navigation() {
 
   useEffect(() => {
     // Simple auth check without complex timeouts
-    console.log('Navigation: Starting simple auth check')
     
     const supabase = createSupabaseBrowser()
     let isMounted = true
@@ -40,7 +39,6 @@ export default function Navigation() {
         
         if (session?.user) {
           setUser(session.user)
-          console.log('Navigation: User found:', session.user.id)
           
           // Get profile
           const { data: profile, error: profileError } = await supabase
@@ -59,7 +57,7 @@ export default function Navigation() {
           setProfile(null)
         }
       } catch (error) {
-        console.error('Navigation: Auth check error:', error)
+        // Silent error handling for auth check
         setUser(null)
         setProfile(null)
       } finally {
@@ -73,7 +71,6 @@ export default function Navigation() {
     
     // Simple auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('Navigation: Auth state change:', event)
       if (isMounted) {
         setUser(session?.user ?? null)
         if (!session?.user) {
@@ -99,7 +96,7 @@ export default function Navigation() {
       
       const { error } = await supabase.auth.signOut()
       if (error) {
-        console.error('Navigation: Sign out error:', error)
+        // Silent error handling for sign out
       } else {
         // Clear any local storage
         if (typeof window !== 'undefined') {
@@ -114,7 +111,7 @@ export default function Navigation() {
         window.location.href = '/'
       }
     } catch (error) {
-      console.error('Navigation: Sign out error:', error)
+      // Silent error handling for sign out
       // Force page reload anyway
       window.location.href = '/'
     }
