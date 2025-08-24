@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
@@ -42,6 +42,14 @@ import {
 // =====================================================
 
 export default function VeteranDashboard() {
+  return (
+    <Suspense fallback={<LoadingSpinner />}>
+      <VeteranDashboardContent />
+    </Suspense>
+  )
+}
+
+function VeteranDashboardContent() {
   const { user, isLoading: authLoading } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
