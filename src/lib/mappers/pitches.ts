@@ -4,15 +4,6 @@ import type { FullPitchData, PitchCardData } from '@/types/domain'
 export type RawPitchRow = Database['public']['Tables']['pitches']['Row'] & {
   users?: Database['public']['Tables']['users']['Row']
   endorsements?: Database['public']['Tables']['endorsements']['Row'][]
-  // New fields from pitch_cards_view
-  user_name?: string
-  user_email?: string
-  user_avatar_url?: string
-  user_role?: string
-  user_profile_data?: any
-  endorsements_count?: number
-  shares_count?: number
-  allow_resume_requests?: boolean
 }
 
 export function toPitchCardData(pitch: RawPitchRow): PitchCardData {
@@ -24,22 +15,22 @@ export function toPitchCardData(pitch: RawPitchRow): PitchCardData {
     location: pitch.location,
     job_type: pitch.job_type,
     availability: pitch.availability,
-    photo_url: pitch.photo_url || pitch.user_avatar_url || null,
-    experience_years: pitch.experience_years,
-    linkedin_url: pitch.linkedin_url,
-    resume_url: pitch.resume_url,
-    phone: pitch.phone,
-    bio: pitch.user_profile_data?.bio || null,
+    photo_url: pitch.photo_url || pitch.users?.avatar_url || null,
+    experience_years: pitch.experience_years || 0,
+    linkedin_url: pitch.linkedin_url || null,
+    resume_url: pitch.resume_url || null,
+    phone: pitch.phone || null,
+    bio: null, // Not available in current schema
     likes_count: pitch.likes_count || 0,
     views_count: pitch.views_count || 0,
-    created_at: pitch.created_at || new Date().toISOString(),
+    created_at: pitch.created_at,
     user: {
       id: pitch.user_id,
-      name: pitch.user_name || 'Veteran',
-      email: pitch.user_email || ''
+      name: pitch.users?.name || 'Veteran',
+      email: pitch.users?.email || ''
     },
-    endorsements_count: pitch.endorsements_count || 0,
-    supporters_count: pitch.shares_count || 0,
+    endorsements_count: (pitch as any).endorsements_count || 0,
+    supporters_count: (pitch as any).supporters_count || 0,
     is_subscription_active: Boolean(pitch.plan_tier && 
                            pitch.plan_tier !== 'free' && 
                            pitch.plan_expires_at && 
@@ -54,11 +45,12 @@ export function toPitchCardDataArray(pitches: RawPitchRow[]): PitchCardData[] {
 export function toFullPitchData(pitch: RawPitchRow): FullPitchData {
   return {
     ...toPitchCardData(pitch),
-    bio: pitch.user_profile_data?.bio || null,
-    supporters_count: pitch.shares_count || 0,
+    phone: pitch.phone || null,
+    bio: null, // Not available in current schema
+    supporters_count: (pitch as any).supporters_count || 0,
     resume_share_enabled: pitch.resume_share_enabled || false,
-    plan_tier: pitch.plan_tier,
-    plan_expires_at: pitch.plan_expires_at,
+    plan_tier: pitch.plan_tier || 'free',
+    plan_expires_at: pitch.plan_expires_at || null,
     updated_at: pitch.updated_at || new Date().toISOString(),
     endorsements: pitch.endorsements?.filter((endorsement: any) => endorsement.endorser_user_id).map((endorsement: any) => ({
       ...endorsement,
