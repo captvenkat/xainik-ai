@@ -180,6 +180,15 @@ export default function FullPitchView({
     final_expiry_date: plan_expires_at || (pitch as any).users?.metadata?.plan_expires_at
   })
 
+  // Debug photo display
+  console.log('FullPitchView Photo Debug:', {
+    photo_url,
+    photo_url_type: typeof photo_url,
+    photo_url_truthy: !!photo_url,
+    photo_url_length: photo_url ? photo_url.length : 'N/A',
+    photo_url_starts_with: photo_url ? photo_url.substring(0, 50) : 'N/A'
+  })
+
   const veteranName = pitchUser?.name || 'Veteran'
   const veteranRole = 'veteran'
 
