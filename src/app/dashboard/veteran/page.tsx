@@ -140,31 +140,7 @@ export default function VeteranDashboard() {
 
 
           
-          {/* Mock Data Information Banner */}
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6 mb-6 shadow-lg">
-            <div className="text-center">
-              <div className="text-3xl mb-3">🎯</div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">Welcome to Your Veteran Dashboard!</h3>
-              <div className="text-gray-700 space-y-2">
-                <p>You're currently seeing <strong>demo data</strong> to show you what your dashboard will look like.</p>
-                <p>To see your <strong>real-time stats</strong>:</p>
-                <div className="flex flex-col sm:flex-row gap-3 justify-center mt-4">
-                  <div className="bg-white rounded-lg p-3 border border-blue-200">
-                    <div className="font-semibold text-blue-600">1️⃣ Create Your Pitch</div>
-                    <div className="text-sm text-gray-600">Build your professional pitch</div>
-                  </div>
-                  <div className="bg-white rounded-lg p-3 border border-blue-200">
-                    <div className="font-semibold text-blue-600">2️⃣ Share & Network</div>
-                    <div className="text-sm text-gray-600">Share your pitch with your network</div>
-                  </div>
-                  <div className="bg-white rounded-lg p-3 border border-blue-200">
-                    <div className="font-semibold text-blue-600">3️⃣ Watch Stats Grow</div>
-                    <div className="text-sm text-gray-600">See real-time performance data</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+
         </div>
         
         {/* Enhanced Navigation Tabs */}
