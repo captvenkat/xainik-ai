@@ -46,17 +46,17 @@ async function fetchPitch(id: string) {
     // Try to get all fields including bio (if it exists)
     const { data: veteranProfile, error: veteranError } = await supabaseClient
       .from('veterans')
-      .select('rank, service_branch, years_experience, bio')
+      .select('rank, service_branch, years_experience, bio, retirement_date, locations_preferred')
       .eq('user_id', pitch.user_id)
       .single()
-    
+
     if (veteranError) {
       console.error('Error fetching veteran profile:', veteranError)
       // If bio column doesn't exist, try without it
       if (veteranError.message.includes('column "bio" does not exist')) {
         const { data: basicProfile } = await supabaseClient
           .from('veterans')
-          .select('rank, service_branch, years_experience')
+          .select('rank, service_branch, years_experience, retirement_date, locations_preferred')
           .eq('user_id', pitch.user_id)
           .single()
         
@@ -64,7 +64,9 @@ async function fetchPitch(id: string) {
           militaryData = {
             rank: basicProfile.rank,
             service_branch: basicProfile.service_branch,
-            years_experience: basicProfile.years_experience
+            years_experience: basicProfile.years_experience,
+            retirement_date: basicProfile.retirement_date,
+            locations_preferred: basicProfile.locations_preferred || []
           }
           bio = null // Bio field doesn't exist yet
           console.log('Loaded basic military data from veterans table:', militaryData)
@@ -74,7 +76,9 @@ async function fetchPitch(id: string) {
       militaryData = {
         rank: veteranProfile.rank,
         service_branch: veteranProfile.service_branch,
-        years_experience: veteranProfile.years_experience
+        years_experience: veteranProfile.years_experience,
+        retirement_date: veteranProfile.retirement_date,
+        locations_preferred: veteranProfile.locations_preferred || []
       }
       bio = veteranProfile.bio
       console.log('Loaded military data from veterans table:', militaryData)
@@ -94,7 +98,9 @@ async function fetchPitch(id: string) {
     militaryData = {
       rank: fallbackData.military_rank || fallbackData.rank,
       service_branch: fallbackData.service_branch,
-      years_experience: fallbackData.years_experience
+      years_experience: fallbackData.years_experience,
+      retirement_date: fallbackData.retirement_date,
+      locations_preferred: fallbackData.locations_preferred || []
     }
     
     if (!bio && fallbackData.bio) {

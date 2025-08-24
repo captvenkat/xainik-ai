@@ -252,6 +252,8 @@ export interface FullPitchData extends PitchCardData {
     rank: string | null;
     service_branch: string | null;
     years_experience: number | null;
+    retirement_date?: string | null;
+    locations_preferred?: string[];
   };
 }
 
