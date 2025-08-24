@@ -935,29 +935,29 @@ function Step1CompleteProfile({ router }: { router: any }) {
             <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
               <span className="text-white text-xs">✨</span>
             </div>
-            <span>Just add basic details - our AI will optimize your profile</span>
+            <span>Xainik automates your profile optimization</span>
           </div>
           <div className="flex items-start gap-3">
             <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
               <span className="text-white text-xs">✨</span>
             </div>
-            <span>AI automatically highlights your military strengths</span>
+            <span>Automated messaging and communication</span>
           </div>
           <div className="flex items-start gap-3">
             <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
               <span className="text-white text-xs">✨</span>
             </div>
-            <span>Smart matching with recruiters and opportunities</span>
+            <span>Smart referral tracking and monitoring</span>
           </div>
           <div className="flex items-start gap-3">
             <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
               <span className="text-white text-xs">✨</span>
             </div>
-            <span>AI-powered insights for career growth</span>
+            <span>Real-time performance analytics</span>
           </div>
         </div>
         <div className="mt-4 text-center">
-          <p className="text-sm text-blue-600 font-medium">🎯 Focus on your story - we'll handle the optimization!</p>
+          <p className="text-sm text-blue-600 font-medium">🎯 Focus on your story - Xainik handles the automation!</p>
         </div>
       </div>
     </div>
@@ -1048,29 +1048,29 @@ function Step2CreatePitch({ router }: { router: any }) {
             <div className="w-6 h-6 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
               <span className="text-white text-xs">✨</span>
             </div>
-            <span>Our AI analyzes your military experience automatically</span>
+            <span>Xainik automates pitch creation and optimization</span>
           </div>
           <div className="flex items-start gap-3">
             <div className="w-6 h-6 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
               <span className="text-white text-xs">✨</span>
             </div>
-            <span>Smart suggestions for civilian skill translation</span>
+            <span>Automated messaging and outreach</span>
           </div>
           <div className="flex items-start gap-3">
             <div className="w-6 h-6 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
               <span className="text-white text-xs">✨</span>
             </div>
-            <span>AI-powered optimization for maximum impact</span>
+            <span>Smart referral tracking and analytics</span>
           </div>
           <div className="flex items-start gap-3">
             <div className="w-6 h-6 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
               <span className="text-white text-xs">✨</span>
             </div>
-            <span>Intelligent targeting for the right opportunities</span>
+            <span>Real-time performance monitoring</span>
           </div>
         </div>
         <div className="mt-4 text-center">
-          <p className="text-sm text-green-600 font-medium">🎯 Share your story - AI handles the optimization!</p>
+          <p className="text-sm text-green-600 font-medium">🎯 Share your story - Xainik handles the automation!</p>
         </div>
       </div>
     </div>
