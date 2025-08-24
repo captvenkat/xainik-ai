@@ -29,20 +29,17 @@ export async function getRealContactSuggestions(pitchId: string): Promise<Contac
       return []
     }
 
-    // 2. Get real recruiters from the database
+    // 2. Get recruiters who might be interested
     const { data: recruiters, error: recruiterError } = await supabase
-      .from('recruiters')
+      .from('users')
       .select(`
-        user_id,
-        company_name,
-        industry,
-        users!inner (
-          name,
-          email,
-          role
-        )
+        id,
+        name,
+        email,
+        role
       `)
-      .eq('users.role', 'recruiter')
+      .eq('role', 'recruiter')
+      .eq('is_active', true)
 
     if (recruiterError) {
       console.error('Error fetching recruiters:', recruiterError)

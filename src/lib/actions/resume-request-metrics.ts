@@ -114,8 +114,7 @@ export async function getGlobalResumeRequestMetrics(): Promise<ResumeRequestMetr
       .from('pitches')
       .select(`
         id,
-        title,
-        users!inner(name)
+        title
       `)
       .in('id', topPitchIds)
 
@@ -138,8 +137,7 @@ export async function getGlobalResumeRequestMetrics(): Promise<ResumeRequestMetr
       .from('users')
       .select(`
         id,
-        name,
-        recruiters!inner(company_name)
+        name
       `)
       .in('id', topRecruiterIds)
 
