@@ -117,7 +117,7 @@ export default function FullPitchView({
   const [showResumeModal, setShowResumeModal] = useState(false)
   
   // Comprehensive debugging - log all incoming props
-  console.log('FullPitchView Props Debug:', {
+  console.log('FullPitchView Props Debug:', JSON.stringify({
     pitch: {
       id: pitch.id,
       title: pitch.title,
@@ -129,7 +129,7 @@ export default function FullPitchView({
     endorsements,
     isCommunityVerified,
     fullPitchObject: pitch
-  })
+  }, null, 2))
   
   const {
     id,
