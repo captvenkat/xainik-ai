@@ -282,13 +282,22 @@ function AnalyticsTab({ userId, router, onSharePitch }: { userId: string; router
         setHasSharedPitch(userHasShared)
 
         // Check if user has completed profile (basic check)
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('full_name, bio, location, skills')
+        const { data: userProfile } = await supabase
+          .from('users')
+          .select('name, phone, role')
           .eq('id', userId)
           .single()
 
-        const userHasProfile = profile && profile.full_name && profile.bio && profile.location
+        // Check if user has veteran profile data
+        const { data: veteranProfile } = await supabase
+          .from('user_profiles')
+          .select('profile_data')
+          .eq('user_id', userId)
+          .eq('profile_type', 'veteran')
+          .eq('is_active', true)
+          .single()
+
+        const userHasProfile = userProfile && userProfile.name && veteranProfile && veteranProfile.profile_data
         setHasProfile(userHasProfile)
 
         // Determine user progress - Profile first, then pitch, then share
