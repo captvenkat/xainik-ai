@@ -85,6 +85,55 @@ export default function FullPitchView({
   const militaryRank = militaryData?.rank || 'Not specified'
   const serviceBranch = militaryData?.service_branch || 'Not specified'
   const yearsOfService = militaryData?.years_experience || 0
+  const retirementDate = militaryData?.retirement_date
+  const preferredLocations = militaryData?.locations_preferred || []
+
+  // Calculate retirement status
+  const getRetirementStatus = () => {
+    if (!retirementDate) return null
+    
+    const retirement = new Date(retirementDate)
+    const now = new Date()
+    const diffTime = Math.abs(now.getTime() - retirement.getTime())
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+    const diffMonths = Math.floor(diffDays / 30)
+    const diffYears = Math.floor(diffMonths / 12)
+    
+    if (retirement > now) {
+      // Future retirement
+      if (diffYears > 0) {
+        return `Will retire after ${diffYears} year${diffYears > 1 ? 's' : ''}`
+      } else if (diffMonths > 0) {
+        return `Will retire after ${diffMonths} month${diffMonths > 1 ? 's' : ''}`
+      } else {
+        return `Will retire after ${diffDays} day${diffDays > 1 ? 's' : ''}`
+      }
+    } else {
+      // Past retirement
+      if (diffYears > 0) {
+        return `Retired ${diffYears} year${diffYears > 1 ? 's' : ''} ago`
+      } else if (diffMonths > 0) {
+        return `Retired ${diffMonths} month${diffMonths > 1 ? 's' : ''} ago`
+      } else {
+        return `Retired ${diffDays} day${diffDays > 1 ? 's' : ''} ago`
+      }
+    }
+  }
+
+  const retirementStatus = getRetirementStatus()
+
+  // Format preferred locations to show only city names
+  const formatPreferredLocations = (locations: string[]) => {
+    return locations
+      .filter(loc => loc.trim())
+      .map(loc => {
+        const parts = loc.split(',')
+        return parts[0]?.trim() || loc.trim() // Return only city name
+      })
+      .filter(city => city)
+  }
+
+  const preferredCities = formatPreferredLocations(preferredLocations)
 
   // Debug logging
   console.log('FullPitchView Debug:', {
@@ -144,7 +193,7 @@ export default function FullPitchView({
                 <div className="inline-flex items-center gap-2 bg-gradient-to-r from-red-100 to-blue-100 px-4 py-2 rounded-full border border-red-200 mb-3">
                   <Shield className="h-4 w-4 text-red-600" />
                   <span className="text-sm font-semibold text-gray-700">
-                    {militaryRank} • {serviceBranch} • {yearsOfService} years
+                    {militaryRank} • {serviceBranch}
                   </span>
                 </div>
 
@@ -319,6 +368,18 @@ export default function FullPitchView({
                   <span className="text-sm text-gray-600">Years of Service</span>
                   <span className="font-semibold text-gray-900">{yearsOfService} years</span>
                 </div>
+                {retirementStatus && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Retirement Status</span>
+                    <span className="font-semibold text-gray-900">{retirementStatus}</span>
+                  </div>
+                )}
+                {preferredCities.length > 0 && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Preferred Locations</span>
+                    <span className="font-semibold text-gray-900">{preferredCities.join(', ')}</span>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -332,10 +393,6 @@ export default function FullPitchView({
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">Job Type</span>
                   <span className="font-semibold text-gray-900 capitalize">{job_type?.replace('_', ' ')}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Experience</span>
-                  <span className="font-semibold text-gray-900">{pitch.experience_years || 0} years</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">Location</span>
@@ -432,7 +489,7 @@ export default function FullPitchView({
               )}
 
               {/* Resume Request Button */}
-              {resume_url && (
+              {resume_url && resume_share_enabled && (
                 <div className="mt-6 pt-4 border-t border-gray-100">
                   <button
                     onClick={() => setShowResumeModal(true)}
