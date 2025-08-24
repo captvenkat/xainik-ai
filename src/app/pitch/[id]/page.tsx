@@ -32,16 +32,18 @@ async function fetchPitch(id: string) {
     return null
   }
 
-  // Fetch veterans data separately since there's no direct relationship
-  const { data: veterans } = await supabaseClient
-    .from('veterans')
-    .select('bio')
+  // Fetch veteran profile data from user_profiles table
+  const { data: veteranProfile } = await supabaseClient
+    .from('user_profiles')
+    .select('profile_data')
     .eq('user_id', pitch.user_id)
+    .eq('profile_type', 'veteran')
+    .eq('is_active', true)
     .limit(1)
 
   return {
     ...pitch,
-    veterans: veterans || []
+    veterans: veteranProfile ? [{ bio: veteranProfile.profile_data?.bio }] : []
   }
 }
 

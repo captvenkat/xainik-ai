@@ -90,9 +90,11 @@ export default function OptimizedNewPitchPage() {
         .single()
 
       const { data: veteranProfile } = await supabase
-        .from('veterans')
-        .select('*')
+        .from('user_profiles')
+        .select('profile_data')
         .eq('user_id', user.id)
+        .eq('profile_type', 'veteran')
+        .eq('is_active', true)
         .single()
 
       // Create pitch with profile data auto-populated
@@ -105,8 +107,8 @@ export default function OptimizedNewPitchPage() {
           skills: formData.skills.map(skill => skill.trim()).filter(Boolean),
           job_type: formData.job_type,
           // Auto-populate from profile (no duplication)
-          location: veteranProfile?.location_current || userProfile?.location || '',
-          experience_years: veteranProfile?.years_experience || 0,
+          location: veteranProfile?.profile_data?.location_current || userProfile?.location || '',
+          experience_years: veteranProfile?.profile_data?.years_experience || 0,
           phone: userProfile?.phone || '',
           // Custom pitch data
           photo_url: formData.photo_url || '',

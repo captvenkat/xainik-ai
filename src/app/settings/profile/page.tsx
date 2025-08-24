@@ -69,37 +69,40 @@ export default function ProfileSettingsPage() {
         setProfile(profileData);
         
         // Get veteran profile - handle case where veteran profile might not exist
-        let veteranData = null;
+        // Fetch user profile data from user_profiles table
+        let userProfileData = null;
         try {
           const { data, error } = await supabase
-            .from('veterans')
+            .from('user_profiles')
             .select('*')
             .eq('user_id', user.id)
+            .eq('profile_type', 'veteran')
+            .eq('is_active', true)
             .single();
           
           if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
-            console.error('Error fetching veteran profile:', error);
+            console.error('Error fetching user profile:', error);
           } else {
-            veteranData = data;
+            userProfileData = data;
           }
         } catch (error) {
-          console.error('Error in veteran profile query:', error);
+          console.error('Error in user profile query:', error);
         }
         
-        setVeteranProfile(veteranData);
+        setVeteranProfile(userProfileData);
         
         // Initialize enhanced form data
         setFormData({
           name: profileData?.name || '',
           phone: profileData?.phone || '',
-          military_rank: veteranData?.military_rank || '',
-          service_branch: veteranData?.service_branch || '',
-          years_experience: veteranData?.years_experience?.toString() || '',
-          bio: veteranData?.bio || '',
-          location_current: veteranData?.location_current || '',
-          locations_preferred: veteranData?.locations_preferred || [],
-          web_links: (veteranData?.web_links as any) || [],
-          retirement_date: veteranData?.retirement_date || '',
+          military_rank: userProfileData?.profile_data?.military_rank || '',
+          service_branch: userProfileData?.profile_data?.service_branch || '',
+          years_experience: userProfileData?.profile_data?.years_experience?.toString() || '',
+          bio: userProfileData?.profile_data?.bio || '',
+          location_current: userProfileData?.profile_data?.location_current || '',
+          locations_preferred: userProfileData?.profile_data?.locations_preferred || [],
+          web_links: userProfileData?.profile_data?.web_links || [],
+          retirement_date: userProfileData?.profile_data?.retirement_date || '',
           photo_url: profileData?.avatar_url || ''
         });
         
@@ -228,20 +231,31 @@ export default function ProfileSettingsPage() {
       };
 
       if (veteranProfile) {
-        // Update existing veteran profile
-        const { error: veteranError } = await supabase
-          .from('veterans')
-          .update(veteranData)
-          .eq('user_id', user.id);
+        // Update existing user profile
+        const { error: profileError } = await supabase
+          .from('user_profiles')
+          .update({
+            profile_data: veteranData,
+            updated_at: new Date().toISOString()
+          })
+          .eq('user_id', user.id)
+          .eq('profile_type', 'veteran');
 
-        if (veteranError) throw veteranError;
+        if (profileError) throw profileError;
       } else {
-        // Create new veteran profile
-        const { error: veteranError } = await supabase
-          .from('veterans')
-          .insert(veteranData);
+        // Create new user profile
+        const { error: profileError } = await supabase
+          .from('user_profiles')
+          .insert({
+            user_id: user.id,
+            profile_type: 'veteran',
+            profile_data: veteranData,
+            is_active: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          });
 
-        if (veteranError) throw veteranError;
+        if (profileError) throw profileError;
       }
 
       setSuccess('Profile updated successfully!');
@@ -256,9 +270,11 @@ export default function ProfileSettingsPage() {
       setProfile(newProfile);
       
       const { data: newVeteranProfile } = await supabase
-        .from('veterans')
+        .from('user_profiles')
         .select('*')
         .eq('user_id', user.id)
+        .eq('profile_type', 'veteran')
+        .eq('is_active', true)
         .single();
       
       setVeteranProfile(newVeteranProfile);
