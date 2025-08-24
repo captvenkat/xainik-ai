@@ -190,13 +190,24 @@ export default async function PitchDetailPage({
     pitch.user_id ? isCommunityVerified(pitch.user_id) : Promise.resolve(false)
   ])
 
-  // Transform pitch data for FullPitchView
+  // Transform pitch data for FullPitchView, preserving militaryData and bio
   const fullPitchData = {
     ...toFullPitchData(pitch as any),
-    // Preserve military data and bio from fetchPitch
     militaryData: (pitch as any).militaryData || null,
     bio: (pitch as any).bio || null
   }
+
+  // Debug photo data from database
+  console.log('Pitch Database Photo Debug:', {
+    raw_pitch_photo_url: (pitch as any).photo_url,
+    raw_pitch_photo_url_type: typeof (pitch as any).photo_url,
+    raw_pitch_photo_url_truthy: !!(pitch as any).photo_url,
+    mapped_pitch_photo_url: fullPitchData.photo_url,
+    mapped_pitch_photo_url_type: typeof fullPitchData.photo_url,
+    mapped_pitch_photo_url_truthy: !!fullPitchData.photo_url,
+    pitch_keys: Object.keys(pitch as any),
+    fullPitchData_keys: Object.keys(fullPitchData)
+  })
 
   // Log referral event if referral ID is present
   if (ref) {
