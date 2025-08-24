@@ -28,7 +28,10 @@ import {
   Zap,
   Target,
   Users,
-  Timer
+  Timer,
+  MessageSquare,
+  Briefcase,
+  Activity
 } from 'lucide-react'
 import Link from 'next/link'
 import LikeButton from '@/components/LikeButton'
@@ -45,14 +48,12 @@ interface FullPitchViewProps {
   isCommunityVerified?: boolean
 }
 
-export default function FullPitchView({ pitch, user, endorsements = [], isCommunityVerified = false }: FullPitchViewProps) {
-  const [showContactInfo, setShowContactInfo] = useState(false)
-  const [copiedEmail, setCopiedEmail] = useState(false)
-  const [showShareModal, setShowShareModal] = useState(false)
-  const [showResumeModal, setShowResumeModal] = useState(false)
-  const [showEmailModal, setShowEmailModal] = useState(false)
-  const [timeLeft, setTimeLeft] = useState<{ days: number } | null>(null)
-  
+export default function FullPitchView({ 
+  pitch, 
+  user, 
+  endorsements, 
+  isCommunityVerified 
+}: FullPitchViewProps) {
   const {
     id,
     title,
@@ -62,663 +63,383 @@ export default function FullPitchView({ pitch, user, endorsements = [], isCommun
     job_type,
     availability,
     photo_url,
-    experience_years,
+    phone,
     linkedin_url,
     resume_url,
     resume_share_enabled,
-    phone,
+    plan_tier,
+    plan_expires_at,
     likes_count,
     views_count,
     endorsements_count,
     supporters_count,
-    plan_tier,
-    plan_expires_at,
     created_at,
     updated_at,
-    endorsements: pitchEndorsements,
-    user: pitchUser
+    user: pitchUser,
+    militaryData
   } = pitch
 
   const veteranName = pitchUser?.name || 'Veteran'
   const veteranRole = 'veteran'
 
-  // Countdown timer effect - updates daily
-  useEffect(() => {
-    if (!plan_expires_at) return
+  // Format military service information
+  const militaryRank = militaryData?.rank || 'Not specified'
+  const serviceBranch = militaryData?.service_branch || 'Not specified'
+  const yearsOfService = militaryData?.years_experience || 0
 
-    const calculateTimeLeft = () => {
-      const now = new Date().getTime()
-      const expiry = new Date(plan_expires_at).getTime()
-      const difference = expiry - now
-
-      if (difference > 0) {
-        setTimeLeft({
-          days: Math.floor(difference / (1000 * 60 * 60 * 24))
-        })
-      } else {
-        setTimeLeft({ days: 0 })
-      }
-    }
-
-    calculateTimeLeft()
-    // Update once per day instead of every second
-    const timer = setInterval(calculateTimeLeft, 24 * 60 * 60 * 1000)
-
-    return () => clearInterval(timer)
-  }, [plan_expires_at])
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    })
-  }
-
-  const getUrgencyLevel = () => {
-    if (!timeLeft) return 'normal'
-    if (timeLeft.days <= 7) return 'critical'
-    if (timeLeft.days <= 15) return 'urgent'
-    if (timeLeft.days <= 30) return 'warning'
-    if (timeLeft.days <= 60) return 'notice'
-    return 'normal'
-  }
-
-  const getUrgencyMessage = () => {
-    const level = getUrgencyLevel()
-    switch (level) {
-      case 'critical':
-        return `🚨 CRITICAL: Only ${timeLeft?.days} days left to support this veteran!`
-      case 'urgent':
-        return `⚡ URGENT: This veteran's pitch expires in ${timeLeft?.days} days!`
-      case 'warning':
-        return `⚠️ LIMITED TIME: Pitch expires in ${timeLeft?.days} days - refer now!`
-      case 'notice':
-        return `⏰ This veteran's pitch is active for ${timeLeft?.days} more days`
-      default:
-        return '🤝 Support this veteran - pitch is active and seeking opportunities'
-    }
-  }
-
-  const getUrgencyColor = () => {
-    const level = getUrgencyLevel()
-    switch (level) {
-      case 'critical':
-        return 'from-red-600 to-red-700'
-      case 'urgent':
-        return 'from-orange-500 to-red-600'
-      case 'warning':
-        return 'from-yellow-500 to-orange-500'
-      case 'notice':
-        return 'from-blue-500 to-purple-600'
-      default:
-        return 'from-green-500 to-blue-600'
-    }
-  }
-
-  const getUrgencySubMessage = () => {
-    const level = getUrgencyLevel()
-    switch (level) {
-      case 'critical':
-        return 'Last chance to help this veteran find opportunities!'
-      case 'urgent':
-        return 'Time is running out - refer them to your network now!'
-      case 'warning':
-        return 'Don\'t let this veteran miss out on opportunities!'
-      case 'notice':
-        return 'Help connect them with opportunities before time runs out'
-      default:
-        return 'Join the community supporting this veteran\'s transition'
-    }
-  }
-
-  const copyEmail = async () => {
-    if (pitchUser?.email) {
-      await navigator.clipboard.writeText(pitchUser.email)
-      setCopiedEmail(true)
-      setTimeout(() => setCopiedEmail(false), 2000)
-    }
-  }
+  // Calculate time since creation
+  const timeSinceCreation = created_at 
+    ? Math.floor((Date.now() - new Date(created_at).getTime()) / (1000 * 60 * 60 * 24))
+    : 0
 
   return (
-    <div className="max-w-6xl mx-auto">
-      {/* Urgency Banner */}
-      {timeLeft && (
-        <div className={`mb-6 bg-gradient-to-r ${getUrgencyColor()} text-white rounded-2xl p-6 shadow-lg animate-pulse`}>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <AlertTriangle className="h-6 w-6" />
-              <div>
-                <h3 className="text-lg font-bold">{getUrgencyMessage()}</h3>
-                <p className="text-sm opacity-90">{getUrgencySubMessage()}</p>
-              </div>
-            </div>
-            <div className="text-right">
-              <div className="text-2xl font-bold">
-                {timeLeft.days} days
-              </div>
-              <div className="text-sm opacity-90">Remaining</div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Hero Section - Urgency Focused */}
-      <div className="relative bg-gradient-to-br from-red-50 via-white to-orange-50 rounded-3xl p-8 md:p-12 mb-8 border-2 border-red-100 shadow-lg">
-        <div className="absolute inset-0 bg-gradient-to-r from-red-500/5 to-orange-500/5 rounded-3xl" />
+    <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-blue-50">
+      {/* Hero Section */}
+      <div className="relative overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 bg-gradient-to-r from-red-100/20 to-blue-100/20" />
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZWNhY2EiIGZpbGwtb3BhY2l0eT0iMC4xIj48Y2lyY2xlIGN4PSIzMCIgY3k9IjMwIiByPSIyIi8+PC9nPjwvZz48L3N2Zz4=')] opacity-30" />
         
-        <div className="relative">
-          {/* Header with Urgency */}
-          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-8 mb-8">
-            <div className="flex items-start gap-6">
-              {/* Profile Image with Urgency Badge */}
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20">
+          <div className="text-center">
+            {/* Veteran Photo and Basic Info */}
+            <div className="flex flex-col items-center mb-8">
               {photo_url ? (
-                <div className="relative">
+                <div className="relative mb-6">
                   <img 
                     src={photo_url} 
                     alt={veteranName}
                     className="w-24 h-24 md:w-32 md:h-32 rounded-3xl object-cover shadow-2xl ring-4 ring-white"
                     onError={(e) => {
-                      // Fallback to default avatar if image fails to load
                       const target = e.target as HTMLImageElement;
                       target.style.display = 'none';
                       target.nextElementSibling?.classList.remove('hidden');
                     }}
                   />
-                  <div className="hidden w-24 h-24 md:w-32 md:h-32 bg-gradient-to-br from-red-500 to-orange-600 rounded-3xl flex items-center justify-center shadow-2xl ring-4 ring-white">
-                    <Shield className="h-12 w-12 md:h-16 md:w-16 text-white" />
-                  </div>
-                  <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-red-500 rounded-full flex items-center justify-center shadow-lg animate-pulse">
-                    <Zap className="h-4 w-4 text-white" />
+                  <div className="hidden w-24 h-24 md:w-32 md:h-32 bg-gradient-to-br from-blue-500 to-purple-600 rounded-3xl flex items-center justify-center shadow-2xl ring-4 ring-white">
+                    <Shield className="h-12 w-12 text-white" />
                   </div>
                 </div>
               ) : (
-                <div className="relative">
-                  <div className="w-24 h-24 md:w-32 md:h-32 bg-gradient-to-br from-red-500 to-orange-600 rounded-3xl flex items-center justify-center shadow-2xl ring-4 ring-white">
-                    <Shield className="h-12 w-12 md:h-16 md:w-16 text-white" />
-                  </div>
-                  <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-red-500 rounded-full flex items-center justify-center shadow-lg animate-pulse">
-                    <Zap className="h-4 w-4 text-white" />
-                  </div>
+                <div className="w-24 h-24 md:w-32 md:h-32 bg-gradient-to-br from-blue-500 to-purple-600 rounded-3xl flex items-center justify-center shadow-2xl ring-4 ring-white mb-6">
+                  <Shield className="h-12 w-12 text-white" />
                 </div>
               )}
-              
-              {/* Title and Urgency Badges */}
-              <div className="flex-1">
-                <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3 leading-tight">
-                  {title}
-                </h1>
-                <div className="flex items-center gap-4 mb-4 flex-wrap">
-                  <div className="flex items-center gap-2 text-gray-600">
-                    <User className="h-5 w-5" />
-                    <span className="font-semibold text-lg">{veteranName}</span>
-                  </div>
-                  {/* Only show verified tag if actually verified */}
-                  {isCommunityVerified && (
-                    <div className="flex items-center gap-1 text-green-600 bg-green-50 px-3 py-1.5 rounded-full border border-green-200">
-                      <CheckCircle className="h-4 w-4" />
-                      <span className="text-sm font-semibold">Verified Veteran</span>
-                    </div>
-                  )}
-                  <div className="flex items-center gap-1 text-red-600 bg-red-50 px-3 py-1.5 rounded-full border border-red-200 animate-pulse">
-                    <Timer className="h-4 w-4" />
-                    <span className="text-sm font-semibold">Active Now</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            {/* Urgency Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 lg:gap-4">
-              <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-4 border border-red-100 shadow-sm">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <Eye className="h-5 w-5 text-blue-500" />
-                  <span className="text-2xl md:text-3xl font-bold text-gray-900">{views_count || 0}</span>
-                </div>
-                <div className="text-xs text-gray-500 font-medium text-center">People Watching</div>
-              </div>
-              <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-4 border border-red-100 shadow-sm">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <Heart className="h-5 w-5 text-red-500" />
-                  <span className="text-2xl md:text-3xl font-bold text-gray-900">{likes_count || 0}</span>
-                </div>
-                <div className="text-xs text-gray-500 font-medium text-center">Interested</div>
-              </div>
-              <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-4 border border-red-100 shadow-sm">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <TrendingUp className="h-5 w-5 text-green-500" />
-                  <span className="text-2xl md:text-3xl font-bold text-gray-900">{endorsements_count || 0}</span>
-                </div>
-                <div className="text-xs text-gray-500 font-medium text-center">Endorsed</div>
-              </div>
-              <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-4 border border-red-100 shadow-sm">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <Users className="h-5 w-5 text-purple-500" />
-                  <span className="text-2xl md:text-3xl font-bold text-gray-900">{supporters_count || 0}</span>
-                </div>
-                <div className="text-xs text-gray-500 font-medium text-center">Supporting</div>
-              </div>
-            </div>
-          </div>
 
-          {/* Urgency Info Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {location && (
-              <div className="flex items-center gap-3 bg-white/90 backdrop-blur-sm rounded-2xl p-4 border border-red-100 shadow-sm">
-                <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-                <div>
-                  <div className="text-xs text-gray-500 font-medium">Ready in</div>
-                  <div className="font-semibold text-gray-900">{location}</div>
+              <div className="text-center">
+                <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+                  {veteranName}
+                </h1>
+                
+                {/* Military Service Badge */}
+                {militaryData && (
+                  <div className="inline-flex items-center gap-2 bg-gradient-to-r from-red-100 to-blue-100 px-4 py-2 rounded-full border border-red-200 mb-3">
+                    <Shield className="h-4 w-4 text-red-600" />
+                    <span className="text-sm font-semibold text-gray-700">
+                      {militaryRank} • {serviceBranch} • {yearsOfService} years
+                    </span>
+                  </div>
+                )}
+
+                {/* Verified Veteran Tag */}
+                {isCommunityVerified && (
+                  <div className="flex items-center gap-1 text-green-600 bg-green-50 px-3 py-1.5 rounded-full border border-green-200 mb-3">
+                    <CheckCircle className="h-4 w-4" />
+                    <span className="text-sm font-semibold">Verified Veteran</span>
+                  </div>
+                )}
+
+                {/* Pitch Title */}
+                <h2 className="text-xl md:text-2xl font-semibold text-gray-700 mb-2">
+                  {title}
+                </h2>
+
+                {/* Location and Availability */}
+                <div className="flex items-center justify-center gap-4 text-sm text-gray-600">
+                  <div className="flex items-center gap-1">
+                    <MapPin className="h-4 w-4" />
+                    <span>{location}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Calendar className="h-4 w-4" />
+                    <span>Available: {availability}</span>
+                  </div>
                 </div>
               </div>
-            )}
-            {availability && (
-              <div className="flex items-center gap-3 bg-white/90 backdrop-blur-sm rounded-2xl p-4 border border-red-100 shadow-sm">
-                <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                <div>
-                  <div className="text-xs text-gray-500 font-medium">Availability</div>
-                  <div className="font-semibold text-gray-900">{availability}</div>
+            </div>
+
+            {/* Redesigned Metrics Section */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto mb-8">
+              <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-100 shadow-lg hover:shadow-xl transition-all duration-300">
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-3">
+                    <Eye className="h-6 w-6 text-blue-600" />
+                  </div>
+                  <div className="text-2xl font-bold text-gray-900 mb-1">{views_count || 0}</div>
+                  <div className="text-xs text-gray-600 font-medium">Profile Views</div>
                 </div>
               </div>
-            )}
-            {job_type && (
-              <div className="flex items-center gap-3 bg-white/90 backdrop-blur-sm rounded-2xl p-4 border border-red-100 shadow-sm">
-                <Target className="h-5 w-5 text-green-500" />
-                <div>
-                  <div className="text-xs text-gray-500 font-medium">Seeking</div>
-                  <div className="font-semibold text-gray-900 capitalize">{job_type}</div>
+
+              <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-100 shadow-lg hover:shadow-xl transition-all duration-300">
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center mb-3">
+                    <Heart className="h-6 w-6 text-red-600" />
+                  </div>
+                  <div className="text-2xl font-bold text-gray-900 mb-1">{likes_count || 0}</div>
+                  <div className="text-xs text-gray-600 font-medium">Interested</div>
                 </div>
               </div>
-            )}
-            {experience_years && experience_years > 0 && (
-              <div className="flex items-center gap-3 bg-white/90 backdrop-blur-sm rounded-2xl p-4 border border-red-100 shadow-sm">
-                <Award className="h-5 w-5 text-purple-500" />
-                <div>
-                  <div className="text-xs text-gray-500 font-medium">Experience</div>
-                  <div className="font-semibold text-gray-900">{experience_years} years</div>
+
+              <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-100 shadow-lg hover:shadow-xl transition-all duration-300">
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mb-3">
+                    <TrendingUp className="h-6 w-6 text-green-600" />
+                  </div>
+                  <div className="text-2xl font-bold text-gray-900 mb-1">{endorsements_count || 0}</div>
+                  <div className="text-xs text-gray-600 font-medium">Endorsed</div>
                 </div>
               </div>
-            )}
+
+              <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-100 shadow-lg hover:shadow-xl transition-all duration-300">
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mb-3">
+                    <Users className="h-6 w-6 text-purple-600" />
+                  </div>
+                  <div className="text-2xl font-bold text-gray-900 mb-1">{supporters_count || 0}</div>
+                  <div className="text-xs text-gray-600 font-medium">Supporting</div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left Column - Main Content */}
-        <div className="lg:col-span-2 space-y-8">
-          {/* Skills Section */}
-          <div className="bg-white rounded-3xl p-6 md:p-8 border border-gray-100 shadow-sm">
-            <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-              <Target className="h-5 w-5 text-red-500" />
-              Core Competencies
-            </h3>
-            <div className="flex flex-wrap gap-3">
-              {skills.map((skill: string, index: number) => (
-                <span 
-                  key={index} 
-                  className="px-4 py-2 bg-gradient-to-r from-red-50 to-orange-50 text-red-700 rounded-full border border-red-100 font-medium hover:from-red-100 hover:to-orange-100 transition-all duration-200"
-                >
-                  {skill}
-                </span>
-              ))}
+      {/* Content Sections */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Content - 2/3 width */}
+          <div className="lg:col-span-2 space-y-8">
+            {/* Pitch Content */}
+            <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm">
+              <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                <MessageSquare className="h-5 w-5 text-blue-500" />
+                Professional Pitch
+              </h3>
+              <div className="prose prose-gray max-w-none">
+                <p className="text-gray-700 leading-relaxed text-lg">{pitch_text}</p>
+              </div>
             </div>
-          </div>
 
-          {/* Pitch */}
-          <div className="bg-white rounded-3xl p-6 md:p-8 border border-gray-100 shadow-sm">
-            <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-              <FileText className="h-5 w-5 text-blue-500" />
-              Pitch
-            </h3>
-            <div className="prose prose-gray max-w-none">
-              <p className="text-gray-700 leading-relaxed text-lg">{pitch_text}</p>
-            </div>
-          </div>
-
-          {/* Additional Details */}
-          <div className="bg-white rounded-3xl p-6 md:p-8 border border-gray-100 shadow-sm">
-            <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-              <User className="h-5 w-5 text-purple-500" />
-              Contact & Additional Details
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {phone && (
-                <div className="flex items-center gap-3">
-                  <Phone className="h-5 w-5 text-green-500" />
-                  <div>
-                    <div className="text-sm text-gray-500 font-medium">Phone</div>
-                    <div className="font-semibold text-gray-900">Available for Contact</div>
-                  </div>
-                </div>
-              )}
-              {linkedin_url && (
-                <div className="flex items-center gap-3">
-                  <LinkIcon className="h-5 w-5 text-blue-500" />
-                  <div>
-                    <div className="text-sm text-gray-500 font-medium">LinkedIn</div>
-                    <a 
-                      href={linkedin_url} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="font-semibold text-blue-600 hover:text-blue-700 transition-colors"
-                    >
-                      View Profile
-                    </a>
-                  </div>
-                </div>
-              )}
-              {resume_url && (
-                <div className="flex items-center gap-3">
-                  <FileText className="h-5 w-5 text-orange-500" />
-                  <div>
-                    <div className="text-sm text-gray-500 font-medium">Resume</div>
-                    <div className="font-semibold text-gray-900">
-                      {resume_share_enabled ? 'Available on Request' : 'Not Available'}
-                    </div>
-                  </div>
-                </div>
-              )}
-              {plan_tier && plan_tier !== 'free' && (
-                <div className="flex items-center gap-3">
-                  <Star className="h-5 w-5 text-yellow-500" />
-                  <div>
-                    <div className="text-sm text-gray-500 font-medium">Plan</div>
-                    <div className="font-semibold text-gray-900 capitalize">{plan_tier.replace('_', ' ')}</div>
-                  </div>
-                </div>
-              )}
-            </div>
-            
-            {/* Contact Actions */}
-            {(phone || linkedin_url) && (
-              <div className="mt-6 pt-6 border-t border-gray-100">
-                <h4 className="text-sm font-medium text-gray-700 mb-3">Contact Options</h4>
+            {/* Skills Section */}
+            {skills && skills.length > 0 && (
+              <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm">
+                <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                  <Zap className="h-5 w-5 text-yellow-500" />
+                  Core Skills
+                </h3>
                 <div className="flex flex-wrap gap-3">
-                  {phone && (
-                    <button
-                      onClick={() => window.open(`tel:${phone}`, '_blank')}
-                      className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                  {skills.map((skill, index) => (
+                    <span
+                      key={index}
+                      className="px-4 py-2 bg-gradient-to-r from-blue-50 to-purple-50 text-blue-700 rounded-full border border-blue-200 font-medium text-sm"
                     >
-                      <Phone className="h-4 w-4" />
-                      Call
-                    </button>
-                  )}
-                  {linkedin_url && (
-                    <a
-                      href={linkedin_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                    >
-                      <LinkIcon className="h-4 w-4" />
-                      LinkedIn
-                    </a>
-                  )}
+                      {skill}
+                    </span>
+                  ))}
                 </div>
               </div>
             )}
-          </div>
 
-          {/* Endorsements */}
-          {pitchEndorsements && pitchEndorsements.length > 0 && (
-            <div className="bg-white rounded-3xl p-6 md:p-8 border border-gray-100 shadow-sm">
-              <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                <Star className="h-5 w-5 text-yellow-500" />
-                Community Validation
-              </h3>
-              <div className="space-y-4">
-                {pitchEndorsements.slice(0, 5).map((endorsement, index) => (
-                  <div key={(endorsement as any).id || `endorsement-${index}`} className="bg-gradient-to-r from-red-50 to-orange-50 rounded-2xl p-6 border border-red-100">
-                    <div className="flex items-start gap-4">
-                      <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-orange-600 rounded-full flex items-center justify-center flex-shrink-0">
-                        <User className="h-5 w-5 text-white" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-gray-700 text-lg leading-relaxed mb-3">
-                          {(endorsement as any).text || 'Endorsement text not available'}
-                        </p>
-                        <div className="flex items-center gap-3 text-sm text-gray-500">
-                          <span className="font-semibold text-gray-900">
-                            {(endorsement as any).endorser?.name || 'Anonymous'}
-                          </span>
-                          <span>•</span>
-                          <span>{(endorsement as any).created_at ? formatDate((endorsement as any).created_at) : 'Recently'}</span>
+            {/* Endorsements Section */}
+            {endorsements && endorsements.length > 0 && (
+              <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm">
+                <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                  <Star className="h-5 w-5 text-yellow-500" />
+                  Community Endorsements ({endorsements.length})
+                </h3>
+                <div className="space-y-4">
+                  {endorsements.map((endorsement, index) => (
+                    <div key={index} className="bg-gray-50 rounded-2xl p-4">
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
+                          <User className="h-5 w-5 text-white" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="font-medium text-gray-900 mb-1">
+                            {endorsement.endorser?.name || 'Community Member'}
+                          </div>
+                          <p className="text-gray-700 text-sm">{endorsement.text}</p>
                         </div>
                       </div>
                     </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Sidebar - 1/3 width */}
+          <div className="space-y-6">
+            {/* Military Service Information */}
+            {militaryData && (
+              <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
+                <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <Shield className="h-5 w-5 text-red-500" />
+                  Military Service
+                </h3>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Rank</span>
+                    <span className="font-semibold text-gray-900">{militaryRank}</span>
                   </div>
-                ))}
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Service Branch</span>
+                    <span className="font-semibold text-gray-900">{serviceBranch}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Years of Service</span>
+                    <span className="font-semibold text-gray-900">{yearsOfService} years</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Job Details */}
+            <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
+              <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <Briefcase className="h-5 w-5 text-blue-500" />
+                Job Details
+              </h3>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">Job Type</span>
+                  <span className="font-semibold text-gray-900 capitalize">{job_type?.replace('_', ' ')}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">Experience</span>
+                  <span className="font-semibold text-gray-900">{pitch.experience_years || 0} years</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">Location</span>
+                  <span className="font-semibold text-gray-900">{location}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">Availability</span>
+                  <span className="font-semibold text-gray-900">{availability}</span>
+                </div>
               </div>
             </div>
-          )}
-        </div>
 
-        {/* Right Column - Actions & Contact */}
-        <div className="space-y-6">
-          {/* Support CTA */}
-          <div className={`bg-gradient-to-r ${getUrgencyColor()} rounded-3xl p-6 text-white shadow-lg`}>
-            <div className="text-center">
-              <h4 className="text-lg font-bold mb-2">
-                {timeLeft && timeLeft.days <= 7 ? '🚨 URGENT: Refer Now!' : '🤝 Refer This Professional'}
-              </h4>
-              <p className="text-sm opacity-90 mb-4">
-                {timeLeft && timeLeft.days <= 7 
-                  ? 'Last chance to connect this professional with opportunities!' 
-                  : 'Help connect them with opportunities'
-                }
-              </p>
-              {supporters_count > 0 && (
-                <>
-                  <div className="text-2xl font-bold mb-2">
-                    {supporters_count} referrals
+            {/* Contact & Additional Details */}
+            <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
+              <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <User className="h-5 w-5 text-purple-500" />
+                Contact & Details
+              </h3>
+              <div className="space-y-4">
+                {phone && (
+                  <div className="flex items-center gap-3">
+                    <Phone className="h-5 w-5 text-green-500" />
+                    <div>
+                      <div className="text-sm text-gray-500 font-medium">Phone</div>
+                      <div className="font-semibold text-gray-900">Available for Contact</div>
+                    </div>
                   </div>
-                  <div className="text-sm opacity-90 mb-3">
-                    {timeLeft && timeLeft.days <= 15 
-                      ? 'Time is running out - refer them now!' 
-                      : 'Join the community referring this professional'
-                    }
+                )}
+                {linkedin_url && (
+                  <div className="flex items-center gap-3">
+                    <LinkIcon className="h-5 w-5 text-blue-500" />
+                    <div>
+                      <div className="text-sm text-gray-500 font-medium">LinkedIn</div>
+                      <a 
+                        href={linkedin_url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="font-semibold text-blue-600 hover:text-blue-700 transition-colors"
+                      >
+                        View Profile
+                      </a>
+                    </div>
                   </div>
-                </>
-              )}
-              {timeLeft && timeLeft.days > 0 && (
-                <div className="text-sm opacity-90 border-t border-white/20 pt-3">
-                  {timeLeft.days <= 7 
-                    ? `⚠️ Only ${timeLeft.days} days left!` 
-                    : `Pitch expires in ${timeLeft.days} days`
-                  }
+                )}
+                {resume_url && (
+                  <div className="flex items-center gap-3">
+                    <FileText className="h-5 w-5 text-orange-500" />
+                    <div>
+                      <div className="text-sm text-gray-500 font-medium">Resume</div>
+                      <div className="font-semibold text-gray-900">
+                        {resume_share_enabled ? 'Available on Request' : 'Not Available'}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {plan_tier && plan_tier !== 'free' && (
+                  <div className="flex items-center gap-3">
+                    <Star className="h-5 w-5 text-yellow-500" />
+                    <div>
+                      <div className="text-sm text-gray-500 font-medium">Plan</div>
+                      <div className="font-semibold text-gray-900 capitalize">{plan_tier.replace('_', ' ')}</div>
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              {/* Contact Actions */}
+              {(phone || linkedin_url) && (
+                <div className="mt-6 pt-4 border-t border-gray-100">
+                  <h4 className="text-sm font-medium text-gray-700 mb-3">Contact Options</h4>
+                  <div className="flex flex-col gap-2">
+                    {phone && (
+                      <button
+                        onClick={() => window.open(`tel:${phone}`, '_blank')}
+                        className="flex items-center justify-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm font-medium"
+                      >
+                        <Phone className="h-4 w-4" />
+                        Call
+                      </button>
+                    )}
+                    {linkedin_url && (
+                      <a
+                        href={linkedin_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                      >
+                        <LinkIcon className="h-4 w-4" />
+                        LinkedIn
+                      </a>
+                    )}
+                  </div>
                 </div>
               )}
-              
-              {/* Support Button */}
-              {user ? (
-                <ReferButton
-                  pitchId={id}
-                  pitchTitle={title}
-                  veteranName={veteranName}
-                  userId={user.id}
-                  skills={skills}
-                  location={location || undefined}
-                />
-              ) : (
-                <Link
-                  href={`/auth?redirect=/role-selection&role=supporter&pitch_id=${id}&source=registration`}
-                  className="mt-4 w-full bg-white text-blue-600 hover:bg-blue-50 px-6 py-3 rounded-2xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105"
-                >
-                  <Share2 className="h-5 w-5" />
-                  Become a Supporter & Refer
-                </Link>
-              )}
             </div>
-          </div>
 
-          {/* Like Button */}
-          <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
-            <div className="flex items-center justify-center">
-              <LikeButton 
-                pitchId={id} 
-                initialCount={likes_count}
-                userId={user?.id}
-              />
-            </div>
-          </div>
-
-          {/* Contact & Actions */}
-          <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm space-y-4">
-            <h4 className="text-lg font-bold text-gray-900 mb-4">🚀 Connect Now</h4>
-            
-            {/* Edit Button (only for pitch owner) */}
-            {user?.id === pitchUser?.id && (
-              <Link
-                href={`/pitch/${id}/edit`}
-                className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white px-6 py-3 rounded-2xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105"
-              >
-                <Eye className="h-5 w-5" />
-                Edit Pitch
-              </Link>
-            )}
-            
-            {/* Contact Button */}
-            <button
-              onClick={() => setShowContactInfo(!showContactInfo)}
-              className="w-full bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white px-6 py-3 rounded-2xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105"
-            >
-              <Phone className="h-5 w-5" />
-              {showContactInfo ? 'Hide Contact' : 'Get Contact Info'}
-            </button>
-
-            {/* Resume Request */}
-            {resume_url && resume_share_enabled && (
-              <button
-                onClick={() => setShowResumeModal(true)}
-                className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-6 py-3 rounded-2xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105"
-              >
-                <FileText className="h-5 w-5" />
-                Request Resume
-              </button>
-            )}
-
-            {/* LinkedIn */}
-            {linkedin_url && (
-              <Link
-                href={linkedin_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white px-6 py-3 rounded-2xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105"
-              >
-                <ExternalLink className="h-5 w-5" />
-                View LinkedIn
-              </Link>
-            )}
-
-            {/* Share */}
-            <button 
-              onClick={() => setShowShareModal(true)}
-              className="w-full bg-gradient-to-r from-gray-600 to-slate-600 hover:from-gray-700 hover:to-slate-700 text-white px-6 py-3 rounded-2xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105"
-            >
-              <Share2 className="h-5 w-5" />
-              Share Pitch
-            </button>
-          </div>
-
-          {/* Contact Information */}
-          {showContactInfo && (
-            <div className="bg-gradient-to-br from-red-50 to-orange-50 rounded-3xl p-6 border border-red-100 shadow-sm">
-              <h4 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <Mail className="h-5 w-5 text-red-500" />
-                Contact Information
-              </h4>
-              <div className="space-y-4">
-                {/* Direct Call Button */}
-                {phone && (
-                  <button
-                    onClick={() => window.open(`tel:${phone}`, '_self')}
-                    className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-4 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105"
-                  >
-                    <Phone className="h-5 w-5" />
-                    Call Now
-                  </button>
-                )}
-                
-                {/* Email Section */}
-                {pitchUser?.email && (
-                  <div className="space-y-3">
-                    <button
-                      onClick={() => setShowEmailModal(true)}
-                      className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105"
-                    >
-                      <Mail className="h-5 w-5" />
-                      Send Email
-                    </button>
-                    <button
-                      onClick={copyEmail}
-                      className="w-full bg-gradient-to-r from-gray-600 to-slate-600 hover:from-gray-700 hover:to-slate-700 text-white px-4 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105"
-                    >
-                      {copiedEmail ? <Check className="h-5 w-5" /> : <Copy className="h-5 w-5" />}
-                      {copiedEmail ? 'Email Copied!' : 'Copy Email'}
-                    </button>
+            {/* Pitch Activity */}
+            <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
+              <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <Activity className="h-5 w-5 text-purple-500" />
+                Pitch Activity
+              </h3>
+              <div className="space-y-3 text-sm">
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600">Created</span>
+                  <span className="font-medium text-gray-900">
+                    {timeSinceCreation === 0 ? 'Today' : `${timeSinceCreation} days ago`}
+                  </span>
+                </div>
+                {updated_at && updated_at !== created_at && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600">Last Updated</span>
+                    <span className="font-medium text-gray-900">
+                      {Math.floor((Date.now() - new Date(updated_at).getTime()) / (1000 * 60 * 60 * 24))} days ago
+                    </span>
                   </div>
                 )}
-                
-
               </div>
             </div>
-          )}
-           
-           {/* Pitch Info */}
-           <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
-             <h4 className="text-lg font-bold text-gray-900 mb-4">📊 Pitch Analytics</h4>
-             <div className="space-y-3 text-sm text-gray-600">
-               <div className="flex justify-between">
-                 <span>Created</span>
-                 <span className="font-medium">{formatDate(created_at)}</span>
-               </div>
-               <div className="flex justify-between">
-                 <span>Last Updated</span>
-                 <span className="font-medium">{formatDate(updated_at)}</span>
-               </div>
-               <div className="flex justify-between">
-                 <span>Engagement Rate</span>
-                 <span className="font-medium text-green-600">
-                   {views_count > 0 ? Math.round((likes_count / views_count) * 100) : 0}%
-                 </span>
-               </div>
-               <div className="flex justify-between">
-                 <span>Response Time</span>
-                 <span className="font-medium text-green-600">Within 24h</span>
-               </div>
-             </div>
-           </div>
-         </div>
-       </div>
-
-       {/* Share Modal */}
-       {showShareModal && (
-         <SocialShareCard
-           data={pitch}
-           onClose={() => setShowShareModal(false)}
-         />
-       )}
-
-       {/* Resume Request Modal */}
-       <ResumeRequestModal
-         isOpen={showResumeModal}
-         onClose={() => setShowResumeModal(false)}
-         veteranName={veteranName}
-         pitchId={id}
-         currentUserId={user?.id}
-       />
-
-       {/* Email Modal */}
-       <EmailModal
-         isOpen={showEmailModal}
-         onClose={() => setShowEmailModal(false)}
-         veteranName={veteranName}
-         pitchId={id}
-         currentUserId={user?.id}
-       />
-
-
-     </div>
-   )
- }
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}

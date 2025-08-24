@@ -248,6 +248,11 @@ export interface FullPitchData extends PitchCardData {
   endorsements: EndorsementWithUser[];
   veterans?: Veteran[];
   metadata: any;
+  militaryData?: {
+    rank: string | null;
+    service_branch: string | null;
+    years_experience: number | null;
+  };
 }
 
 export interface EndorsementWithUser extends Endorsement {
