@@ -134,13 +134,13 @@ export class PerformanceMonitor {
       },
       {
         name: 'DOM Content Loaded',
-        value: navEntry.domContentLoadedEventEnd - navEntry.navigationStart,
+        value: navEntry.domContentLoadedEventEnd - navEntry.fetchStart,
         unit: 'ms',
         category: 'navigation' as const
       },
       {
         name: 'Page Load Complete',
-        value: navEntry.loadEventEnd - navEntry.navigationStart,
+        value: navEntry.loadEventEnd - navEntry.fetchStart,
         unit: 'ms',
         category: 'navigation' as const
       }
@@ -177,7 +177,7 @@ export class PerformanceMonitor {
       const originalFetch = window.fetch
       window.fetch = async (...args) => {
         const startTime = performance.now()
-        const url = typeof args[0] === 'string' ? args[0] : args[0].url
+        const url = typeof args[0] === 'string' ? args[0] : (args[0] as Request).url
         
         try {
           const response = await originalFetch(...args)
@@ -238,7 +238,7 @@ export class PerformanceMonitor {
         name: 'Resource Load Time',
         value: resourceEntry.responseEnd - resourceEntry.startTime,
         unit: 'ms',
-        category: 'resource',
+        category: 'resource' as const,
         metadata: { 
           name: resourceEntry.name,
           type: resourceEntry.initiatorType,
