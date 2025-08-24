@@ -49,13 +49,11 @@ export default function VeteranProfileTab() {
           .eq('id', user.id)
           .single()
         
-        // Get veteran profile from user_profiles table
+        // Get veteran profile from veterans table
         const { data: veteranData } = await supabase
-          .from('user_profiles')
+          .from('veterans')
           .select('*')
           .eq('user_id', user.id)
-          .eq('profile_type', 'veteran')
-          .eq('is_active', true)
           .single()
         
         setVeteranProfile(veteranData)
@@ -67,14 +65,14 @@ export default function VeteranProfileTab() {
         setFormData({
           name: profileData?.name || '',
           phone: profileData?.phone || '',
-          military_rank: veteranData?.profile_data?.military_rank || '',
-          service_branch: veteranData?.profile_data?.service_branch || '',
-          years_experience: veteranData?.profile_data?.years_experience?.toString() || '',
-          bio: veteranData?.profile_data?.bio || '',
-          location_current: veteranData?.profile_data?.location_current || '',
-          locations_preferred: veteranData?.profile_data?.locations_preferred || [],
-          web_links: veteranData?.profile_data?.web_links || [],
-          retirement_date: veteranData?.profile_data?.retirement_date || '',
+          military_rank: veteranData?.rank || '',
+          service_branch: veteranData?.service_branch || '',
+          years_experience: veteranData?.years_experience?.toString() || '',
+          bio: veteranData?.bio || '',
+          location_current: veteranData?.location_current || '',
+          locations_preferred: veteranData?.locations_preferred || [],
+          web_links: [],
+          retirement_date: '',
           photo_url: profileData?.avatar_url || ''
         })
       } catch (error) {
@@ -181,41 +179,28 @@ export default function VeteranProfileTab() {
         .update({
           name: data.name,
           phone: data.phone,
-          location: data.location_current, // Also update users.location for pitch creation
           avatar_url: profile?.avatar_url || null // Save the current avatar_url
         })
         .eq('id', user.id)
 
       if (userError) throw userError
 
-      // Update or create veteran profile
+      // Update or create veteran profile in the veterans table
       const veteranData = {
         user_id: user.id,
         rank: data.military_rank, // Map military_rank to rank field
-        military_rank: data.military_rank,
         service_branch: data.service_branch,
         years_experience: data.years_experience ? parseInt(data.years_experience) : 0,
         bio: data.bio,
         location_current: data.location_current,
-        location_current_city: locationCurrentParsed.city,
-        location_current_country: locationCurrentParsed.country,
-        locations_preferred: data.locations_preferred.filter(loc => loc.trim()),
-        locations_preferred_structured: locationsPreferredParsed as any,
-        web_links: data.web_links as any,
-        retirement_date: data.retirement_date || null
+        locations_preferred: data.locations_preferred.filter(loc => loc.trim())
       }
 
       // Always use upsert to handle both create and update cases
       const { error: profileError } = await supabase
-        .from('user_profiles')
-        .upsert({
-          user_id: user.id,
-          profile_type: 'veteran',
-          profile_data: veteranData,
-          is_active: true,
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'user_id,profile_type'
+        .from('veterans')
+        .upsert(veteranData, {
+          onConflict: 'user_id'
         })
 
       if (profileError) throw profileError
