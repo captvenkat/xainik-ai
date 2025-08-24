@@ -146,22 +146,6 @@ export default function FullPitchView({
     bio
   } = pitch
 
-  // Additional debugging for military data
-  console.log('FullPitchView Military Data Debug:', JSON.stringify({
-    militaryData,
-    militaryDataType: typeof militaryData,
-    militaryDataKeys: militaryData ? Object.keys(militaryData) : 'undefined',
-    bio,
-    bioType: typeof bio,
-    pitchKeys: Object.keys(pitch)
-  }, null, 2))
-
-
-
-
-
-
-
   const veteranName = pitchUser?.name || 'Veteran'
   const veteranRole = 'veteran'
 
@@ -218,8 +202,6 @@ export default function FullPitchView({
   }
 
   const preferredCities = formatPreferredLocations(preferredLocations)
-
-
 
   // Convert base64 photo to blob URL for better performance
   useEffect(() => {
