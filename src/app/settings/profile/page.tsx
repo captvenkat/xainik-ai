@@ -106,13 +106,14 @@ export default function ProfileSettingsPage() {
     }
   };
 
-  const handlePhotoChange = async (file: File) => {
-    try {
-      // Handle photo upload logic here
-      console.log('Photo changed:', file);
-    } catch (error) {
-      console.error('Error uploading photo:', error);
-    }
+  const handlePhotoChange = (photoUrl: string, isCustom: boolean) => {
+    // Handle photo change logic here
+    // photoUrl is the data URL or file URL
+    // isCustom indicates if it's a user-uploaded photo
+    
+    // TODO: Implement photo upload to storage and update profile
+    // For now, just store the photo URL in local state
+    // This will be implemented when photo upload functionality is ready
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
