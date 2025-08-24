@@ -159,20 +159,7 @@ export async function createUser(userData: {
       name: userData.name || 'Unknown User',
       phone: '',
       role: userData.role || 'veteran',
-      location: '',
-      military_branch: '',
-      military_rank: '',
-      years_of_service: 0,
-      discharge_date: '',
-      education_level: '',
-      certifications: null,
-      bio: '',
-      avatar_url: null,
-      is_active: true,
-      email_verified: false,
-      phone_verified: false,
-      last_login_at: null,
-      metadata: {}
+      avatar_url: null
     })
     .select()
     .single();

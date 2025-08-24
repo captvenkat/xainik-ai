@@ -121,14 +121,14 @@ export async function getSimpleMetricsData(veteranId: string) {
         value: hasRealData ? '12' : 'Mock Data',
         subtitle: hasRealData ? 'people contacted you' : 'Share pitch to get contacts',
         actionText: hasRealData ? 'Update Contact' : 'Share Pitch',
-        action: () => console.log(hasRealData ? 'Update contact' : 'Share pitch'),
+        action: () => hasRealData ? 'Update contact' : 'Share pitch',
         isMockData: !hasRealData
       },
       shares: {
         value: hasRealData ? '89' : 'Mock Data',
         subtitle: hasRealData ? 'times your pitch was shared' : 'Start sharing to see real stats',
         actionText: hasRealData ? 'Ask for More' : 'Share Now',
-        action: () => console.log(hasRealData ? 'Ask for shares' : 'Share pitch'),
+        action: () => hasRealData ? 'Ask for shares' : 'Share pitch',
         isMockData: !hasRealData
       },
       resumeRequests: {
