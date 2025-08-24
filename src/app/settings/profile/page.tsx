@@ -20,9 +20,30 @@ import {
 } from '@/types/enhanced-profile';
 
 export default function ProfileSettingsPage() {
-  const [user, setUser] = useState<any>(null);
-  const [profile, setProfile] = useState<any>(null);
-  const [veteranProfile, setVeteranProfile] = useState<any>(null);
+  const [user, setUser] = useState<{
+    id: string;
+    email: string;
+    user_metadata?: any;
+  } | null>(null);
+  const [profile, setProfile] = useState<{
+    id: string;
+    email: string;
+    name: string;
+    phone: string | null;
+    role: string;
+    avatar_url: string | null;
+    created_at: string;
+    updated_at: string;
+  } | null>(null);
+  const [veteranProfile, setVeteranProfile] = useState<{
+    id: string;
+    user_id: string;
+    profile_type: string;
+    profile_data: any;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+  } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
