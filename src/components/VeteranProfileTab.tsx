@@ -49,34 +49,58 @@ export default function VeteranProfileTab() {
           .eq('id', user.id)
           .single()
         
-        // Get veteran profile from veterans table
-        const { data: veteranData } = await supabase
-          .from('veterans')
-          .select('*')
-          .eq('user_id', user.id)
-          .single()
+        // Get veteran profile from veterans table (primary source)
+        let veteranData = null
+        try {
+          const { data: veteransTableData } = await supabase
+            .from('veterans')
+            .select('*')
+            .eq('user_id', user.id)
+            .single()
+          veteranData = veteransTableData
+        } catch (veteranError) {
+          console.log('Veterans table not accessible, will check user metadata:', veteranError)
+        }
         
-        setVeteranProfile(veteranData)
+        // Check for fallback military data in user metadata
+        let fallbackVeteranData = null
+        if (profileData?.metadata?.veteran_profile) {
+          fallbackVeteranData = profileData.metadata.veteran_profile
+          console.log('Found fallback military data in user metadata:', fallbackVeteranData)
+        }
+        
+        // Use veterans table data if available, otherwise fallback to metadata
+        const effectiveVeteranData = veteranData || fallbackVeteranData
+        
+        setVeteranProfile(effectiveVeteranData)
         
         // Initialize local avatar URL
         setLocalAvatarUrl(profileData?.avatar_url || null)
         
-        // Initialize enhanced form data
+        // Initialize enhanced form data with fallback support
         setFormData({
           name: profileData?.name || '',
           phone: profileData?.phone || '',
-          military_rank: veteranData?.rank || '',
-          service_branch: veteranData?.service_branch || '',
-          years_experience: veteranData?.years_experience?.toString() || '',
-          bio: veteranData?.bio || '',
-          location_current: veteranData?.location_current || '',
-          locations_preferred: veteranData?.locations_preferred || [],
+          military_rank: effectiveVeteranData?.military_rank || effectiveVeteranData?.rank || '',
+          service_branch: effectiveVeteranData?.service_branch || '',
+          years_experience: (effectiveVeteranData?.years_experience || effectiveVeteranData?.years_experience)?.toString() || '',
+          bio: effectiveVeteranData?.bio || '',
+          location_current: effectiveVeteranData?.location_current || '',
+          locations_preferred: effectiveVeteranData?.locations_preferred || [],
           web_links: [],
           retirement_date: '',
           photo_url: profileData?.avatar_url || ''
         })
+        
+        console.log('Profile data loaded successfully:', {
+          fromUsersTable: profileData,
+          fromVeteransTable: veteranData,
+          fromFallbackMetadata: fallbackVeteranData,
+          effectiveData: effectiveVeteranData
+        })
+        
       } catch (error) {
-        // Silently handle profile loading errors
+        console.error('Failed to load profile data:', error)
         setError('Failed to load profile data')
       }
     }
@@ -177,54 +201,85 @@ export default function VeteranProfileTab() {
         .map(loc => parseLocationString(loc))
 
       console.log('Updating user profile...')
-      // Update user profile
+      
+      // Prepare user update data with fallback military info storage
+      const userUpdateData: any = {
+        name: data.name,
+        phone: data.phone,
+        avatar_url: profile?.avatar_url || null
+      }
+
+      // Add military info to user table as fallback (in metadata field)
+      // This ensures data is never lost even if veterans table fails
+      const militaryMetadata = {
+        military_rank: data.military_rank,
+        service_branch: data.service_branch,
+        years_experience: data.years_experience ? parseInt(data.years_experience) : 0,
+        bio: data.bio,
+        location_current: data.location_current,
+        locations_preferred: data.locations_preferred.filter(loc => loc.trim()),
+        last_updated: new Date().toISOString()
+      }
+
+      // Store military info in user metadata as fallback
+      userUpdateData.metadata = {
+        ...profile?.metadata,
+        veteran_profile: militaryMetadata
+      }
+
+      // Update user profile with fallback military data
       const { error: userError } = await supabase
         .from('users')
-        .update({
-          name: data.name,
-          phone: data.phone,
-          avatar_url: profile?.avatar_url || null // Save the current avatar_url
-        })
+        .update(userUpdateData)
         .eq('id', user.id)
 
       if (userError) {
         console.error('User update error:', userError)
         throw userError
       }
-      console.log('User profile updated successfully')
+      console.log('User profile updated successfully with fallback military data')
 
-      // Update or create veteran profile in the veterans table
-      const veteranData = {
-        user_id: user.id,
-        rank: data.military_rank, // Map military_rank to rank field
-        service_branch: data.service_branch,
-        years_experience: data.years_experience ? parseInt(data.years_experience) : 0,
-        bio: data.bio,
-        location_current: data.location_current,
-        locations_preferred: data.locations_preferred.filter(loc => loc.trim())
+      // Try to save to veterans table (primary method)
+      let veteranSaveSuccess = false
+      try {
+        console.log('Attempting to save to veterans table...')
+        
+        const veteranData = {
+          user_id: user.id,
+          rank: data.military_rank,
+          service_branch: data.service_branch,
+          years_experience: data.years_experience ? parseInt(data.years_experience) : 0,
+          bio: data.bio,
+          location_current: data.location_current,
+          locations_preferred: data.locations_preferred.filter(loc => loc.trim())
+        }
+
+        console.log('Saving veteran data:', veteranData)
+
+        const { data: veteranResult, error: profileError } = await supabase
+          .from('veterans')
+          .upsert(veteranData, {
+            onConflict: 'user_id'
+          })
+          .select()
+
+        if (profileError) {
+          console.warn('Veterans table save failed, but data is safely stored in users table:', profileError)
+          // Don't throw error - data is safely stored in users table
+        } else {
+          console.log('Veteran profile saved successfully to veterans table:', veteranResult)
+          veteranSaveSuccess = true
+        }
+      } catch (veteranError) {
+        console.warn('Veterans table operation failed, but data is safely stored in users table:', veteranError)
+        // Don't throw error - data is safely stored in users table
       }
-
-      console.log('Saving veteran data:', veteranData)
-      console.log('Attempting to upsert to veterans table...')
-
-      // Always use upsert to handle both create and update cases
-      const { data: veteranResult, error: profileError } = await supabase
-        .from('veterans')
-        .upsert(veteranData, {
-          onConflict: 'user_id'
-        })
-        .select()
-
-      if (profileError) {
-        console.error('Veteran profile save error:', profileError)
-        throw profileError
-      }
-
-      console.log('Veteran profile saved successfully:', veteranResult)
 
       if (showSuccess) {
-        setSuccess('Profile updated successfully!')
-        // Clear success message after 3 seconds
+        const successMessage = veteranSaveSuccess 
+          ? 'Profile updated successfully!' 
+          : 'Profile updated successfully! (Military info stored in user profile)'
+        setSuccess(successMessage)
         setTimeout(() => setSuccess(''), 3000)
       }
       
