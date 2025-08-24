@@ -38,21 +38,39 @@ async function fetchPitch(id: string) {
   let militaryData = null
   let bio = null
   try {
-    // First try to get all fields including bio
-    const { data: veteranProfile } = await supabaseClient
+    // Try to get all fields including bio (if it exists)
+    const { data: veteranProfile, error: veteranError } = await supabaseClient
       .from('veterans')
-      .select('rank, service_branch, years_experience')
+      .select('rank, service_branch, years_experience, bio')
       .eq('user_id', pitch.user_id)
       .single()
     
-    if (veteranProfile) {
+    if (veteranError) {
+      console.error('Error fetching veteran profile:', veteranError)
+      // If bio column doesn't exist, try without it
+      if (veteranError.message.includes('column "bio" does not exist')) {
+        const { data: basicProfile } = await supabaseClient
+          .from('veterans')
+          .select('rank, service_branch, years_experience')
+          .eq('user_id', pitch.user_id)
+          .single()
+        
+        if (basicProfile) {
+          militaryData = {
+            rank: basicProfile.rank,
+            service_branch: basicProfile.service_branch,
+            years_experience: basicProfile.years_experience
+          }
+          bio = null // Bio field doesn't exist yet
+        }
+      }
+    } else if (veteranProfile) {
       militaryData = {
         rank: veteranProfile.rank,
         service_branch: veteranProfile.service_branch,
         years_experience: veteranProfile.years_experience
       }
-      // Bio will be null until the migration is applied
-      bio = null
+      bio = veteranProfile.bio
     }
   } catch (error) {
     console.error('Error fetching veteran profile:', error)
