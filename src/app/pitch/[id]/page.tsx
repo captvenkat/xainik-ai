@@ -38,6 +38,10 @@ async function fetchPitch(id: string) {
   // Get military service information and bio from veterans table
   let militaryData = null
   let bio = null
+  
+  console.log('Fetching pitch data for user:', pitch.user_id)
+  console.log('Pitch users data:', pitch.users)
+  
   try {
     // Try to get all fields including bio (if it exists)
     const { data: veteranProfile, error: veteranError } = await supabaseClient
@@ -63,6 +67,7 @@ async function fetchPitch(id: string) {
             years_experience: basicProfile.years_experience
           }
           bio = null // Bio field doesn't exist yet
+          console.log('Loaded basic military data from veterans table:', militaryData)
         }
       }
     } else if (veteranProfile) {
@@ -72,12 +77,16 @@ async function fetchPitch(id: string) {
         years_experience: veteranProfile.years_experience
       }
       bio = veteranProfile.bio
+      console.log('Loaded military data from veterans table:', militaryData)
     }
   } catch (error) {
     console.error('Error fetching veteran profile:', error)
   }
 
   // Check for fallback military data in user metadata if veterans table failed
+  console.log('Checking for fallback military data in user metadata...')
+  console.log('User metadata:', pitch.users?.metadata)
+  
   if (!militaryData && pitch.users?.metadata?.veteran_profile) {
     const fallbackData = pitch.users.metadata.veteran_profile
     console.log('Using fallback military data from user metadata:', fallbackData)
@@ -91,7 +100,14 @@ async function fetchPitch(id: string) {
     if (!bio && fallbackData.bio) {
       bio = fallbackData.bio
     }
+    
+    console.log('Fallback military data loaded:', militaryData)
+  } else if (!militaryData) {
+    console.log('No military data found in veterans table or user metadata')
   }
+
+  console.log('Final military data:', militaryData)
+  console.log('Final bio:', bio)
 
   // Get endorsements
   const { data: endorsements } = await supabaseClient
