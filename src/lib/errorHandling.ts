@@ -256,7 +256,7 @@ export const CommonErrors = {
     `Network error calling: ${endpoint}`,
     'network',
     'medium',
-    { endpoint },
+    { endpoint } as any,
     'Network error. Please check your connection and try again.'
   ),
 
@@ -265,7 +265,7 @@ export const CommonErrors = {
     `Database error during: ${operation}`,
     'database',
     'high',
-    { operation },
+    { operation } as any,
     'Service temporarily unavailable. Please try again later.'
   ),
 
@@ -274,7 +274,7 @@ export const CommonErrors = {
     `System error in: ${component}`,
     'system',
     'critical',
-    { component },
+    { component } as any,
     'Critical system error. Please contact support immediately.'
   )
 }
