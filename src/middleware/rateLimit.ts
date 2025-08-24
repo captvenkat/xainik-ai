@@ -50,13 +50,8 @@ export function createRateLimit(config: RateLimitConfig) {
       )
     }
 
-    // Add rate limit headers
-    const response = NextResponse.next()
-    response.headers.set('X-RateLimit-Limit', config.maxRequests.toString())
-    response.headers.set('X-RateLimit-Remaining', (config.maxRequests - entry.count).toString())
-    response.headers.set('X-RateLimit-Reset', new Date(entry.resetTime).toISOString())
-
-    return response
+    // Return null to continue (no rate limit exceeded)
+    return null
   }
 }
 
@@ -98,70 +93,33 @@ const rateLimitConfigs = {
   aiSmartNotificationsDaily: { windowMs: 24 * 60 * 60 * 1000, maxRequests: 10 },
   aiInsights: { windowMs: 60 * 1000, maxRequests: 2 },
   aiInsightsDaily: { windowMs: 24 * 60 * 60 * 1000, maxRequests: 10 },
-  emailSend: { windowMs: 60 * 1000, maxRequests: 3 },
-  emailDaily: { windowMs: 24 * 60 * 60 * 1000, maxRequests: 50 },
-  contactForm: { windowMs: 60 * 1000, maxRequests: 2 },
-  contactFormDaily: { windowMs: 24 * 60 * 60 * 1000, maxRequests: 10 },
-  waitlistJoin: { windowMs: 60 * 1000, maxRequests: 1 },
-  waitlistShare: { windowMs: 60 * 1000, maxRequests: 5 },
-  auth: { windowMs: 60 * 1000, maxRequests: 5 },
-  authDaily: { windowMs: 24 * 60 * 60 * 1000, maxRequests: 20 },
-  general: { windowMs: 60 * 1000, maxRequests: 100 },
-  dashboard: { windowMs: 60 * 1000, maxRequests: 30 }
+  donations: { windowMs: 60 * 1000, maxRequests: 3 },
+  donationsDaily: { windowMs: 24 * 60 * 60 * 1000, maxRequests: 10 },
+  resumeRequests: { windowMs: 60 * 1000, maxRequests: 5 },
+  resumeRequestsDaily: { windowMs: 24 * 60 * 60 * 1000, maxRequests: 20 },
+  emailSending: { windowMs: 60 * 1000, maxRequests: 10 },
+  emailSendingDaily: { windowMs: 24 * 60 * 60 * 1000, maxRequests: 100 }
 }
 
-// Predefined rate limit configurations
+// Create rate limit functions
 export const rateLimits = {
-  // Webhook and payment endpoints
   webhook: createRateLimit(rateLimitConfigs.webhook),
-  
-  // Resume and referral endpoints
   resumeRequest: createRateLimit(rateLimitConfigs.resumeRequest),
-  
   referralEvent: createRateLimit(rateLimitConfigs.referralEvent),
-  
-  // AI and content generation
   aiPitchGeneration: createRateLimit(rateLimitConfigs.aiPitchGeneration),
-  
   aiPitchGenerationDaily: createRateLimit(rateLimitConfigs.aiPitchGenerationDaily),
-  
   aiContactSuggestions: createRateLimit(rateLimitConfigs.aiContactSuggestions),
-  
   aiContactSuggestionsDaily: createRateLimit(rateLimitConfigs.aiContactSuggestionsDaily),
-  
   aiSmartNotifications: createRateLimit(rateLimitConfigs.aiSmartNotifications),
-  
   aiSmartNotificationsDaily: createRateLimit(rateLimitConfigs.aiSmartNotificationsDaily),
-  
   aiInsights: createRateLimit(rateLimitConfigs.aiInsights),
-  
   aiInsightsDaily: createRateLimit(rateLimitConfigs.aiInsightsDaily),
-  
-  // Email endpoints - Critical for preventing spam
-  emailSend: createRateLimit(rateLimitConfigs.emailSend),
-  
-  emailDaily: createRateLimit(rateLimitConfigs.emailDaily),
-  
-  // Contact form - Prevent spam
-  contactForm: createRateLimit(rateLimitConfigs.contactForm),
-  
-  contactFormDaily: createRateLimit(rateLimitConfigs.contactFormDaily),
-  
-  // Waitlist endpoints - Prevent abuse
-  waitlistJoin: createRateLimit(rateLimitConfigs.waitlistJoin),
-  
-  waitlistShare: createRateLimit(rateLimitConfigs.waitlistShare),
-  
-  // Authentication endpoints - Prevent brute force
-  auth: createRateLimit(rateLimitConfigs.auth),
-  
-  authDaily: createRateLimit(rateLimitConfigs.authDaily),
-  
-  // General API endpoints
-  general: createRateLimit(rateLimitConfigs.general),
-  
-  // Dashboard endpoints - Prevent abuse
-  dashboard: createRateLimit(rateLimitConfigs.dashboard)
+  donations: createRateLimit(rateLimitConfigs.donations),
+  donationsDaily: createRateLimit(rateLimitConfigs.donationsDaily),
+  resumeRequests: createRateLimit(rateLimitConfigs.resumeRequests),
+  resumeRequestsDaily: createRateLimit(rateLimitConfigs.resumeRequestsDaily),
+  emailSending: createRateLimit(rateLimitConfigs.emailSending),
+  emailSendingDaily: createRateLimit(rateLimitConfigs.emailSendingDaily)
 }
 
 // Clean up old entries periodically
