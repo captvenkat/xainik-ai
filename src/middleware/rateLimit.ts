@@ -98,7 +98,18 @@ const rateLimitConfigs = {
   resumeRequests: { windowMs: 60 * 1000, maxRequests: 5 },
   resumeRequestsDaily: { windowMs: 24 * 60 * 60 * 1000, maxRequests: 20 },
   emailSending: { windowMs: 60 * 1000, maxRequests: 10 },
-  emailSendingDaily: { windowMs: 24 * 60 * 60 * 1000, maxRequests: 100 }
+  emailSendingDaily: { windowMs: 24 * 60 * 60 * 1000, maxRequests: 100 },
+  // Add back the missing configurations
+  contactForm: { windowMs: 60 * 1000, maxRequests: 2 },
+  contactFormDaily: { windowMs: 24 * 60 * 60 * 1000, maxRequests: 10 },
+  emailSend: { windowMs: 60 * 1000, maxRequests: 3 },
+  emailDaily: { windowMs: 24 * 60 * 60 * 1000, maxRequests: 50 },
+  waitlistJoin: { windowMs: 60 * 1000, maxRequests: 1 },
+  waitlistShare: { windowMs: 60 * 1000, maxRequests: 5 },
+  auth: { windowMs: 60 * 1000, maxRequests: 5 },
+  authDaily: { windowMs: 24 * 60 * 60 * 1000, maxRequests: 20 },
+  general: { windowMs: 60 * 1000, maxRequests: 100 },
+  dashboard: { windowMs: 60 * 1000, maxRequests: 30 }
 }
 
 // Create rate limit functions
@@ -119,7 +130,18 @@ export const rateLimits = {
   resumeRequests: createRateLimit(rateLimitConfigs.resumeRequests),
   resumeRequestsDaily: createRateLimit(rateLimitConfigs.resumeRequestsDaily),
   emailSending: createRateLimit(rateLimitConfigs.emailSending),
-  emailSendingDaily: createRateLimit(rateLimitConfigs.emailSendingDaily)
+  emailSendingDaily: createRateLimit(rateLimitConfigs.emailSendingDaily),
+  // Add back the missing rate limit functions
+  contactForm: createRateLimit(rateLimitConfigs.contactForm),
+  contactFormDaily: createRateLimit(rateLimitConfigs.contactFormDaily),
+  emailSend: createRateLimit(rateLimitConfigs.emailSend),
+  emailDaily: createRateLimit(rateLimitConfigs.emailDaily),
+  waitlistJoin: createRateLimit(rateLimitConfigs.waitlistJoin),
+  waitlistShare: createRateLimit(rateLimitConfigs.waitlistShare),
+  auth: createRateLimit(rateLimitConfigs.auth),
+  authDaily: createRateLimit(rateLimitConfigs.authDaily),
+  general: createRateLimit(rateLimitConfigs.general),
+  dashboard: createRateLimit(rateLimitConfigs.dashboard)
 }
 
 // Clean up old entries periodically
