@@ -20,11 +20,7 @@ import {
 } from '@/types/enhanced-profile';
 
 export default function ProfileSettingsPage() {
-  const [user, setUser] = useState<{
-    id: string;
-    email: string | undefined;
-    user_metadata?: any;
-  } | null>(null);
+  const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<{
     id: string;
     email: string;
