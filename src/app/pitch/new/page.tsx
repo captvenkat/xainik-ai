@@ -69,7 +69,7 @@ export default function NewPitchPage() {
         throw new Error('Please complete all required fields')
       }
 
-      // Create pitch
+      // Create pitch using live schema
       const { data: pitch, error: pitchError } = await supabase
         .from('pitches')
         .insert({
@@ -83,17 +83,17 @@ export default function NewPitchPage() {
           phone: formData.phone || '',
           linkedin_url: formData.linkedin_url || '',
           photo_url: '',
-          likes_count: 0,
-          shares_count: 0,
-          views_count: 0,
-          endorsements_count: 0,
+          resume_url: null,
+          resume_share_enabled: false,
           plan_tier: '',
-          experience_years: 0,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          allow_resume_requests: false,
+          plan_expires_at: null,
           is_active: true,
-          // Note: end_date column doesn't exist in current schema
+          likes_count: 0,
+          views_count: 0,
+          shares_count: 0,
+          endorsements_count: 0,
+          experience_years: 0,
+          allow_resume_requests: false
         })
         .select()
         .single()

@@ -18,14 +18,13 @@ export async function createEndorsement(
   try {
     const supabaseAction = await createActionClient()
     
-    // Note: endorsements table has limited schema in live database
-    // Only insert basic fields until schema is properly migrated
+    // Live database endorsements table has different schema
     const { data: endorsement, error } = await supabaseAction
       .from('endorsements')
       .insert({
-        // user_id: userId, // Missing in live schema
-        // endorser_user_id: endorserId, // Missing in live schema
-        // text: text.trim() // Missing in live schema
+        user_id: userId,
+        endorser_user_id: endorserId,
+        text: text.trim()
       })
       .select()
       .single()
@@ -67,15 +66,8 @@ export async function createEndorsement(
       // Don't fail the request if email fails
     }
 
-    // Return dummy endorsement object to match interface until schema is migrated
-    const dummyEndorsement: Endorsement = {
-      id: endorsement.id,
-      user_id: '',
-      endorser_user_id: null,
-      text: '',
-      created_at: endorsement.created_at || new Date().toISOString()
-    }
-    return { endorsement: dummyEndorsement }
+    // Return the actual endorsement
+    return { endorsement: endorsement }
   } catch (error) {
     console.error('Failed to create endorsement:', error)
     return { error: 'Failed to create endorsement' }
@@ -86,20 +78,18 @@ export async function getVeteranEndorsements(userId: string): Promise<Endorsemen
   try {
     const supabaseAction = await createActionClient()
     
-    // Note: endorsements table has limited schema in live database
-    // Return empty array until schema is properly migrated
-    // const { data, error } = await supabaseAction
-    //   .from('endorsements')
-    //   .select('*')
-    //   .eq('user_id', userId)
-    //   .order('created_at', { ascending: false })
+    const { data, error } = await supabaseAction
+      .from('endorsements')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
 
-    // if (error) {
-    //   console.error('Failed to fetch endorsements:', error)
-    //   return []
-    // }
+    if (error) {
+      console.error('Failed to fetch endorsements:', error)
+      return []
+    }
 
-    return [] // Placeholder until schema is migrated
+    return data || []
   } catch (error) {
     console.error('Failed to fetch endorsements:', error)
     return []
@@ -110,20 +100,18 @@ export async function isCommunityVerified(userId: string): Promise<boolean> {
   try {
     const supabaseAction = await createActionClient()
     
-    // Note: endorsements table has limited schema in live database
-    // Return false until schema is properly migrated
-    // const { count, error } = await supabaseAction
-    //   .from('endorsements')
-    //   .select('*', { count: 'exact', head: true })
-    //   .eq('user_id', userId)
-    //   .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()) // Last 30 days
+    const { count, error } = await supabaseAction
+      .from('endorsements')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()) // Last 30 days
 
-    // if (error) {
-    //   console.error('Failed to check community verification:', error)
-    //   return false
-    // }
+    if (error) {
+      console.error('Failed to check community verification:', error)
+      return false
+    }
 
-    return false // Placeholder until schema is migrated
+    return (count || 0) >= 3 // Need at least 3 endorsements in last 30 days
   } catch (error) {
     console.error('Failed to check community verification:', error)
     return false
