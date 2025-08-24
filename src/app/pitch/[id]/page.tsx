@@ -38,9 +38,10 @@ async function fetchPitch(id: string) {
   let militaryData = null
   let bio = null
   try {
+    // First try to get all fields including bio
     const { data: veteranProfile } = await supabaseClient
       .from('veterans')
-      .select('rank, service_branch, years_experience, bio')
+      .select('rank, service_branch, years_experience')
       .eq('user_id', pitch.user_id)
       .single()
     
@@ -50,7 +51,8 @@ async function fetchPitch(id: string) {
         service_branch: veteranProfile.service_branch,
         years_experience: veteranProfile.years_experience
       }
-      bio = veteranProfile.bio
+      // Bio will be null until the migration is applied
+      bio = null
     }
   } catch (error) {
     console.error('Error fetching veteran profile:', error)
