@@ -380,7 +380,7 @@ export default function FullPitchView({ pitch, user, endorsements = [], isCommun
           <div className="bg-white rounded-3xl p-6 md:p-8 border border-gray-100 shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
               <User className="h-5 w-5 text-purple-500" />
-              Additional Details
+              Contact & Additional Details
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {phone && (
@@ -388,7 +388,7 @@ export default function FullPitchView({ pitch, user, endorsements = [], isCommun
                   <Phone className="h-5 w-5 text-green-500" />
                   <div>
                     <div className="text-sm text-gray-500 font-medium">Phone</div>
-                    <div className="font-semibold text-gray-900">{phone}</div>
+                    <div className="font-semibold text-gray-900">Available for Contact</div>
                   </div>
                 </div>
               )}
@@ -429,6 +429,35 @@ export default function FullPitchView({ pitch, user, endorsements = [], isCommun
                 </div>
               )}
             </div>
+            
+            {/* Contact Actions */}
+            {(phone || linkedin_url) && (
+              <div className="mt-6 pt-6 border-t border-gray-100">
+                <h4 className="text-sm font-medium text-gray-700 mb-3">Contact Options</h4>
+                <div className="flex flex-wrap gap-3">
+                  {phone && (
+                    <button
+                      onClick={() => window.open(`tel:${phone}`, '_blank')}
+                      className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                    >
+                      <Phone className="h-4 w-4" />
+                      Call
+                    </button>
+                  )}
+                  {linkedin_url && (
+                    <a
+                      href={linkedin_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      <LinkIcon className="h-4 w-4" />
+                      LinkedIn
+                    </a>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Endorsements */}
