@@ -34,6 +34,20 @@ async function fetchPitch(id: string) {
     return null
   }
 
+  // Get military service information from veterans table
+  let militaryData = null
+  try {
+    const { data: veteranProfile } = await supabaseClient
+      .from('veterans')
+      .select('rank, service_branch, years_experience')
+      .eq('user_id', pitch.user_id)
+      .single()
+    
+    militaryData = veteranProfile
+  } catch (error) {
+    console.error('Failed to fetch veteran profile:', error)
+  }
+
   // Increment view count
   try {
     await supabaseClient.rpc('increment_pitch_views', { pitch_id: id })
@@ -41,7 +55,7 @@ async function fetchPitch(id: string) {
     console.error('Failed to increment view count:', error)
   }
 
-  return pitch
+  return { ...pitch, militaryData }
 }
 
 async function fetchUser() {
