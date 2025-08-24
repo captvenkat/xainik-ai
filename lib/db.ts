@@ -144,7 +144,6 @@ export async function executeQuery<T>(
     const result = await queryFn();
     
     if (result.error) {
-      console.error(`Database error in ${errorContext}:`, result.error);
       return {
         data: null,
         error: result.error.message || 'Database query failed'
@@ -162,7 +161,6 @@ export async function executeQuery<T>(
     
     return queryResult;
   } catch (error) {
-    console.error(`Unexpected error in ${errorContext}:`, error);
     return {
       data: null,
       error: error instanceof Error ? error.message : 'Unknown error occurred'
@@ -182,7 +180,6 @@ export async function executeTransaction<T>(
     const results = await Promise.all(operations.map(op => op()));
     return { data: results, error: null };
   } catch (error) {
-    console.error(`Transaction error in ${errorContext}:`, error);
     return {
       data: null,
       error: error instanceof Error ? error.message : 'Transaction failed'
@@ -258,7 +255,6 @@ export function handleDatabaseError(error: any, context: string): never {
     throw new DatabaseError('Table not found', 'TABLE_NOT_FOUND', error);
   }
   
-  console.error(`Database error in ${context}:`, error);
   throw new DatabaseError(
     error?.message || 'Database operation failed',
     error?.code || 'UNKNOWN_ERROR',
