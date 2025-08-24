@@ -39,8 +39,7 @@ async function fetchPitch(id: string) {
   let militaryData = null
   let bio = null
   
-  console.log('Fetching pitch data for user:', pitch.user_id)
-  console.log('Pitch users data:', pitch.users)
+
   
   try {
     // Try to get all fields including bio (if it exists)
@@ -69,7 +68,7 @@ async function fetchPitch(id: string) {
             locations_preferred: basicProfile.locations_preferred || []
           }
           bio = null // Bio field doesn't exist yet
-          console.log('Loaded basic military data from veterans table:', militaryData)
+
         }
       }
     } else if (veteranProfile) {
@@ -81,19 +80,17 @@ async function fetchPitch(id: string) {
         locations_preferred: veteranProfile.locations_preferred || []
       }
       bio = veteranProfile.bio
-      console.log('Loaded military data from veterans table:', militaryData)
+
     }
-  } catch (error) {
-    console.error('Error fetching veteran profile:', error)
-  }
+      } catch (error) {
+      // Silent error handling for veteran profile fetch
+    }
 
   // Check for fallback military data in user metadata if veterans table failed
-  console.log('Checking for fallback military data in user metadata...')
-  console.log('User metadata:', pitch.users?.metadata)
   
   if (!militaryData && pitch.users?.metadata?.veteran_profile) {
     const fallbackData = pitch.users.metadata.veteran_profile
-    console.log('Using fallback military data from user metadata:', fallbackData)
+
     
     militaryData = {
       rank: fallbackData.military_rank || fallbackData.rank,
@@ -107,13 +104,12 @@ async function fetchPitch(id: string) {
       bio = fallbackData.bio
     }
     
-    console.log('Fallback military data loaded:', militaryData)
+
   } else if (!militaryData) {
-    console.log('No military data found in veterans table or user metadata')
+
   }
 
-  console.log('Final military data:', militaryData)
-  console.log('Final bio:', bio)
+
 
   // Get endorsements
   const { data: endorsements } = await supabaseClient
@@ -197,17 +193,7 @@ export default async function PitchDetailPage({
     bio: (pitch as any).bio || null
   }
 
-  // Debug photo data from database
-  console.log('Pitch Database Photo Debug:', {
-    raw_pitch_photo_url: (pitch as any).photo_url,
-    raw_pitch_photo_url_type: typeof (pitch as any).photo_url,
-    raw_pitch_photo_url_truthy: !!(pitch as any).photo_url,
-    mapped_pitch_photo_url: fullPitchData.photo_url,
-    mapped_pitch_photo_url_type: typeof fullPitchData.photo_url,
-    mapped_pitch_photo_url_truthy: !!fullPitchData.photo_url,
-    pitch_keys: Object.keys(pitch as any),
-    fullPitchData_keys: Object.keys(fullPitchData)
-  })
+
 
   // Log referral event if referral ID is present
   if (ref) {
