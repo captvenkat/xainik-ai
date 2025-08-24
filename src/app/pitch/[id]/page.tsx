@@ -11,11 +11,20 @@ export const revalidate = 30
 async function fetchPitch(id: string) {
   const supabase = createSupabaseServerOnly()
   
-  // Get pitch with all data using pitch_cards_view
+  // Get pitch with all data using actual pitches table
   const supabaseClient = await supabase
   const { data: pitch, error: pitchError } = await supabaseClient
-    .from('pitch_cards_view')
-    .select('*')
+    .from('pitches')
+    .select(`
+      *,
+      users!inner(
+        id,
+        name,
+        email,
+        avatar_url,
+        role
+      )
+    `)
     .eq('id', id)
     .eq('is_active', true)
     .single()

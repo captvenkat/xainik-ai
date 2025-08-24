@@ -18,10 +18,20 @@ export async function searchPitches(
   try {
     const supabaseAction = await createActionClient()
 
-    // Use the pitch_cards_view for better performance and complete data
+    // Use the actual pitches table with user data joined
     let queryBuilder = supabaseAction
-      .from('pitch_cards_view')
-      .select('*')
+      .from('pitches')
+      .select(`
+        *,
+        users!inner(
+          id,
+          name,
+          email,
+          avatar_url,
+          role
+        )
+      `)
+      .eq('is_active', true) // Only show active pitches
 
     // Apply text search if query exists
     if (query && query.trim()) {

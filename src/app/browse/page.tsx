@@ -110,6 +110,16 @@ export default async function BrowsePage({ searchParams }: BrowsePageProps) {
           )}
         </div>
 
+        {/* Debug Info */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="text-sm text-blue-800">
+              <strong>Debug:</strong> Raw pitches count: {pitchesResult?.length || 0}, 
+              Mapped pitches: {pitches?.length || 0}
+            </p>
+          </div>
+        )}
+
         {/* Results Grid */}
         <Suspense fallback={<PitchesLoadingSkeleton />}>
           {pitches.length === 0 ? (
@@ -177,22 +187,30 @@ function EmptyState({ searchParams }: { searchParams: any }) {
     <div className="text-center py-12">
       <Shield className="w-16 h-16 text-gray-300 mx-auto mb-4" />
       <h3 className="text-lg font-semibold text-gray-900 mb-2">
-        {hasFilters ? 'No veterans found' : 'No veterans available'}
+        {hasFilters ? 'No veterans found' : 'No veterans available yet'}
       </h3>
       <p className="text-gray-600 mb-6">
         {hasFilters 
           ? 'Try adjusting your filters or search terms to find more veterans.'
-          : 'Check back soon for new veteran pitches.'
+          : 'Be the first to create a veteran pitch and showcase your military experience!'
         }
       </p>
-      {hasFilters && (
+      <div className="flex flex-col sm:flex-row gap-3 justify-center">
+        {hasFilters && (
+          <a
+            href="/browse"
+            className="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg font-medium hover:bg-gray-700 transition-colors"
+          >
+            Clear Filters
+          </a>
+        )}
         <a
-          href="/browse"
+          href="/pitch/new/ai-first"
           className="inline-flex items-center px-4 py-2 bg-gradient-primary text-white rounded-lg font-medium hover:opacity-90 transition-opacity"
         >
-          Clear Filters
+          Create Your Pitch
         </a>
-      )}
+      </div>
     </div>
   )
 }
