@@ -91,11 +91,11 @@ export default function EnhancedProfileSettingsPage() {
           location_current: veteranData?.location_current || '',
           locations_preferred: veteranData?.locations_preferred || [],
           web_links: (veteranData?.web_links as any) || [],
-          retirement_date: veteranData?.retirement_date || ''
+          retirement_date: veteranData?.retirement_date || '',
+          photo_url: profileData?.avatar_url || ''
         });
         
       } catch (error) {
-        console.error('Error fetching user:', error);
         setError('Failed to load profile data');
       } finally {
         setIsLoading(false);
@@ -223,7 +223,6 @@ export default function EnhancedProfileSettingsPage() {
       return true;
       
     } catch (error) {
-      console.error('Error updating profile:', error);
       setError('Failed to update profile. Please try again.');
       return false;
     }
