@@ -58,12 +58,12 @@ export default function ProfileSettingsPage() {
             .single();
           
           if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
-            console.error('Error fetching user profile:', error);
+            // Error fetching user profile
           } else {
             profileData = data;
           }
         } catch (error) {
-          console.error('Error in user profile query:', error);
+          // Error in user profile query
         }
         
         setProfile(profileData);
@@ -81,12 +81,12 @@ export default function ProfileSettingsPage() {
             .single();
           
           if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
-            console.error('Error fetching user profile:', error);
+            // Error fetching user profile
           } else {
             userProfileData = data;
           }
         } catch (error) {
-          console.error('Error in user profile query:', error);
+          // Error in user profile query
         }
         
         setVeteranProfile(userProfileData);
@@ -107,7 +107,6 @@ export default function ProfileSettingsPage() {
         });
         
       } catch (error) {
-        console.error('Error fetching user:', error);
         setError('Failed to load profile data');
       } finally {
         setIsLoading(false);
@@ -197,7 +196,6 @@ export default function ProfileSettingsPage() {
           .single();
         
         if (createUserError) {
-          console.error('Error creating user profile:', createUserError);
           throw new Error('Failed to create user profile');
         }
         
@@ -280,7 +278,6 @@ export default function ProfileSettingsPage() {
       setVeteranProfile(newVeteranProfile);
       
     } catch (error) {
-      console.error('Error updating profile:', error);
       setError('Failed to update profile. Please try again.');
     } finally {
       setIsSaving(false);
