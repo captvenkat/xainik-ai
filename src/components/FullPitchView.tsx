@@ -60,6 +60,16 @@ export default function FullPitchView({
   const serviceBranch = militaryData?.service_branch || 'Not specified'
   const yearsOfService = militaryData?.years_experience || 0
 
+  // Debug logging
+  console.log('FullPitchView Debug:', {
+    militaryData,
+    bio: pitch.bio,
+    resume_url,
+    resume_share_enabled,
+    user: user?.id,
+    pitchUser: pitchUser?.id
+  })
+
   // Calculate time since creation
   const timeSinceCreation = created_at 
     ? Math.floor((Date.now() - new Date(created_at).getTime()) / (1000 * 60 * 60 * 24))
@@ -105,14 +115,12 @@ export default function FullPitchView({
                 </h1>
                 
                 {/* Military Service Badge */}
-                {militaryData && (
-                  <div className="inline-flex items-center gap-2 bg-gradient-to-r from-red-100 to-blue-100 px-4 py-2 rounded-full border border-red-200 mb-3">
-                    <Shield className="h-4 w-4 text-red-600" />
-                    <span className="text-sm font-semibold text-gray-700">
-                      {militaryRank} • {serviceBranch} • {yearsOfService} years
-                    </span>
-                  </div>
-                )}
+                <div className="inline-flex items-center gap-2 bg-gradient-to-r from-red-100 to-blue-100 px-4 py-2 rounded-full border border-red-200 mb-3">
+                  <Shield className="h-4 w-4 text-red-600" />
+                  <span className="text-sm font-semibold text-gray-700">
+                    {militaryRank} • {serviceBranch} • {yearsOfService} years
+                  </span>
+                </div>
 
                 {/* Verified Veteran Tag */}
                 {isCommunityVerified && (
@@ -267,28 +275,26 @@ export default function FullPitchView({
           {/* Sidebar - 1/3 width */}
           <div className="space-y-6">
             {/* Military Service Information */}
-            {militaryData && (
-              <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
-                <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <Shield className="h-5 w-5 text-red-500" />
-                  Military Service
-                </h3>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Rank</span>
-                    <span className="font-semibold text-gray-900">{militaryRank}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Service Branch</span>
-                    <span className="font-semibold text-gray-900">{serviceBranch}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Years of Service</span>
-                    <span className="font-semibold text-gray-900">{yearsOfService} years</span>
-                  </div>
+            <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
+              <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <Shield className="h-5 w-5 text-red-500" />
+                Military Service
+              </h3>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">Rank</span>
+                  <span className="font-semibold text-gray-900">{militaryRank}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">Service Branch</span>
+                  <span className="font-semibold text-gray-900">{serviceBranch}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">Years of Service</span>
+                  <span className="font-semibold text-gray-900">{yearsOfService} years</span>
                 </div>
               </div>
-            )}
+            </div>
 
             {/* Job Details */}
             <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
@@ -400,7 +406,7 @@ export default function FullPitchView({
               )}
 
               {/* Resume Request Button */}
-              {resume_url && resume_share_enabled && user && user.id !== pitchUser?.id && (
+              {resume_url && (
                 <div className="mt-6 pt-4 border-t border-gray-100">
                   <button
                     onClick={() => setShowResumeModal(true)}
