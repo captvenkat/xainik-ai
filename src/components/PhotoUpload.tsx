@@ -55,6 +55,10 @@ export default function PhotoUpload({
         if (showCrop) {
           setShowCropper(true)
         } else {
+          console.log('PhotoUpload Debug - handleFileSelect calling onPhotoChange:', {
+            photoUrl: result,
+            isCustom: true
+          })
           onPhotoChange(result, true)
         }
       }
@@ -94,6 +98,10 @@ export default function PhotoUpload({
     const croppedImageUrl = canvas.toDataURL('image/jpeg', 0.9)
     setSelectedPhoto(croppedImageUrl)
     setShowCropper(false)
+    console.log('PhotoUpload Debug - handleCropSave calling onPhotoChange:', {
+      photoUrl: croppedImageUrl,
+      isCustom: true
+    })
     onPhotoChange(croppedImageUrl, true)
   }, [completedCrop, onPhotoChange])
 

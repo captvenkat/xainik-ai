@@ -65,6 +65,15 @@ export default function NewPitchPage() {
         throw new Error('Authentication required')
       }
 
+      // Debug photo URL before pitch creation
+      console.log('Pitch Creation Photo Debug:', {
+        formData_photo_url: formData.photo_url,
+        formData_photo_url_type: typeof formData.photo_url,
+        formData_photo_url_truthy: !!formData.photo_url,
+        formData_keys: Object.keys(formData),
+        full_formData: formData
+      })
+
       // Validate required fields
       if (!formData.title.trim() || !formData.pitch.trim() || formData.skills.some(skill => !skill.trim())) {
         throw new Error('Please complete all required fields')
