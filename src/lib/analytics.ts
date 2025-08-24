@@ -18,11 +18,11 @@ export async function getSimpleHeroData(veteranId: string) {
         referrals!referral_events_referral_id_fkey (
           pitch_id,
           pitches!referrals_pitch_id_fkey (
-            veteran_id
+            user_id
           )
         )
       `)
-      .eq('referrals.pitches.veteran_id', veteranId)
+      .eq('referrals.pitches.user_id', veteranId)
       .eq('event_type', 'PITCH_VIEWED')
       .gte('occurred_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
 
@@ -36,11 +36,11 @@ export async function getSimpleHeroData(veteranId: string) {
         referrals!referral_events_referral_id_fkey (
           pitch_id,
           pitches!referrals_pitch_id_fkey (
-            veteran_id
+            user_id
           )
         )
       `)
-      .eq('referrals.pitches.veteran_id', veteranId)
+      .eq('referrals.pitches.user_id', veteranId)
       .eq('event_type', 'PITCH_VIEWED')
 
     // Get active opportunities (referral events)
@@ -53,11 +53,11 @@ export async function getSimpleHeroData(veteranId: string) {
         referrals!referral_events_referral_id_fkey (
           pitch_id,
           pitches!referrals_pitch_id_fkey (
-            veteran_id
+            user_id
           )
         )
       `)
-      .eq('referrals.pitches.veteran_id', veteranId)
+      .eq('referrals.pitches.user_id', veteranId)
       .gte('occurred_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
 
     // Always use real data - no mock data
@@ -119,11 +119,11 @@ export async function getSimpleMetricsData(veteranId: string) {
         referrals!referral_events_referral_id_fkey (
           pitch_id,
           pitches!referrals_pitch_id_fkey (
-            veteran_id
+            user_id
           )
         )
       `)
-      .eq('referrals.pitches.veteran_id', veteranId)
+      .eq('referrals.pitches.user_id', veteranId)
       .order('occurred_at', { ascending: false })
       .limit(100)
 
@@ -209,11 +209,11 @@ export async function getVeteranOutreachData(veteranId: string) {
         referrals!referral_events_referral_id_fkey (
           pitch_id,
           pitches!referrals_pitch_id_fkey (
-            veteran_id
+            user_id
           )
         )
       `)
-      .eq('referrals.pitches.veteran_id', veteranId)
+      .eq('referrals.pitches.user_id', veteranId)
       .in('event_type', ['SHARE_RESHARED', 'LINK_OPENED'])
       .order('occurred_at', { ascending: false })
       .limit(50)
@@ -350,11 +350,11 @@ export async function getSimpleActionsData(veteranId: string) {
         referrals!referral_events_referral_id_fkey (
           pitch_id,
           pitches!referrals_pitch_id_fkey (
-            veteran_id
+            user_id
           )
         )
       `)
-      .eq('referrals.pitches.veteran_id', veteranId)
+      .eq('referrals.pitches.user_id', veteranId)
       .order('occurred_at', { ascending: false })
       .limit(100)
 
@@ -517,11 +517,11 @@ export async function getSimpleActivityData(veteranId: string) {
         referrals!referral_events_referral_id_fkey (
           pitch_id,
           pitches!referrals_pitch_id_fkey (
-            veteran_id
+            user_id
           )
         )
       `)
-      .eq('referrals.pitches.veteran_id', veteranId)
+      .eq('referrals.pitches.user_id', veteranId)
       .order('occurred_at', { ascending: false })
       .limit(10)
 
