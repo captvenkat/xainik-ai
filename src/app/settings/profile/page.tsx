@@ -155,10 +155,10 @@ export default function ProfileSettingsPage() {
     
     if (photoUrl) {
       // Update the profile state with the new photo
-      setProfile(prev => ({
+      setProfile(prev => prev ? {
         ...prev,
         avatar_url: photoUrl
-      }));
+      } : null);
       
       // Store the photo URL for later upload
       setFormData(prev => ({
@@ -167,10 +167,10 @@ export default function ProfileSettingsPage() {
       }));
     } else {
       // Remove the photo
-      setProfile(prev => ({
+      setProfile(prev => prev ? {
         ...prev,
         avatar_url: null
-      }));
+      } : null);
       
       setFormData(prev => ({
         ...prev,
