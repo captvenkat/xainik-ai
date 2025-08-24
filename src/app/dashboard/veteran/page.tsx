@@ -138,12 +138,7 @@ export default function VeteranDashboard() {
             </div>
           )}
 
-          {/* NEW: Enhanced Visual Indicator */}
-          <div className="bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl p-4 text-white text-center mb-6 animate-pulse shadow-xl">
-            <div className="text-2xl mb-2">🎉</div>
-            <h3 className="text-xl font-bold mb-2">DASHBOARD ENHANCED!</h3>
-            <p className="text-purple-100">Your veteran dashboard has been completely redesigned with beautiful gradients and professional styling!</p>
-          </div>
+
           
           {/* Mock Data Information Banner */}
           <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6 mb-6 shadow-lg">
