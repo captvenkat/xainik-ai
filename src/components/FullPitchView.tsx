@@ -189,6 +189,18 @@ export default function FullPitchView({
     photo_url_starts_with: photo_url ? photo_url.substring(0, 50) + '...' : 'N/A'
   }, null, 2))
 
+  // Visible debug display for troubleshooting
+  const debugInfo = {
+    photo_url,
+    photo_url_type: typeof photo_url,
+    photo_url_truthy: !!photo_url,
+    photo_url_length: photo_url ? photo_url.length : 'N/A',
+    plan_expires_at,
+    user_metadata_plan_expires_at: (pitch as any).users?.metadata?.plan_expires_at,
+    militaryData: !!militaryData,
+    bio: !!bio
+  }
+
   const veteranName = pitchUser?.name || 'Veteran'
   const veteranRole = 'veteran'
 
@@ -262,7 +274,15 @@ export default function FullPitchView({
     : 0
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-blue-50">
+    <div className="min-h-screen bg-gray-50">
+      {/* Debug Information Display - Remove after troubleshooting */}
+      <div className="bg-yellow-100 border border-yellow-400 p-4 mb-4">
+        <h3 className="text-sm font-bold text-yellow-800 mb-2">�� Debug Info (Remove after fixing)</h3>
+        <pre className="text-xs text-yellow-700 overflow-auto">
+          {JSON.stringify(debugInfo, null, 2)}
+        </pre>
+      </div>
+
       {/* Hero Section */}
       <div className="relative overflow-hidden">
         {/* Background Pattern */}
