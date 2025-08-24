@@ -73,7 +73,7 @@ export default function EndorsePage() {
         .from('endorsements')
         .insert({
           user_id: pitch.user_id,
-          endorser_user_id: user.id,
+          endorser_user_id: null, // Public endorsement
           text: formData.message.trim(),
           created_at: new Date().toISOString()
         })

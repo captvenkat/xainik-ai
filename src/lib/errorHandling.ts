@@ -101,7 +101,7 @@ export function handleError(
 ): ProfessionalError {
   if (error instanceof ProfessionalError) {
     // Add additional context if provided
-    error.context = { ...error.context, ...context }
+    (error as any).context = { ...error.context, ...context }
     return error
   }
 
@@ -247,7 +247,7 @@ export const CommonErrors = {
     `Invalid input for field: ${field}`,
     'validation',
     'low',
-    { field, value },
+    { field, value } as any,
     'Please check your input and try again.'
   ),
 
