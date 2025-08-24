@@ -39,7 +39,7 @@ async function fetchPitch(id: string) {
     .eq('user_id', pitch.user_id)
     .eq('profile_type', 'veteran')
     .eq('is_active', true)
-    .limit(1)
+    .single()
 
   return {
     ...pitch,
