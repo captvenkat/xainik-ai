@@ -285,20 +285,41 @@ function AnalyticsTab({ userId, router, onSharePitch, searchParams }: { userId: 
         // Check if user has completed profile (basic check)
         const { data: userProfile } = await supabase
           .from('users')
-          .select('name, phone, role')
+          .select('name, phone, role, metadata')
           .eq('id', userId)
           .single()
 
-        // Check if user has veteran profile data
-        const { data: veteranProfile } = await supabase
-          .from('user_profiles')
-          .select('profile_data')
-          .eq('user_id', userId)
-          .eq('profile_type', 'veteran')
-          .eq('is_active', true)
-          .single()
-
-        const userHasProfile = userProfile && userProfile.name && veteranProfile && veteranProfile.profile_data
+        // Check if user has veteran profile data - try multiple sources
+        let userHasProfile = false
+        
+        // First try veterans table
+        try {
+          const { data: veteranData } = await supabase
+            .from('veterans')
+            .select('*')
+            .eq('user_id', userId)
+            .single()
+          
+          if (veteranData && (veteranData.rank || veteranData.service_branch || veteranData.bio)) {
+            userHasProfile = true
+          }
+        } catch (veteranError) {
+          console.log('Veterans table not accessible, checking user metadata')
+        }
+        
+        // Fallback to user metadata if veterans table failed
+        if (!userHasProfile && userProfile?.metadata?.veteran_profile) {
+          const fallbackData = userProfile.metadata.veteran_profile
+          if (fallbackData.military_rank || fallbackData.service_branch || fallbackData.bio) {
+            userHasProfile = true
+          }
+        }
+        
+        // Basic profile completion check - if user has name and phone, consider profile complete
+        if (!userHasProfile && userProfile?.name && userProfile?.phone) {
+          userHasProfile = true
+        }
+        
         setHasProfile(userHasProfile)
 
         // Determine user progress - Profile first, then pitch, then share
@@ -306,12 +327,24 @@ function AnalyticsTab({ userId, router, onSharePitch, searchParams }: { userId: 
           setUserProgress('step1') // Complete Profile
         } else if (!userHasPitches) {
           setUserProgress('step2') // Create Pitch
-        } else if (!userHasShared) {
-          setUserProgress('step3') // Smart Share
         } else {
+          // If user has profile and pitches, show full dashboard
+          // Don't require sharing to see analytics
           setUserProgress('complete')
         }
         
+        // Debug logging
+        console.log('User Progress Detection:', {
+          userId,
+          userHasProfile,
+          userHasPitches,
+          userHasShared,
+          userProgress: userHasProfile && userHasPitches ? 'complete' : (!userHasProfile ? 'step1' : 'step2'),
+          userProfile: userProfile?.name,
+          userPhone: userProfile?.phone,
+          veteranData: userHasProfile
+        })
+
         // Load simple data
         const [hero, metrics, actions, activity] = await Promise.all([
           getSimpleHeroData(userId),
@@ -346,15 +379,15 @@ function AnalyticsTab({ userId, router, onSharePitch, searchParams }: { userId: 
   }
 
   // Progressive Onboarding Flow
-  if (userProgress === 'step1') {
+  // Special case: If user just created a pitch, show full dashboard
+  if (searchParams.get('created') === 'true' && hasPitches) {
+    console.log('User just created pitch, showing full dashboard')
+    // Continue to full dashboard below
+  } else if (userProgress === 'step1') {
     return <Step1CompleteProfile router={router} />
-  }
-
-  if (userProgress === 'step2') {
+  } else if (userProgress === 'step2') {
     return <Step2CreatePitch router={router} />
-  }
-
-  if (userProgress === 'step3') {
+  } else if (userProgress === 'step3') {
     return <Step3SmartShare onSharePitch={onSharePitch} router={router} />
   }
 
