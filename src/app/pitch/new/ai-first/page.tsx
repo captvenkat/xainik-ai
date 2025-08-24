@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 import AIPitchHelper from '@/components/AIPitchHelper'
-import { Shield, CheckCircle, AlertCircle, User, MapPin, Calendar, Phone, Mail, ArrowLeft, Save, FileText } from 'lucide-react'
+import { Shield, CheckCircle, AlertCircle, User, MapPin, Calendar, Phone, Mail, ArrowLeft, Save, FileText, Users, Bell, Brain } from 'lucide-react'
 import Link from 'next/link'
 import SmartPhotoManager from '@/components/SmartPhotoManager'
 
@@ -338,6 +338,56 @@ function AIStep({ formData, updateFormData, onNext }: any) {
         onNext={onNext} 
         onBack={() => {}} 
       />
+
+      {/* AI-Powered Features Preview */}
+      <div className="mt-8 space-y-6">
+        <div className="text-center">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">🚀 More AI-Powered Features</h3>
+          <p className="text-sm text-gray-600">Discover how AI can help you throughout your career journey</p>
+        </div>
+        
+        {/* AI Contact Suggestions Preview */}
+        <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+          <h4 className="font-medium text-gray-900 mb-2 flex items-center gap-2">
+            <Users className="w-4 h-4 text-blue-600" />
+            AI Contact Suggestions
+          </h4>
+          <p className="text-sm text-gray-600 mb-3">
+            Get AI-powered suggestions for companies and contacts that would benefit from your skills
+          </p>
+          <div className="text-xs text-gray-500">
+            💡 <strong>Coming soon:</strong> After creating your pitch, you'll get personalized contact recommendations
+          </div>
+        </div>
+        
+        {/* AI Smart Notifications Preview */}
+        <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+          <h4 className="font-medium text-gray-900 mb-2 flex items-center gap-2">
+            <Bell className="w-4 h-4 text-green-600" />
+            AI Smart Notifications
+          </h4>
+          <p className="text-sm text-gray-600 mb-3">
+            Receive intelligent notifications about opportunities and career guidance
+          </p>
+          <div className="text-xs text-gray-500">
+            💡 <strong>Coming soon:</strong> Get notified about relevant opportunities and career milestones
+          </div>
+        </div>
+        
+        {/* AI Insights Preview */}
+        <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+          <h4 className="font-medium text-gray-900 mb-2 flex items-center gap-2">
+            <Brain className="w-4 h-4 text-purple-600" />
+            AI Career Insights
+          </h4>
+          <p className="text-sm text-gray-600 mb-3">
+            Get strategic insights on how to optimize your career transition
+          </p>
+          <div className="text-xs text-gray-500">
+            💡 <strong>Coming soon:</strong> Receive personalized career optimization recommendations
+          </div>
+        </div>
+      </div>
 
       {/* Validation message */}
       {!isValid && (

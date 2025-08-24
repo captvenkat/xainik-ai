@@ -14,7 +14,7 @@ import {
   BarChart3, User, FileText, Users, Lightbulb, Edit, Eye, Heart, Share, Plus,
   TrendingUp, Target, Zap, Star, Trophy, Calendar, ArrowUpRight, ArrowDownRight,
   ChevronRight, ExternalLink, Bell, Settings, Download, Filter, Activity, 
-  MessageCircle, Award, Phone, Mail, Gift, Rocket, Shield, Globe, Briefcase
+  MessageCircle, Award, Phone, Mail, Gift, Rocket, Shield, Globe, Briefcase, Brain
 } from 'lucide-react'
 import SimpleHeroSection from '@/components/analytics/SimpleHeroSection'
 import SimpleMetrics from '@/components/analytics/SimpleMetrics'
@@ -24,6 +24,9 @@ import VeteranOutreachList from '@/components/analytics/VeteranOutreachList'
 import SimpleActivityFeed from '@/components/analytics/SimpleActivityFeed'
 import SharePitchModal from '@/components/SharePitchModal'
 import ResumeRequestMetrics from '@/components/ResumeRequestMetrics'
+import AIContactSuggestions from '@/components/AIContactSuggestions'
+import SmartNotifications from '@/components/SmartNotifications'
+import AIInsights from '@/components/AIInsights'
 
 import { 
   getSimpleHeroData, 
@@ -228,6 +231,7 @@ function AnalyticsTab({ userId, router, onSharePitch }: { userId: string; router
   const [hasProfile, setHasProfile] = useState(false)
   const [hasPitches, setHasPitches] = useState(false)
   const [hasSharedPitch, setHasSharedPitch] = useState(false)
+  const [userPitchId, setUserPitchId] = useState<string | null>(null)
 
   useEffect(() => {
     async function loadSimpleAnalytics() {
@@ -246,6 +250,11 @@ function AnalyticsTab({ userId, router, onSharePitch }: { userId: string; router
 
         const userHasPitches = Boolean(pitches && pitches.length > 0)
         setHasPitches(userHasPitches)
+        
+        // Store pitch ID for AI components
+        if (pitches && pitches.length > 0 && pitches[0]?.id) {
+          setUserPitchId(pitches[0].id)
+        }
 
         // Check if user has shared pitches (simple check for now)
         // In a real app, you'd check shares table
@@ -340,26 +349,63 @@ function AnalyticsTab({ userId, router, onSharePitch }: { userId: string; router
       {/* Simple Metrics */}
       <SimpleMetrics data={metricsData} />
     
-    {/* Quick Actions */}
-    <SimpleActionPlan data={actionsData} />
+      {/* Quick Actions */}
+      <SimpleActionPlan data={actionsData} />
+      
+      {/* AI-Powered Features Section */}
+      {userPitchId && (
+        <div className="space-y-6">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">🤖 AI-Powered Career Intelligence</h2>
+            <p className="text-gray-600">Get personalized insights and recommendations powered by AI</p>
+          </div>
+          
+          {/* AI Contact Suggestions */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <Users className="w-5 h-5 text-blue-600" />
+              AI Contact Suggestions
+            </h3>
+            <AIContactSuggestions userId={userId} pitchId={userPitchId} />
+          </div>
+          
+          {/* AI Smart Notifications */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <Bell className="w-5 h-5 text-green-600" />
+              AI Smart Notifications
+            </h3>
+            <SmartNotifications userId={userId} pitchId={userPitchId} />
+          </div>
+          
+          {/* AI Insights */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <Brain className="w-5 h-5 text-purple-600" />
+              AI Career Insights
+            </h3>
+            <AIInsights userId={userId} pitchId={userPitchId} />
+          </div>
+        </div>
+      )}
     
-    {/* Your Outreach Efforts */}
-    <VeteranOutreachList veteranId={userId} />
-    
-    {/* Resume Request Metrics */}
-    <ResumeRequestMetrics 
-      userId={userId} 
-      userRole="veteran" 
-      showDetails={true}
-      className="mb-6"
-    />
-    
-    {/* Supporter Performance */}
-    <SupporterPerformanceList veteranId={userId} />
-    
-    {/* Recent Activity */}
-    <SimpleActivityFeed data={activityData} />
-  </div>
+      {/* Your Outreach Efforts */}
+      <VeteranOutreachList veteranId={userId} />
+      
+      {/* Resume Request Metrics */}
+      <ResumeRequestMetrics 
+        userId={userId} 
+        userRole="veteran" 
+        showDetails={true}
+        className="mb-6"
+      />
+      
+      {/* Supporter Performance */}
+      <SupporterPerformanceList veteranId={userId} />
+      
+      {/* Recent Activity */}
+      <SimpleActivityFeed data={activityData} />
+    </div>
   )
 }
 
