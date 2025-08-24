@@ -18,15 +18,15 @@ export async function searchPitches(
   try {
     const supabaseAction = await createActionClient()
 
+    // Use the pitch_cards_view for better performance and complete data
     let queryBuilder = supabaseAction
-      .from('pitches')
-      .select(`
-        *,
-        users!pitches_user_id_fkey (id, name, email),
-        endorsements!endorsements_pitch_id_fkey (*),
-        user_subscriptions!user_subscriptions_user_id_fkey (status, end_date)
-      `)
-      .or(`title.ilike.%${query}%,pitch_text.ilike.%${query}%`)
+      .from('pitch_cards_view')
+      .select('*')
+
+    // Apply text search if query exists
+    if (query && query.trim()) {
+      queryBuilder = queryBuilder.or(`title.ilike.%${query}%,pitch_text.ilike.%${query}%`)
+    }
 
     // Apply filters
     if (filters?.skills && filters.skills.length > 0) {
@@ -37,7 +37,15 @@ export async function searchPitches(
       queryBuilder = queryBuilder.gte('experience_years', filters.experience_years)
     }
 
-    // Filter to only show pitches from users with active subscriptions
+    if (filters?.location) {
+      queryBuilder = queryBuilder.ilike('location', `%${filters.location}%`)
+    }
+
+    if (filters?.job_type) {
+      queryBuilder = queryBuilder.eq('job_type', filters.job_type)
+    }
+
+    // Get pitches ordered by creation date
     const { data: pitches, error } = await queryBuilder
       .order('created_at', { ascending: false })
       .limit(limit)
@@ -47,16 +55,7 @@ export async function searchPitches(
       return []
     }
 
-    // Filter to only show pitches from users with active subscriptions
-    const activePitches = (pitches || []).filter(pitch => {
-      const subscriptions = pitch.user_subscriptions as any
-      const subscription = subscriptions?.[0]
-      return subscription && 
-             subscription.status === 'active' &&
-             new Date(subscription.end_date) > new Date()
-    })
-
-    return activePitches
+    return pitches || []
   } catch (error) {
     console.error('Search failed:', error)
     return []
@@ -90,7 +89,7 @@ export async function getSearchSuggestions(query: string): Promise<string[]> {
     const supabaseAction = await createActionClient()
 
     const { data, error } = await supabaseAction
-      .from('pitches')
+      .from('pitch_cards_view')
       .select('title, skills')
       .or(`title.ilike.%${query}%`)
       .limit(10)
@@ -102,24 +101,53 @@ export async function getSearchSuggestions(query: string): Promise<string[]> {
 
     const suggestions: string[] = []
     
-    // Add titles
-    data?.forEach(pitch => {
-      if (pitch.title) {
-        suggestions.push(pitch.title)
-      }
-    })
+    // Add title suggestions
+    if (data) {
+      data.forEach((pitch: any) => {
+        if (pitch.title && !suggestions.includes(pitch.title)) {
+          suggestions.push(pitch.title)
+        }
+      })
+    }
 
-    // Add skills
-    data?.forEach(pitch => {
-      if (pitch.skills) {
-        suggestions.push(...pitch.skills)
-      }
-    })
-
-    // Remove duplicates and limit
-    return [...new Set(suggestions)].slice(0, 10)
+    return suggestions.slice(0, 10)
   } catch (error) {
     console.error('Failed to get search suggestions:', error)
+    return []
+  }
+}
+
+export async function getPopularSkills(): Promise<string[]> {
+  try {
+    const supabaseAction = await createActionClient()
+
+    const { data, error } = await supabaseAction
+      .from('pitch_cards_view')
+      .select('skills')
+      .limit(100)
+
+    if (error) {
+      console.error('Failed to get popular skills:', error)
+      return []
+    }
+
+    const skillCounts: { [key: string]: number } = {}
+    
+    data?.forEach((pitch: any) => {
+      if (pitch.skills) {
+        pitch.skills.forEach((skill: string) => {
+          skillCounts[skill] = (skillCounts[skill] || 0) + 1
+        })
+      }
+    })
+
+    // Sort by frequency and return top skills
+    return Object.entries(skillCounts)
+      .sort(([,a], [,b]) => b - a)
+      .slice(0, 10)
+      .map(([skill]) => skill)
+  } catch (error) {
+    console.error('Failed to get popular skills:', error)
     return []
   }
 }
