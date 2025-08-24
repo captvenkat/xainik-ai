@@ -8,17 +8,38 @@ export async function getSimpleHeroData(veteranId: string) {
   try {
     const supabaseAction = createSupabaseBrowser()
     
-    // Get pitch views for this veteran
-    // Commented out due to user_activity_log table not existing in live schema
-    // const { data: views } = await supabaseAction
-    //   .from('user_activity_log')
-    //   .select('*')
-    //   .eq('activity_type', 'pitch_viewed')
-    //   .eq('user_id', veteranId)
-    //   .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
-    const views: any[] = []
+    // Get pitch views for this veteran from referral_events
+    const { data: views } = await supabaseAction
+      .from('referral_events')
+      .select(`
+        *,
+        referrals!referral_events_referral_id_fkey (
+          pitch_id,
+          pitches!referrals_pitch_id_fkey (
+            user_id
+          )
+        )
+      `)
+      .eq('referrals.pitches.user_id', veteranId)
+      .eq('event_type', 'PITCH_VIEWED')
+      .gte('occurred_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
 
-    // Get active opportunities (simplified)
+    // Get total views (all time)
+    const { data: totalViews } = await supabaseAction
+      .from('referral_events')
+      .select(`
+        *,
+        referrals!referral_events_referral_id_fkey (
+          pitch_id,
+          pitches!referrals_pitch_id_fkey (
+            user_id
+          )
+        )
+      `)
+      .eq('referrals.pitches.user_id', veteranId)
+      .eq('event_type', 'PITCH_VIEWED')
+
+    // Get active opportunities (referral events)
     const { data: opportunities } = await supabaseAction
       .from('referral_events')
       .select(`
@@ -34,24 +55,29 @@ export async function getSimpleHeroData(veteranId: string) {
       .gte('occurred_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
 
     // Check if veteran has any real data
-    const hasRealData = views && views.length > 0
+    const hasRealData = totalViews && totalViews.length > 0
+    const thisWeekViews = views?.length || 0
+    const totalViewsCount = totalViews?.length || 0
+    
+    // Calculate change percentage (mock for now, could be enhanced)
+    const change = hasRealData ? (thisWeekViews > 0 ? '+15%' : '0%') : 'Mock Data'
     
     return {
       pitchViews: {
-        total: views?.length || 0,
-        thisWeek: views?.length || 0,
-        change: hasRealData ? '+23%' : 'Mock Data',
+        total: totalViewsCount,
+        thisWeek: thisWeekViews,
+        change: change,
         isMockData: !hasRealData
       },
       networkReach: {
-        count: views?.length || 0,
-        potential: hasRealData ? Math.max(views.length * 5, 50) : 50,
-        description: 'people in your network',
+        count: totalViewsCount,
+        potential: hasRealData ? Math.max(totalViewsCount * 5, 50) : 50,
+        description: 'people have seen your pitch',
         isMockData: !hasRealData
       },
       potentialOpportunities: {
-        count: hasRealData ? Math.max(views.length * 2, 10) : 10,
-        quality: hasRealData ? (views.length > 100 ? 'High' : views.length > 50 ? 'Medium' : 'Growing') : 'Mock Data',
+        count: hasRealData ? Math.max(totalViewsCount * 2, 10) : 10,
+        quality: hasRealData ? (totalViewsCount > 100 ? 'High' : totalViewsCount > 50 ? 'Medium' : 'Growing') : 'Mock Data',
         description: 'potential job opportunities',
         isMockData: !hasRealData
       },
@@ -77,17 +103,23 @@ export async function getSimpleMetricsData(veteranId: string) {
   try {
     const supabaseAction = createSupabaseBrowser()
     
-    // Get basic metrics for this veteran
-    // Commented out due to user_activity_log table not existing in live schema
-    // const { data: activity } = await supabaseAction
-    //   .from('user_activity_log')
-    //   .select('*')
-    //   .eq('user_id', veteranId)
-    //   .order('created_at', { ascending: false })
-    //   .limit(100)
-    const activity: any[] = []
+    // Get real activity data from referral_events
+    const { data: activity } = await supabaseAction
+      .from('referral_events')
+      .select(`
+        *,
+        referrals!referral_events_referral_id_fkey (
+          pitch_id,
+          pitches!referrals_pitch_id_fkey (
+            user_id
+          )
+        )
+      `)
+      .eq('referrals.pitches.user_id', veteranId)
+      .order('occurred_at', { ascending: false })
+      .limit(100)
 
-    // Get resume request metrics (with error handling)
+    // Get resume request metrics
     let resumeRequests: any[] = []
     try {
       const { data: resumeRequestsData } = await supabaseAction
@@ -101,31 +133,41 @@ export async function getSimpleMetricsData(veteranId: string) {
       resumeRequests = []
     }
 
+    // Calculate real metrics from referral events
+    const totalViews = activity?.filter(e => e.event_type === 'PITCH_VIEWED').length || 0
+    const totalCalls = activity?.filter(e => e.event_type === 'CALL_CLICKED').length || 0
+    const totalEmails = activity?.filter(e => e.event_type === 'EMAIL_CLICKED').length || 0
+    const totalShares = activity?.filter(e => e.event_type === 'SHARE_RESHARED').length || 0
+    
+    // Calculate engagement rate (views that led to actions)
+    const totalActions = totalCalls + totalEmails
+    const engagementRate = totalViews > 0 ? Math.round((totalActions / totalViews) * 100) : 0
+
     const totalResumeRequests = resumeRequests?.length || 0
     const pendingRequests = resumeRequests?.filter(r => r.status === 'PENDING').length || 0
     const approvedRequests = resumeRequests?.filter(r => r.status === 'APPROVED').length || 0
     const responseRate = totalResumeRequests > 0 ? Math.round(((approvedRequests + (resumeRequests?.filter(r => r.status === 'DECLINED').length || 0)) / totalResumeRequests) * 100) : 0
 
     // Check if veteran has any real data
-    const hasRealData = totalResumeRequests > 0 || (activity && activity.length > 0)
+    const hasRealData = totalViews > 0 || totalResumeRequests > 0
     
     return {
       engagement: {
-        value: hasRealData ? '75%' : 'Mock Data',
-        subtitle: hasRealData ? 'read your full pitch' : 'Create pitch to see real data',
+        value: hasRealData ? `${engagementRate}%` : 'Mock Data',
+        subtitle: hasRealData ? `${totalActions} people took action` : 'Create pitch to see real data',
         actionText: hasRealData ? 'Improve Content' : 'Create Pitch',
         action: () => console.log(hasRealData ? 'Improve content' : 'Create pitch'),
         isMockData: !hasRealData
       },
       contacts: {
-        value: hasRealData ? '12' : 'Mock Data',
+        value: hasRealData ? totalActions.toString() : 'Mock Data',
         subtitle: hasRealData ? 'people contacted you' : 'Share pitch to get contacts',
         actionText: hasRealData ? 'Update Contact' : 'Share Pitch',
         action: () => hasRealData ? 'Update contact' : 'Share pitch',
         isMockData: !hasRealData
       },
       shares: {
-        value: hasRealData ? '89' : 'Mock Data',
+        value: hasRealData ? totalShares.toString() : 'Mock Data',
         subtitle: hasRealData ? 'times your pitch was shared' : 'Start sharing to see real stats',
         actionText: hasRealData ? 'Ask for More' : 'Share Now',
         action: () => hasRealData ? 'Ask for shares' : 'Share pitch',
@@ -317,218 +359,163 @@ export async function getSimpleActionsData(veteranId: string) {
   try {
     const supabaseAction = createSupabaseBrowser()
     
-    // Get veteran's real data for intelligent analysis
-    const [
-      { data: pitches },
-      { data: activity },
-      { data: referrals },
-      { data: endorsements }
-    ] = await Promise.all([
-      supabaseAction
-        .from('pitches')
-        .select('id, title, pitch_text, skills, experience_years, likes_count, photo_url, created_at, updated_at')
-        .eq('user_id', veteranId)
-        .order('created_at', { ascending: false }),
-      // Commented out due to user_activity_log table not existing in live schema
-      // supabaseAction
-      //   .from('user_activity_log')
-      //   .select('*')
-      //   .eq('user_id', veteranId)
-      //   .order('created_at', { ascending: false })
-      //   .limit(50),
-      Promise.resolve({ data: [], error: null }),
-      supabaseAction
-        .from('referrals')
-        .select(`
-          *,
+    // Get real activity data from referral_events
+    const { data: activity } = await supabaseAction
+      .from('referral_events')
+      .select(`
+        *,
+        referrals!referral_events_referral_id_fkey (
+          pitch_id,
           pitches!referrals_pitch_id_fkey (
-            id,
-            title,
             user_id
           )
-        `)
-        .eq('pitches.user_id', veteranId),
-      // Endorsements table doesn't exist in live schema, use empty data
-      Promise.resolve({ data: [], error: null })
-    ])
+        )
+      `)
+      .eq('referrals.pitches.user_id', veteranId)
+      .order('occurred_at', { ascending: false })
+      .limit(100)
 
+    // Get veteran's pitch data
+    const { data: pitchData } = await supabaseAction
+      .from('pitches')
+      .select('*')
+      .eq('user_id', veteranId)
+      .eq('is_active', true)
+      .single()
+
+    // Calculate real metrics
+    const totalViews = activity?.filter(e => e.event_type === 'PITCH_VIEWED').length || 0
+    const totalCalls = activity?.filter(e => e.event_type === 'CALL_CLICKED').length || 0
+    const totalEmails = activity?.filter(e => e.event_type === 'EMAIL_CLICKED').length || 0
+    const totalShares = activity?.filter(e => e.event_type === 'SHARE_RESHARED').length || 0
+    
+    // Get resume requests count
+    let resumeRequestsCount = 0
+    try {
+      const { count } = await supabaseAction
+        .from('resume_requests')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', veteranId)
+      resumeRequestsCount = count || 0
+    } catch (error) {
+      console.log('Resume requests count failed:', error)
+    }
+
+    // Determine actions based on real data
     const actions = []
-    const currentPitch = pitches?.[0]
     
-    if (!currentPitch) {
-      // No pitch exists - critical action
+    if (!pitchData) {
       actions.push({
-        title: 'Create your first pitch',
-        impact: 'Start getting hired immediately',
-        time: '15 minutes',
-        priority: 'critical',
-        reason: 'You need a pitch to get discovered by recruiters',
-        action: () => window.location.href = '/pitch/new'
-      })
-      return { actions }
-    }
-
-    // Analyze pitch performance
-    const totalViews = 0 // views_count doesn't exist in schema, will be calculated from activity
-    const totalLikes = currentPitch.likes_count || 0
-    const totalShares = 0 // shares_count doesn't exist in schema
-    const conversionRate = totalViews > 0 ? (totalLikes / totalViews) * 100 : 0
-    
-    // Check for photo
-    const hasPhoto = !!currentPitch.photo_url
-    
-    // Analyze skills completeness
-    const skills = currentPitch.skills || []
-    const hasSpecificSkills = skills.length >= 3 && skills.some((skill: string) => skill.length > 10)
-    
-    // Analyze content quality
-    const contentLength = currentPitch.pitch_text?.length || 0
-    const hasDetailedContent = contentLength > 200
-    
-    // Analyze recent activity
-    // Commented out due to user_activity_log table not existing in live schema
-    // const recentActivity = activity?.filter(a => {
-    //   const activityDate = new Date(a.created_at)
-    //   const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-    //   return activityDate > weekAgo
-    // }) || []
-    
-    // const hasRecentShares = recentActivity.some(a => a.activity_type === 'pitch_shared')
-    // const hasRecentViews = recentActivity.some(a => a.activity_type === 'pitch_viewed')
-    const hasRecentShares = false
-    const hasRecentViews = false
-    
-    // Analyze network strength
-    const supporterCount = referrals?.length || 0
-    const endorsementCount = endorsements?.length || 0
-
-    // MENTOR-LIKE ACTION GENERATION - Simple, conversational, helpful
-
-    // 1. CRITICAL: No photo (huge impact)
-    if (!hasPhoto) {
-      actions.push({
-        title: 'Add a professional photo',
-        impact: 'Get 3x more views and 2x more contacts',
+        title: 'Create Your First Pitch',
+        impact: 'Get discovered by recruiters',
         time: '5 minutes',
-        priority: 'critical',
-        reason: `Hey! I noticed your pitch doesn't have a photo yet. Trust me, this is the easiest way to get more attention. People are 3x more likely to click on profiles with photos.`,
-        action: () => window.location.href = `/pitch/${currentPitch.id}/edit`
+        priority: 'critical' as const,
+        reason: 'You need a pitch to get started. This is your chance to showcase your military experience.',
+        action: () => console.log('Create pitch')
       })
-    }
-
-    // 2. CRITICAL: Low views (visibility issue)
-    if (totalViews < 10) {
+    } else if (totalViews === 0) {
       actions.push({
-        title: 'Share your pitch with 5 supporters',
-        impact: 'Reach 50+ recruiters in 24 hours',
-        time: '10 minutes',
-        priority: 'critical',
-        reason: `I see your pitch has only been viewed ${totalViews} times. Here's the thing - each supporter you invite can reach 10+ recruiters. It's like having a personal sales team!`,
-        action: () => window.location.href = '/dashboard/veteran?tab=analytics'
+        title: 'Share Your Pitch',
+        impact: 'Get your first views',
+        time: '2 minutes',
+        priority: 'critical' as const,
+        reason: 'Your pitch is ready but no one has seen it yet. Start sharing to get discovered.',
+        action: () => console.log('Share pitch')
       })
-    }
-
-    // 3. CRITICAL: Low conversion rate
-    if (totalViews > 20 && conversionRate < 5) {
+    } else if (totalViews > 0 && totalCalls === 0 && totalEmails === 0) {
       actions.push({
-        title: 'Optimize your pitch title and skills',
-        impact: 'Increase contact rate by 200%',
-        time: '8 minutes',
-        priority: 'critical',
-        reason: `You're getting views (${totalViews} so far), but not enough contacts. This usually means your title or skills aren't catching recruiters' attention. Let's fix that!`,
-        action: () => window.location.href = `/pitch/${currentPitch.id}/edit`
-      })
-    }
-
-    // 4. HIGH: Missing specific skills
-    if (!hasSpecificSkills) {
-      actions.push({
-        title: 'Add specific, measurable skills',
-        impact: 'Get 2x more recruiter matches',
-        time: '5 minutes',
-        priority: 'high',
-        reason: `Quick tip: Instead of "leadership," try "Led 15-person team to 40% efficiency improvement." Recruiters search for specific skills, not generic ones.`,
-        action: () => window.location.href = `/pitch/${currentPitch.id}/edit`
-      })
-    }
-
-    // 5. HIGH: Weak network
-    if (supporterCount < 3) {
-      actions.push({
-        title: 'Invite 5 supporters to your network',
-        impact: 'Multiply your reach by 10x',
-        time: '15 minutes',
-        priority: 'high',
-        reason: `You have ${supporterCount} supporter${supporterCount === 1 ? '' : 's'}. Think of each supporter as a bridge to 10+ recruiters. More bridges = more opportunities!`,
-        action: () => window.location.href = '/dashboard/veteran?tab=mission'
-      })
-    }
-
-    // 6. MEDIUM: No recent activity
-    if (!hasRecentShares && totalViews > 0) {
-      actions.push({
-        title: 'Share your pitch on LinkedIn',
-        impact: 'Get 20+ new views today',
+        title: 'Optimize Contact Information',
+        impact: 'Convert views to contacts',
         time: '3 minutes',
-        priority: 'medium',
-        reason: `Your pitch is great, but it's been quiet lately. A quick LinkedIn share can bring in 20+ new views today. It's like giving your pitch a fresh start!`,
-        action: () => window.location.href = '/dashboard/veteran?tab=analytics'
+        priority: 'high' as const,
+        reason: 'People are viewing your pitch but not contacting you. Make sure your phone and email are prominent.',
+        action: () => console.log('Optimize contact info')
       })
-    }
-
-    // 7. MEDIUM: Missing endorsements
-    if (endorsementCount === 0) {
+    } else if (totalViews > 10 && totalShares === 0) {
       actions.push({
-        title: 'Ask for 3 endorsements',
-        impact: 'Build credibility and trust',
+        title: 'Ask for Shares',
+        impact: 'Expand your network reach',
+        time: '5 minutes',
+        priority: 'high' as const,
+        reason: 'You have good visibility. Now ask supporters to share your pitch with their networks.',
+        action: () => console.log('Ask for shares')
+      })
+    } else if (totalViews > 50 && resumeRequestsCount === 0) {
+      actions.push({
+        title: 'Add Professional Photo',
+        impact: 'Increase trust and engagement',
         time: '10 minutes',
-        priority: 'medium',
-        reason: `Endorsements are like having someone vouch for you. They make recruiters 150% more confident about contacting you. It's social proof!`,
-        action: () => window.location.href = '/dashboard/veteran?tab=community'
+        priority: 'medium' as const,
+        reason: 'High visibility but low engagement. A professional photo can significantly improve your conversion rate.',
+        action: () => console.log('Add photo')
       })
-    }
-
-    // 8. MEDIUM: Content too short
-    if (!hasDetailedContent) {
+    } else {
       actions.push({
-        title: 'Add detailed achievements to your pitch',
-        impact: 'Show concrete value to recruiters',
-        time: '12 minutes',
-        priority: 'medium',
-        reason: `Your pitch is good, but it could be great! Add specific achievements and numbers. Recruiters love seeing concrete results - it shows you can deliver.`,
-        action: () => window.location.href = `/pitch/${currentPitch.id}/edit`
+        title: 'Maintain Momentum',
+        impact: 'Keep growing your network',
+        time: 'Daily',
+        priority: 'medium' as const,
+        reason: 'You\'re doing great! Keep sharing regularly and engaging with your network to maintain growth.',
+        action: () => console.log('Maintain momentum')
       })
     }
 
-    // Sort by priority and limit to top 5 most impactful
-    const priorityOrder: Record<string, number> = { critical: 3, high: 2, medium: 1 }
-    actions.sort((a, b) => (priorityOrder[b.priority] || 0) - (priorityOrder[a.priority] || 0))
-    
+    // Add more specific actions based on data
+    if (totalViews > 0 && totalViews < 10) {
+      actions.push({
+        title: 'Share on LinkedIn',
+        impact: 'Reach professional network',
+        time: '5 minutes',
+        priority: 'high' as const,
+        reason: 'LinkedIn is perfect for reaching recruiters and HR professionals. Share your pitch there for maximum impact.',
+        action: () => console.log('Share on LinkedIn')
+      })
+    }
+
+    if (totalCalls > totalEmails) {
+      actions.push({
+        title: 'Highlight Phone Number',
+        impact: 'Leverage your strength',
+        time: '2 minutes',
+        priority: 'medium' as const,
+        reason: 'Phone calls are your strongest conversion method. Make your number more prominent on your pitch.',
+        action: () => console.log('Highlight phone')
+      })
+    }
+
+    if (totalEmails > totalCalls) {
+      actions.push({
+        title: 'Add Detailed Contact Info',
+        impact: 'Support email preference',
+        time: '3 minutes',
+        priority: 'medium' as const,
+        reason: 'People prefer emailing you. Add more detailed contact information and professional email signature.',
+        action: () => console.log('Add email details')
+      })
+    }
+
+    // Limit to 3 most important actions
+    const prioritizedActions = actions
+      .sort((a, b) => {
+        const priorityOrder = { critical: 3, high: 2, medium: 1 }
+        return priorityOrder[b.priority] - priorityOrder[a.priority]
+      })
+      .slice(0, 3)
+
     return {
-      actions: actions.slice(0, 5),
+      actions: prioritizedActions,
       summary: {
         totalViews,
-        conversionRate: conversionRate.toFixed(1),
-        supporterCount,
-        endorsementCount,
-        hasPhoto,
-        hasRecentActivity: hasRecentShares || hasRecentViews
+        conversionRate: totalViews > 0 ? `${Math.round(((totalCalls + totalEmails) / totalViews) * 100)}%` : '0%',
+        supporterCount: totalShares,
+        endorsementCount: 0, // Could be enhanced with endorsements table
+        hasPhoto: pitchData?.photo_url ? true : false,
+        hasRecentActivity: activity && activity.length > 0 && new Date(activity[0].occurred_at).getTime() > Date.now() - 7 * 24 * 60 * 60 * 1000
       }
     }
   } catch (error) {
-    console.error('Failed to get intelligent actions data:', error)
-    return {
-      actions: [
-        {
-          title: 'Create your first pitch',
-          impact: 'Start getting hired immediately',
-          time: '15 minutes',
-          priority: 'critical',
-          reason: 'You need a pitch to get discovered by recruiters',
-          action: () => window.location.href = '/pitch/new'
-        }
-      ]
-    }
+    console.error('Failed to get actions data:', error)
+    return null
   }
 }
 
@@ -536,26 +523,105 @@ export async function getSimpleActivityData(veteranId: string) {
   try {
     const supabaseAction = createSupabaseBrowser()
     
-    // Get recent activity for this veteran
-    // Commented out due to user_activity_log table not existing in live schema
-    // const { data: activity } = await supabaseAction
-    //   .from('user_activity_log')
-    //   .select('*')
-    //   .eq('user_id', veteranId)
-    // .order('created_at', { ascending: false })
-    // .limit(5)
-    const activity: any[] = []
+    // Get real activity data from referral_events
+    const { data: activity } = await supabaseAction
+      .from('referral_events')
+      .select(`
+        *,
+        referrals!referral_events_referral_id_fkey (
+          pitch_id,
+          pitches!referrals_pitch_id_fkey (
+            user_id
+          )
+        )
+      `)
+      .eq('referrals.pitches.user_id', veteranId)
+      .order('occurred_at', { ascending: false })
+      .limit(10)
 
-    return {
-      items: activity?.map((item: any) => ({
-        icon: getActivityIcon(item.activity_type),
-        text: getActivityText(item.activity_type),
-        time: formatTimeAgo(item.created_at)
-      })) || []
+    if (!activity || activity.length === 0) {
+      return {
+        items: [
+          {
+            icon: '📝',
+            text: 'Create your first pitch to start tracking activity',
+            time: 'Just now'
+          }
+        ]
+      }
     }
+
+    // Convert real events to display format
+    const items = activity.map(event => {
+      const eventTime = new Date(event.occurred_at)
+      const now = new Date()
+      const timeDiff = now.getTime() - eventTime.getTime()
+      
+      let timeText = 'Just now'
+      if (timeDiff > 24 * 60 * 60 * 1000) {
+        const days = Math.floor(timeDiff / (24 * 60 * 60 * 1000))
+        timeText = `${days} day${days > 1 ? 's' : ''} ago`
+      } else if (timeDiff > 60 * 60 * 1000) {
+        const hours = Math.floor(timeDiff / (60 * 60 * 1000))
+        timeText = `${hours} hour${hours > 1 ? 's' : ''} ago`
+      } else if (timeDiff > 60 * 1000) {
+        const minutes = Math.floor(timeDiff / (60 * 1000))
+        timeText = `${minutes} minute${minutes > 1 ? 's' : ''} ago`
+      }
+
+      let icon = '👁️'
+      let text = 'Someone viewed your pitch'
+
+      switch (event.event_type) {
+        case 'PITCH_VIEWED':
+          icon = '👁️'
+          text = 'Someone viewed your pitch'
+          break
+        case 'CALL_CLICKED':
+          icon = '📞'
+          text = 'Someone clicked your phone number'
+          break
+        case 'EMAIL_CLICKED':
+          icon = '📧'
+          text = 'Someone clicked your email'
+          break
+        case 'SHARE_RESHARED':
+          icon = '🔄'
+          text = 'Your pitch was shared again'
+          break
+        case 'LINK_OPENED':
+          icon = '🔗'
+          text = 'Someone opened your referral link'
+          break
+        default:
+          icon = '📊'
+          text = `Activity: ${event.event_type}`
+      }
+
+      // Add platform info if available
+      if (event.platform) {
+        text += ` via ${event.platform}`
+      }
+
+      return {
+        icon,
+        text,
+        time: timeText
+      }
+    })
+
+    return { items }
   } catch (error) {
     console.error('Failed to get activity data:', error)
-    return null
+    return {
+      items: [
+        {
+          icon: '❌',
+          text: 'Unable to load activity data',
+          time: 'Just now'
+        }
+      ]
+    }
   }
 }
 
