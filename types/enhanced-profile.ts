@@ -43,6 +43,7 @@ export interface ProfileFormData {
   locations_preferred: string[];
   web_links: WebLink[];
   retirement_date: string;
+  photo_url: string;
 }
 
 export interface ProfileValidationResult {
@@ -289,7 +290,8 @@ export function getDefaultProfileFormData(): ProfileFormData {
     location_current: '',
     locations_preferred: [],
     web_links: [],
-    retirement_date: ''
+    retirement_date: '',
+    photo_url: ''
   };
 }
 
