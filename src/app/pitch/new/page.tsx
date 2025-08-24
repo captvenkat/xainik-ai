@@ -112,8 +112,8 @@ export default function NewPitchPage() {
         throw new Error('Failed to create pitch')
       }
 
-      // Redirect to the new pitch
-      router.push(`/pitch/${pitch.id}`)
+      // Redirect to veteran dashboard analytics tab to show smart share options
+      router.push(`/dashboard/veteran?tab=analytics&created=true`)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create pitch')
     } finally {

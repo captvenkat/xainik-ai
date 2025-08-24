@@ -411,9 +411,17 @@ export default function VeteranProfileTab() {
       {/* Success/Error Messages */}
       {success && (
         <div className="px-6 py-3 bg-green-50 border-b border-green-200">
-          <div className="flex items-center">
-            <CheckCircle className="h-5 w-5 text-green-400 mr-2" />
-            <p className="text-sm font-medium text-green-800">{success}</p>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <CheckCircle className="h-5 w-5 text-green-400 mr-2" />
+              <p className="text-sm font-medium text-green-800">{success}</p>
+            </div>
+            <button
+              onClick={() => window.location.href = '/dashboard/veteran?tab=analytics'}
+              className="inline-flex items-center px-3 py-1 text-xs font-medium text-green-700 bg-green-100 rounded-md hover:bg-green-200 transition-colors"
+            >
+              Next Step: Analytics →
+            </button>
           </div>
         </div>
       )}
