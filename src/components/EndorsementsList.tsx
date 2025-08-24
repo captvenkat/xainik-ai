@@ -92,7 +92,11 @@ export default function EndorsementsList({
       }
 
       // Create endorsement
-      await createEndorsement(pitch.user_id as string, userId, formData.text.trim())
+      const result = await createEndorsement(pitch.user_id as string, userId, formData.text.trim())
+      
+      if (result.error) {
+        throw new Error(result.error)
+      }
 
       setSuccess(true)
       setShowForm(false)

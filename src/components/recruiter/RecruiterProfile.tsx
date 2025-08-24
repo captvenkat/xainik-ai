@@ -210,40 +210,23 @@ export default function RecruiterProfile() {
 
       if (userError) throw userError
 
-      // Update or create recruiter profile
-      const recruiterData = {
-        user_id: user.id,
-        company_name: profile.company_name,
-        industry: profile.industry,
-        bio: profile.bio,
-        website: profile.website,
-        linkedin_url: profile.linkedin_url
-      }
+      // Save recruiter profile data directly to users table
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({
+          bio: profile.bio,
+          // Store recruiter-specific data in metadata
+          metadata: {
+            company_name: profile.company_name,
+            industry: profile.industry,
+            website: profile.website,
+            profile_type: 'recruiter'
+          },
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id)
 
-      const { data: existingRecruiter, error: checkError } = await supabase
-        .from('recruiters')
-        .select('user_id')
-        .eq('user_id', user.id)
-        .single()
-
-      if (checkError && checkError.code === 'PGRST116') {
-        // Recruiter profile doesn't exist, create it
-        const { error: recruiterError } = await supabase
-          .from('recruiters')
-          .insert(recruiterData)
-
-        if (recruiterError) throw recruiterError
-      } else if (checkError) {
-        throw checkError
-      } else {
-        // Recruiter profile exists, update it
-        const { error: recruiterError } = await supabase
-          .from('recruiters')
-          .update(recruiterData)
-          .eq('user_id', user.id)
-
-        if (recruiterError) throw recruiterError
-      }
+      if (updateError) throw updateError
 
       setSuccess('Profile updated successfully!')
       setIsEditing(false)

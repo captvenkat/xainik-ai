@@ -191,32 +191,24 @@ export default function SupporterProfilePage() {
 
       if (userError) throw userError
 
-      // Update or create supporter profile
-      const supporterData = {
-        user_id: user.id,
-        professional_title: formData.professional_title,
-        company: formData.company,
-        industry: formData.industry,
-        bio: formData.bio,
-        intro: formData.bio, // Keep backward compatibility
-        linkedin_url: formData.linkedin_url,
-        areas_of_support: formData.areas_of_support
-      }
+      // Save supporter profile data directly to users table
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({
+          bio: formData.bio,
+          // Store supporter-specific data in metadata
+          metadata: {
+            professional_title: formData.professional_title,
+            company: formData.company,
+            industry: formData.industry,
+            areas_of_support: formData.areas_of_support,
+            profile_type: 'supporter'
+          },
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id)
 
-      if (supporterProfile) {
-        const { error: supporterError } = await supabase
-          .from('supporters')
-          .update(supporterData)
-          .eq('user_id', user.id)
-
-        if (supporterError) throw supporterError
-      } else {
-        const { error: supporterError } = await supabase
-          .from('supporters')
-          .insert(supporterData)
-
-        if (supporterError) throw supporterError
-      }
+      if (updateError) throw updateError
 
       // Show subtle success indicator
       setSuccess('Saved')
@@ -247,13 +239,8 @@ export default function SupporterProfilePage() {
       
       setProfile(newProfile)
       
-      const { data: newSupporterProfile } = await supabase
-        .from('supporters')
-        .select('*')
-        .eq('user_id', user.id)
-        .single()
-      
-      setSupporterProfile(newSupporterProfile)
+      // Supporter profile is now stored in users.metadata
+      setSupporterProfile(newProfile.metadata || {})
       
     } catch (error) {
       console.error('Error updating profile:', error)

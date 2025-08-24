@@ -72,8 +72,9 @@ export default function EndorsePage() {
       const { error } = await supabase
         .from('endorsements')
         .insert({
-          // Note: Live endorsements table only has id, created_at, updated_at
-          // Full endorsement data will be available when schema is properly migrated
+          user_id: pitch.user_id,
+          endorser_user_id: user.id,
+          text: formData.message.trim(),
           created_at: new Date().toISOString()
         })
 
