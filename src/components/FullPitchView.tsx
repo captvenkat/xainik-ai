@@ -270,42 +270,34 @@ export default function FullPitchView({ pitch, user, endorsements = [], isCommun
             
             {/* Urgency Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 lg:gap-4">
-              {views_count > 0 && (
-                <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-4 border border-red-100 shadow-sm">
-                  <div className="flex items-center justify-center gap-2 mb-2">
-                    <Eye className="h-5 w-5 text-blue-500" />
-                    <span className="text-2xl md:text-3xl font-bold text-gray-900">{views_count}</span>
-                  </div>
-                  <div className="text-xs text-gray-500 font-medium text-center">People Watching</div>
+              <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-4 border border-red-100 shadow-sm">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <Eye className="h-5 w-5 text-blue-500" />
+                  <span className="text-2xl md:text-3xl font-bold text-gray-900">{views_count || 0}</span>
                 </div>
-              )}
-              {likes_count > 0 && (
-                <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-4 border border-red-100 shadow-sm">
-                  <div className="flex items-center justify-center gap-2 mb-2">
-                    <Heart className="h-5 w-5 text-red-500" />
-                    <span className="text-2xl md:text-3xl font-bold text-gray-900">{likes_count}</span>
-                  </div>
-                  <div className="text-xs text-gray-500 font-medium text-center">Interested</div>
+                <div className="text-xs text-gray-500 font-medium text-center">People Watching</div>
+              </div>
+              <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-4 border border-red-100 shadow-sm">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <Heart className="h-5 w-5 text-red-500" />
+                  <span className="text-2xl md:text-3xl font-bold text-gray-900">{likes_count || 0}</span>
                 </div>
-              )}
-              {endorsements_count > 0 && (
-                <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-4 border border-red-100 shadow-sm">
-                  <div className="flex items-center justify-center gap-2 mb-2">
-                    <TrendingUp className="h-5 w-5 text-green-500" />
-                    <span className="text-2xl md:text-3xl font-bold text-gray-900">{endorsements_count}</span>
-                  </div>
-                  <div className="text-xs text-gray-500 font-medium text-center">Endorsed</div>
+                <div className="text-xs text-gray-500 font-medium text-center">Interested</div>
+              </div>
+              <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-4 border border-red-100 shadow-sm">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <TrendingUp className="h-5 w-5 text-green-500" />
+                  <span className="text-2xl md:text-3xl font-bold text-gray-900">{endorsements_count || 0}</span>
                 </div>
-              )}
-              {supporters_count > 0 && (
-                <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-4 border border-red-100 shadow-sm">
-                  <div className="flex items-center justify-center gap-2 mb-2">
-                    <Users className="h-5 w-5 text-purple-500" />
-                    <span className="text-2xl md:text-3xl font-bold text-gray-900">{supporters_count}</span>
-                  </div>
-                  <div className="text-xs text-gray-500 font-medium text-center">Supporting</div>
+                <div className="text-xs text-gray-500 font-medium text-center">Endorsed</div>
+              </div>
+              <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-4 border border-red-100 shadow-sm">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <Users className="h-5 w-5 text-purple-500" />
+                  <span className="text-2xl md:text-3xl font-bold text-gray-900">{supporters_count || 0}</span>
                 </div>
-              )}
+                <div className="text-xs text-gray-500 font-medium text-center">Supporting</div>
+              </div>
             </div>
           </div>
 
@@ -384,18 +376,60 @@ export default function FullPitchView({ pitch, user, endorsements = [], isCommun
             </div>
           </div>
 
-          {/* Bio Section */}
-          {pitch.veterans?.[0]?.bio && (
-            <div className="bg-white rounded-3xl p-6 md:p-8 border border-gray-100 shadow-sm">
-              <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                <User className="h-5 w-5 text-green-500" />
-                About {veteranName}
-              </h3>
-              <div className="prose prose-gray max-w-none">
-                <p className="text-gray-700 leading-relaxed text-lg">{pitch.veterans[0].bio}</p>
-              </div>
+          {/* Additional Details */}
+          <div className="bg-white rounded-3xl p-6 md:p-8 border border-gray-100 shadow-sm">
+            <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+              <User className="h-5 w-5 text-purple-500" />
+              Additional Details
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {phone && (
+                <div className="flex items-center gap-3">
+                  <Phone className="h-5 w-5 text-green-500" />
+                  <div>
+                    <div className="text-sm text-gray-500 font-medium">Phone</div>
+                    <div className="font-semibold text-gray-900">{phone}</div>
+                  </div>
+                </div>
+              )}
+              {linkedin_url && (
+                <div className="flex items-center gap-3">
+                  <LinkIcon className="h-5 w-5 text-blue-500" />
+                  <div>
+                    <div className="text-sm text-gray-500 font-medium">LinkedIn</div>
+                    <a 
+                      href={linkedin_url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="font-semibold text-blue-600 hover:text-blue-700 transition-colors"
+                    >
+                      View Profile
+                    </a>
+                  </div>
+                </div>
+              )}
+              {resume_url && (
+                <div className="flex items-center gap-3">
+                  <FileText className="h-5 w-5 text-orange-500" />
+                  <div>
+                    <div className="text-sm text-gray-500 font-medium">Resume</div>
+                    <div className="font-semibold text-gray-900">
+                      {resume_share_enabled ? 'Available on Request' : 'Not Available'}
+                    </div>
+                  </div>
+                </div>
+              )}
+              {plan_tier && plan_tier !== 'free' && (
+                <div className="flex items-center gap-3">
+                  <Star className="h-5 w-5 text-yellow-500" />
+                  <div>
+                    <div className="text-sm text-gray-500 font-medium">Plan</div>
+                    <div className="font-semibold text-gray-900 capitalize">{plan_tier.replace('_', ' ')}</div>
+                  </div>
+                </div>
+              )}
             </div>
-          )}
+          </div>
 
           {/* Endorsements */}
           {pitchEndorsements && pitchEndorsements.length > 0 && (
