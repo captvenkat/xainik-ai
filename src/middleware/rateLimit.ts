@@ -92,6 +92,12 @@ const rateLimitConfigs = {
   referralEvent: { windowMs: 60 * 1000, maxRequests: 20 },
   aiPitchGeneration: { windowMs: 60 * 1000, maxRequests: 5 },
   aiPitchGenerationDaily: { windowMs: 24 * 60 * 60 * 1000, maxRequests: 50 },
+  aiContactSuggestions: { windowMs: 60 * 1000, maxRequests: 3 },
+  aiContactSuggestionsDaily: { windowMs: 24 * 60 * 60 * 1000, maxRequests: 20 },
+  aiSmartNotifications: { windowMs: 60 * 1000, maxRequests: 2 },
+  aiSmartNotificationsDaily: { windowMs: 24 * 60 * 60 * 1000, maxRequests: 10 },
+  aiInsights: { windowMs: 60 * 1000, maxRequests: 2 },
+  aiInsightsDaily: { windowMs: 24 * 60 * 60 * 1000, maxRequests: 10 },
   emailSend: { windowMs: 60 * 1000, maxRequests: 3 },
   emailDaily: { windowMs: 24 * 60 * 60 * 1000, maxRequests: 50 },
   contactForm: { windowMs: 60 * 1000, maxRequests: 2 },
@@ -118,6 +124,18 @@ export const rateLimits = {
   aiPitchGeneration: createRateLimit(rateLimitConfigs.aiPitchGeneration),
   
   aiPitchGenerationDaily: createRateLimit(rateLimitConfigs.aiPitchGenerationDaily),
+  
+  aiContactSuggestions: createRateLimit(rateLimitConfigs.aiContactSuggestions),
+  
+  aiContactSuggestionsDaily: createRateLimit(rateLimitConfigs.aiContactSuggestionsDaily),
+  
+  aiSmartNotifications: createRateLimit(rateLimitConfigs.aiSmartNotifications),
+  
+  aiSmartNotificationsDaily: createRateLimit(rateLimitConfigs.aiSmartNotificationsDaily),
+  
+  aiInsights: createRateLimit(rateLimitConfigs.aiInsights),
+  
+  aiInsightsDaily: createRateLimit(rateLimitConfigs.aiInsightsDaily),
   
   // Email endpoints - Critical for preventing spam
   emailSend: createRateLimit(rateLimitConfigs.emailSend),
