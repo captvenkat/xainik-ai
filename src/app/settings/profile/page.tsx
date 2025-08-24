@@ -22,7 +22,7 @@ import {
 export default function ProfileSettingsPage() {
   const [user, setUser] = useState<{
     id: string;
-    email: string;
+    email: string | undefined;
     user_metadata?: any;
   } | null>(null);
   const [profile, setProfile] = useState<{
