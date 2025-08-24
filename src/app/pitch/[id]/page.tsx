@@ -34,28 +34,55 @@ async function fetchPitch(id: string) {
     return null
   }
 
-  // Get military service information from veterans table
+  // Get military service information and bio from veterans table
   let militaryData = null
+  let bio = null
   try {
     const { data: veteranProfile } = await supabaseClient
       .from('veterans')
-      .select('rank, service_branch, years_experience')
+      .select('rank, service_branch, years_experience, bio')
       .eq('user_id', pitch.user_id)
       .single()
     
-    militaryData = veteranProfile
+    if (veteranProfile) {
+      militaryData = {
+        rank: veteranProfile.rank,
+        service_branch: veteranProfile.service_branch,
+        years_experience: veteranProfile.years_experience
+      }
+      bio = veteranProfile.bio
+    }
   } catch (error) {
-    console.error('Failed to fetch veteran profile:', error)
+    console.error('Error fetching veteran profile:', error)
   }
 
-  // Increment view count
-  try {
-    await supabaseClient.rpc('increment_pitch_views', { pitch_id: id })
-  } catch (error) {
-    console.error('Failed to increment view count:', error)
-  }
+  // Get endorsements
+  const { data: endorsements } = await supabaseClient
+    .from('endorsements')
+    .select(`
+      *,
+      endorsers:endorser_id(
+        id,
+        name,
+        avatar_url
+      )
+    `)
+    .eq('veteran_id', pitch.user_id)
 
-  return { ...pitch, militaryData }
+  // Get user info for community verification
+  const { data: user } = await supabaseClient.auth.getUser()
+
+  // Check if user is community verified (placeholder logic)
+  const isCommunityVerified = false // TODO: Implement actual verification logic
+
+  return {
+    ...pitch,
+    endorsements: endorsements || [],
+    user: user?.user,
+    isCommunityVerified,
+    militaryData,
+    bio
+  }
 }
 
 async function fetchUser() {
