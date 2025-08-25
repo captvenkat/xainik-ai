@@ -3,10 +3,10 @@ import { createActionClient } from '@/lib/supabase-server'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { pitchId: string } }
+  { params }: { params: Promise<{ pitchId: string }> }
 ) {
   try {
-    const { pitchId } = params
+    const { pitchId } = await params
     
     if (!pitchId) {
       return NextResponse.json({ 
