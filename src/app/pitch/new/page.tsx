@@ -40,6 +40,7 @@ export default function NewPitchPage() {
     location_preferred: [],
     availability: '',
     phone: '',
+    photo_url: '',
     title: '',
     pitch: '',
     skills: ['', '', '']
