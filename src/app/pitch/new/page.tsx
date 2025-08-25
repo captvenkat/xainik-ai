@@ -110,7 +110,8 @@ export default function NewPitchPage() {
         .single()
 
       if (pitchError) {
-        throw new Error('Failed to create pitch')
+        console.error('Pitch creation error:', pitchError)
+        throw new Error(`Failed to create pitch: ${pitchError.message}`)
       }
 
       // Redirect to veteran dashboard analytics tab to show smart share options

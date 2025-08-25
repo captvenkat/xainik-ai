@@ -169,6 +169,12 @@ export default function VeteranProfileTab() {
       // Update local avatar URL immediately for instant UI feedback
       setLocalAvatarUrl(photoUrl)
       
+      // Also update the form data to ensure consistency
+      setFormData(prev => ({
+        ...prev,
+        photo_url: photoUrl
+      }))
+      
       // Show success message
       setSuccess('Photo updated successfully!')
       setTimeout(() => setSuccess(''), 3000)
@@ -206,7 +212,7 @@ export default function VeteranProfileTab() {
       const userUpdateData: any = {
         name: data.name,
         phone: data.phone,
-        avatar_url: profile?.avatar_url || null
+        avatar_url: localAvatarUrl || null
       }
 
       // Add military info to user table as fallback (in metadata field)
