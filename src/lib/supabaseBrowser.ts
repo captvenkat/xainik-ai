@@ -6,7 +6,7 @@
 // =====================================================
 
 import { createClient } from '@supabase/supabase-js';
-import { Database } from '@/types/live-schema';
+import { Database } from '../../types/live-schema';
 
 // =====================================================
 // ENVIRONMENT VALIDATION

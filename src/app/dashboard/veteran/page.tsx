@@ -31,6 +31,8 @@ import {
   getSimpleActionsData, 
   getSimpleActivityData 
 } from '@/lib/analytics'
+import DualFunnelDashboard from '@/components/veteran/DualFunnelDashboard'
+import dynamic from 'next/dynamic'
 
 // =====================================================
 // ENHANCED VETERAN DASHBOARD - INSPIRED BY SUPPORTERS
@@ -96,6 +98,16 @@ function VeteranDashboardContent() {
   if (authLoading) return <LoadingSpinner />
   if (error) return <ErrorState error={error} />
   if (!user) return <ErrorState error="Authentication required" />
+
+  // Feature flag routing for unified progress dashboard
+  if (process.env.NEXT_PUBLIC_FEATURE_UNIFIED_PROGRESS === 'true') {
+    // Import and render the unified progress dashboard
+    const UnifiedProgressDashboard = dynamic(() => import('@/components/progress/UnifiedProgressDashboard'), {
+      loading: () => <LoadingSpinner />,
+      ssr: false
+    })
+    return <UnifiedProgressDashboard userId={user.id} />
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
@@ -194,6 +206,26 @@ function VeteranDashboardContent() {
                 </button>
               )
             })}
+            
+                      {/* Admin Style Dashboard Button */}
+          <button
+            onClick={() => router.push('/dashboard/veteran/admin-style')}
+            className="flex items-center space-x-2 py-4 px-3 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition-colors ml-4"
+          >
+            <Zap className="w-4 h-4 text-gray-500" />
+            <span>Admin Style</span>
+          </button>
+          
+          {/* Unified Progress Dashboard Button */}
+          {(process.env.NEXT_PUBLIC_FEATURE_UNIFIED_PROGRESS === 'true' || true) && (
+            <button
+              onClick={() => router.push('/dashboard/veteran/unified-progress')}
+              className="flex items-center space-x-2 py-4 px-3 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition-colors ml-4"
+            >
+              <BarChart3 className="w-4 h-4 text-gray-500" />
+              <span>Unified Progress</span>
+            </button>
+          )}
           </nav>
         </div>
 
@@ -423,6 +455,70 @@ function AnalyticsTab({ userId, router, onSharePitch, searchParams }: { userId: 
   // Full dashboard for completed users
   return (
     <div className="space-y-6">
+      {/* Dashboard Navigation Options */}
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200 shadow-lg mb-6">
+        <div className="text-center mb-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Choose Your Dashboard Style</h3>
+          <p className="text-sm text-gray-600">Different views for different needs</p>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <button
+            onClick={() => router.push('/dashboard/veteran?tab=analytics')}
+            className="bg-white rounded-lg p-4 border border-blue-200 hover:border-blue-300 transition-colors text-left"
+          >
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                <Target className="w-4 h-4 text-blue-600" />
+              </div>
+              <span className="font-medium text-gray-900">Legacy Analytics</span>
+            </div>
+            <p className="text-sm text-gray-600">Classic dashboard with detailed metrics and AI insights</p>
+          </button>
+          
+          <button
+            onClick={() => router.push('/dashboard/veteran?tab=analytics&dual-funnel=true')}
+            className="bg-white rounded-lg p-4 border border-blue-200 hover:border-blue-300 transition-colors text-left"
+          >
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                <TrendingUp className="w-4 h-4 text-green-600" />
+              </div>
+              <span className="font-medium text-gray-900">Dual Funnel</span>
+            </div>
+            <p className="text-sm text-gray-600">Vercel-style dual funnel analytics with charts</p>
+          </button>
+          
+          <button
+            onClick={() => router.push('/dashboard/veteran/admin-style')}
+            className="bg-white rounded-lg p-4 border border-blue-200 hover:border-blue-300 transition-colors text-left"
+          >
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                <Zap className="w-4 h-4 text-purple-600" />
+              </div>
+              <span className="font-medium text-gray-900">Admin Style</span>
+            </div>
+            <p className="text-sm text-gray-600">Ultra-simple admin dashboard for quick overview</p>
+          </button>
+          
+          {(process.env.NEXT_PUBLIC_FEATURE_UNIFIED_PROGRESS === 'true' || true) && (
+            <button
+              onClick={() => router.push('/dashboard/veteran/unified-progress')}
+              className="bg-white rounded-lg p-4 border border-blue-200 hover:border-blue-300 transition-colors text-left"
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                  <BarChart3 className="w-4 h-4 text-orange-600" />
+                </div>
+                <span className="font-medium text-gray-900">Unified Progress</span>
+              </div>
+              <p className="text-sm text-gray-600">Admin-style unified dashboard with action-first design</p>
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* Success Message for New Pitch Creation */}
       {searchParams.get('created') === 'true' && (
         <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-xl p-6 border border-green-200 shadow-lg">
@@ -460,20 +556,29 @@ function AnalyticsTab({ userId, router, onSharePitch, searchParams }: { userId: 
         </div>
       )}
 
-      {/* Clean Analytics Dashboard - Focused on Primary KRA: Pitch Views */}
-      <div className="space-y-6">
-        {/* Hero Section - Primary KRA: Pitch Views */}
-        <SimpleHeroSection data={heroData} onSharePitch={onSharePitch} />
-        
-        {/* Metrics - Key Performance Indicators */}
-        <SimpleMetrics data={metricsData} />
-        
-        {/* Action Plan - Mentor's Advice */}
-        <SimpleActionPlan data={actionsData} />
-        
-        {/* Activity Feed - Recent Activity */}
-        <SimpleActivityFeed data={activityData} />
-      </div>
+      {/* Dual Funnel Dashboard (when feature flag enabled) or Legacy Analytics */}
+      {process.env.NEXT_PUBLIC_FEATURE_DUAL_FUNNEL === 'true' ? (
+        <DualFunnelDashboard 
+          userId={userId}
+          onSharePitch={onSharePitch}
+          onEditPitch={() => router.push('/pitch/new/ai-first')}
+        />
+      ) : (
+        /* Legacy Analytics Dashboard - Focused on Primary KRA: Pitch Views */
+        <div className="space-y-6">
+          {/* Hero Section - Primary KRA: Pitch Views */}
+          <SimpleHeroSection data={heroData} onSharePitch={onSharePitch} />
+          
+          {/* Metrics - Key Performance Indicators */}
+          <SimpleMetrics data={metricsData} />
+          
+          {/* Action Plan - Mentor's Advice */}
+          <SimpleActionPlan data={actionsData} />
+          
+          {/* Activity Feed - Recent Activity */}
+          <SimpleActivityFeed data={activityData} />
+        </div>
+      )}
 
       {/* AI-Powered Features Section */}
       {userPitchId && (

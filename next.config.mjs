@@ -1,5 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Environment variables
+  env: {
+    NEXT_PUBLIC_FEATURE_UNIFIED_PROGRESS: 'true',
+    NEXT_PUBLIC_FEATURE_DUAL_FUNNEL: 'true',
+  },
+  
   // Basic optimizations
   experimental: {
     optimizePackageImports: ['lucide-react'],
