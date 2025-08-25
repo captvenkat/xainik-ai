@@ -1,6 +1,5 @@
 import { createSupabaseServerOnly } from '@/lib/supabaseServerOnly'
 import FullPitchView from '@/components/FullPitchView'
-import { recordEvent } from '@/lib/referralEvents'
 import { getVeteranEndorsements, isCommunityVerified } from '@/lib/actions/endorsements'
 import { cookies, headers } from 'next/headers'
 import { redirect } from 'next/navigation'
