@@ -227,10 +227,10 @@ export default function PhotoUpload({
 
       {/* Cropper Modal */}
       {showCropper && selectedPhoto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm">
-          <div className="bg-white rounded-xl shadow-2xl max-w-3xl w-full mx-4 max-h-[90vh] overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[95vh] flex flex-col">
             {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gray-50">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gray-50 flex-shrink-0">
               <div>
                 <h3 className="text-xl font-bold text-gray-900">Crop Your Photo</h3>
                 <p className="text-sm text-gray-600 mt-1">Adjust the crop area to frame your photo perfectly</p>
@@ -243,9 +243,9 @@ export default function PhotoUpload({
               </button>
             </div>
             
-            {/* Cropper Content */}
-            <div className="p-8">
-              <div className="flex justify-center bg-gray-100 rounded-lg p-4">
+            {/* Cropper Content - Scrollable */}
+            <div className="flex-1 overflow-y-auto p-6">
+              <div className="flex justify-center bg-gray-100 rounded-lg p-4 mb-6">
                 <ReactCrop
                   crop={crop}
                   onChange={(c) => setCrop(c)}
@@ -259,12 +259,13 @@ export default function PhotoUpload({
                     src={selectedPhoto}
                     alt="Crop preview"
                     className="max-w-full h-auto rounded-lg"
+                    style={{ maxHeight: '60vh' }}
                   />
                 </ReactCrop>
               </div>
               
               {/* Instructions */}
-              <div className="text-center mt-6 bg-blue-50 rounded-lg p-4 border border-blue-100">
+              <div className="text-center bg-blue-50 rounded-lg p-4 border border-blue-100">
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <Crop className="w-4 h-4 text-blue-600" />
                   <span className="text-sm font-medium text-blue-800">Crop Instructions</span>
@@ -275,8 +276,8 @@ export default function PhotoUpload({
               </div>
             </div>
             
-            {/* Footer with Buttons */}
-            <div className="flex items-center justify-between p-6 border-t border-gray-200 bg-gray-50">
+            {/* Footer with Buttons - Always Visible */}
+            <div className="flex items-center justify-between p-6 border-t border-gray-200 bg-gray-50 flex-shrink-0">
               <button
                 onClick={() => setShowCropper(false)}
                 className="px-6 py-3 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all duration-200 font-medium shadow-sm"
