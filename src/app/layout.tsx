@@ -1,79 +1,26 @@
+import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
 import './globals.css'
-import Navigation from '@/components/Navigation'
-import Footer from '@/components/Footer'
-import AuthSessionWatcher from '@/components/AuthSessionWatcher'
+import { TrackingProvider } from '@/components/TrackingProvider'
 
+const inter = Inter({ subsets: ['latin'] })
 
-export const metadata = {
-  title: {
-    default: 'Xainik - Veteran Hiring Platform',
-    template: '%s | Xainik'
-  },
-  description: 'AI-First, Resume-Free Hiring for Military Veterans — Fast, Trusted, Community-Supported.',
-  keywords: ['veteran hiring', 'military careers', 'veteran jobs', 'recruitment platform', 'veteran employment', 'AI-first hiring', 'resume-free', 'community-supported'],
-  authors: [{ name: 'Xainik Team' }],
-  creator: 'Xainik',
-  publisher: 'Xainik',
-  formatDetection: {
-    email: false,
-    address: false,
-    telephone: false,
-  },
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://xainik.com'),
-  alternates: {
-    canonical: '/',
-  },
-  openGraph: {
-    type: 'website',
-    locale: 'en_US',
-    url: '/',
-    title: 'Xainik - Veteran Hiring Platform',
-    description: 'AI-First, Resume-Free Hiring for Military Veterans — Fast, Trusted, Community-Supported.',
-    siteName: 'Xainik',
-    images: [
-      {
-        url: '/og-image.jpg',
-        width: 1200,
-        height: 630,
-        alt: 'Xainik - Veteran Hiring Platform',
-      },
-    ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Xainik - Veteran Hiring Platform',
-    description: 'AI-First, Resume-Free Hiring for Military Veterans — Fast, Trusted, Community-Supported.',
-    images: ['/og-image.jpg'],
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
-    },
-  },
+export const metadata: Metadata = {
+  title: 'Xainik - Veteran Success Foundation',
+  description: 'Transform your military experience into civilian success',
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   return (
     <html lang="en">
-      <head>
-        {/* Optimize CSS loading */}
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="dns-prefetch" href="//fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" crossOrigin="anonymous" />
-      </head>
-      <body>
-        <Navigation />
-        <main>
+      <body className={inter.className}>
+        <TrackingProvider>
           {children}
-        </main>
-        <Footer />
-        <AuthSessionWatcher />
+        </TrackingProvider>
       </body>
     </html>
   )

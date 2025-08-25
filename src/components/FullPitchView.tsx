@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import ResumeRequestModal from '@/components/ResumeRequestModal'
+import { tracking } from '@/lib/tracking'
 
 import type { FullPitchData } from '@/types/domain'
 
@@ -116,10 +117,33 @@ export default function FullPitchView({
 }: FullPitchViewProps) {
   const [showResumeModal, setShowResumeModal] = useState(false)
   const [photoBlobUrl, setPhotoBlobUrl] = useState<string | null>(null)
+  const [hasTrackedView, setHasTrackedView] = useState(false)
   
   // Comprehensive debugging - log all incoming props
 
-  
+  // Universal tracking for pitch views
+  useEffect(() => {
+    const trackPitchView = async () => {
+      if (hasTrackedView) return // Prevent duplicate tracking
+      
+      try {
+        // Get referral ID from URL if present
+        const urlParams = new URLSearchParams(window.location.search)
+        const referralId = urlParams.get('ref')
+        
+        // Track the pitch view
+        await tracking.pitchViewed(pitch.id, referralId || undefined, 'web')
+        setHasTrackedView(true)
+      } catch (error) {
+        console.error('Error tracking pitch view:', error)
+      }
+    }
+
+    // Track view after a short delay to ensure component is fully loaded
+    const timer = setTimeout(trackPitchView, 1000)
+    return () => clearTimeout(timer)
+  }, [pitch.id, hasTrackedView])
+
   const {
     id,
     title,
@@ -568,18 +592,26 @@ export default function FullPitchView({
                   <div className="flex flex-col gap-2">
                     {phone && (
                       <button
-                        onClick={() => window.open(`tel:${phone}`, '_blank')}
+                        data-track="phone"
+                        onClick={() => {
+                          window.open(`tel:${phone}`, '_blank');
+                          tracking.phoneClicked(pitch.id, 'web');
+                        }}
                         className="flex items-center justify-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm font-medium"
                       >
                         <Phone className="h-4 w-4" />
                         Call
                       </button>
                     )}
-                    {linkedin_url && (
-                      <a
-                        href={linkedin_url}
-                        target="_blank"
+                                        {linkedin_url && (
+                      <a 
+                        href={linkedin_url} 
+                        target="_blank" 
                         rel="noopener noreferrer"
+                        data-track="linkedin"
+                        onClick={() => {
+                          tracking.linkedinClicked(pitch.id, 'web');
+                        }}
                         className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
                       >
                         <LinkIcon className="h-4 w-4" />
@@ -594,7 +626,11 @@ export default function FullPitchView({
               {resume_url && resume_share_enabled && (
                 <div className="mt-6 pt-4 border-t border-gray-100">
                   <button
-                    onClick={() => setShowResumeModal(true)}
+                    data-track="resume-request"
+                    onClick={() => {
+                      setShowResumeModal(true);
+                      tracking.resumeRequestClicked(pitch.id, 'web');
+                    }}
                     className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl hover:from-orange-600 hover:to-red-600 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
                   >
                     <FileText className="h-4 w-4" />
