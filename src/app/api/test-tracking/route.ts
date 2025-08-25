@@ -51,6 +51,13 @@ export async function GET(request: NextRequest) {
     if (pitches && pitches.length > 0) {
       const testPitch = pitches[0]
       
+      if (!testPitch) {
+        return NextResponse.json({ 
+          success: false, 
+          error: 'No valid pitch found for testing' 
+        })
+      }
+      
       const { data: testEvent, error: insertError } = await supabase
         .from('tracking_events')
         .insert({
