@@ -102,7 +102,7 @@ function VeteranDashboardContent() {
   // Feature flag routing for unified progress dashboard
   if (process.env.NEXT_PUBLIC_FEATURE_UNIFIED_PROGRESS === 'true') {
     // Import and render the unified progress dashboard
-    const UnifiedProgressDashboard = dynamic(() => import('@/components/progress/UnifiedProgressDashboard'), {
+    const UnifiedProgressDashboard = dynamic(() => import('@/components/veteran/UnifiedProgressDashboard'), {
       loading: () => <LoadingSpinner />,
       ssr: false
     })
