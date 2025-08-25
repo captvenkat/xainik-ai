@@ -5,12 +5,27 @@ import { useAuth } from '@/lib/hooks/useAuth'
 import { 
   type Range, 
   type KPI, 
-  type FunnelData, 
+  type FunnelPoint, 
   type SupporterRow, 
   type ChannelRow, 
-  type ContactRow
-} from '@/lib/unifiedProgressDemo'
+  type ContactRow,
+  getProgressKpis,
+  getFunnel,
+  getTopSupporters,
+  getChannelInsights,
+  getContacts
+} from '@/lib/actions/progress'
 import { micro } from '@/lib/microcopy/progress'
+import { User, FileText, BarChart3, Shield, Target } from 'lucide-react'
+import HeaderBar from '@/components/progress/HeaderBar'
+import KpiRow from '@/components/progress/KpiRow'
+import Funnel from '@/components/progress/Funnel'
+import SupporterSpotlight from '@/components/progress/SupporterSpotlight'
+import ChannelInsights from '@/components/progress/ChannelInsights'
+import ContactOutcomes from '@/components/progress/ContactOutcomes'
+import NudgeRail from '@/components/progress/NudgeRail'
+import VeteranProfileTab from '@/components/VeteranProfileTab'
+import LoadingSpinner from '@/components/LoadingSpinner'
 
 interface UnifiedProgressDashboardProps {
   userId: string
@@ -20,12 +35,13 @@ export default function UnifiedProgressDashboard({ userId }: UnifiedProgressDash
   const { user, isLoading: authLoading } = useAuth()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<'profile' | 'pitch' | 'progress'>('progress')
   const [dateRange, setDateRange] = useState<Range>('7d')
-  const [selectedPitchId, setSelectedPitchId] = useState<string>('')
+  const [selectedPitchId, setSelectedPitchId] = useState<string | null>('')
   
-  // Mock data states
+  // Real data states
   const [kpiData, setKpiData] = useState<{ shares: KPI; views: KPI; contacts: KPI } | null>(null)
-  const [funnelData, setFunnelData] = useState<FunnelData | null>(null)
+  const [funnelData, setFunnelData] = useState<FunnelPoint[] | null>(null)
   const [supportersData, setSupportersData] = useState<SupporterRow[] | null>(null)
   const [channelsData, setChannelsData] = useState<ChannelRow[] | null>(null)
   const [contactsData, setContactsData] = useState<ContactRow[] | null>(null)
@@ -38,42 +54,20 @@ export default function UnifiedProgressDashboard({ userId }: UnifiedProgressDash
         setLoading(true)
         setError(null)
         
-        // Mock data loading - in real implementation, these would be API calls
-        const mockKpis = {
-          shares: { value: 45, deltaPct: 15.2, spark: [] },
-          views: { value: 128, deltaPct: 8.7, spark: [] },
-          contacts: { value: 12, deltaPct: -3.1, spark: [] }
-        }
+        // Real API calls
+        const [kpis, funnel, supporters, channels, contacts] = await Promise.all([
+          getProgressKpis(userId, dateRange),
+          getFunnel(userId, dateRange),
+          getTopSupporters(userId, dateRange),
+          getChannelInsights(userId, dateRange),
+          getContacts(userId, dateRange)
+        ])
         
-        const mockFunnel = [
-          { stage: 'shares', value: 45, supporterPct: 65 },
-          { stage: 'views', value: 128, supporterPct: 45 },
-          { stage: 'contacts', value: 12, supporterPct: 25 }
-        ]
-        
-        const mockSupporters = [
-          { name: 'Colonel Rajesh Kumar', shares: 12, views: 45, contacts: 3, lastAt: '2024-01-15T10:30:00Z' },
-          { name: 'Major Priya Singh', shares: 8, views: 32, contacts: 2, lastAt: '2024-01-14T15:20:00Z' },
-          { name: 'Captain Amit Patel', shares: 6, views: 28, contacts: 1, lastAt: '2024-01-13T09:15:00Z' }
-        ]
-        
-        const mockChannels = [
-          { channel: 'linkedin', shares: 20, views: 65, contacts: 8, efficiency: 3.25 },
-          { channel: 'whatsapp', shares: 15, views: 45, contacts: 3, efficiency: 3.0 },
-          { channel: 'email', shares: 10, views: 18, contacts: 1, efficiency: 1.8 }
-        ]
-        
-        const mockContacts = [
-          { id: '1', type: 'call', channel: 'linkedin', supporterName: 'Colonel Rajesh Kumar', status: 'open', ts: '2024-01-15T10:30:00Z' },
-          { id: '2', type: 'email', channel: 'whatsapp', supporterName: 'Major Priya Singh', status: 'responded', ts: '2024-01-14T15:20:00Z' },
-          { id: '3', type: 'resume', channel: 'email', supporterName: null, status: 'closed', ts: '2024-01-13T09:15:00Z' }
-        ]
-        
-        setKpiData(mockKpis)
-        setFunnelData(mockFunnel as any)
-        setSupportersData(mockSupporters)
-        setChannelsData(mockChannels as any)
-        setContactsData(mockContacts as any)
+        setKpiData(kpis)
+        setFunnelData(funnel)
+        setSupportersData(supporters)
+        setChannelsData(channels)
+        setContactsData(contacts)
         
       } catch (err) {
         setError('Failed to load dashboard data')
@@ -87,20 +81,7 @@ export default function UnifiedProgressDashboard({ userId }: UnifiedProgressDash
   }, [userId, authLoading, dateRange, selectedPitchId])
 
   if (authLoading || loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 p-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              {[1, 2, 3].map(i => (
-                <div key={i} className="h-32 bg-gray-200 rounded"></div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    )
+    return <LoadingSpinner />
   }
 
   if (error) {
@@ -116,224 +97,139 @@ export default function UnifiedProgressDashboard({ userId }: UnifiedProgressDash
     )
   }
 
+  const tabs = [
+    { id: 'profile', label: 'Profile', icon: User, description: 'Complete your veteran profile' },
+    { id: 'pitch', label: 'Pitch', icon: FileText, description: 'Create and manage your pitches' },
+    { id: 'progress', label: 'Progress', icon: BarChart3, description: 'Track your success metrics' }
+  ]
+
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Progress Dashboard</h1>
-              <p className="text-gray-600">Track your pitch performance and supporter impact</p>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Enhanced Header with Veteran Badge */}
+        <div className="mb-8">
+          <div className="flex items-center gap-4 mb-4">
+            <div className="w-16 h-16 bg-gradient-to-r from-red-500 to-orange-500 rounded-full flex items-center justify-center text-white text-2xl shadow-lg">
+              🦅
             </div>
-            <div className="flex gap-3">
-              <select 
-                value={dateRange} 
-                onChange={(e) => setDateRange(e.target.value as Range)}
-                className="px-3 py-2 border border-gray-300 rounded-md text-sm"
-              >
-                <option value="7d">Last 7 days</option>
-                <option value="14d">Last 14 days</option>
-                <option value="30d">Last 30 days</option>
-                <option value="60d">Last 60 days</option>
-                <option value="90d">Last 90 days</option>
-              </select>
-              <button className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700">
-                Share Pitch
-              </button>
+            <div>
+              <h1 className="text-4xl font-bold text-gray-900 drop-shadow-sm">
+                Welcome, {user?.email?.split('@')[0] || 'Veteran'}!
+              </h1>
+              <p className="text-xl text-gray-700 mt-2 drop-shadow-sm">
+                Your mission: Transform your military experience into civilian success
+              </p>
+              <div className="flex items-center gap-2 mt-3">
+                <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-red-100 text-red-800 shadow-sm">
+                  <Shield className="w-4 h-4 mr-2" />
+                  Active Veteran
+                </span>
+                <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-blue-100 text-blue-800 shadow-sm">
+                  <Target className="w-4 h-4 mr-2" />
+                  Mission Ready
+                </span>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* KPI Cards */}
-        {kpiData && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-lg font-semibold text-green-600">Shares</h3>
-                <span className={`text-sm font-medium ${kpiData.shares.deltaPct >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {kpiData.shares.deltaPct >= 0 ? '+' : ''}{kpiData.shares.deltaPct}%
-                </span>
-              </div>
-              <p className="text-3xl font-bold text-gray-900">{kpiData.shares.value}</p>
-              <p className="text-sm text-gray-600 mt-1">{micro.kpis.shares}</p>
-            </div>
-            
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-lg font-semibold text-blue-600">Views</h3>
-                <span className={`text-sm font-medium ${kpiData.views.deltaPct >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {kpiData.views.deltaPct >= 0 ? '+' : ''}{kpiData.views.deltaPct}%
-                </span>
-              </div>
-              <p className="text-3xl font-bold text-gray-900">{kpiData.views.value}</p>
-              <p className="text-sm text-gray-600 mt-1">{micro.kpis.views}</p>
-            </div>
-            
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-lg font-semibold text-purple-600">Contacts</h3>
-                <span className={`text-sm font-medium ${kpiData.contacts.deltaPct >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {kpiData.contacts.deltaPct >= 0 ? '+' : ''}{kpiData.contacts.deltaPct}%
-                </span>
-              </div>
-              <p className="text-3xl font-bold text-gray-900">{kpiData.contacts.value}</p>
-              <p className="text-sm text-gray-600 mt-1">{micro.kpis.contacts}</p>
-            </div>
-          </div>
-        )}
+        {/* Progressive Flow Navigation Tabs */}
+        <div className="mb-8">
+          <nav className="flex space-x-8 border-b border-gray-200 bg-white rounded-t-lg px-6 shadow-lg">
+            {tabs.map((tab) => {
+              const Icon = tab.icon
+              const isActive = activeTab === tab.id
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as any)}
+                  className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 ${
+                    isActive
+                      ? 'border-blue-500 text-blue-600 bg-blue-50 rounded-t-lg'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 hover:bg-gray-50 rounded-t-lg'
+                  }`}
+                >
+                  <Icon className="w-5 h-5" />
+                  <span>{tab.label}</span>
+                </button>
+              )
+            })}
+          </nav>
+        </div>
 
-        {/* Funnel */}
-        {funnelData && (
-          <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
-            <h3 className="text-lg font-semibold text-gray-900 mb-6">Progress Funnel</h3>
-            <p className="text-sm text-gray-600 mb-6">{micro.funnel.sharesTip}</p>
-            
-            <div className="space-y-4">
-              {funnelData.map((stage, index) => (
-                <div key={stage.stage} className="flex items-center gap-4">
-                  <div className="w-24 text-sm font-medium text-gray-700 capitalize">
-                    {stage.stage}
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-lg font-semibold text-gray-900">{stage.value}</span>
-                      {index > 0 && (
-                        <span className="text-sm text-gray-500">
-                          {((stage.value / (funnelData[index - 1]?.value || 1)) * 100).toFixed(1)}% conversion
-                        </span>
-                      )}
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-blue-600 h-2 rounded-full" 
-                        style={{ width: `${(stage.value / (funnelData[0]?.value || 1)) * 100}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                  <div className="text-sm text-gray-600">
-                    {stage.supporterPct}% from supporters
-                  </div>
-                </div>
-              ))}
+        {/* Tab Content */}
+        <div className="bg-white rounded-b-lg shadow-lg">
+          {activeTab === 'profile' && (
+            <div className="p-6">
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Complete Your Profile</h2>
+                <p className="text-gray-600">Build a compelling veteran profile to attract recruiters and supporters</p>
+              </div>
+              <VeteranProfileTab />
             </div>
-            
-            <p className="text-xs text-gray-500 mt-4">{micro.funnel.sourceCaption}</p>
-          </div>
-        )}
+          )}
 
-        {/* Supporters */}
-        {supportersData && (
-          <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-gray-900">Top Supporters</h3>
-              <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">See all</button>
+          {activeTab === 'pitch' && (
+            <div className="p-6">
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Create Your Pitch</h2>
+                <p className="text-gray-600">Craft powerful pitches that showcase your military experience and value</p>
+              </div>
+              {/* Pitch management content would go here */}
+              <div className="text-center py-12">
+                <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Pitch Management</h3>
+                <p className="text-gray-600 mb-4">Create and manage your professional pitches</p>
+                <button className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                  Create New Pitch
+                </button>
+              </div>
             </div>
-            
-            {supportersData.length > 0 ? (
-              <div className="space-y-4">
-                {supportersData.map((supporter, index) => (
-                  <div key={index} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                        <span className="text-blue-600 font-semibold">
-                          {supporter.name.split(' ').map(n => n[0]).join('')}
-                        </span>
-                      </div>
-                      <div>
-                        <p className="font-medium text-gray-900">{supporter.name}</p>
-                        <p className="text-sm text-gray-600">
-                          {micro.supporters.rowSuffix(supporter.shares, supporter.views, supporter.contacts)}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <button className="text-green-600 hover:text-green-700 text-sm font-medium">
-                        {micro.supporters.thank}
-                      </button>
-                      <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
-                        {micro.supporters.askAgain}
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-gray-500">{micro.supporters.empty}</p>
-              </div>
-            )}
-          </div>
-        )}
+          )}
 
-        {/* Channels */}
-        {channelsData && (
-          <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
-            <h3 className="text-lg font-semibold text-gray-900 mb-6">Channel Performance</h3>
-            <p className="text-sm text-gray-600 mb-6">{micro.channels.helper}</p>
-            
-            <div className="space-y-4">
-              {channelsData.map((channel) => (
-                <div key={channel.channel} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-gray-100 rounded flex items-center justify-center">
-                      <span className="text-gray-600 font-semibold capitalize">{channel.channel[0]}</span>
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-900 capitalize">{channel.channel}</p>
-                      <p className="text-sm text-gray-600">
-                        {channel.shares} shares → {channel.views} views → {channel.contacts} contacts
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-semibold text-gray-900">{channel.efficiency.toFixed(1)}</p>
-                    <p className="text-sm text-gray-600">{micro.channels.efficiency}</p>
-                  </div>
-                </div>
-              ))}
+          {activeTab === 'progress' && (
+            <div className="p-6">
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Track Your Progress</h2>
+                <p className="text-gray-600">Monitor your pitch performance and supporter impact</p>
+              </div>
+              
+              {/* Header Bar with Smart Share Hub */}
+              <HeaderBar
+                userId={userId}
+                dateRange={dateRange}
+                onDateRangeChange={setDateRange}
+                selectedPitchId={selectedPitchId}
+                onPitchChange={setSelectedPitchId}
+              />
+
+              {/* KPI Row */}
+              <KpiRow data={kpiData} />
+
+              {/* Progress Funnel */}
+              {funnelData && (
+                <Funnel data={funnelData} />
+              )}
+
+              {/* Supporter Spotlight */}
+              <SupporterSpotlight data={supportersData} />
+
+              {/* Channel Insights */}
+              <ChannelInsights data={channelsData} />
+
+              {/* Contact Outcomes */}
+              <ContactOutcomes data={contactsData} />
+
+              {/* Nudge Rail */}
+              <NudgeRail 
+                kpiData={kpiData}
+                funnelData={funnelData}
+                supportersData={supportersData}
+                channelsData={channelsData}
+              />
             </div>
-          </div>
-        )}
-
-        {/* Contacts */}
-        {contactsData && (
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-6">Recent Contacts</h3>
-            
-            {contactsData.length > 0 ? (
-              <div className="space-y-4">
-                {contactsData.map((contact) => (
-                  <div key={contact.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-3 h-3 rounded-full ${
-                        contact.status === 'open' ? 'bg-yellow-400' : 
-                        contact.status === 'responded' ? 'bg-green-400' : 'bg-gray-400'
-                      }`}></div>
-                      <div>
-                        <p className="font-medium text-gray-900 capitalize">{contact.type}</p>
-                        <p className="text-sm text-gray-600">
-                          via {contact.channel}
-                          {contact.supporterName && ` • ${contact.supporterName}`}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm text-gray-600 capitalize">{contact.status}</p>
-                      <p className="text-xs text-gray-500">
-                        {new Date(contact.ts).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-gray-500">{micro.contacts.empty}</p>
-              </div>
-            )}
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   )

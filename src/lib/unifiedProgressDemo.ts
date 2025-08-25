@@ -18,6 +18,7 @@ export type FunnelData = {
 }[]
 
 export type SupporterRow = { 
+  id: string
   name: string
   avatar?: string | null
   shares: number
@@ -100,6 +101,7 @@ export async function getProgressFunnel(userId: string, range: Range): Promise<F
 export async function getTopSupporters(userId: string, range: Range): Promise<SupporterRow[]> {
   return [
     {
+      id: '1',
       name: 'Col. Ramesh Kumar',
       avatar: null,
       shares: 8,
@@ -108,6 +110,7 @@ export async function getTopSupporters(userId: string, range: Range): Promise<Su
       lastAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
     },
     {
+      id: '2',
       name: 'Lt. Priya Singh',
       avatar: null,
       shares: 6,
@@ -116,6 +119,7 @@ export async function getTopSupporters(userId: string, range: Range): Promise<Su
       lastAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString()
     },
     {
+      id: '3',
       name: 'Open Network Supporters',
       avatar: null,
       shares: 12,
