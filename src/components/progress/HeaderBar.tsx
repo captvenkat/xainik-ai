@@ -5,6 +5,7 @@ import { Share, Calendar, ChevronDown } from 'lucide-react'
 import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 import { trackDateRangeChanged, trackPitchChanged, trackShareModalOpened } from '@/lib/metrics/track'
 import type { Range } from '@/lib/actions/progress'
+import SharePitchModal from '@/components/SharePitchModal'
 
 interface HeaderBarProps {
   userId: string
@@ -120,7 +121,8 @@ export default function HeaderBar({
         <div className="flex items-center gap-3">
           <button
             onClick={handleShareClick}
-            className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+            className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 text-sm font-medium shadow-sm hover:shadow-md"
+            title="Share your pitch across multiple platforms with AI-powered templates"
           >
             <Share className="w-4 h-4" />
             Smart Share Hub
@@ -128,31 +130,12 @@ export default function HeaderBar({
         </div>
       </div>
 
-      {/* Share Modal would be rendered here */}
-      {showShareModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-semibold mb-4">Share Your Pitch</h3>
-            <p className="text-gray-600 mb-4">
-              Share your pitch across multiple platforms to maximize your reach.
-            </p>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setShowShareModal(false)}
-                className="flex-1 bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => setShowShareModal(false)}
-                className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                Share
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Smart Share Hub Modal */}
+      <SharePitchModal
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        userId={userId}
+      />
     </div>
   )
 }
