@@ -141,7 +141,7 @@ export default function FullPitchView({
           body: JSON.stringify({
             eventType: 'PITCH_VIEWED',
             pitchId: pitch.id,
-            userId: pitch.user_id, // Central source of truth
+            userId: pitch.user?.id, // Central source of truth
             referralId: referralId || undefined,
             parentReferralId: parentReferralId || undefined,
             platform: 'web',
@@ -167,7 +167,7 @@ export default function FullPitchView({
     // Track view after a short delay to ensure component is fully loaded
     const timer = setTimeout(trackPitchView, 1000)
     return () => clearTimeout(timer)
-  }, [pitch.id, pitch.user_id, hasTrackedView])
+  }, [pitch.id, pitch.user?.id, hasTrackedView])
 
   const {
     id,
