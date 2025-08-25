@@ -493,6 +493,7 @@ CREATE TRIGGER trigger_update_platform_metrics
 
 -- Tracking events: Users can only see events for their pitches
 ALTER TABLE public.tracking_events ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Users can view tracking events for their pitches" ON public.tracking_events;
 CREATE POLICY "Users can view tracking events for their pitches" ON public.tracking_events
   FOR SELECT USING (
     pitch_id IN (SELECT id FROM public.pitches WHERE user_id = auth.uid())
@@ -500,6 +501,7 @@ CREATE POLICY "Users can view tracking events for their pitches" ON public.track
 
 -- Referrals: Users can view referrals for their pitches
 ALTER TABLE public.referrals ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Users can view referrals for their pitches" ON public.referrals;
 CREATE POLICY "Users can view referrals for their pitches" ON public.referrals
   FOR SELECT USING (
     pitch_id IN (SELECT id FROM public.pitches WHERE user_id = auth.uid())
@@ -507,16 +509,19 @@ CREATE POLICY "Users can view referrals for their pitches" ON public.referrals
 
 -- Pitch metrics: Users can view their own pitch metrics
 ALTER TABLE public.pitch_metrics ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Users can view their own pitch metrics" ON public.pitch_metrics;
 CREATE POLICY "Users can view their own pitch metrics" ON public.pitch_metrics
   FOR SELECT USING (user_id = auth.uid());
 
 -- User tracking summary: Users can view their own summary
 ALTER TABLE public.user_tracking_summary ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Users can view their own tracking summary" ON public.user_tracking_summary;
 CREATE POLICY "Users can view their own tracking summary" ON public.user_tracking_summary
   FOR SELECT USING (user_id = auth.uid());
 
 -- Attribution chains: Users can view chains for their pitches
 ALTER TABLE public.attribution_chains ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Users can view attribution chains for their pitches" ON public.attribution_chains;
 CREATE POLICY "Users can view attribution chains for their pitches" ON public.attribution_chains
   FOR SELECT USING (
     pitch_id IN (SELECT id FROM public.pitches WHERE user_id = auth.uid())
@@ -524,6 +529,7 @@ CREATE POLICY "Users can view attribution chains for their pitches" ON public.at
 
 -- Supporter performance: Users can view performance for their pitches
 ALTER TABLE public.supporter_performance ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Users can view supporter performance for their pitches" ON public.supporter_performance;
 CREATE POLICY "Users can view supporter performance for their pitches" ON public.supporter_performance
   FOR SELECT USING (
     pitch_id IN (SELECT id FROM public.pitches WHERE user_id = auth.uid())
@@ -531,11 +537,13 @@ CREATE POLICY "Users can view supporter performance for their pitches" ON public
 
 -- Daily metrics: Users can view their own daily metrics
 ALTER TABLE public.daily_tracking_metrics ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Users can view their own daily metrics" ON public.daily_tracking_metrics;
 CREATE POLICY "Users can view their own daily metrics" ON public.daily_tracking_metrics
   FOR SELECT USING (user_id = auth.uid());
 
 -- Platform metrics: Users can view their own platform metrics
 ALTER TABLE public.platform_metrics ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Users can view their own platform metrics" ON public.platform_metrics;
 CREATE POLICY "Users can view their own platform metrics" ON public.platform_metrics
   FOR SELECT USING (user_id = auth.uid());
 
