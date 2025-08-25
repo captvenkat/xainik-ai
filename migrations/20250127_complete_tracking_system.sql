@@ -7,23 +7,14 @@
 -- 1. CORE TRACKING TABLES
 -- =====================================================
 
--- Enhanced referrals table with attribution chains
-CREATE TABLE IF NOT EXISTS public.referrals (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id uuid REFERENCES public.users(id) ON DELETE CASCADE, -- Central source of truth
-  pitch_id uuid REFERENCES public.pitches(id) ON DELETE CASCADE, -- Central tracking entity
-  supporter_id uuid REFERENCES public.users(id) ON DELETE CASCADE,
-  share_link text NOT NULL,
-  platform text CHECK (platform IN ('whatsapp', 'linkedin', 'email', 'direct', 'web', 'twitter', 'facebook')),
-  parent_referral_id uuid REFERENCES public.referrals(id) ON DELETE SET NULL,
-  original_supporter_id uuid REFERENCES public.users(id) ON DELETE SET NULL,
-  attribution_chain text[] DEFAULT '{}',
-  attribution_depth integer DEFAULT 0,
-  source_type text DEFAULT 'direct' CHECK (source_type IN ('direct', 'self', 'supporter', 'anonymous', 'chain')),
-  created_at timestamptz DEFAULT now(),
-  updated_at timestamptz DEFAULT now(),
-  UNIQUE (supporter_id, pitch_id)
-);
+-- Enhanced referrals table with attribution chains (using existing user_id structure)
+ALTER TABLE public.referrals ADD COLUMN IF NOT EXISTS parent_referral_id uuid REFERENCES public.referrals(id) ON DELETE SET NULL;
+ALTER TABLE public.referrals ADD COLUMN IF NOT EXISTS original_supporter_id uuid REFERENCES public.users(id) ON DELETE SET NULL;
+ALTER TABLE public.referrals ADD COLUMN IF NOT EXISTS attribution_chain text[] DEFAULT '{}';
+ALTER TABLE public.referrals ADD COLUMN IF NOT EXISTS attribution_depth integer DEFAULT 0;
+ALTER TABLE public.referrals ADD COLUMN IF NOT EXISTS source_type text DEFAULT 'direct' CHECK (source_type IN ('direct', 'self', 'supporter', 'anonymous', 'chain'));
+ALTER TABLE public.referrals ADD COLUMN IF NOT EXISTS platform text CHECK (platform IN ('whatsapp', 'linkedin', 'email', 'direct', 'web', 'twitter', 'facebook'));
+ALTER TABLE public.referrals ADD COLUMN IF NOT EXISTS updated_at timestamptz DEFAULT now();
 
 -- Comprehensive tracking events table
 CREATE TABLE IF NOT EXISTS public.tracking_events (
@@ -56,11 +47,7 @@ CREATE TABLE IF NOT EXISTS public.tracking_events (
   platform text,
   user_agent text,
   ip_hash text,
-  country text,
-  city text,
-  device_type text,
-  browser text,
-  os text,
+  country text, city text, device_type text, browser text, os text,
   metadata jsonb DEFAULT '{}',
   session_id text,
   occurred_at timestamptz DEFAULT now(),
@@ -213,10 +200,9 @@ CREATE INDEX IF NOT EXISTS idx_tracking_events_referral_id ON public.tracking_ev
 CREATE INDEX IF NOT EXISTS idx_tracking_events_platform ON public.tracking_events(platform);
 CREATE INDEX IF NOT EXISTS idx_tracking_events_session_id ON public.tracking_events(session_id);
 
--- Referrals indexes
+-- Referrals indexes (using existing user_id structure)
 CREATE INDEX IF NOT EXISTS idx_referrals_user_id ON public.referrals(user_id);
 CREATE INDEX IF NOT EXISTS idx_referrals_pitch_id ON public.referrals(pitch_id);
-CREATE INDEX IF NOT EXISTS idx_referrals_supporter_id ON public.referrals(supporter_id);
 CREATE INDEX IF NOT EXISTS idx_referrals_parent_id ON public.referrals(parent_referral_id);
 CREATE INDEX IF NOT EXISTS idx_referrals_original_supporter ON public.referrals(original_supporter_id);
 CREATE INDEX IF NOT EXISTS idx_referrals_attribution_chain ON public.referrals USING GIN (attribution_chain);
