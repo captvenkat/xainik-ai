@@ -10,6 +10,7 @@ import VeteranProfileTab from '@/components/VeteranProfileTab'
 import MissionInvitationModal from '@/components/mission/MissionInvitationModal'
 import MissionInvitationAnalytics from '@/components/mission/MissionInvitationAnalytics'
 import CommunitySuggestions from '@/components/community/CommunitySuggestions'
+import TrackingDashboard from '@/components/tracking/TrackingDashboard' // Professional tracking dashboard
 import {
   BarChart3, User, FileText, Users, Lightbulb, Edit, Eye, Heart, Share, Plus,
   TrendingUp, Target, Zap, Star, Trophy, Calendar, ArrowUpRight, ArrowDownRight,
@@ -282,121 +283,140 @@ function AnalyticsTab({ userId, router, onSharePitch, searchParams }: { userId: 
   const [hasPitches, setHasPitches] = useState(false)
   const [hasSharedPitch, setHasSharedPitch] = useState(false)
   const [userPitchId, setUserPitchId] = useState<string | null>(null)
+  const [lastRefresh, setLastRefresh] = useState<Date>(new Date())
 
-  useEffect(() => {
-    async function loadSimpleAnalytics() {
+  // Real-time data refresh
+  const refreshData = useCallback(async (): Promise<void> => {
+    try {
+      setLoading(true)
+      
+      // Check user progress first
+      const supabase = createSupabaseBrowser()
+      
+      // Check if user has pitches
+      const { data: pitches } = await supabase
+        .from('pitches')
+        .select('id')
+        .eq('user_id', userId)
+        .limit(1)
+
+      const userHasPitches = Boolean(pitches && pitches.length > 0)
+      setHasPitches(userHasPitches)
+      
+      // Store pitch ID for AI components
+      if (pitches && pitches.length > 0 && pitches[0]?.id) {
+        setUserPitchId(pitches[0].id)
+      }
+
+      // Check if user has shared pitches (simple check for now)
+      // In a real app, you'd check shares table
+      const userHasShared = false // We can enhance this later
+      setHasSharedPitch(userHasShared)
+
+      // Check if user has completed profile (basic check)
+      const { data: userProfile } = await supabase
+        .from('users')
+        .select('name, phone, role, metadata')
+        .eq('id', userId)
+        .single()
+
+      // Check if user has veteran profile data - try multiple sources
+      let userHasProfile = false
+      
+      // First try veterans table
       try {
-        setLoading(true)
-        
-        // Check user progress first
-        const supabase = createSupabaseBrowser()
-        
-        // Check if user has pitches
-        const { data: pitches } = await supabase
-          .from('pitches')
-          .select('id')
+        const { data: veteranData } = await supabase
+          .from('veterans')
+          .select('*')
           .eq('user_id', userId)
-          .limit(1)
-
-        const userHasPitches = Boolean(pitches && pitches.length > 0)
-        setHasPitches(userHasPitches)
-        
-        // Store pitch ID for AI components
-        if (pitches && pitches.length > 0 && pitches[0]?.id) {
-          setUserPitchId(pitches[0].id)
-        }
-
-        // Check if user has shared pitches (simple check for now)
-        // In a real app, you'd check shares table
-        const userHasShared = false // We can enhance this later
-        setHasSharedPitch(userHasShared)
-
-        // Check if user has completed profile (basic check)
-        const { data: userProfile } = await supabase
-          .from('users')
-          .select('name, phone, role, metadata')
-          .eq('id', userId)
           .single()
-
-        // Check if user has veteran profile data - try multiple sources
-        let userHasProfile = false
         
-        // First try veterans table
-        try {
-          const { data: veteranData } = await supabase
-            .from('veterans')
-            .select('*')
-            .eq('user_id', userId)
-            .single()
-          
-          if (veteranData && (veteranData.rank || veteranData.service_branch || veteranData.bio)) {
-            userHasProfile = true
-          }
-        } catch (veteranError) {
-          console.log('Veterans table not accessible, checking user metadata')
-        }
-        
-        // Fallback to user metadata if veterans table failed
-        if (!userHasProfile && userProfile?.metadata?.veteran_profile) {
-          const fallbackData = userProfile.metadata.veteran_profile
-          if (fallbackData.military_rank || fallbackData.service_branch || fallbackData.bio) {
-            userHasProfile = true
-          }
-        }
-        
-        // Basic profile completion check - if user has name and phone, consider profile complete
-        if (!userHasProfile && userProfile?.name && userProfile?.phone) {
+        if (veteranData && (veteranData.rank || veteranData.service_branch || veteranData.bio)) {
           userHasProfile = true
         }
-        
-        setHasProfile(userHasProfile)
-
-        // Determine user progress - Profile first, then pitch, then share
-        if (!userHasProfile) {
-          setUserProgress('step1') // Complete Profile
-        } else if (!userHasPitches) {
-          setUserProgress('step2') // Create Pitch
-        } else {
-          // If user has profile and pitches, show full dashboard
-          // Don't require sharing to see analytics
-          setUserProgress('complete')
-        }
-        
-        // Debug logging
-        console.log('User Progress Detection:', {
-          userId,
-          userHasProfile,
-          userHasPitches,
-          userHasShared,
-          userProgress: userHasProfile && userHasPitches ? 'complete' : (!userHasProfile ? 'step1' : 'step2'),
-          userProfile: userProfile?.name,
-          userPhone: userProfile?.phone,
-          veteranData: userHasProfile
-        })
-
-        // Load simple data
-        const [hero, metrics, actions, activity] = await Promise.all([
-          getSimpleHeroData(userId),
-          getSimpleMetricsData(userId),
-          getSimpleActionsData(userId),
-          getSimpleActivityData(userId)
-        ])
-
-        setHeroData(hero)
-        setMetricsData(metrics)
-        setActionsData(actions)
-        setActivityData(activity)
-      } catch (error) {
-        console.error('Failed to load analytics:', error)
-      } finally {
-        setLoading(false)
+      } catch (veteranError) {
+        console.log('Veterans table not accessible, checking user metadata')
       }
-    }
+      
+      // Fallback to user metadata if veterans table failed
+      if (!userHasProfile && userProfile?.metadata?.veteran_profile) {
+        const fallbackData = userProfile.metadata.veteran_profile
+        if (fallbackData.military_rank || fallbackData.service_branch || fallbackData.bio) {
+          userHasProfile = true
+        }
+      }
+      
+      // Basic profile completion check - if user has name and phone, consider profile complete
+      if (!userHasProfile && userProfile?.name && userProfile?.phone) {
+        userHasProfile = true
+      }
+      
+      setHasProfile(userHasProfile)
 
-    if (userId) {
-      loadSimpleAnalytics()
+      // Determine user progress - Profile first, then pitch, then share
+      if (!userHasProfile) {
+        setUserProgress('step1') // Complete Profile
+      } else if (!userHasPitches) {
+        setUserProgress('step2') // Create Pitch
+      } else {
+        // If user has profile and pitches, show full dashboard
+        // Don't require sharing to see analytics
+        setUserProgress('complete')
+      }
+      
+      // Debug logging
+      console.log('User Progress Detection:', {
+        userId,
+        userHasProfile,
+        userHasPitches,
+        userHasShared,
+        userProgress: userHasProfile && userHasPitches ? 'complete' : (!userHasProfile ? 'step1' : 'step2'),
+        userProfile: userProfile?.name,
+        userPhone: userProfile?.phone,
+        veteranData: userHasProfile
+      })
+
+      // Load simple data
+      const [hero, metrics, actions, activity] = await Promise.all([
+        getSimpleHeroData(userId),
+        getSimpleMetricsData(userId),
+        getSimpleActionsData(userId),
+        getSimpleActivityData(userId)
+      ])
+
+      setHeroData(hero)
+      setMetricsData(metrics)
+      setActionsData(actions)
+      setActivityData(activity)
+      setLastRefresh(new Date())
+    } catch (error) {
+      console.error('Failed to load analytics:', error)
+    } finally {
+      setLoading(false)
     }
   }, [userId])
+
+  useEffect(() => {
+    if (userId) {
+      refreshData()
+    }
+  }, [userId, refreshData])
+
+  // Auto-refresh data every 30 seconds for real-time updates
+  useEffect(() => {
+    if (userProgress === 'complete') {
+      const interval = setInterval(() => {
+        refreshData()
+      }, 30000) // 30 seconds
+
+      return () => clearInterval(interval)
+    }
+  }, [userProgress, refreshData])
+
+  // Manual refresh function
+  const handleManualRefresh = () => {
+    refreshData()
+  }
 
   if (loading) {
     return (
@@ -455,6 +475,30 @@ function AnalyticsTab({ userId, router, onSharePitch, searchParams }: { userId: 
   // Full dashboard for completed users
   return (
     <div className="space-y-6">
+      {/* Professional Tracking Dashboard */}
+      <div className="mb-8">
+        <TrackingDashboard userId={userId} />
+      </div>
+
+      {/* Real-time Status Indicator */}
+      <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-lg p-3 mb-6">
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+          <span className="text-sm font-medium text-green-800">Live Tracking Active</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-green-600">
+            Last updated: {lastRefresh.toLocaleTimeString()}
+          </span>
+          <button
+            onClick={handleManualRefresh}
+            className="text-xs text-green-600 hover:text-green-800 transition-colors"
+          >
+            Refresh
+          </button>
+        </div>
+      </div>
+
       {/* Dashboard Navigation Options */}
       <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200 shadow-lg mb-6">
         <div className="text-center mb-6">

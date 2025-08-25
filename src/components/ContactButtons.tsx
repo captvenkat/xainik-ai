@@ -3,8 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Phone, Mail } from 'lucide-react'
 import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
-import { logUserActivity } from '@/lib/actions/activity-server'
-import { recordEvent } from '@/lib/actions/referral-events-server'
+import { tracking } from '@/lib/tracking'
 
 interface ContactButtonsProps {
   phone?: string | undefined
@@ -47,68 +46,24 @@ export default function ContactButtons({
   }, [])
 
   const onCall = async () => {
-    if (referralId) {
+    if (pitchId) {
       try {
-        await recordEvent({
-          referralId,
-          type: 'CALL_CLICKED',
-          platform: 'web',
-          userAgent: navigator.userAgent,
-          ipAddress: 'client-side' // Will be handled by server-side tracking
-        })
+        await tracking.callClicked(pitchId, referralId || undefined, 'web')
       } catch (error) {
         // Don't break the UI if logging fails
       }
-    }
-    
-    try {
-      // Skip activity logging for anonymous users
-      // await logUserActivity({
-      //   user_id: null, // Anonymous activity
-      //   activity_type: 'contact_made',
-      //   metadata: {
-      //     phone,
-      //     veteran_name: veteranName,
-      //     pitch_title: pitchTitle,
-      //     contact_type: 'call'
-      //   }
-      // })
-    } catch (error) {
-      // Don't break the UI if logging fails
     }
     
     if (phone) window.location.href = `tel:${phone}`
   }
 
   const onEmail = async () => {
-    if (referralId) {
+    if (pitchId) {
       try {
-        await recordEvent({
-          referralId,
-          type: 'EMAIL_CLICKED',
-          platform: 'web',
-          userAgent: navigator.userAgent,
-          ipAddress: 'client-side' // Will be handled by server-side tracking
-        })
+        await tracking.emailClicked(pitchId, referralId || undefined, 'web')
       } catch (error) {
         // Don't break the UI if logging fails
       }
-    }
-    
-    try {
-      // Skip activity logging for anonymous users
-      // await logUserActivity({
-      //   user_id: null, // Anonymous activity
-      //   activity_type: 'contact_made',
-      //   metadata: {
-      //     email,
-      //     veteran_name: veteranName,
-      //     pitch_title: pitchTitle,
-      //     contact_type: 'email'
-      //   }
-      // })
-    } catch (error) {
-      // Don't break the UI if logging fails
     }
     
     if (email) window.location.href = `mailto:${email}`
@@ -117,6 +72,7 @@ export default function ContactButtons({
   return (
     <div className="flex items-center gap-3 flex-wrap">
       <button 
+        data-track="call"
         onClick={onCall} 
         className="btn-success inline-flex items-center gap-2"
         disabled={!phone}
@@ -125,11 +81,12 @@ export default function ContactButtons({
         {phone ? 'Call' : 'No Phone'}
       </button>
       <button 
+        data-track="email"
         onClick={onEmail} 
         className="btn-secondary inline-flex items-center gap-2"
         disabled={!email}
       >
-        <Mail className="h-4 w-4" /> 
+        <Mail className="h-4 w-4" />
         {email ? 'Email' : 'No Email'}
       </button>
     </div>

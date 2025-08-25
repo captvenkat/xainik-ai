@@ -2,94 +2,99 @@
 import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 import type { Database } from '@/types/live-schema'
 
-// NEW: Enhanced Veteran Analytics Functions
+// NEW: Enhanced Veteran Analytics Functions with Comprehensive Database Schema
 
 export async function getSimpleHeroData(veteranId: string) {
   try {
     const supabaseAction = createSupabaseBrowser()
     
-    // Get pitch views for this veteran - simplified query
-    const { data: views } = await supabaseAction
+    // Use the veteran dashboard summary view for efficient data retrieval
+    const { data: pitchSummary } = await supabaseAction
+      .from('veteran_dashboard_summary')
+      .select('*')
+      .eq('user_id', veteranId)
+      .order('last_activity_at', { ascending: false })
+      .limit(1)
+
+    if (!pitchSummary || pitchSummary.length === 0) {
+      return {
+        pitchViews: {
+          total: 0,
+          thisWeek: 0,
+          change: '0%',
+          isMockData: false
+        },
+        networkReach: {
+          count: 0,
+          potential: 50,
+          description: 'people have seen your pitch',
+          isMockData: false
+        },
+        potentialOpportunities: {
+          count: 10,
+          quality: 'Growing',
+          description: 'potential job opportunities',
+          isMockData: false
+        },
+        mainAction: {
+          text: 'Create Your First Pitch',
+          onClick: () => console.log('Redirect to pitch creation')
+        },
+        isMockData: false
+      }
+    }
+
+    const summary = pitchSummary[0]
+    
+    // Get this week's views from referral_events
+    const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+    
+    // First get referral IDs for this pitch
+    const { data: referralIds } = await supabaseAction
+      .from('referrals')
+      .select('id')
+      .eq('pitch_id', summary.pitch_id)
+    
+    const referralIdList = referralIds?.map(r => r.id) || []
+    
+    // Then get events for those referrals
+    const { data: thisWeekEvents } = await supabaseAction
       .from('referral_events')
-      .select(`
-        id,
-        event_type,
-        occurred_at,
-        referrals!referral_events_referral_id_fkey (
-          pitch_id,
-          pitches!referrals_pitch_id_fkey (
-            user_id
-          )
-        )
-      `)
-      .eq('referrals.pitches.user_id', veteranId)
+      .select('event_type')
       .eq('event_type', 'PITCH_VIEWED')
-      .gte('occurred_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
+      .gte('occurred_at', oneWeekAgo)
+      .in('referral_id', referralIdList)
 
-    // Get total views (all time) - simplified query
-    const { data: totalViews } = await supabaseAction
-      .from('referral_events')
-      .select(`
-        id,
-        event_type,
-        occurred_at,
-        referrals!referral_events_referral_id_fkey (
-          pitch_id,
-          pitches!referrals_pitch_id_fkey (
-            user_id
-          )
-        )
-      `)
-      .eq('referrals.pitches.user_id', veteranId)
-      .eq('event_type', 'PITCH_VIEWED')
-
-    // Get active opportunities (referral events)
-    const { data: opportunities } = await supabaseAction
-      .from('referral_events')
-      .select(`
-        id,
-        event_type,
-        occurred_at,
-        referrals!referral_events_referral_id_fkey (
-          pitch_id,
-          pitches!referrals_pitch_id_fkey (
-            user_id
-          )
-        )
-      `)
-      .eq('referrals.pitches.user_id', veteranId)
-      .gte('occurred_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
-
-    // Always use real data - no mock data
-    const thisWeekViews = views?.length || 0
-    const totalViewsCount = totalViews?.length || 0
+    const thisWeekViews = thisWeekEvents?.length || 0
+    const totalViews = summary.views_count || 0
+    const totalActions = (summary.calls_count || 0) + (summary.emails_count || 0)
     
     // Calculate change percentage (simple week-over-week)
     const change = thisWeekViews > 0 ? '+15%' : '0%'
     
     return {
       pitchViews: {
-        total: totalViewsCount,
+        total: totalViews,
         thisWeek: thisWeekViews,
         change: change,
         isMockData: false
       },
       networkReach: {
-        count: totalViewsCount,
-        potential: Math.max(totalViewsCount * 5, 50),
+        count: totalViews,
+        potential: Math.max(totalViews * 5, 50),
         description: 'people have seen your pitch',
         isMockData: false
       },
       potentialOpportunities: {
-        count: Math.max(totalViewsCount * 2, 10),
-        quality: totalViewsCount > 100 ? 'High' : totalViewsCount > 50 ? 'Medium' : 'Growing',
+        count: Math.max(totalActions * 3, 10),
+        quality: totalViews > 100 ? 'High' : totalViews > 50 ? 'Medium' : 'Growing',
         description: 'potential job opportunities',
         isMockData: false
       },
       mainAction: {
-        text: totalViewsCount > 0 ? 'Smart Share' : 'Create Your First Pitch',
+        text: totalViews > 0 ? 'Smart Share' : 'Create Your First Pitch',
         onClick: () => {
-          if (totalViewsCount > 0) {
+          if (totalViews > 0) {
             console.log('Smart share clicked - modal should open')
           } else {
             console.log('Redirect to pitch creation')
@@ -108,25 +113,50 @@ export async function getSimpleMetricsData(veteranId: string) {
   try {
     const supabaseAction = createSupabaseBrowser()
     
-    // Get real activity data from referral_events - simplified query
-    const { data: activity } = await supabaseAction
-      .from('referral_events')
-      .select(`
-        id,
-        event_type,
-        occurred_at,
-        platform,
-        referrals!referral_events_referral_id_fkey (
-          pitch_id,
-          pitches!referrals_pitch_id_fkey (
-            user_id
-          )
-        )
-      `)
-      .eq('referrals.pitches.user_id', veteranId)
-      .order('occurred_at', { ascending: false })
-      .limit(100)
+    // Use the veteran dashboard summary view
+    const { data: pitchSummary } = await supabaseAction
+      .from('veteran_dashboard_summary')
+      .select('*')
+      .eq('user_id', veteranId)
+      .order('last_activity_at', { ascending: false })
+      .limit(1)
 
+    if (!pitchSummary || pitchSummary.length === 0) {
+      return {
+        engagement: {
+          value: '0%',
+          subtitle: 'No views yet - start sharing!',
+          actionText: 'Create Pitch',
+          action: () => console.log('Create pitch'),
+          isMockData: false
+        },
+        contacts: {
+          value: '0',
+          subtitle: 'Share pitch to get contacts',
+          actionText: 'Share Pitch',
+          action: () => console.log('Share pitch'),
+          isMockData: false
+        },
+        shares: {
+          value: '0',
+          subtitle: 'Start sharing to see real stats',
+          actionText: 'Share Now',
+          action: () => console.log('Share pitch'),
+          isMockData: false
+        },
+        resumeRequests: {
+          value: '0',
+          subtitle: 'Create pitch to get requests',
+          actionText: 'Create Pitch',
+          action: () => console.log('Create pitch'),
+          isMockData: false
+        },
+        isMockData: false
+      }
+    }
+
+    const summary = pitchSummary[0]
+    
     // Get resume request metrics
     let resumeRequests: any[] = []
     try {
@@ -141,11 +171,11 @@ export async function getSimpleMetricsData(veteranId: string) {
       resumeRequests = []
     }
 
-    // Calculate real metrics from referral events
-    const totalViews = activity?.filter(e => e.event_type === 'PITCH_VIEWED').length || 0
-    const totalCalls = activity?.filter(e => e.event_type === 'CALL_CLICKED').length || 0
-    const totalEmails = activity?.filter(e => e.event_type === 'EMAIL_CLICKED').length || 0
-    const totalShares = activity?.filter(e => e.event_type === 'SHARE_RESHARED').length || 0
+    // Calculate metrics from summary
+    const totalViews = summary.views_count || 0
+    const totalCalls = summary.calls_count || 0
+    const totalEmails = summary.emails_count || 0
+    const totalShares = summary.shares_count || 0
     
     // Calculate engagement rate (views that led to actions)
     const totalActions = totalCalls + totalEmails
@@ -198,7 +228,7 @@ export async function getVeteranOutreachData(veteranId: string) {
   try {
     const supabaseAction = createSupabaseBrowser()
     
-    // Get veteran's own outreach activities from referral_events - simplified query
+    // Get veteran's outreach activities from referral_events
     const { data: veteranActivities } = await supabaseAction
       .from('referral_events')
       .select(`
@@ -206,6 +236,7 @@ export async function getVeteranOutreachData(veteranId: string) {
         event_type,
         occurred_at,
         platform,
+        metadata,
         referrals!referral_events_referral_id_fkey (
           pitch_id,
           pitches!referrals_pitch_id_fkey (
@@ -214,7 +245,16 @@ export async function getVeteranOutreachData(veteranId: string) {
         )
       `)
       .eq('referrals.pitches.user_id', veteranId)
-      .in('event_type', ['SHARE_RESHARED', 'LINK_OPENED'])
+      .in('event_type', [
+        'SHARE_RESHARED', 
+        'LINK_OPENED', 
+        'SCROLL_25_PERCENT', 
+        'SCROLL_50_PERCENT', 
+        'SCROLL_75_PERCENT', 
+        'TIME_30_SECONDS', 
+        'TIME_60_SECONDS', 
+        'TIME_120_SECONDS'
+      ])
       .order('occurred_at', { ascending: false })
       .limit(50)
 
@@ -249,49 +289,44 @@ export async function getSupporterPerformanceList(veteranId: string) {
   try {
     const supabaseAction = createSupabaseBrowser()
     
-    // Get all supporters who referred this veteran's pitches (with error handling)
-    let supporterReferrals: any[] = []
-    try {
-      const { data: supporterReferralsData } = await supabaseAction
-        .from('referrals')
-        .select(`
+    // Get all supporters who referred this veteran's pitches
+    const { data: supporterReferrals } = await supabaseAction
+      .from('referrals')
+      .select(`
+        id,
+        user_id,
+        pitch_id,
+        created_at,
+        platform,
+        users!referrals_user_id_fkey (
           id,
-          user_id,
-          pitch_id,
-          created_at,
-          users!referrals_user_id_fkey (
-            id,
-            name,
-            email
-          ),
-          pitches!referrals_pitch_id_fkey (
-            id,
-            title,
-            user_id
-          ),
-          referral_events (
-            id,
-            event_type,
-            platform,
-            occurred_at
-          )
-        `)
-        .eq('pitches.user_id', veteranId)
-        .order('created_at', { ascending: false })
-      
-      supporterReferrals = supporterReferralsData || []
-    } catch (error) {
-      console.log('Supporter referrals query failed, using empty data:', error)
-      supporterReferrals = []
-    }
+          name,
+          email
+        ),
+        pitches!referrals_pitch_id_fkey (
+          id,
+          title,
+          user_id
+        ),
+        referral_events (
+          id,
+          event_type,
+          platform,
+          occurred_at
+        )
+      `)
+      .eq('pitches.user_id', veteranId)
+      .order('created_at', { ascending: false })
+
+    if (!supporterReferrals) return []
 
     // Process supporter performance data
-        const supporterPerformance = supporterReferrals?.map((referral: any) => {
+    const supporterPerformance = supporterReferrals.map((referral: any) => {
       const events = referral.referral_events || []
 
       // Calculate metrics for this supporter
       const totalViews = events.filter((e: any) => e.event_type === 'PITCH_VIEWED').length
-      const totalCalls = events.filter((e: any) => e.event_type === 'CALL_CLICKED').length
+      const totalCalls = events.filter((e: any) => ['CALL_CLICKED', 'PHONE_CLICKED'].includes(e.event_type)).length
       const totalEmails = events.filter((e: any) => e.event_type === 'EMAIL_CLICKED').length
       const totalShares = events.filter((e: any) => e.event_type === 'SHARE_RESHARED').length
 
@@ -326,7 +361,7 @@ export async function getSupporterPerformanceList(veteranId: string) {
         platforms,
         referralId: referral.id
       }
-    }) || []
+    })
 
     return supporterPerformance
   } catch (error) {
@@ -339,38 +374,50 @@ export async function getSimpleActionsData(veteranId: string) {
   try {
     const supabaseAction = createSupabaseBrowser()
     
-    // Get real activity data from referral_events - simplified query
-    const { data: activity } = await supabaseAction
-      .from('referral_events')
-      .select(`
-        id,
-        event_type,
-        occurred_at,
-        platform,
-        referrals!referral_events_referral_id_fkey (
-          pitch_id,
-          pitches!referrals_pitch_id_fkey (
-            user_id
-          )
-        )
-      `)
-      .eq('referrals.pitches.user_id', veteranId)
-      .order('occurred_at', { ascending: false })
-      .limit(100)
+    // Use the veteran dashboard summary view
+    const { data: pitchSummary } = await supabaseAction
+      .from('veteran_dashboard_summary')
+      .select('*')
+      .eq('user_id', veteranId)
+      .order('last_activity_at', { ascending: false })
+      .limit(1)
 
+    if (!pitchSummary || pitchSummary.length === 0) {
+      return {
+        actions: [{
+          title: 'Create Your First Pitch',
+          impact: 'Get discovered by recruiters',
+          time: '5 minutes',
+          priority: 'critical' as const,
+          reason: 'You need a pitch to get started. This is your chance to showcase your military experience.',
+          action: () => console.log('Create pitch')
+        }],
+        summary: {
+          totalViews: 0,
+          conversionRate: '0%',
+          supporterCount: 0,
+          endorsementCount: 0,
+          hasPhoto: false,
+          hasRecentActivity: false
+        }
+      }
+    }
+
+    const summary = pitchSummary[0]
+    
     // Get veteran's pitch data
     const { data: pitchData } = await supabaseAction
       .from('pitches')
       .select('*')
-      .eq('user_id', veteranId)
+      .eq('id', summary.pitch_id)
       .eq('is_active', true)
       .single()
 
-    // Calculate real metrics
-    const totalViews = activity?.filter(e => e.event_type === 'PITCH_VIEWED').length || 0
-    const totalCalls = activity?.filter(e => e.event_type === 'CALL_CLICKED').length || 0
-    const totalEmails = activity?.filter(e => e.event_type === 'EMAIL_CLICKED').length || 0
-    const totalShares = activity?.filter(e => e.event_type === 'SHARE_RESHARED').length || 0
+    // Calculate real metrics from summary
+    const totalViews = summary.views_count || 0
+    const totalCalls = summary.calls_count || 0
+    const totalEmails = summary.emails_count || 0
+    const totalShares = summary.shares_count || 0
     
     // Get resume requests count
     let resumeRequestsCount = 0
@@ -493,7 +540,7 @@ export async function getSimpleActionsData(veteranId: string) {
         supporterCount: totalShares,
         endorsementCount: 0, // Could be enhanced with endorsements table
         hasPhoto: pitchData?.photo_url ? true : false,
-        hasRecentActivity: activity && activity.length > 0 && activity[0] && new Date(activity[0].occurred_at).getTime() > Date.now() - 7 * 24 * 60 * 60 * 1000
+        hasRecentActivity: summary.last_activity_at && new Date(summary.last_activity_at).getTime() > Date.now() - 7 * 24 * 60 * 60 * 1000
       }
     }
   } catch (error) {
@@ -506,14 +553,15 @@ export async function getSimpleActivityData(veteranId: string) {
   try {
     const supabaseAction = createSupabaseBrowser()
     
-    // Get real activity data from referral_events - simplified query
-    const { data: activity } = await supabaseAction
+    // Get recent activity from referral_events
+    const { data: recentEvents } = await supabaseAction
       .from('referral_events')
       .select(`
         id,
         event_type,
         occurred_at,
         platform,
+        metadata,
         referrals!referral_events_referral_id_fkey (
           pitch_id,
           pitches!referrals_pitch_id_fkey (
@@ -525,7 +573,7 @@ export async function getSimpleActivityData(veteranId: string) {
       .order('occurred_at', { ascending: false })
       .limit(10)
 
-    if (!activity || activity.length === 0) {
+    if (!recentEvents || recentEvents.length === 0) {
       return {
         items: [
           {
@@ -538,7 +586,7 @@ export async function getSimpleActivityData(veteranId: string) {
     }
 
     // Convert real events to display format
-    const items = activity.map(event => {
+    const items = recentEvents.map(event => {
       const eventTime = new Date(event.occurred_at)
       const now = new Date()
       const timeDiff = now.getTime() - eventTime.getTime()
@@ -564,6 +612,7 @@ export async function getSimpleActivityData(veteranId: string) {
           text = 'Someone viewed your pitch'
           break
         case 'CALL_CLICKED':
+        case 'PHONE_CLICKED':
           icon = '📞'
           text = 'Someone clicked your phone number'
           break
@@ -578,6 +627,30 @@ export async function getSimpleActivityData(veteranId: string) {
         case 'LINK_OPENED':
           icon = '🔗'
           text = 'Someone opened your referral link'
+          break
+        case 'SCROLL_25_PERCENT':
+          icon = '📊'
+          text = 'Someone scrolled 25% through your pitch'
+          break
+        case 'SCROLL_50_PERCENT':
+          icon = '📊'
+          text = 'Someone scrolled 50% through your pitch'
+          break
+        case 'SCROLL_75_PERCENT':
+          icon = '📊'
+          text = 'Someone scrolled 75% through your pitch'
+          break
+        case 'TIME_30_SECONDS':
+          icon = '⏱️'
+          text = 'Someone spent 30 seconds on your pitch'
+          break
+        case 'TIME_60_SECONDS':
+          icon = '⏱️'
+          text = 'Someone spent 1 minute on your pitch'
+          break
+        case 'TIME_120_SECONDS':
+          icon = '⏱️'
+          text = 'Someone spent 2 minutes on your pitch'
           break
         default:
           icon = '📊'
