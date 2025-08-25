@@ -48,8 +48,34 @@ export default function ContactButtons({
   const onCall = async () => {
     if (pitchId) {
       try {
-        await tracking.callClicked(pitchId, referralId || undefined, 'web')
+        // Get pitch owner user_id from the pitch data
+        const response = await fetch(`/api/pitch/${pitchId}/owner`)
+        if (response.ok) {
+          const data = await response.json()
+          const userId = data.userId
+          
+          // Track the call click directly
+          await fetch('/api/track-event', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              eventType: 'CALL_CLICKED',
+              pitchId: pitchId,
+              userId: userId, // Central source of truth
+              referralId: referralId || undefined,
+              platform: 'web',
+              userAgent: navigator.userAgent,
+              ipAddress: 'client-side',
+              sessionId: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+              metadata: { source: 'ContactButtons' },
+              timestamp: new Date().toISOString()
+            })
+          })
+        }
       } catch (error) {
+        console.error('Error tracking call click:', error)
         // Don't break the UI if logging fails
       }
     }
@@ -60,8 +86,34 @@ export default function ContactButtons({
   const onEmail = async () => {
     if (pitchId) {
       try {
-        await tracking.emailClicked(pitchId, referralId || undefined, 'web')
+        // Get pitch owner user_id from the pitch data
+        const response = await fetch(`/api/pitch/${pitchId}/owner`)
+        if (response.ok) {
+          const data = await response.json()
+          const userId = data.userId
+          
+          // Track the email click directly
+          await fetch('/api/track-event', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              eventType: 'EMAIL_CLICKED',
+              pitchId: pitchId,
+              userId: userId, // Central source of truth
+              referralId: referralId || undefined,
+              platform: 'web',
+              userAgent: navigator.userAgent,
+              ipAddress: 'client-side',
+              sessionId: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+              metadata: { source: 'ContactButtons' },
+              timestamp: new Date().toISOString()
+            })
+          })
+        }
       } catch (error) {
+        console.error('Error tracking email click:', error)
         // Don't break the UI if logging fails
       }
     }

@@ -130,10 +130,35 @@ export default function FullPitchView({
         // Get referral ID from URL if present
         const urlParams = new URLSearchParams(window.location.search)
         const referralId = urlParams.get('ref')
+        const parentReferralId = urlParams.get('parent')
         
-        // Track the pitch view
-        await tracking.pitchViewed(pitch.id, referralId || undefined, 'web')
-        setHasTrackedView(true)
+        // Track the pitch view directly with user_id
+        const response = await fetch('/api/track-event', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            eventType: 'PITCH_VIEWED',
+            pitchId: pitch.id,
+            userId: pitch.user_id, // Central source of truth
+            referralId: referralId || undefined,
+            parentReferralId: parentReferralId || undefined,
+            platform: 'web',
+            userAgent: navigator.userAgent,
+            ipAddress: 'client-side',
+            sessionId: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            metadata: { source: 'FullPitchView' },
+            timestamp: new Date().toISOString()
+          })
+        })
+
+        if (response.ok) {
+          console.log('Pitch view tracked successfully')
+          setHasTrackedView(true)
+        } else {
+          console.error('Failed to track pitch view:', response.status)
+        }
       } catch (error) {
         console.error('Error tracking pitch view:', error)
       }
@@ -142,7 +167,7 @@ export default function FullPitchView({
     // Track view after a short delay to ensure component is fully loaded
     const timer = setTimeout(trackPitchView, 1000)
     return () => clearTimeout(timer)
-  }, [pitch.id, hasTrackedView])
+  }, [pitch.id, pitch.user_id, hasTrackedView])
 
   const {
     id,
