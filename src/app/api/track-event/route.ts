@@ -42,7 +42,6 @@ export async function POST(request: NextRequest) {
           .insert({
             user_id: userId, // Central source of truth
             pitch_id: pitchId, // Central tracking entity
-            supporter_id: null, // Anonymous for now
             share_link: `chain-${pitchId}-${Date.now()}`,
             platform: platform,
             parent_referral_id: parentReferralId,
@@ -71,7 +70,6 @@ export async function POST(request: NextRequest) {
             .insert({
               user_id: userId, // Central source of truth
               pitch_id: pitchId, // Central tracking entity
-              supporter_id: null,
               share_link: `direct-${pitchId}-${Date.now()}`,
               platform: 'direct',
               source_type: 'direct'
