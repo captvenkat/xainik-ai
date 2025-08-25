@@ -31,7 +31,7 @@ import {
   getSimpleActionsData, 
   getSimpleActivityData 
 } from '@/lib/analytics'
-import DualFunnelDashboard from '@/components/veteran/DualFunnelDashboard'
+
 import dynamic from 'next/dynamic'
 
 // =====================================================
@@ -556,15 +556,8 @@ function AnalyticsTab({ userId, router, onSharePitch, searchParams }: { userId: 
         </div>
       )}
 
-      {/* Dual Funnel Dashboard (when feature flag enabled) or Legacy Analytics */}
-      {process.env.NEXT_PUBLIC_FEATURE_DUAL_FUNNEL === 'true' ? (
-        <DualFunnelDashboard 
-          userId={userId}
-          onSharePitch={onSharePitch}
-          onEditPitch={() => router.push('/pitch/new/ai-first')}
-        />
-      ) : (
-        /* Legacy Analytics Dashboard - Focused on Primary KRA: Pitch Views */
+      {/* Legacy Analytics Dashboard - Focused on Primary KRA: Pitch Views */}
+        {/* Legacy Analytics Dashboard - Focused on Primary KRA: Pitch Views */}
         <div className="space-y-6">
           {/* Hero Section - Primary KRA: Pitch Views */}
           <SimpleHeroSection data={heroData} onSharePitch={onSharePitch} />
@@ -578,7 +571,6 @@ function AnalyticsTab({ userId, router, onSharePitch, searchParams }: { userId: 
           {/* Activity Feed - Recent Activity */}
           <SimpleActivityFeed data={activityData} />
         </div>
-      )}
 
       {/* AI-Powered Features Section */}
       {userPitchId && (
