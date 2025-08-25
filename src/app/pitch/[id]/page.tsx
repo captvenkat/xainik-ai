@@ -194,64 +194,8 @@ export default async function PitchDetailPage({
 
 
 
-  // Log referral event if referral ID is present
-  if (ref) {
-    try {
-      await recordEvent({
-        referralId: ref,
-        type: 'PITCH_VIEWED',
-        platform: 'web',
-        userAgent: 'server-side',
-        ipAddress: 'server-side'
-      })
-    } catch (error) {
-      console.error('Failed to record referral event:', error)
-    }
-  }
-
-  // ALWAYS track pitch views, even for direct visits
-  // Create a direct visit event for analytics
-  try {
-    const supabaseClient = await createSupabaseServerOnly()
-    
-    // Insert a direct pitch view event into referral_events
-    // We'll use a special referral_id to indicate direct visits
-    const { data: directReferral } = await supabaseClient
-      .from('referrals')
-      .select('id')
-      .eq('pitch_id', id)
-      .eq('supporter_id', '00000000-0000-0000-0000-000000000000') // Special ID for direct visits
-      .single()
-    
-    let referralId = directReferral?.id
-    
-    // If no direct referral exists, create one
-    if (!referralId) {
-      const { data: newDirectReferral } = await supabaseClient
-        .from('referrals')
-        .insert({
-          supporter_id: '00000000-0000-0000-0000-000000000000', // Special ID for direct visits
-          pitch_id: id,
-          share_link: `direct-${id}`
-        })
-        .select('id')
-        .single()
-      
-      referralId = newDirectReferral?.id
-    }
-    
-    if (referralId) {
-      await recordEvent({
-        referralId,
-        type: 'PITCH_VIEWED',
-        platform: 'direct',
-        userAgent: 'server-side',
-        ipAddress: 'server-side'
-      })
-    }
-  } catch (error) {
-    console.error('Failed to record direct pitch view:', error)
-  }
+  // Note: Tracking is now handled by the new tracking system in FullPitchView component
+  // The new system uses /api/track-event with user_id as central source of truth
 
   return (
     <FullPitchView 
