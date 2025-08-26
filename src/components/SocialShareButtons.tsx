@@ -9,6 +9,7 @@ interface SocialShareButtonsProps {
   pitchTitle: string
   pitchText: string
   veteranName: string
+  userId?: string // Pitch owner's user_id for tracking (optional)
   className?: string
 }
 
@@ -17,6 +18,7 @@ export default function SocialShareButtons({
   pitchTitle, 
   pitchText, 
   veteranName, 
+  userId,
   className = '' 
 }: SocialShareButtonsProps) {
   const [copied, setCopied] = useState(false)
@@ -32,7 +34,7 @@ export default function SocialShareButtons({
       await supabase.from('tracking_events').insert({
         event_type: 'SHARE_RESHARED',
         pitch_id: pitchId,
-        user_id: userId, // This should be the pitch owner's user_id
+        user_id: userId || null, // Pitch owner's user_id for tracking (optional)
         platform: platform.toLowerCase(),
         user_agent: navigator.userAgent,
         ip_address: 'client-side',

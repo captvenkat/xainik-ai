@@ -13,6 +13,7 @@ interface ShareModalProps {
   pitchTitle: string
   pitchText: string
   veteranName: string
+  userId?: string // Pitch owner's user_id for tracking (optional)
 }
 
 type ShareTab = 'social' | 'qr' | 'email'
@@ -23,7 +24,8 @@ export default function ShareModal({
   pitchId,
   pitchTitle,
   pitchText,
-  veteranName
+  veteranName,
+  userId
 }: ShareModalProps) {
   const [activeTab, setActiveTab] = useState<ShareTab>('social')
   const [copied, setCopied] = useState(false)
@@ -122,6 +124,7 @@ export default function ShareModal({
                 pitchTitle={pitchTitle}
                 pitchText={pitchText}
                 veteranName={veteranName}
+                userId={userId || undefined}
                 className="justify-center"
               />
             </div>
