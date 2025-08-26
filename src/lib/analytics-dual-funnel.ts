@@ -58,7 +58,7 @@ export async function getDualFunnelData(veteranId: string, dateRange: '7d' | '30
     const channelData = transformChannelData(inboundData || [])
     
     // Transform tracking events for table
-    const tableData = transformTrackingEvents(trackingEvents || [])
+    const tableData = transformReferralEvents(trackingEvents || [])
 
     // If no real data and seeding is enabled, provide sample data
     if ((!inboundData || inboundData.length === 0) && shouldSeedData) {
@@ -351,11 +351,11 @@ function transformReferralEvents(events: any[]) {
     id: event.id,
     event_type: event.event_type,
     platform: event.platform || 'unknown',
-    mode: event.mode || 'self',
+    mode: 'self', // Default mode for tracking events
     occurred_at: event.occurred_at,
-    referral_id: event.referral_id,
-    supporter_name: event.referrals?.users?.name,
-    supporter_email: event.referrals?.users?.email
+    referral_id: event.referral_id || null,
+    supporter_name: 'Anonymous', // We can enhance this later with user lookup if needed
+    supporter_email: null
   }))
 }
 
