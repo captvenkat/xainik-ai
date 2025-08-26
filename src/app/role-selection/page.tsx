@@ -172,15 +172,22 @@ function RoleSelectionContent() {
           // Log SIGNUP_FROM_REFERRAL event if referralId exists
           if (referralId) {
             const { error: eventError } = await supabase
-              .from('referral_events')
+              .from('tracking_events')
               .insert({
                 event_type: 'SIGNUP_FROM_REFERRAL',
-                created_at: new Date().toISOString(),
+                user_id: user.id,
+                pitch_id: null, // No specific pitch for signup events
+                referral_id: referralId,
+                platform: 'web',
+                user_agent: navigator.userAgent,
+                ip_address: 'client-side',
+                session_id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                metadata: { source: 'role-selection' },
                 occurred_at: new Date().toISOString()
               });
 
             if (eventError) {
-              console.error('Error logging referral event:', eventError);
+              console.error('Error logging tracking event:', eventError);
             }
           }
 

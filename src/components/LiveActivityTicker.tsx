@@ -58,17 +58,17 @@ export default function LiveActivityTicker({
         // Silently continue if pitches query fails
       }
 
-      // 2. Get recent referral events (simplified query)
+      // 2. Get recent tracking events (simplified query)
       try {
-        const { data: referralEvents, error: referralError } = await supabase
-          .from('referral_events')
+        const { data: trackingEvents, error: trackingError } = await supabase
+          .from('tracking_events')
           .select('id, event_type, occurred_at, platform')
           .gte('occurred_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
           .order('occurred_at', { ascending: false })
           .limit(3)
 
-        if (!referralError && referralEvents && referralEvents.length > 0) {
-          referralEvents.forEach(event => {
+        if (!trackingError && trackingEvents && trackingEvents.length > 0) {
+          trackingEvents.forEach(event => {
             let message = ''
             let type: ActivityEvent['type'] = 'view'
             

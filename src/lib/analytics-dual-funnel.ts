@@ -34,19 +34,13 @@ export async function getDualFunnelData(veteranId: string, dateRange: '7d' | '30
       .from('vw_supporter_progress')
       .select('*')
 
-    // Get referral events for detailed table
-    const { data: referralEvents } = await supabase
-      .from('referral_events')
+    // Get tracking events for detailed table
+    const { data: trackingEvents } = await supabase
+      .from('tracking_events')
       .select(`
         *,
-        referrals!referral_events_referral_id_fkey (
-          pitch_id,
-          user_id,
-          users!referrals_user_id_fkey (
-            name,
-            email
-          )
-        )
+        pitch_id,
+        user_id
       `)
       .gte('occurred_at', startDate)
       .order('occurred_at', { ascending: false })
@@ -63,8 +57,8 @@ export async function getDualFunnelData(veteranId: string, dateRange: '7d' | '30
     // Transform channel data
     const channelData = transformChannelData(inboundData || [])
     
-    // Transform referral events for table
-    const tableData = transformReferralEvents(referralEvents || [])
+    // Transform tracking events for table
+    const tableData = transformTrackingEvents(trackingEvents || [])
 
     // If no real data and seeding is enabled, provide sample data
     if ((!inboundData || inboundData.length === 0) && shouldSeedData) {
@@ -103,21 +97,17 @@ export async function getDualFunnelKPIs(veteranId: string) {
   try {
     const supabase = createSupabaseBrowser()
     
-    // Get basic metrics from referral_events
+    // Get basic metrics from tracking_events
     const { data: events } = await supabase
-      .from('referral_events')
+      .from('tracking_events')
       .select(`
         event_type,
         platform,
         occurred_at,
-        referrals!referral_events_referral_id_fkey (
-          pitch_id,
-          pitches!referrals_pitch_id_fkey (
-            user_id
-          )
-        )
+        pitch_id,
+        user_id
       `)
-      .eq('referrals.pitches.user_id', veteranId)
+      .eq('user_id', veteranId)
       .gte('occurred_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
 
     // Check if we should seed sample data
@@ -242,18 +232,13 @@ export async function getSupporterDashboardData(supporterId: string, pitchId: st
 
     // Get detailed events from this supporter
     const { data: events } = await supabase
-      .from('referral_events')
+      .from('tracking_events')
       .select(`
         *,
-        referrals!referral_events_referral_id_fkey (
-          pitch_id,
-          pitches!referrals_pitch_id_fkey (
-            user_id
-          )
-        )
+        pitch_id,
+        user_id
       `)
-      .eq('referrals.pitch_id', pitchId)
-      .eq('mode', 'supporter')
+      .eq('pitch_id', pitchId)
       .gte('occurred_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
 
     if (!supporterProgress) return null
