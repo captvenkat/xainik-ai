@@ -71,7 +71,6 @@ function ReferralOpenedPageContent() {
         .from('tracking_events')
         .update({ 
           metadata: { 
-            ...metadata,
             feedback: 'opened',
             feedback_at: new Date().toISOString()
           }
@@ -96,7 +95,6 @@ function ReferralOpenedPageContent() {
         .from('tracking_events')
         .update({ 
           metadata: { 
-            ...metadata,
             feedback: 'opened',
             feedback_at: new Date().toISOString()
           }
