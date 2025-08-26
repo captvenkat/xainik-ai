@@ -66,12 +66,15 @@ function ReferralOpenedPageContent() {
     setIsSubmitting(true)
     
     try {
-      // Update referral event with feedback (limited by live schema)
+      // Update tracking event with feedback
       const { error } = await supabase
-        .from('referral_events')
+        .from('tracking_events')
         .update({ 
-          feedback: 'opened',
-          feedback_at: new Date().toISOString()
+          metadata: { 
+            ...metadata,
+            feedback: 'opened',
+            feedback_at: new Date().toISOString()
+          }
         })
         .eq('id', referralId as string)
 
@@ -90,10 +93,13 @@ function ReferralOpenedPageContent() {
     
     try {
       const { error } = await supabase
-        .from('referral_events')
+        .from('tracking_events')
         .update({ 
-          feedback: 'opened',
-          feedback_at: new Date().toISOString()
+          metadata: { 
+            ...metadata,
+            feedback: 'opened',
+            feedback_at: new Date().toISOString()
+          }
         })
         .eq('id', referralId as string)
 

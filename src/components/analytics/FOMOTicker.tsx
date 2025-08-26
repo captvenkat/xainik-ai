@@ -25,19 +25,19 @@ export default function FOMOTicker() {
         const supabase = createSupabaseBrowser()
         const realEvents: FOMOEvent[] = []
         
-        // Get recent referral events
+        // Get recent tracking events
         try {
-          const { data: referralEvents, error: referralError } = await supabase
-            .from('referral_events')
+          const { data: trackingEvents, error: trackingError } = await supabase
+            .from('tracking_events')
             .select('id, event_type, occurred_at, platform')
             .gte('occurred_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
             .order('occurred_at', { ascending: false })
             .limit(5)
 
-          if (!referralError && referralEvents && referralEvents.length > 0) {
-            referralEvents.forEach(event => {
+          if (!trackingError && trackingEvents && trackingEvents.length > 0) {
+            trackingEvents.forEach(event => {
               realEvents.push({
-                id: `ref-${event.id}`,
+                id: `track-${event.id}`,
                 event: event.event_type,
                 meta: {
                   platform: event.platform
@@ -47,7 +47,7 @@ export default function FOMOTicker() {
             })
           }
         } catch (error) {
-          // Silently continue if referral events query fails
+          // Silently continue if tracking events query fails
         }
 
         // Get recent endorsements
@@ -236,19 +236,19 @@ export function MiniFOMOTicker() {
         const supabase = createSupabaseBrowser()
         const realEvents: FOMOEvent[] = []
         
-        // Get recent referral events
+        // Get recent tracking events
         try {
-          const { data: referralEvents, error: referralError } = await supabase
-            .from('referral_events')
+          const { data: trackingEvents, error: trackingError } = await supabase
+            .from('tracking_events')
             .select('id, event_type, occurred_at, platform')
             .gte('occurred_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
             .order('occurred_at', { ascending: false })
             .limit(3)
 
-          if (!referralError && referralEvents && referralEvents.length > 0) {
-            referralEvents.forEach(event => {
+          if (!trackingError && trackingEvents && trackingEvents.length > 0) {
+            trackingEvents.forEach(event => {
               realEvents.push({
-                id: `ref-${event.id}`,
+                id: `track-${event.id}`,
                 event: event.event_type,
                 meta: {
                   platform: event.platform
@@ -258,7 +258,7 @@ export function MiniFOMOTicker() {
             })
           }
         } catch (error) {
-          // Silently continue if referral events query fails
+          // Silently continue if tracking events query fails
         }
 
         // Get recent endorsements

@@ -147,9 +147,9 @@ export default function SupporterAnalytics({ userId, timeRange = '30d' }: Suppor
         Promise.resolve({ data: [], error: null }),
         
         supabase
-          .from('referral_events')
+          .from('tracking_events')
           .select('*')
-          .eq('referrer_id', userId)
+          .eq('user_id', userId)
           .gte('occurred_at', startDate.toISOString()),
         
         supabase
