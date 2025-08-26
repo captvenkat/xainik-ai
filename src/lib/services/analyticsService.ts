@@ -1,7 +1,7 @@
 import { createSupabaseBrowser } from '../supabaseBrowser'
 
 export interface AnalyticsData {
-  referralEvents: any[]
+  trackingEvents: any[]
   pitches: any[]
   views: {
     total: number; change: number; overTime: Array<{ date: string; count: number; previousPeriod: number }>;
@@ -80,25 +80,25 @@ class AnalyticsService {
     const startDate = new Date(now.getTime() - (days * 24 * 60 * 60 * 1000))
     const previousStartDate = new Date(startDate.getTime() - (days * 24 * 60 * 60 * 1000))
 
-    const { data: referralEvents } = await supabase
-      .from('referral_events')
-      .select(`id, event_type, platform, occurred_at, referrals!referral_events_referral_id_fkey ( users!referrals_user_id_fkey ( name ) )`)
-      .eq('referrals.pitch_id', pitchData.id)
+    const { data: trackingEvents } = await supabase
+      .from('tracking_events')
+      .select(`id, event_type, platform, occurred_at, user_id, pitch_id, metadata`)
+      .eq('pitch_id', pitchData.id)
       .gte('occurred_at', startDate.toISOString())
       .order('occurred_at', { ascending: true })
 
-    if (!referralEvents) { throw new Error('Failed to fetch referral events') }
+    if (!trackingEvents) { throw new Error('Failed to fetch tracking events') }
 
-    const processedData = this.processAnalyticsData(referralEvents, startDate, previousStartDate, days, platformFilter)
+    const processedData = this.processAnalyticsData(trackingEvents, startDate, previousStartDate, days, platformFilter)
 
-    return { ...processedData, referralEvents, pitches: [pitchData], dateRange, platformFilter, lastUpdated: new Date().toISOString() }
+    return { ...processedData, trackingEvents, pitches: [pitchData], dateRange, platformFilter, lastUpdated: new Date().toISOString() }
   }
 
-  private processAnalyticsData(events: any[], startDate: Date, previousStartDate: Date, days: number, platformFilter: string): Omit<AnalyticsData, 'referralEvents' | 'pitches' | 'dateRange' | 'platformFilter' | 'lastUpdated'> {
+  private processAnalyticsData(events: any[], startDate: Date, previousStartDate: Date, days: number, platformFilter: string): Omit<AnalyticsData, 'trackingEvents' | 'pitches' | 'dateRange' | 'platformFilter' | 'lastUpdated'> {
     const filteredEvents = platformFilter === 'all' ? events : events.filter(e => e.platform?.toLowerCase() === platformFilter.toLowerCase())
-    const viewEvents = filteredEvents.filter(e => e.event_type === 'view')
-    const shareEvents = filteredEvents.filter(e => e.event_type === 'share')
-    const contactEvents = filteredEvents.filter(e => ['call', 'email', 'resume_request'].includes(e.event_type))
+    const viewEvents = filteredEvents.filter(e => e.event_type === 'PITCH_VIEWED')
+    const shareEvents = filteredEvents.filter(e => e.event_type === 'SHARE_RESHARED')
+    const contactEvents = filteredEvents.filter(e => ['CALL_CLICKED', 'EMAIL_CLICKED', 'RESUME_REQUESTED'].includes(e.event_type))
 
     const views = this.processViewsData(viewEvents, startDate, previousStartDate, days)
     const shares = this.processSharesData(shareEvents, startDate, previousStartDate, days)
@@ -268,7 +268,7 @@ class AnalyticsService {
     const contacts = this.processContactsData([], startDate, previousStartDate, days)
 
     return {
-      referralEvents: [],
+      trackingEvents: [],
       pitches: [{ id: 'sample', title: 'Sample Pitch' }],
       views,
       shares,
