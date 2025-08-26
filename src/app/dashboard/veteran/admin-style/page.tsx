@@ -132,33 +132,33 @@ export default function AdminStyleDashboard() {
     try {
       // Get current period stats
       const { data: currentEvents } = await supabase
-        .from('referral_events')
+        .from('tracking_events')
         .select('event_type, occurred_at')
-        .eq('referrals.pitch_id', pitchId)
+        .eq('pitch_id', pitchId)
         .gte('occurred_at', startDate)
 
       // Get previous period stats
       const { data: prevEvents } = await supabase
-        .from('referral_events')
+        .from('tracking_events')
         .select('event_type, occurred_at')
-        .eq('referrals.pitch_id', pitchId)
+        .eq('pitch_id', pitchId)
         .gte('occurred_at', prevStartDate.toISOString())
         .lt('occurred_at', prevEndDate.toISOString())
 
       // Calculate current stats
       const currentStats = {
-        views: currentEvents?.filter(e => e.event_type === 'view').length || 0,
-        shares: currentEvents?.filter(e => e.event_type === 'share').length || 0,
-        contacts: currentEvents?.filter(e => e.event_type === 'contact').length || 0,
-        hires: currentEvents?.filter(e => e.event_type === 'hire').length || 0
+        views: currentEvents?.filter(e => e.event_type === 'PITCH_VIEWED').length || 0,
+        shares: currentEvents?.filter(e => e.event_type === 'SHARE_RESHARED').length || 0,
+        contacts: currentEvents?.filter(e => ['CALL_CLICKED', 'EMAIL_CLICKED'].includes(e.event_type)).length || 0,
+        hires: currentEvents?.filter(e => e.event_type === 'RESUME_REQUESTED').length || 0
       }
 
       // Calculate previous stats
       const prevStats = {
-        views: prevEvents?.filter(e => e.event_type === 'view').length || 0,
-        shares: prevEvents?.filter(e => e.event_type === 'share').length || 0,
-        contacts: prevEvents?.filter(e => e.event_type === 'contact').length || 0,
-        hires: prevEvents?.filter(e => e.event_type === 'hire').length || 0
+        views: prevEvents?.filter(e => e.event_type === 'PITCH_VIEWED').length || 0,
+        shares: prevEvents?.filter(e => e.event_type === 'SHARE_RESHARED').length || 0,
+        contacts: prevEvents?.filter(e => ['CALL_CLICKED', 'EMAIL_CLICKED'].includes(e.event_type)).length || 0,
+        hires: prevEvents?.filter(e => e.event_type === 'RESUME_REQUESTED').length || 0
       }
 
       // Calculate changes
@@ -199,19 +199,16 @@ export default function AdminStyleDashboard() {
     
     try {
       const { data: events } = await supabase
-        .from('referral_events')
+        .from('tracking_events')
         .select(`
           id,
           event_type,
           platform,
           occurred_at,
-          referrals!referral_events_referral_id_fkey (
-            users!referrals_user_id_fkey (
-              name
-            )
-            )
+          user_id,
+          pitch_id
         `)
-        .eq('referrals.pitch_id', pitchId)
+        .eq('pitch_id', pitchId)
         .order('occurred_at', { ascending: false })
         .limit(10)
 
@@ -221,7 +218,7 @@ export default function AdminStyleDashboard() {
           event_type: event.event_type,
           platform: event.platform || 'unknown',
           occurred_at: event.occurred_at,
-          supporter_name: (event.referrals as any)?.users?.name || 'Unknown'
+          supporter_name: 'Anonymous' // We can enhance this later with user lookup if needed
         }))
       }
 
