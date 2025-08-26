@@ -46,24 +46,16 @@ export async function getSimpleHeroData(veteranId: string) {
 
     const summary = pitchSummary[0]
     
-    // Get this week's views from referral_events
+    // Get this week's views from tracking_events
     const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
     
-    // First get referral IDs for this pitch
-    const { data: referralIds } = await supabaseAction
-      .from('referrals')
-      .select('id')
-      .eq('pitch_id', summary.pitch_id)
-    
-    const referralIdList = referralIds?.map(r => r.id) || []
-    
-    // Then get events for those referrals
+    // Get events directly from tracking_events table
     const { data: thisWeekEvents } = await supabaseAction
-      .from('referral_events')
+      .from('tracking_events')
       .select('event_type')
       .eq('event_type', 'PITCH_VIEWED')
+      .eq('pitch_id', summary.pitch_id)
       .gte('occurred_at', oneWeekAgo)
-      .in('referral_id', referralIdList)
 
     const thisWeekViews = thisWeekEvents?.length || 0
     const totalViews = summary.views_count || 0
@@ -228,23 +220,19 @@ export async function getVeteranOutreachData(veteranId: string) {
   try {
     const supabaseAction = createSupabaseBrowser()
     
-    // Get veteran's outreach activities from referral_events
+    // Get veteran's outreach activities from tracking_events
     const { data: veteranActivities } = await supabaseAction
-      .from('referral_events')
+      .from('tracking_events')
       .select(`
         id,
         event_type,
         occurred_at,
         platform,
         metadata,
-        referrals!referral_events_referral_id_fkey (
-          pitch_id,
-          pitches!referrals_pitch_id_fkey (
-            user_id
-          )
-        )
+        pitch_id,
+        user_id
       `)
-      .eq('referrals.pitches.user_id', veteranId)
+      .eq('user_id', veteranId)
       .in('event_type', [
         'SHARE_RESHARED', 
         'LINK_OPENED', 
@@ -307,12 +295,6 @@ export async function getSupporterPerformanceList(veteranId: string) {
           id,
           title,
           user_id
-        ),
-        referral_events (
-          id,
-          event_type,
-          platform,
-          occurred_at
         )
       `)
       .eq('pitches.user_id', veteranId)
@@ -321,17 +303,24 @@ export async function getSupporterPerformanceList(veteranId: string) {
     if (!supporterReferrals) return []
 
     // Process supporter performance data
-    const supporterPerformance = supporterReferrals.map((referral: any) => {
-      const events = referral.referral_events || []
+    const supporterPerformance = await Promise.all(supporterReferrals.map(async (referral: any) => {
+      // Get events for this referral from tracking_events
+      const { data: events } = await supabaseAction
+        .from('tracking_events')
+        .select('event_type, platform, occurred_at')
+        .eq('pitch_id', referral.pitch_id)
+        .eq('referral_id', referral.id)
+
+      const eventsList = events || []
 
       // Calculate metrics for this supporter
-      const totalViews = events.filter((e: any) => e.event_type === 'PITCH_VIEWED').length
-      const totalCalls = events.filter((e: any) => ['CALL_CLICKED', 'PHONE_CLICKED'].includes(e.event_type)).length
-      const totalEmails = events.filter((e: any) => e.event_type === 'EMAIL_CLICKED').length
-      const totalShares = events.filter((e: any) => e.event_type === 'SHARE_RESHARED').length
+      const totalViews = eventsList.filter((e: any) => e.event_type === 'PITCH_VIEWED').length
+      const totalCalls = eventsList.filter((e: any) => ['CALL_CLICKED', 'PHONE_CLICKED'].includes(e.event_type)).length
+      const totalEmails = eventsList.filter((e: any) => e.event_type === 'EMAIL_CLICKED').length
+      const totalShares = eventsList.filter((e: any) => e.event_type === 'SHARE_RESHARED').length
 
       // Platform breakdown
-      const platforms = events.reduce((acc: Record<string, number>, event: any) => {
+      const platforms = eventsList.reduce((acc: Record<string, number>, event: any) => {
         if (event.platform) {
           acc[event.platform] = (acc[event.platform] || 0) + 1
         }
@@ -349,7 +338,7 @@ export async function getSupporterPerformanceList(veteranId: string) {
         pitchId: referral.pitch_id,
         pitchTitle: referral.pitches?.title || '',
         sharedAt: referral.created_at,
-        lastActivity: events.length > 0 ? events[0].occurred_at : referral.created_at,
+        lastActivity: eventsList.length > 0 ? eventsList[0]?.occurred_at : referral.created_at,
         metrics: {
           totalViews,
           totalCalls,
@@ -361,7 +350,7 @@ export async function getSupporterPerformanceList(veteranId: string) {
         platforms,
         referralId: referral.id
       }
-    })
+    }))
 
     return supporterPerformance
   } catch (error) {
@@ -553,23 +542,19 @@ export async function getSimpleActivityData(veteranId: string) {
   try {
     const supabaseAction = createSupabaseBrowser()
     
-    // Get recent activity from referral_events
+    // Get recent activity from tracking_events
     const { data: recentEvents } = await supabaseAction
-      .from('referral_events')
+      .from('tracking_events')
       .select(`
         id,
         event_type,
         occurred_at,
         platform,
         metadata,
-        referrals!referral_events_referral_id_fkey (
-          pitch_id,
-          pitches!referrals_pitch_id_fkey (
-            user_id
-          )
-        )
+        pitch_id,
+        user_id
       `)
-      .eq('referrals.pitches.user_id', veteranId)
+      .eq('user_id', veteranId)
       .order('occurred_at', { ascending: false })
       .limit(10)
 
