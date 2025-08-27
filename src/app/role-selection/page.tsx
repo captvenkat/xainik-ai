@@ -23,15 +23,6 @@ function RoleSelectionInner() {
     ;(async () => {
       setLoading(true); setError(null)
       
-      // Check for role hint from sessionStorage
-      const roleHint = sessionStorage.getItem('x-role-hint')
-      if (roleHint && (roleHint === 'veteran' || roleHint === 'supporter' || roleHint === 'recruiter')) {
-        // Auto-select the role
-        sessionStorage.removeItem('x-role-hint') // Clean up
-        await choose(roleHint as 'veteran'|'supporter'|'recruiter')
-        return
-      }
-      
       const { data, error } = await supabase.rpc('veteran_count')
       if (!mounted) return
       if (error) setError('Capacity check failed. You may proceed; the system will enforce limits.')
@@ -62,7 +53,12 @@ function RoleSelectionInner() {
       }
       setError(msg); return
     }
-    router.replace(`/auth/warmup?redirect=${encodeURIComponent(redirectTo)}`)
+    // Redirect directly to final destination based on role
+    if (role === 'veteran') {
+      router.replace('/pitch/new') // Veterans need onboarding
+    } else {
+      router.replace(redirectTo) // Supporters/recruiters go to dashboard
+    }
   }
 
   return (

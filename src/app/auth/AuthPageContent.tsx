@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, Suspense, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { signInWithGoogle, createSupabaseBrowser } from '@/lib/supabaseBrowser';
+import { createSupabaseBrowser } from '@/lib/supabaseBrowser';
 
 export default function AuthPageContent({ roleHint }: { roleHint?: string }) {
   const params = useSearchParams();
@@ -14,19 +14,14 @@ export default function AuthPageContent({ roleHint }: { roleHint?: string }) {
   const [isLoading, setIsLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
 
-  // Set role hint cookie if provided
-  useEffect(() => {
-    if (roleHint === 'veteran' || roleHint === 'supporter' || roleHint === 'recruiter') {
-      document.cookie = `x-role-hint=${roleHint}; Max-Age=300; Path=/; HttpOnly=false`;
-    }
-  }, [roleHint]);
+  const supabase = createSupabaseBrowser();
+  const site = process.env.NEXT_PUBLIC_SITE_URL || (typeof window !== 'undefined' ? window.location.origin : '');
 
   useEffect(() => {
     // Check if user is already authenticated
     const checkAuth = async () => {
       try {
         setIsLoading(true);
-        const supabase = createSupabaseBrowser();
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
@@ -52,15 +47,33 @@ export default function AuthPageContent({ roleHint }: { roleHint?: string }) {
     checkAuth();
   }, [router, redirect, error]);
 
-  async function handleGoogle(role?: string) {
+  async function joinWithRole(role: 'veteran'|'supporter'|'recruiter') {
     try {
       setIsLoading(true);
       setAuthError(null);
 
-      // Store the role hint in sessionStorage for after auth
-      if (role) {
-        sessionStorage.setItem('x-role-hint', role);
-      }
+      // Set short-lived, non-HttpOnly cookie so SSR can read it on /auth/warmup
+      document.cookie = `x-role-hint=${role}; Max-Age=300; Path=/; SameSite=Lax`;
+      
+      // Land directly on warmup so cookie gets consumed immediately
+      await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${site}/auth/warmup?redirect=${encodeURIComponent(redirect)}`,
+        },
+      });
+      
+    } catch (error) {
+      console.error('Google sign-in error:', error);
+      setAuthError(error instanceof Error ? error.message : 'Google sign-in failed');
+      setIsLoading(false);
+    }
+  }
+
+  async function handleGenericGoogle() {
+    try {
+      setIsLoading(true);
+      setAuthError(null);
 
       // Add a timeout to prevent infinite spinning
       const timeoutId = setTimeout(() => {
@@ -68,7 +81,12 @@ export default function AuthPageContent({ roleHint }: { roleHint?: string }) {
         setAuthError('Sign-in timeout. Please try again.');
       }, 10000); // 10 second timeout
 
-      await signInWithGoogle();
+      await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${site}/auth/warmup?redirect=${encodeURIComponent(redirect)}`,
+        },
+      });
       
       // If we reach here, the OAuth redirect should have happened
       // Clear the timeout since we're redirecting
@@ -181,7 +199,7 @@ export default function AuthPageContent({ roleHint }: { roleHint?: string }) {
               </div>
             </div>
             <button
-              onClick={() => handleGoogle('veteran')}
+              onClick={() => joinWithRole('veteran')}
               disabled={isLoading}
               className="w-full inline-flex justify-center items-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
             >
@@ -226,7 +244,7 @@ export default function AuthPageContent({ roleHint }: { roleHint?: string }) {
               </div>
             </div>
             <button
-              onClick={() => handleGoogle('supporter')}
+              onClick={() => joinWithRole('supporter')}
               disabled={isLoading}
               className="w-full inline-flex justify-center items-center px-6 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
             >
@@ -271,7 +289,7 @@ export default function AuthPageContent({ roleHint }: { roleHint?: string }) {
               </div>
             </div>
             <button
-              onClick={() => handleGoogle('recruiter')}
+              onClick={() => joinWithRole('recruiter')}
               disabled={isLoading}
               className="w-full inline-flex justify-center items-center px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50"
             >
@@ -288,7 +306,7 @@ export default function AuthPageContent({ roleHint }: { roleHint?: string }) {
           <p className="text-sm text-gray-600">
             Already have an account?{' '}
             <button
-              onClick={() => handleGoogle()}
+              onClick={handleGenericGoogle}
               disabled={isLoading}
               className="text-blue-600 hover:text-blue-800 underline font-medium"
             >
