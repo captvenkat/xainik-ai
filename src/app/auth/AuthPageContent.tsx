@@ -17,7 +17,7 @@ export default function AuthPageContent({ roleHint }: { roleHint?: string }) {
   // Set role hint cookie if provided
   useEffect(() => {
     if (roleHint === 'veteran' || roleHint === 'supporter' || roleHint === 'recruiter') {
-      document.cookie = `x-role-hint=${roleHint}; Max-Age=300; Path=/; HttpOnly=false`;
+      document.cookie = `x-role-hint=${roleHint}; Max-Age=300; Path=/; HttpOnly=false; SameSite=Lax`;
     }
   }, [roleHint]);
 
@@ -57,9 +57,9 @@ export default function AuthPageContent({ roleHint }: { roleHint?: string }) {
       setIsLoading(true);
       setAuthError(null);
 
-      // Store the role hint in sessionStorage for after auth
+      // Set the role hint cookie for after auth
       if (role) {
-        sessionStorage.setItem('x-role-hint', role);
+        document.cookie = `x-role-hint=${role}; Max-Age=300; Path=/; HttpOnly=false; SameSite=Lax`;
       }
 
       // Add a timeout to prevent infinite spinning
