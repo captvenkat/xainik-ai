@@ -2,12 +2,12 @@
 import React, { Suspense, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 
 const CAP = 50
 
 function RoleSelectionInner() {
-  const supabase = createClientComponentClient()
+  const supabase = createSupabaseBrowser()
   const router = useRouter()
   const params = useSearchParams()
   const redirectTo = params.get('redirect') ?? '/dashboard'
