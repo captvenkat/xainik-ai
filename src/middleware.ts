@@ -51,6 +51,7 @@ export async function middleware(req: NextRequest) {
   ) {
     const response = NextResponse.next()
     response.headers.set('x-middleware-public', 'true')
+    response.headers.set('x-middleware-path', path)
     return response
   }
 
