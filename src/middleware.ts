@@ -154,10 +154,11 @@ export async function middleware(req: NextRequest) {
   }
 }
 
-export const config = {
-  matcher: [
-    '/dashboard/:path*',
-    '/pitch/:path*',
-    '/role-selection',
-  ],
-}
+// TEMPORARILY DISABLED FOR DEBUGGING
+// export const config = {
+//   matcher: [
+//     '/dashboard/:path*',
+//     '/pitch/:path*',
+//     '/role-selection',
+//   ],
+// }
