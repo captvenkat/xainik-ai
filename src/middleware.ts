@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server'
 import { applyRateLimit } from './middleware/rateLimit'
 
 const PUBLIC_PATHS = [
-  '/', '/browse', '/pricing', '/donations', '/auth', '/auth/callback', '/auth/warmup', '/auth/signout', '/about', '/contact', '/terms', '/privacy', '/waitlist', '/test-simple', '/test-minimal'
+  '/', '/browse', '/pricing', '/donations', '/auth', '/auth/callback', '/auth/warmup', '/auth/signout', '/about', '/contact', '/terms', '/privacy', '/waitlist', '/test-simple', '/test-minimal', '/__health', '/__debug'
 ]
 
 const PROTECTED_PREFIXES = ['/dashboard', '/pitch', '/role-selection']
