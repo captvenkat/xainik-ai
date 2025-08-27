@@ -63,7 +63,11 @@ export async function middleware(req: NextRequest) {
 
   // Only apply auth logic to protected paths
   const isProtected = PROTECTED_PREFIXES.some((p) => path.startsWith(p))
-  if (!isProtected) return NextResponse.next()
+  if (!isProtected) {
+    const response = NextResponse.next()
+    response.headers.set('x-middleware-skip', 'true')
+    return response
+  }
 
   const accessToken = req.cookies.get('sb-access-token')?.value
   const refreshToken = req.cookies.get('sb-refresh-token')?.value
@@ -73,6 +77,7 @@ export async function middleware(req: NextRequest) {
     url.searchParams.set('redirect', path)
     const res = NextResponse.redirect(url)
     res.headers.set('x-route-reason', 'unauth')
+    res.headers.set('x-middleware-protected', 'true')
     return res
   }
 
@@ -101,8 +106,8 @@ export async function middleware(req: NextRequest) {
     const status = prof?.status as 'pending'|'approved'|'blocked'|undefined
     const onboarding_complete = !!prof?.onboarding_complete
 
-    // Waitlist gate (toggle with env)
-    const requireApproval = process.env.NEXT_PUBLIC_REQUIRE_APPROVAL !== 'false'
+    // Waitlist gate (toggle with env) - temporarily disabled for debugging
+    const requireApproval = false // process.env.NEXT_PUBLIC_REQUIRE_APPROVAL !== 'false'
     if (requireApproval && status !== 'approved' && path !== '/waitlist') {
       url.pathname = '/waitlist'
       const res = NextResponse.redirect(url)
