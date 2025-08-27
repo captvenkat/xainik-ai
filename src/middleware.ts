@@ -11,9 +11,6 @@ const PROTECTED_PREFIXES = ['/dashboard', '/pitch', '/role-selection']
 export async function middleware(req: NextRequest) {
   const url = req.nextUrl
   const path = url.pathname
-  
-  // Debug logging for production
-  console.log(`[MIDDLEWARE] Path: ${path}, Environment: ${process.env.NODE_ENV}`)
 
   // Apply rate limiting to API endpoints
   if (path.startsWith('/api/')) {
@@ -52,18 +49,15 @@ export async function middleware(req: NextRequest) {
   }
 
   // Allow all static and public paths
-  const isPublicPath = PUBLIC_PATHS.some(p => path === p) ||
+  if (
+    PUBLIC_PATHS.some(p => path === p) ||
     path.startsWith('/_next') ||
     path.startsWith('/api/') ||
     path.startsWith('/images') ||
     path.startsWith('/favicon') ||
     path.startsWith('/robots') ||
     path.startsWith('/sitemap')
-    
-  console.log(`[MIDDLEWARE] IsPublic: ${isPublicPath}, Path: ${path}`)
-  
-  if (isPublicPath) {
-    console.log(`[MIDDLEWARE] Allowing public path: ${path}`)
+  ) {
     return NextResponse.next()
   }
 
@@ -155,14 +149,8 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public folder
-     */
-    '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/dashboard/:path*',
+    '/pitch/:path*',
+    '/role-selection',
   ],
 }
