@@ -283,7 +283,7 @@ export default function UnifiedProgressDashboard({ userId }: UnifiedProgressDash
                     Use our AI-powered pitch builder to showcase your military experience
                   </p>
                   <button
-                    onClick={() => router.push('/pitch/new/ai-first')}
+                    onClick={() => router.push('/pitch/new')}
                     className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-8 py-3 rounded-lg hover:from-blue-600 hover:to-indigo-600 transition-colors font-semibold flex items-center gap-2 mx-auto"
                   >
                     <Plus className="w-5 h-5" />
@@ -392,7 +392,7 @@ export default function UnifiedProgressDashboard({ userId }: UnifiedProgressDash
                 </p>
                 <div className="flex gap-4 justify-center">
                   <button
-                    onClick={() => router.push('/pitch/new/ai-first')}
+                    onClick={() => router.push('/pitch/new')}
                     className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-6 py-3 rounded-lg hover:from-blue-600 hover:to-indigo-600 transition-colors font-semibold flex items-center gap-2"
                   >
                     <Plus className="w-5 h-5" />

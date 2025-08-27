@@ -291,7 +291,7 @@ export async function getSupporterPerformanceList(veteranId: string) {
           name,
           email
         ),
-        pitches!referrals_pitch_id_fkey (
+        pitches!inner (
           id,
           title,
           user_id

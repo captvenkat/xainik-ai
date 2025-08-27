@@ -504,12 +504,12 @@ function ResumeUpload({ onSubmit, isGenerating, fileInputRef }: {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Resume File (PDF, DOC, DOCX - max 5MB)
+            Resume File (PDF, DOC, DOCX, Images - max 10MB)
           </label>
           <input
             ref={fileInputRef}
             type="file"
-            accept=".pdf,.doc,.docx"
+            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.bmp,.tiff"
             onChange={handleFileSelect}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             required

@@ -11,6 +11,7 @@ import MissionInvitationModal from '@/components/mission/MissionInvitationModal'
 import MissionInvitationAnalytics from '@/components/mission/MissionInvitationAnalytics'
 import CommunitySuggestions from '@/components/community/CommunitySuggestions'
 import TrackingDashboard from '@/components/tracking/TrackingDashboard' // Professional tracking dashboard
+import BottomNav from '@/components/BottomNav'
 import {
   BarChart3, User, FileText, Users, Lightbulb, Edit, Eye, Heart, Share, Plus,
   TrendingUp, Target, Zap, Star, Trophy, Calendar, ArrowUpRight, ArrowDownRight,
@@ -21,7 +22,7 @@ import SimpleHeroSection from '@/components/analytics/SimpleHeroSection'
 import SimpleMetrics from '@/components/analytics/SimpleMetrics'
 import SimpleActionPlan from '@/components/analytics/SimpleActionPlan'
 import SimpleActivityFeed from '@/components/analytics/SimpleActivityFeed'
-import SharePitchModal from '@/components/SharePitchModal'
+import SimpleShareModal from '@/components/SimpleShareModal'
 import AIContactSuggestions from '@/components/AIContactSuggestions'
 import SmartNotifications from '@/components/SmartNotifications'
 import AIInsights from '@/components/AIInsights'
@@ -56,6 +57,7 @@ function VeteranDashboardContent() {
   const [activeTab, setActiveTab] = useState<'analytics' | 'profile' | 'pitches' | 'mission' | 'community'>('analytics')
   const [showMissionModal, setShowMissionModal] = useState(false)
   const [showShareModal, setShowShareModal] = useState(false)
+  const [userPitchId, setUserPitchId] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [databaseStatus, setDatabaseStatus] = useState<'checking' | 'ready' | 'not-ready'>('checking')
@@ -232,7 +234,13 @@ function VeteranDashboardContent() {
 
         {/* Tab Content */}
         {activeTab === 'analytics' && (
-          <AnalyticsTab userId={user.id} router={router} onSharePitch={() => setShowShareModal(true)} searchParams={searchParams} />
+          <AnalyticsTab 
+            userId={user.id} 
+            router={router} 
+            onSharePitch={() => setShowShareModal(true)} 
+            searchParams={searchParams}
+            setUserPitchId={setUserPitchId}
+          />
         )}
         {activeTab === 'profile' && (
           <VeteranProfileTab />
@@ -259,20 +267,26 @@ function VeteranDashboardContent() {
         />
       )}
 
-      {/* Share Pitch Modal */}
-      {showShareModal && (
-        <SharePitchModal
+      {/* Simple Share Modal */}
+      {showShareModal && userPitchId && (
+        <SimpleShareModal
           isOpen={showShareModal}
           onClose={() => setShowShareModal(false)}
+          pitchId={userPitchId}
+          pitchTitle="Your Pitch"
+          veteranName={user.email?.split('@')[0] || 'Veteran'}
           userId={user.id}
         />
       )}
+
+      {/* Bottom Navigation */}
+      <BottomNav />
     </div>
   )
 }
 
 // Enhanced Analytics Tab Component with Progressive Onboarding
-function AnalyticsTab({ userId, router, onSharePitch, searchParams }: { userId: string; router: any; onSharePitch: () => void; searchParams: URLSearchParams }) {
+function AnalyticsTab({ userId, router, onSharePitch, searchParams, setUserPitchId }: { userId: string; router: any; onSharePitch: () => void; searchParams: URLSearchParams; setUserPitchId: (id: string | null) => void }) {
   const [heroData, setHeroData] = useState<any>(null)
   const [metricsData, setMetricsData] = useState<any>(null)
   const [actionsData, setActionsData] = useState<any>(null)
@@ -282,7 +296,7 @@ function AnalyticsTab({ userId, router, onSharePitch, searchParams }: { userId: 
   const [hasProfile, setHasProfile] = useState(false)
   const [hasPitches, setHasPitches] = useState(false)
   const [hasSharedPitch, setHasSharedPitch] = useState(false)
-  const [userPitchId, setUserPitchId] = useState<string | null>(null)
+  const [userPitchId, setLocalUserPitchId] = useState<string | null>(null)
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date())
 
   // Real-time data refresh
@@ -305,6 +319,7 @@ function AnalyticsTab({ userId, router, onSharePitch, searchParams }: { userId: 
       
       // Store pitch ID for AI components
       if (pitches && pitches.length > 0 && pitches[0]?.id) {
+        setLocalUserPitchId(pitches[0].id)
         setUserPitchId(pitches[0].id)
       }
 
@@ -462,7 +477,7 @@ function AnalyticsTab({ userId, router, onSharePitch, searchParams }: { userId: 
             Showcase your military experience to recruiters and supporters
           </p>
           <button
-            onClick={() => router.push('/pitch/new/ai-first')}
+            onClick={() => router.push('/pitch/new')}
             className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-6 py-3 rounded-lg hover:from-blue-600 hover:to-indigo-600 transition-colors font-semibold"
           >
             Create Pitch
@@ -907,7 +922,7 @@ function PitchesTab({ userId, router }: { userId: string; router: any }) {
             <p className="text-lg text-gray-600">Your professional story, your career opportunities</p>
           </div>
           <button 
-            onClick={() => router.push('/pitch/new/ai-first')}
+            onClick={() => router.push('/pitch/new')}
             className="bg-gradient-to-r from-purple-500 to-violet-500 text-white px-6 py-3 rounded-lg hover:from-purple-600 hover:to-violet-600 transition-all duration-200 flex items-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105"
           >
             <Plus className="w-5 h-5" />
@@ -922,7 +937,7 @@ function PitchesTab({ userId, router }: { userId: string; router: any }) {
           <h3 className="text-2xl font-bold text-gray-900 mb-4">No pitches yet</h3>
           <p className="text-lg text-gray-600 mb-8">Create your first pitch to start your journey</p>
           <button 
-            onClick={() => router.push('/pitch/new/ai-first')}
+            onClick={() => router.push('/pitch/new')}
             className="bg-gradient-to-r from-purple-500 to-violet-500 text-white px-8 py-4 rounded-lg hover:from-purple-600 hover:to-violet-600 transition-all duration-200 flex items-center gap-2 mx-auto text-lg font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
           >
             <Plus className="w-6 h-6" />
@@ -1210,7 +1225,7 @@ function Step2CreatePitch({ router }: { router: any }) {
         {/* Call to Action */}
         <div className="space-y-4">
           <button
-            onClick={() => router.push('/pitch/new/ai-first')}
+            onClick={() => router.push('/pitch/new')}
             className="bg-gradient-to-r from-green-600 to-blue-600 text-white px-8 py-4 rounded-lg hover:from-green-700 hover:to-blue-700 transition-all duration-200 text-lg font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center gap-2 mx-auto"
           >
             <Plus className="w-6 h-6" />

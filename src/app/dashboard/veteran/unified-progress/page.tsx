@@ -98,7 +98,7 @@ export default function UnifiedProgressPage() {
               </button>
               
               <button
-                onClick={() => router.push('/pitch/new/ai-first')}
+                onClick={() => router.push('/pitch/new')}
                 className="bg-gray-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-700 transition-colors"
               >
                 Edit Pitch

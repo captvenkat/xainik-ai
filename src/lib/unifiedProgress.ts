@@ -106,7 +106,7 @@ export async function getProgressKpis(userId: string, range: Range): Promise<{ s
         id,
         event_type,
         occurred_at,
-        referrals!referral_events_referral_id_fkey (
+        referrals!inner (
           pitch_id
         )
       `)
@@ -121,7 +121,7 @@ export async function getProgressKpis(userId: string, range: Range): Promise<{ s
         id,
         event_type,
         occurred_at,
-        referrals!referral_events_referral_id_fkey (
+        referrals!inner (
           pitch_id
         )
       `)
@@ -193,7 +193,7 @@ export async function getProgressFunnel(userId: string, range: Range): Promise<F
         id,
         event_type,
         occurred_at,
-        referrals!referral_events_referral_id_fkey (
+        referrals!inner (
           pitch_id,
           user_id
         )
@@ -341,9 +341,8 @@ export async function getChannelInsights(userId: string, range: Range): Promise<
       .select(`
         id,
         event_type,
-        platform,
         occurred_at,
-        referrals!referral_events_referral_id_fkey (
+        referrals!inner (
           pitch_id
         )
       `)
@@ -357,7 +356,7 @@ export async function getChannelInsights(userId: string, range: Range): Promise<
     const channelMap = new Map<string, { shares: number; views: number; contacts: number }>()
     
     events.forEach(event => {
-      const channel = event.platform || 'direct'
+      const channel = 'direct'
       const normalizedChannel = channel.toLowerCase() as ChannelRow['channel']
       
       if (!channelMap.has(normalizedChannel)) {
@@ -416,9 +415,8 @@ export async function getContacts(userId: string, range: Range): Promise<Contact
       .select(`
         id,
         event_type,
-        platform,
         occurred_at,
-        referrals!referral_events_referral_id_fkey (
+        referrals!inner (
           pitch_id,
           user_id,
           users!referrals_user_id_fkey (
@@ -437,7 +435,7 @@ export async function getContacts(userId: string, range: Range): Promise<Contact
     // Convert to ContactRow format
     const contacts: ContactRow[] = events.map(event => {
       const type = event.event_type === 'CALL_CLICKED' ? 'call' : 'email'
-      const channel = event.platform || 'direct'
+      const channel = 'direct'
       const supporterName = event.referrals?.[0]?.users?.[0]?.name || null
       
       // Calculate time since view (simplified)

@@ -5,7 +5,7 @@ import { Share, Calendar, ChevronDown } from 'lucide-react'
 import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 import { trackDateRangeChanged, trackPitchChanged, trackShareModalOpened } from '@/lib/metrics/track'
 import type { Range } from '@/lib/actions/progress'
-import SharePitchModal from '@/components/SharePitchModal'
+import SimpleShareModal from '@/components/SimpleShareModal'
 
 interface HeaderBarProps {
   userId: string
@@ -130,10 +130,13 @@ export default function HeaderBar({
         </div>
       </div>
 
-      {/* Smart Share Hub Modal */}
-      <SharePitchModal
+      {/* Simple Share Modal */}
+      <SimpleShareModal
         isOpen={showShareModal}
         onClose={() => setShowShareModal(false)}
+        pitchId={selectedPitchId || ''}
+        pitchTitle="Your Pitch"
+        veteranName="Veteran"
         userId={userId}
       />
     </div>

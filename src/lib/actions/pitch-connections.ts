@@ -325,6 +325,9 @@ export async function getConnectionAnalytics(userId: string, userRole: 'supporte
           users!referrals_supporter_id_fkey (
             name,
             avatar_url
+          ),
+          pitches!inner (
+            user_id
           )
         `)
         .eq('pitches.user_id', userId)
@@ -335,11 +338,14 @@ export async function getConnectionAnalytics(userId: string, userRole: 'supporte
       const { data: topSupporters } = await supabase
         .from('referral_events')
         .select(`
-          referrals (
+          referrals!inner (
             supporter_id,
             users!referrals_supporter_id_fkey (
               name,
               avatar_url
+            ),
+            pitches!inner (
+              user_id
             )
           ),
           event_type

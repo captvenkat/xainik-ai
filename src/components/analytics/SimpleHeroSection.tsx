@@ -51,7 +51,7 @@ export default function SimpleHeroSection({ data, onSharePitch }: SimpleHeroSect
     // Step 1: Create your first pitch
     mainActionText = 'Create Your First Pitch'
     mainActionIcon = Plus
-    mainActionHandler = () => router.push('/pitch/new/ai-first')
+    mainActionHandler = () => router.push('/pitch/new')
     buttonVariant = 'bg-gradient-to-r from-purple-500 to-violet-500 text-white hover:from-purple-600 hover:to-violet-600'
   } else if (!hasShared) {
     // Step 2: Smart Share your pitch

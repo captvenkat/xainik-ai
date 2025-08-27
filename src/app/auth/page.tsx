@@ -30,10 +30,5 @@ export default async function AuthPage({ searchParams }: { searchParams: Promise
     redirect(`/auth/warmup?redirect=${encodeURIComponent(params.redirect ?? '/dashboard')}`)
   }
 
-  // Optional: role hint cookie for post-auth role inference
-  if (params.role === 'veteran' || params.role === 'supporter' || params.role === 'recruiter') {
-    await cookieStore.set('x-role-hint', params.role, { httpOnly: false, maxAge: 300, path: '/' })
-  }
-
-    return <AuthPageContent />
+  return <AuthPageContent roleHint={params.role} />
 }

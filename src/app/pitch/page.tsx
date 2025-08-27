@@ -31,7 +31,7 @@ export default async function PitchPage() {
       redirect('/dashboard/veteran')
     } else {
       // User has no pitches - redirect to create new pitch
-      redirect('/pitch/new/ai-first')
+      redirect('/pitch/new')
     }
     
   } catch (error) {

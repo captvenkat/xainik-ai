@@ -83,9 +83,9 @@ export async function getProgressKpis(userId: string, range: Range): Promise<{ s
         id,
         event_type,
         occurred_at,
-        referrals!referral_events_referral_id_fkey (
+        referrals!inner (
           pitch_id,
-          pitches!referrals_pitch_id_fkey (
+          pitches!inner (
             user_id
           )
         )
@@ -107,9 +107,9 @@ export async function getProgressKpis(userId: string, range: Range): Promise<{ s
         id,
         event_type,
         occurred_at,
-        referrals!referral_events_referral_id_fkey (
+        referrals!inner (
           pitch_id,
-          pitches!referrals_pitch_id_fkey (
+          pitches!inner (
             user_id
           )
         )
@@ -192,12 +192,11 @@ export async function getFunnel(userId: string, range: Range): Promise<FunnelPoi
         id,
         event_type,
         occurred_at,
-        platform,
-        referrals!referral_events_referral_id_fkey (
+        referrals!inner (
           id,
           supporter_id,
           pitch_id,
-          pitches!referrals_pitch_id_fkey (
+          pitches!inner (
             user_id
           )
         )
@@ -274,6 +273,9 @@ export async function getTopSupporters(userId: string, range: Range): Promise<Su
           id,
           event_type,
           occurred_at
+        ),
+        pitches!inner (
+          user_id
         )
       `)
       .eq('pitches.user_id', userId)
@@ -339,11 +341,10 @@ export async function getChannelInsights(userId: string, range: Range): Promise<
       .select(`
         id,
         event_type,
-        platform,
         occurred_at,
-        referrals!referral_events_referral_id_fkey (
+        referrals!inner (
           pitch_id,
-          pitches!referrals_pitch_id_fkey (
+          pitches!inner (
             user_id
           )
         )
@@ -372,7 +373,7 @@ export async function getChannelInsights(userId: string, range: Range): Promise<
     })
 
     events.forEach(event => {
-      const channel = (event.platform as any) || 'direct'
+      const channel = 'direct'
       const channelData = channelMap.get(channel) || channelMap.get('direct')!
       
       if (event.event_type === 'SHARE_RESHARED') {
@@ -409,16 +410,15 @@ export async function getContacts(userId: string, range: Range): Promise<Contact
       .select(`
         id,
         event_type,
-        platform,
         occurred_at,
-        referrals!referral_events_referral_id_fkey (
+        referrals!inner (
           id,
           supporter_id,
           pitch_id,
           users!referrals_supporter_id_fkey (
             name
           ),
-          pitches!referrals_pitch_id_fkey (
+          pitches!inner (
             user_id
           )
         )
@@ -434,7 +434,7 @@ export async function getContacts(userId: string, range: Range): Promise<Contact
     // Convert to contact rows
     const contacts: ContactRow[] = events.map(event => {
       const type = event.event_type === 'CALL_CLICKED' ? 'call' : 'email'
-      const channel = event.platform || 'direct'
+      const channel = 'direct'
       const supporterName = (event.referrals as any)?.users?.name || null
       
       return {

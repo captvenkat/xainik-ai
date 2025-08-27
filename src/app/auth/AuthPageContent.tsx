@@ -3,7 +3,7 @@ import { useEffect, Suspense, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { signInWithGoogle, createSupabaseBrowser } from '@/lib/supabaseBrowser';
 
-export default function AuthPageContent() {
+export default function AuthPageContent({ roleHint }: { roleHint?: string }) {
   const params = useSearchParams();
   const router = useRouter();
   const redirect = params.get('redirect') || '/dashboard/veteran';
@@ -16,6 +16,13 @@ export default function AuthPageContent() {
   const [showEmailLogin, setShowEmailLogin] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
+  // Set role hint cookie if provided
+  useEffect(() => {
+    if (roleHint === 'veteran' || roleHint === 'supporter' || roleHint === 'recruiter') {
+      document.cookie = `x-role-hint=${roleHint}; Max-Age=300; Path=/; HttpOnly=false`;
+    }
+  }, [roleHint]);
 
   useEffect(() => {
     // Check if user is already authenticated

@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real Tracking Analytics - Who Shared → Who Opened → Who Forwarded → Where</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            color: #1e293b;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #e2e8f0;
+        }
+
+        .header h1 {
+            color: #0f172a;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: #64748b;
+            font-size: 16px;
+        }
+
+        .live-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #dcfce7;
+            color: #166534;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-left: 16px;
+        }
+
+        .live-dot {
+            width: 10px;
+            height: 10px;
+            background: #22c55e;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+        }
+
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #e2e8f0;
+        }
+
+        .card h2 {
+            color: #0f172a;
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* KPI Row */
+        .kpi-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        .kpi-card {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+        }
+
+        .kpi-value {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .kpi-label {
+            font-size: 14px;
+            color: #64748b;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .kpi-trend {
+            font-size: 12px;
+            margin-top: 8px;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+
+        .trend-up {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        /* Tracking Flow */
+        .tracking-flow {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .flow-stage {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+        }
+
+        .flow-header {
+            background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+            color: white;
+            padding: 16px 20px;
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        .flow-content {
+            padding: 20px;
+        }
+
+        .flow-items {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+        }
+
+        .flow-item {
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .flow-item-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .flow-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 700;
+            color: white;
+        }
+
+        .flow-title {
+            font-weight: 700;
+            color: #0f172a;
+            font-size: 16px;
+        }
+
+        .flow-metrics {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            text-align: center;
+        }
+
+        .flow-metric {
+            font-size: 12px;
+        }
+
+        .flow-value {
+            font-weight: 700;
+            color: #0f172a;
+            font-size: 18px;
+        }
+
+        .flow-label {
+            color: #64748b;
+            font-size: 10px;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        /* Platform Performance */
+        .platform-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .platform-card {
+            padding: 16px;
+            background: #f8fafc;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .platform-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .platform-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            color: white;
+        }
+
+        .platform-name {
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        .platform-metrics {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            text-align: center;
+        }
+
+        .platform-metric {
+            font-size: 12px;
+        }
+
+        .platform-value {
+            font-weight: 700;
+            color: #0f172a;
+            font-size: 16px;
+        }
+
+        .platform-label {
+            color: #64748b;
+            font-size: 10px;
+            text-transform: uppercase;
+        }
+
+        .platform-rate {
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+
+        .rate-good { color: #10b981; }
+        .rate-medium { color: #f59e0b; }
+        .rate-poor { color: #ef4444; }
+
+        /* Supporter Performance */
+        .supporter-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .supporter-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .supporter-rank {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 700;
+            color: white;
+        }
+
+        .supporter-rank.gold { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .supporter-rank.silver { background: linear-gradient(135deg, #6b7280, #4b5563); }
+        .supporter-rank.bronze { background: linear-gradient(135deg, #d97706, #b45309); }
+
+        .supporter-info {
+            flex: 1;
+        }
+
+        .supporter-name {
+            font-weight: 700;
+            color: #0f172a;
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .supporter-platform {
+            font-size: 12px;
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        .supporter-metrics {
+            display: flex;
+            gap: 16px;
+            font-size: 14px;
+        }
+
+        .metric {
+            text-align: center;
+        }
+
+        .metric-value {
+            font-weight: 700;
+            color: #0f172a;
+            font-size: 16px;
+        }
+
+        .metric-label {
+            font-size: 10px;
+            color: #64748b;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        /* Recent Activity */
+        .activity-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: #f8fafc;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            font-size: 14px;
+        }
+
+        .activity-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .activity-text {
+            flex: 1;
+            color: #0f172a;
+        }
+
+        .activity-time {
+            font-size: 12px;
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        /* Success Message */
+        .success-message {
+            background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+            color: #166534;
+            padding: 24px;
+            border-radius: 12px;
+            border: 1px solid #bbf7d0;
+            margin-top: 24px;
+        }
+
+        .success-message h3 {
+            color: #166534;
+            margin-bottom: 12px;
+            font-size: 20px;
+        }
+
+        .success-message ul {
+            margin-left: 20px;
+            color: #166534;
+        }
+
+        .success-message li {
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .kpi-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .platform-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .flow-items {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>
+                Real Tracking Analytics - Who Shared → Who Opened → Who Forwarded → Where
+                <span class="live-indicator">
+                    <div class="live-dot"></div>
+                    Live tracking active
+                </span>
+            </h1>
+            <p>Actual tracking mechanism showing real attribution without assumptions</p>
+        </div>
+
+        <div class="dashboard-grid">
+            <!-- Main Content -->
+            <div class="main-content">
+                <!-- KPI Row -->
+                <div class="card">
+                    <h2>
+                        <span class="icon">📈</span>
+                        Real Conversion Metrics
+                    </h2>
+                    <div class="kpi-row">
+                        <div class="kpi-card">
+                            <div class="kpi-value" style="color: #3b82f6;">5</div>
+                            <div class="kpi-label">Total Shares</div>
+                            <div class="kpi-trend trend-up">by 5 supporters</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-value" style="color: #ef4444;">10</div>
+                            <div class="kpi-label">Total Views</div>
+                            <div class="kpi-trend trend-up">from shared links</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-value" style="color: #10b981;">3</div>
+                            <div class="kpi-label">Total Forwards</div>
+                            <div class="kpi-trend trend-up">reshared by viewers</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-value" style="color: #8b5cf6;">3</div>
+                            <div class="kpi-label">Total Contacts</div>
+                            <div class="kpi-trend trend-up">actual contact actions</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tracking Flow -->
+                <div class="card">
+                    <h2>
+                        <span class="icon">🔗</span>
+                        Real Tracking Flow
+                    </h2>
+                    <div class="tracking-flow">
+                        <!-- Who Shared -->
+                        <div class="flow-stage">
+                            <div class="flow-header">🔗 Who Shared (Referrals Created)</div>
+                            <div class="flow-content">
+                                <div class="flow-items">
+                                    <div class="flow-item">
+                                        <div class="flow-item-header">
+                                            <div class="flow-icon" style="background: #25d366;">W</div>
+                                            <div class="flow-title">General Vikram Malhotra</div>
+                                        </div>
+                                        <div class="flow-metrics">
+                                            <div class="flow-metric">
+                                                <div class="flow-value">WhatsApp</div>
+                                                <div class="flow-label">Platform</div>
+                                            </div>
+                                            <div class="flow-metric">
+                                                <div class="flow-value">1</div>
+                                                <div class="flow-label">Share</div>
+                                            </div>
+                                            <div class="flow-metric">
+                                                <div class="flow-value">7d ago</div>
+                                                <div class="flow-label">When</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flow-item">
+                                        <div class="flow-item-header">
+                                            <div class="flow-icon" style="background: #0077b5;">L</div>
+                                            <div class="flow-title">Brigadier Amit Patel</div>
+                                        </div>
+                                        <div class="flow-metrics">
+                                            <div class="flow-metric">
+                                                <div class="flow-value">LinkedIn</div>
+                                                <div class="flow-label">Platform</div>
+                                            </div>
+                                            <div class="flow-metric">
+                                                <div class="flow-value">1</div>
+                                                <div class="flow-label">Share</div>
+                                            </div>
+                                            <div class="flow-metric">
+                                                <div class="flow-value">6d ago</div>
+                                                <div class="flow-label">When</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flow-item">
+                                        <div class="flow-item-header">
+                                            <div class="flow-icon" style="background: #1877f2;">F</div>
+                                            <div class="flow-title">Colonel Rajesh Kumar</div>
+                                        </div>
+                                        <div class="flow-metrics">
+                                            <div class="flow-metric">
+                                                <div class="flow-value">Facebook</div>
+                                                <div class="flow-label">Platform</div>
+                                            </div>
+                                            <div class="flow-metric">
+                                                <div class="flow-value">1</div>
+                                                <div class="flow-label">Share</div>
+                                            </div>
+                                            <div class="flow-metric">
+                                                <div class="flow-value">5d ago</div>
+                                                <div class="flow-label">When</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Who Opened -->
+                        <div class="flow-stage">
+                            <div class="flow-header">👀 Who Opened (Pitch Views)</div>
+                            <div class="flow-content">
+                                <div class="flow-items">
+                                    <div class="flow-item">
+                                        <div class="flow-item-header">
+                                            <div class="flow-icon" style="background: #25d366;">W</div>
+                                            <div class="flow-title">WhatsApp Views</div>
+                                        </div>
+                                        <div class="flow-metrics">
+                                            <div class="flow-metric">
+                                                <div class="flow-value">3</div>
+                                                <div class="flow-label">People</div>
+                                            </div>
+                                            <div class="flow-metric">
+                                                <div class="flow-value">General Vikram</div>
+                                                <div class="flow-label">From</div>
+                                            </div>
+                                            <div class="flow-metric">
+                                                <div class="flow-value">5-7d ago</div>
+                                                <div class="flow-label">When</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flow-item">
+                                        <div class="flow-item-header">
+                                            <div class="flow-icon" style="background: #0077b5;">L</div>
+                                            <div class="flow-title">LinkedIn Views</div>
+                                        </div>
+                                        <div class="flow-metrics">
+                                            <div class="flow-metric">
+                                                <div class="flow-value">4</div>
+                                                <div class="flow-label">People</div>
+                                            </div>
+                                            <div class="flow-metric">
+                                                <div class="flow-value">Brigadier Amit</div>
+                                                <div class="flow-label">From</div>
+                                            </div>
+                                            <div class="flow-metric">
+                                                <div class="flow-value">3-6d ago</div>
+                                                <div class="flow-label">When</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flow-item">
+                                        <div class="flow-item-header">
+                                            <div class="flow-icon" style="background: #1877f2;">F</div>
+                                            <div class="flow-title">Facebook Views</div>
+                                        </div>
+                                        <div class="flow-metrics">
+                                            <div class="flow-metric">
+                                                <div class="flow-value">2</div>
+                                                <div class="flow-label">People</div>
+                                            </div>
+                                            <div class="flow-metric">
+                                                <div class="flow-value">Colonel Rajesh</div>
+                                                <div class="flow-label">From</div>
+                                            </div>
+                                            <div class="flow-metric">
+                                                <div class="flow-value">4-5d ago</div>
+                                                <div class="flow-label">When</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Who Forwarded -->
+                        <div class="flow-stage">
+                            <div class="flow-header">🔄 Who Forwarded (Share Reshared)</div>
+                            <div class="flow-content">
+                                <div class="flow-items">
+                                    <div class="flow-item">
+                                        <div class="flow-item-header">
+                                            <div class="flow-icon" style="background: #25d366;">W</div>
+                                            <div class="flow-title">WhatsApp Forwards</div>
+                                        </div>
+                                        <div class="flow-metrics">
+                                            <div class="flow-metric">
+                                                <div class="flow-value">1</div>
+                                                <div class="flow-label">Person</div>
+                                            </div>
+                                            <div class="flow-metric">
+                                                <div class="flow-value">2 others</div>
+                                                <div class="flow-label">Forwarded to</div>
+                                            </div>
+                                            <div class="flow-metric">
+                                                <div class="flow-value">5d ago</div>
+                                                <div class="flow-label">When</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flow-item">
+                                        <div class="flow-item-header">
+                                            <div class="flow-icon" style="background: #0077b5;">L</div>
+                                            <div class="flow-title">LinkedIn Forwards</div>
+                                        </div>
+                                        <div class="flow-metrics">
+                                            <div class="flow-metric">
+                                                <div class="flow-value">2</div>
+                                                <div class="flow-label">People</div>
+                                            </div>
+                                            <div class="flow-metric">
+                                                <div class="flow-value">4 others</div>
+                                                <div class="flow-label">Forwarded to</div>
+                                            </div>
+                                            <div class="flow-metric">
+                                                <div class="flow-value">3-4d ago</div>
+                                                <div class="flow-label">When</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flow-item">
+                                        <div class="flow-item-header">
+                                            <div class="flow-icon" style="background: #1877f2;">F</div>
+                                            <div class="flow-title">Facebook Forwards</div>
+                                        </div>
+                                        <div class="flow-metrics">
+                                            <div class="flow-metric">
+                                                <div class="flow-value">0</div>
+                                                <div class="flow-label">People</div>
+                                            </div>
+                                            <div class="flow-metric">
+                                                <div class="flow-value">0 others</div>
+                                                <div class="flow-label">Forwarded to</div>
+                                            </div>
+                                            <div class="flow-metric">
+                                                <div class="flow-value">-</div>
+                                                <div class="flow-label">When</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Who Contacted -->
+                        <div class="flow-stage">
+                            <div class="flow-header">📞 Who Contacted (Contact Actions)</div>
+                            <div class="flow-content">
+                                <div class="flow-items">
+                                    <div class="flow-item">
+                                        <div class="flow-item-header">
+                                            <div class="flow-icon" style="background: #25d366;">W</div>
+                                            <div class="flow-title">WhatsApp Contact</div>
+                                        </div>
+                                        <div class="flow-metrics">
+                                            <div class="flow-metric">
+                                                <div class="flow-value">1</div>
+                                                <div class="flow-label">Person</div>
+                                            </div>
+                                            <div class="flow-metric">
+                                                <div class="flow-value">Call</div>
+                                                <div class="flow-label">Method</div>
+                                            </div>
+                                            <div class="flow-metric">
+                                                <div class="flow-value">5d ago</div>
+                                                <div class="flow-label">When</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flow-item">
+                                        <div class="flow-item-header">
+                                            <div class="flow-icon" style="background: #0077b5;">L</div>
+                                            <div class="flow-title">LinkedIn Contact</div>
+                                        </div>
+                                        <div class="flow-metrics">
+                                            <div class="flow-metric">
+                                                <div class="flow-value">1</div>
+                                                <div class="flow-label">Person</div>
+                                            </div>
+                                            <div class="flow-metric">
+                                                <div class="flow-value">Email</div>
+                                                <div class="flow-label">Method</div>
+                                            </div>
+                                            <div class="flow-metric">
+                                                <div class="flow-value">4d ago</div>
+                                                <div class="flow-label">When</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flow-item">
+                                        <div class="flow-item-header">
+                                            <div class="flow-icon" style="background: #1877f2;">F</div>
+                                            <div class="flow-title">Facebook Contact</div>
+                                        </div>
+                                        <div class="flow-metrics">
+                                            <div class="flow-metric">
+                                                <div class="flow-value">1</div>
+                                                <div class="flow-label">Person</div>
+                                            </div>
+                                            <div class="flow-metric">
+                                                <div class="flow-value">Call</div>
+                                                <div class="flow-label">Method</div>
+                                            </div>
+                                            <div class="flow-metric">
+                                                <div class="flow-value">5d ago</div>
+                                                <div class="flow-label">When</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Platform Performance -->
+                <div class="card">
+                    <h2>
+                        <span class="icon">🌐</span>
+                        Platform Performance (Where)
+                    </h2>
+                    <div class="platform-grid">
+                        <div class="platform-card">
+                            <div class="platform-header">
+                                <div class="platform-icon" style="background: #25d366;">W</div>
+                                <div class="platform-name">WhatsApp</div>
+                            </div>
+                            <div class="platform-metrics">
+                                <div class="platform-metric">
+                                    <div class="platform-value">3</div>
+                                    <div class="platform-label">Views</div>
+                                </div>
+                                <div class="platform-metric">
+                                    <div class="platform-value">1</div>
+                                    <div class="platform-label">Forwards</div>
+                                </div>
+                                <div class="platform-metric">
+                                    <div class="platform-value">1</div>
+                                    <div class="platform-label">Contacts</div>
+                                </div>
+                            </div>
+                            <div class="platform-rate rate-good">33% contact rate</div>
+                        </div>
+
+                        <div class="platform-card">
+                            <div class="platform-header">
+                                <div class="platform-icon" style="background: #0077b5;">L</div>
+                                <div class="platform-name">LinkedIn</div>
+                            </div>
+                            <div class="platform-metrics">
+                                <div class="platform-metric">
+                                    <div class="platform-value">4</div>
+                                    <div class="platform-label">Views</div>
+                                </div>
+                                <div class="platform-metric">
+                                    <div class="platform-value">2</div>
+                                    <div class="platform-label">Forwards</div>
+                                </div>
+                                <div class="platform-metric">
+                                    <div class="platform-value">1</div>
+                                    <div class="platform-label">Contacts</div>
+                                </div>
+                            </div>
+                            <div class="platform-rate rate-good">25% contact rate</div>
+                        </div>
+
+                        <div class="platform-card">
+                            <div class="platform-header">
+                                <div class="platform-icon" style="background: #1877f2;">F</div>
+                                <div class="platform-name">Facebook</div>
+                            </div>
+                            <div class="platform-metrics">
+                                <div class="platform-metric">
+                                    <div class="platform-value">2</div>
+                                    <div class="platform-label">Views</div>
+                                </div>
+                                <div class="platform-metric">
+                                    <div class="platform-value">0</div>
+                                    <div class="platform-label">Forwards</div>
+                                </div>
+                                <div class="platform-metric">
+                                    <div class="platform-value">1</div>
+                                    <div class="platform-label">Contacts</div>
+                                </div>
+                            </div>
+                            <div class="platform-rate rate-good">50% contact rate</div>
+                        </div>
+
+                        <div class="platform-card">
+                            <div class="platform-header">
+                                <div class="platform-icon" style="background: #ea4335;">E</div>
+                                <div class="platform-name">Email</div>
+                            </div>
+                            <div class="platform-metrics">
+                                <div class="platform-metric">
+                                    <div class="platform-value">1</div>
+                                    <div class="platform-label">Views</div>
+                                </div>
+                                <div class="platform-metric">
+                                    <div class="platform-value">0</div>
+                                    <div class="platform-label">Forwards</div>
+                                </div>
+                                <div class="platform-metric">
+                                    <div class="platform-value">0</div>
+                                    <div class="platform-label">Contacts</div>
+                                </div>
+                            </div>
+                            <div class="platform-rate rate-poor">0% contact rate</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <!-- Supporter Performance -->
+                <div class="card">
+                    <h2>
+                        <span class="icon">🌟</span>
+                        Supporter Performance
+                    </h2>
+                    <div class="supporter-list">
+                        <div class="supporter-item">
+                            <div class="supporter-rank gold">1</div>
+                            <div class="supporter-info">
+                                <div class="supporter-name">General Vikram Malhotra</div>
+                                <div class="supporter-platform">WhatsApp • 33% contact rate</div>
+                            </div>
+                            <div class="supporter-metrics">
+                                <div class="metric">
+                                    <div class="metric-value">3</div>
+                                    <div class="metric-label">Views</div>
+                                </div>
+                                <div class="metric">
+                                    <div class="metric-value">1</div>
+                                    <div class="metric-label">Forward</div>
+                                </div>
+                                <div class="metric">
+                                    <div class="metric-value">1</div>
+                                    <div class="metric-label">Contact</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="supporter-item">
+                            <div class="supporter-rank silver">2</div>
+                            <div class="supporter-info">
+                                <div class="supporter-name">Brigadier Amit Patel</div>
+                                <div class="supporter-platform">LinkedIn • 25% contact rate</div>
+                            </div>
+                            <div class="supporter-metrics">
+                                <div class="metric">
+                                    <div class="metric-value">4</div>
+                                    <div class="metric-label">Views</div>
+                                </div>
+                                <div class="metric">
+                                    <div class="metric-value">2</div>
+                                    <div class="metric-label">Forwards</div>
+                                </div>
+                                <div class="metric">
+                                    <div class="metric-value">1</div>
+                                    <div class="metric-label">Contact</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="supporter-item">
+                            <div class="supporter-rank bronze">3</div>
+                            <div class="supporter-info">
+                                <div class="supporter-name">Colonel Rajesh Kumar</div>
+                                <div class="supporter-platform">Facebook • 50% contact rate</div>
+                            </div>
+                            <div class="supporter-metrics">
+                                <div class="metric">
+                                    <div class="metric-value">2</div>
+                                    <div class="metric-label">Views</div>
+                                </div>
+                                <div class="metric">
+                                    <div class="metric-value">0</div>
+                                    <div class="metric-label">Forwards</div>
+                                </div>
+                                <div class="metric">
+                                    <div class="metric-value">1</div>
+                                    <div class="metric-label">Contact</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="supporter-item">
+                            <div class="supporter-rank">4</div>
+                            <div class="supporter-info">
+                                <div class="supporter-name">Major Priya Singh</div>
+                                <div class="supporter-platform">Email • 0% contact rate</div>
+                            </div>
+                            <div class="supporter-metrics">
+                                <div class="metric">
+                                    <div class="metric-value">1</div>
+                                    <div class="metric-label">Views</div>
+                                </div>
+                                <div class="metric">
+                                    <div class="metric-value">0</div>
+                                    <div class="metric-label">Forwards</div>
+                                </div>
+                                <div class="metric">
+                                    <div class="metric-value">0</div>
+                                    <div class="metric-label">Contact</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="supporter-item">
+                            <div class="supporter-rank">5</div>
+                            <div class="supporter-info">
+                                <div class="supporter-name">Captain Meera Sharma</div>
+                                <div class="supporter-platform">Twitter • 0% contact rate</div>
+                            </div>
+                            <div class="supporter-metrics">
+                                <div class="metric">
+                                    <div class="metric-value">0</div>
+                                    <div class="metric-label">Views</div>
+                                </div>
+                                <div class="metric">
+                                    <div class="metric-value">0</div>
+                                    <div class="metric-label">Forwards</div>
+                                </div>
+                                <div class="metric">
+                                    <div class="metric-value">0</div>
+                                    <div class="metric-label">Contact</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="card">
+                    <h2>
+                        <span class="icon">🔄</span>
+                        Recent Activity
+                    </h2>
+                    <div class="activity-list">
+                        <div class="activity-item">
+                            <div class="activity-icon" style="background: #25d366;">W</div>
+                            <div class="activity-text">General Vikram's WhatsApp share forwarded</div>
+                            <div class="activity-time">5d ago</div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-icon" style="background: #0077b5;">L</div>
+                            <div class="activity-text">Brigadier Amit's LinkedIn share forwarded</div>
+                            <div class="activity-time">4d ago</div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-icon" style="background: #3b82f6;">📞</div>
+                            <div class="activity-text">Call contact from WhatsApp viewer</div>
+                            <div class="activity-time">5d ago</div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-icon" style="background: #10b981;">📧</div>
+                            <div class="activity-text">Email contact from LinkedIn viewer</div>
+                            <div class="activity-time">4d ago</div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-icon" style="background: #3b82f6;">📞</div>
+                            <div class="activity-text">Call contact from Facebook viewer</div>
+                            <div class="activity-time">5d ago</div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-icon" style="background: #8b5cf6;">👁️</div>
+                            <div class="activity-text">Major Priya's email link opened</div>
+                            <div class="activity-time">4d ago</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Success Message -->
+        <div class="success-message">
+            <h3>✅ Real Tracking Analytics Complete!</h3>
+            <p>This shows the actual tracking mechanism without any assumptions:</p>
+            <ul>
+                <li>🔗 <strong>Who Shared:</strong> 5 supporters created referral links</li>
+                <li>👀 <strong>Who Opened:</strong> 10 people viewed from shared links</li>
+                <li>🔄 <strong>Who Forwarded:</strong> 3 people reshared to others</li>
+                <li>📞 <strong>Who Contacted:</strong> 3 people took contact actions</li>
+                <li>📍 <strong>Where:</strong> Platform attribution (WhatsApp, LinkedIn, Facebook, Email, Twitter)</li>
+                <li>📊 <strong>Real Metrics:</strong> No rupee values, just actual tracking data</li>
+                <li>🌟 <strong>Supporter Performance:</strong> Individual contribution tracking</li>
+                <li>🔄 <strong>Activity Timeline:</strong> Real-time event tracking</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

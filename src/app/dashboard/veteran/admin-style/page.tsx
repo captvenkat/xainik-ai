@@ -301,7 +301,7 @@ export default function AdminStyleDashboard() {
             Create your first pitch to start tracking your progress
           </p>
           <button
-            onClick={() => router.push('/pitch/new/ai-first')}
+            onClick={() => router.push('/pitch/new')}
             className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold"
           >
             Create Pitch
@@ -326,7 +326,7 @@ export default function AdminStyleDashboard() {
             
             <div className="flex items-center space-x-4">
               <button
-                onClick={() => router.push('/pitch/new/ai-first')}
+                onClick={() => router.push('/pitch/new')}
                 className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
               >
                 Edit Pitch
@@ -599,7 +599,7 @@ export default function AdminStyleDashboard() {
         {/* Quick Actions */}
         <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
           <button
-            onClick={() => router.push('/pitch/new/ai-first')}
+            onClick={() => router.push('/pitch/new')}
             className="bg-blue-600 text-white p-6 rounded-lg hover:bg-blue-700 transition-colors text-left"
           >
             <div className="flex items-center justify-between mb-2">

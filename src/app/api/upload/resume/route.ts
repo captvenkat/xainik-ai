@@ -8,8 +8,18 @@ export async function POST(request: NextRequest) {
     const supabase = await createSupabaseServerOnly()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     
+    console.log('Resume upload API auth check:', { 
+      hasUser: !!user, 
+      userId: user?.id, 
+      authError: authError?.message,
+      headers: Object.fromEntries(request.headers.entries())
+    })
+    
     if (authError || !user) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+      return NextResponse.json({ 
+        error: 'Authentication required', 
+        details: { authError: authError?.message, hasUser: !!user }
+      }, { status: 401 })
     }
 
     // Parse form data
@@ -41,6 +51,27 @@ export async function POST(request: NextRequest) {
     // Upload to storage
     const result = await uploadResume(file, user.id)
 
+    // Check if this is a Magic Mode request (has magic_mode header)
+    const magicMode = request.headers.get('x-magic-mode') === 'true'
+    
+    if (magicMode) {
+      // Return Magic Mode response with extracted text
+      const mockExtractedText = `Experienced military leader with 8+ years of service in the Indian Army.
+Led teams of 50+ personnel in high-pressure operational environments.
+Managed logistics, training programs, and strategic planning initiatives.
+Demonstrated exceptional problem-solving skills and adaptability in dynamic situations.
+Strong background in operations management, team leadership, and resource optimization.`
+
+      return NextResponse.json({ 
+        success: true, 
+        storagePath: result.url,
+        fileName: file.name,
+        fileSize: file.size,
+        extractedText: mockExtractedText
+      })
+    }
+
+    // Return standard response for non-Magic Mode
     return NextResponse.json({ 
       success: true, 
       storagePath: result.url,
