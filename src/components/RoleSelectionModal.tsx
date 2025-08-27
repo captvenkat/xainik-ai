@@ -52,36 +52,18 @@ export default function RoleSelectionModal({ isOpen, onClose, onRoleSelected, us
         throw new Error('No authenticated user found')
       }
 
-      // Create or update user record with selected role
-      const userData = {
+      // Create or update profile record with selected role
+      const profileData = {
         id: user.id,
-        email: user.email || '',
-        name: user.user_metadata?.full_name || 
-               user.user_metadata?.name || 
-               user.email?.split('@')[0] || 'User',
-        phone: '', // Required field
         role: role,
-        location: '', // Required field
-        military_branch: '', // Required field
-        military_rank: '', // Required field
-        years_of_service: 0, // Required field
-        discharge_date: null, // Required field - null for new users
-        education_level: '', // Required field
-        certifications: null, // Required field
-        bio: '', // Required field
-        avatar_url: null, // Required field
-        is_active: true, // Required field
-        email_verified: false, // Required field
-        phone_verified: false, // Required field
-        last_login_at: null, // Required field
-        metadata: {} // Required field
+        onboarding_complete: role === 'veteran' ? false : true
       };
 
-      console.log('Creating user with data:', userData);
+      console.log('Creating profile with data:', profileData);
 
       const { error } = await supabase
-        .from('users')
-        .upsert(userData, {
+        .from('profiles')
+        .upsert(profileData, {
           onConflict: 'id'
         })
 
@@ -115,26 +97,7 @@ export default function RoleSelectionModal({ isOpen, onClose, onRoleSelected, us
             </p>
           </div>
 
-          {/* Veteran Notice */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-            <div className="flex items-start">
-              <Shield className="h-5 w-5 text-blue-600 mt-0.5 mr-3 flex-shrink-0" />
-              <div>
-                <h3 className="text-sm font-semibold text-blue-900 mb-1">
-                  Are you a Military Veteran?
-                </h3>
-                <p className="text-sm text-blue-700 mb-2">
-                  Veterans should join our exclusive waitlist for priority access and special benefits.
-                </p>
-                <a 
-                  href="/waitlist" 
-                  className="text-sm text-blue-600 hover:text-blue-800 font-medium underline"
-                >
-                  Join Veteran Waitlist →
-                </a>
-              </div>
-            </div>
-          </div>
+
 
           <div className="grid gap-4 md:grid-cols-2">
             {roles.map((role) => {
