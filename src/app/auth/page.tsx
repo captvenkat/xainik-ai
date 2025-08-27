@@ -33,7 +33,7 @@ export default async function AuthPage({ searchParams }: { searchParams: Promise
 
   // Optional: role hint
   if (params.role === 'veteran' || params.role === 'supporter' || params.role === 'recruiter') {
-    cookies().set('x-role-hint', params.role, { httpOnly: false, maxAge: 300, path: '/' })
+    cookieStore.set('x-role-hint', params.role, { httpOnly: false, maxAge: 300, path: '/' })
   }
 
   // Fetch current veteran count for banner
