@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, Suspense, useState } from 'react';
+import React, { useEffect, useCallback, useRef, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { createSupabaseBrowser } from '@/lib/supabaseBrowser';
 
@@ -16,6 +16,10 @@ export default function AuthPageContent({ roleHint }: { roleHint?: string }) {
 
   const supabase = createSupabaseBrowser();
   const site = process.env.NEXT_PUBLIC_SITE_URL || (typeof window !== 'undefined' ? window.location.origin : '');
+
+  type Role = 'veteran'|'supporter'|'recruiter';
+  const [pendingRole, setPendingRole] = useState<Role | null>(null);
+  const firedRef = useRef(false); // absolute single-fire guard
 
   useEffect(() => {
     // Check if user is already authenticated
@@ -47,11 +51,14 @@ export default function AuthPageContent({ roleHint }: { roleHint?: string }) {
     checkAuth();
   }, [router, redirect, error]);
 
-  async function joinWithRole(role: 'veteran'|'supporter'|'recruiter') {
+  const joinWithRole = useCallback(async (role: Role, e?: React.MouseEvent<HTMLButtonElement>) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+    if (firedRef.current || pendingRole) return;
+    firedRef.current = true;
+    setPendingRole(role);
+    
     try {
-      setIsLoading(true);
-      setAuthError(null);
-
       // Set short-lived, non-HttpOnly cookie so SSR can read it on /auth/warmup
       document.cookie = `x-role-hint=${role}; Max-Age=300; Path=/; SameSite=Lax`;
       
@@ -66,9 +73,11 @@ export default function AuthPageContent({ roleHint }: { roleHint?: string }) {
     } catch (error) {
       console.error('Google sign-in error:', error);
       setAuthError(error instanceof Error ? error.message : 'Google sign-in failed');
-      setIsLoading(false);
+      // Reset state on error
+      firedRef.current = false;
+      setPendingRole(null);
     }
-  }
+  }, [pendingRole, redirect, site, supabase]);
 
   async function handleGenericGoogle() {
     try {
@@ -164,7 +173,7 @@ export default function AuthPageContent({ roleHint }: { roleHint?: string }) {
         )}
 
         {/* User Type Selection */}
-        <div className="grid lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
+        <div className="grid lg:grid-cols-3 gap-8 max-w-5xl mx-auto" onClickCapture={(e) => e.stopPropagation()}>
           {/* Veterans */}
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 text-center">
             <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-blue-100 mb-4">
@@ -199,11 +208,12 @@ export default function AuthPageContent({ roleHint }: { roleHint?: string }) {
               </div>
             </div>
             <button
-              onClick={() => joinWithRole('veteran')}
-              disabled={isLoading}
+              type="button"
+              onClick={(e) => joinWithRole('veteran', e)}
+              disabled={!!pendingRole && pendingRole !== 'veteran'}
               className="w-full inline-flex justify-center items-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
             >
-              {isLoading ? 'Signing in...' : 'Join as Veteran'}
+              {pendingRole === 'veteran' ? 'Redirecting…' : 'Join as Veteran'}
               <svg className="ml-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
               </svg>
@@ -244,11 +254,12 @@ export default function AuthPageContent({ roleHint }: { roleHint?: string }) {
               </div>
             </div>
             <button
-              onClick={() => joinWithRole('supporter')}
-              disabled={isLoading}
+              type="button"
+              onClick={(e) => joinWithRole('supporter', e)}
+              disabled={!!pendingRole && pendingRole !== 'supporter'}
               className="w-full inline-flex justify-center items-center px-6 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
             >
-              {isLoading ? 'Signing in...' : 'Join as Supporter'}
+              {pendingRole === 'supporter' ? 'Redirecting…' : 'Join as Supporter'}
               <svg className="ml-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m4-4H3" />
               </svg>
@@ -289,11 +300,12 @@ export default function AuthPageContent({ roleHint }: { roleHint?: string }) {
               </div>
             </div>
             <button
-              onClick={() => joinWithRole('recruiter')}
-              disabled={isLoading}
+              type="button"
+              onClick={(e) => joinWithRole('recruiter', e)}
+              disabled={!!pendingRole && pendingRole !== 'recruiter'}
               className="w-full inline-flex justify-center items-center px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50"
             >
-              {isLoading ? 'Signing in...' : 'Join as Recruiter'}
+              {pendingRole === 'recruiter' ? 'Redirecting…' : 'Join as Recruiter'}
               <svg className="ml-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
               </svg>
@@ -306,6 +318,7 @@ export default function AuthPageContent({ roleHint }: { roleHint?: string }) {
           <p className="text-sm text-gray-600">
             Already have an account?{' '}
             <button
+              type="button"
               onClick={handleGenericGoogle}
               disabled={isLoading}
               className="text-blue-600 hover:text-blue-800 underline font-medium"
