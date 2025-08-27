@@ -134,6 +134,8 @@ export function middleware(req: NextRequest) {
 // Explicit matcher so middleware NEVER runs on /auth, assets, etc.
 export const config = {
   matcher: [
-    '/((dashboard|pitch|role-selection)(/.*)?)',
+    '/dashboard/:path*',
+    '/pitch/:path*',
+    '/role-selection',
   ],
 }
