@@ -6,15 +6,18 @@ export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
 export default async function ContactPage() {
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get: (k) => cookieStore.get(k)?.value,
-        set: (k, v, o) => cookieStore.set(k, v, o),
-        remove: (k, o) => cookieStore.set(k, '', { ...o, maxAge: 0 })
+        getAll: () => cookieStore.getAll(),
+        setAll: (cookiesToSet) => {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            cookieStore.set(name, value, options)
+          })
+        },
       }
     }
   )
