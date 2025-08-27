@@ -28,40 +28,43 @@ export default async function Warmup({ searchParams }: { searchParams: Promise<{
     redirect(`/auth?redirect=${encodeURIComponent(params.redirect ?? '/')}`)
   }
 
-  // Get existing profile
-  const { data: profile } = await supabase
+  // Get current profile
+  let { data: profile, error: selErr } = await supabase
     .from('profiles')
     .select('role,onboarding_complete')
     .eq('id', user.id)
     .single()
 
-  // If user doesn't have a role yet, we'll need to set it
-  let finalProfile = profile
-
-  if (!profile?.role) {
-    // Check if we have a role hint from the auth flow
-    // Note: In server components, we can't access sessionStorage directly
-    // The role hint will be handled in the role selection page
-    // For now, we'll create a basic profile without role
-    const { data: newProfile, error: createError } = await supabase
+  // If role not yet set, and we have a hint, try to assign it server-side
+  const hint = cookieStore.get('x-role-hint')?.value as 'veteran'|'supporter'|'recruiter'|undefined
+  if (!profile?.role && hint && ['veteran','supporter','recruiter'].includes(hint)) {
+    const { error: updErr } = await supabase
       .from('profiles')
-      .upsert({
-        id: user.id,
-        email: user.email,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
-      .select('role,onboarding_complete')
-      .single()
-
-    if (createError) {
-      console.error('Error creating profile:', createError)
+      .update({ role: hint, onboarding_complete: hint === 'veteran' ? false : true })
+      .eq('id', user.id)
+    if (updErr) {
+      // If DB trigger says cap reached, send gently to /contact
+      if (/cap reached|closed/i.test(updErr.message)) {
+        // clear hint so we don't keep looping
+        cookieStore.set('x-role-hint', '', { path: '/', maxAge: 0 })
+        redirect('/contact')
+      }
+      // Otherwise, fall through; role will remain unset and middleware will send to /role-selection
     } else {
-      finalProfile = newProfile
+      // Re-read profile after update
+      const r = await supabase
+        .from('profiles')
+        .select('role,onboarding_complete')
+        .eq('id', user.id)
+        .single()
+      profile = r.data ?? profile
     }
   }
 
-  const payload = Buffer.from(JSON.stringify(finalProfile ?? {})).toString('base64url')
+  // Clear the hint (one-shot)
+  cookieStore.set('x-role-hint', '', { path: '/', maxAge: 0 })
+
+  const payload = Buffer.from(JSON.stringify(profile ?? {})).toString('base64url')
   cookieStore.set('x-prof', payload, {
     httpOnly: true,
     sameSite: 'lax',
@@ -71,15 +74,22 @@ export default async function Warmup({ searchParams }: { searchParams: Promise<{
   })
 
   // If user has no role, send them to role selection
-  if (!finalProfile?.role) {
+  if (!profile?.role) {
     redirect('/role-selection')
   }
 
   // If user has role but needs onboarding (veterans only)
-  if (finalProfile.role === 'veteran' && !finalProfile.onboarding_complete) {
+  if (profile.role === 'veteran' && !profile.onboarding_complete) {
     redirect('/pitch/new')
   }
 
-  // Otherwise, redirect to their intended destination
-  redirect(params.redirect ?? '/dashboard')
+  // For supporters/recruiters, redirect to role-specific dashboard
+  if (profile.role === 'supporter') {
+    redirect('/dashboard/supporter')
+  } else if (profile.role === 'recruiter') {
+    redirect('/dashboard/recruiter')
+  } else {
+    // Veterans with completed onboarding
+    redirect('/dashboard/veteran')
+  }
 }
