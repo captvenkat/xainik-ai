@@ -29,7 +29,7 @@ export default async function Warmup({ searchParams }: { searchParams: Promise<{
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role,status,onboarding_complete')
+    .select('role,onboarding_complete')
     .eq('id', user.id)
     .single()
 
