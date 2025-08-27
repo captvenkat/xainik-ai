@@ -35,15 +35,25 @@ export function middleware(req: NextRequest) {
   const isProtected = PROTECTED_PREFIXES.some((p) => path.startsWith(p))
   if (!isProtected) return NextResponse.next()
 
+  // If we've got a one-shot skip guard, allow this request through
+  const hasSkipGuard = url.searchParams.get('__skip_guard') === '1'
+  if (hasSkipGuard) {
+    // Optionally you could strip the param by redirecting to the same path without it,
+    // but allowing it through avoids another redirect hop.
+    return NextResponse.next()
+  }
+
   // Read Supabase session cookies (Edge)
   const accessToken = req.cookies.get('sb-access-token')?.value
   const refreshToken = req.cookies.get('sb-refresh-token')?.value
 
   // Unauthenticated → /auth?redirect=<original>
   if (!accessToken && !refreshToken) {
-    url.pathname = '/auth'
-    url.searchParams.set('redirect', path)
-    const res = NextResponse.redirect(url)
+    const to = new URL('/auth', url)
+    // preserve original query and add redirect
+    const original = url.pathname + (url.search || '')
+    to.searchParams.set('redirect', original)
+    const res = NextResponse.redirect(to)
     res.headers.set('x-route-reason', 'unauth')
     return res
   }
@@ -51,11 +61,15 @@ export function middleware(req: NextRequest) {
   // If authenticated but no profile cookie, go to warmup (NOT /auth)
   const profCookie = req.cookies.get('x-prof')?.value
   if (!profCookie) {
-    // If we are already on warmup (shouldn't happen due to matcher), allow
-    if (path.startsWith('/auth/warmup')) return NextResponse.next()
-    url.pathname = '/auth/warmup'
-    url.searchParams.set('redirect', path)
-    const res = NextResponse.redirect(url)
+    // Build a redirect target with a one-shot skip flag
+    const original = new URL(url) // clone
+    original.searchParams.set('__skip_guard', '1')
+    const redirectTarget = original.pathname + original.search
+
+    const to = new URL('/auth/warmup', url)
+    to.searchParams.set('redirect', redirectTarget)
+
+    const res = NextResponse.redirect(to)
     res.headers.set('x-route-reason', 'need-warmup')
     return res
   }
@@ -78,37 +92,40 @@ export function middleware(req: NextRequest) {
 
     // Role selection required
     if (!role && path !== '/role-selection') {
-      url.pathname = '/role-selection'
-      const res = NextResponse.redirect(url)
+      const to = new URL('/role-selection', url)
+      const res = NextResponse.redirect(to)
       res.headers.set('x-route-reason', 'need-role')
       return res
     }
 
     // Veteran first-run Magic Mode
     if (role === 'veteran' && !onboarding_complete && !path.startsWith('/pitch/new')) {
-      url.pathname = '/pitch/new'
-      const res = NextResponse.redirect(url)
+      const to = new URL('/pitch/new', url)
+      const res = NextResponse.redirect(to)
       res.headers.set('x-route-reason', 'need-onboarding')
       return res
     }
 
     // Role-based dashboard redirect from /dashboard
     if (path === '/dashboard') {
-      url.pathname =
+      const nextPath =
         role === 'veteran' ? '/dashboard/veteran' :
         role === 'recruiter' ? '/dashboard/recruiter' :
         '/dashboard/supporter'
-      const res = NextResponse.redirect(url)
+      const to = new URL(nextPath, url)
+      const res = NextResponse.redirect(to)
       res.headers.set('x-route-reason', 'role-redirect')
       return res
     }
 
     return NextResponse.next()
   } catch {
-    // Bad or stale cookie → refresh via warmup
-    url.pathname = '/auth/warmup'
-    url.searchParams.set('redirect', path)
-    const res = NextResponse.redirect(url)
+    // Bad or stale cookie → refresh via warmup with skip guard
+    const original = new URL(url)
+    original.searchParams.set('__skip_guard', '1')
+    const to = new URL('/auth/warmup', url)
+    to.searchParams.set('redirect', original.pathname + original.search)
+    const res = NextResponse.redirect(to)
     res.headers.set('x-route-reason', 'bad-prof-cookie')
     return res
   }
@@ -117,8 +134,6 @@ export function middleware(req: NextRequest) {
 // Explicit matcher so middleware NEVER runs on /auth, assets, etc.
 export const config = {
   matcher: [
-    '/dashboard/:path*',
-    '/pitch/:path*',
-    '/role-selection',
+    '/((dashboard|pitch|role-selection)(/.*)?)',
   ],
 }
