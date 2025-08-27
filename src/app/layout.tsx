@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { TrackingProvider } from '@/components/TrackingProvider'
 import Navigation from '@/components/Navigation'
+import { StripSkipGuard } from '@/components/StripSkipGuard'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -21,6 +22,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <TrackingProvider>
           <Navigation />
+          <StripSkipGuard />
           {children}
         </TrackingProvider>
       </body>
