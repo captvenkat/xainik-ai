@@ -205,6 +205,21 @@ export const tracking = {
     })
   },
   
+  // Share actions
+  shareClicked: async (pitchId: string, referralId?: string, parentReferralId?: string, platform?: string) => {
+    const userId = await getPitchOwnerId(pitchId)
+    if (!userId) return { success: false, error: 'Could not determine pitch owner' }
+    
+    return trackEvent({ 
+      eventType: 'SHARE_RESHARED', 
+      pitchId, // Central tracking entity
+      userId, // Central source of truth
+      referralId, 
+      parentReferralId, 
+      platform 
+    })
+  },
+  
   // Sharing
   shareReshared: async (pitchId: string, referralId?: string, parentReferralId?: string, platform?: string) => {
     const userId = await getPitchOwnerId(pitchId)
@@ -270,9 +285,14 @@ export const tracking = {
 export function enableAutoTracking() {
   // Track all pitch views automatically
   const trackPitchViews = async () => {
-    const pitchId = window.location.pathname.match(/\/pitch\/([^\/]+)/)?.[1]
+    const pitchId = window.location.pathname.match(/\/pitch\/([^\/]+)(?:\/|$)/)?.[1]
     const referralId = new URLSearchParams(window.location.search).get('ref')
     const parentReferralId = new URLSearchParams(window.location.search).get('parent')
+    
+    // Skip tracking for special routes like /pitch/new, /pitch/edit, etc.
+    if (pitchId && ['new', 'edit', 'create'].includes(pitchId)) {
+      return
+    }
     
     if (pitchId) {
       await tracking.pitchViewed(pitchId, referralId || undefined, parentReferralId || undefined, 'web')
@@ -282,11 +302,12 @@ export function enableAutoTracking() {
   // Track contact button clicks
   const trackContactClicks = async (event: Event) => {
     const target = event.target as HTMLElement
-    const pitchId = window.location.pathname.match(/\/pitch\/([^\/]+)/)?.[1]
+    const pitchId = window.location.pathname.match(/\/pitch\/([^\/]+)(?:\/|$)/)?.[1]
     const referralId = new URLSearchParams(window.location.search).get('ref')
     const parentReferralId = new URLSearchParams(window.location.search).get('parent')
     
-    if (!pitchId) return
+    // Skip tracking for special routes like /pitch/new, /pitch/edit, etc.
+    if (!pitchId || ['new', 'edit', 'create'].includes(pitchId)) return
     
     if (target.closest('[data-track="call"]') || target.closest('[data-track="phone"]')) {
       await tracking.callClicked(pitchId, referralId || undefined, parentReferralId || undefined, 'web')
@@ -327,11 +348,12 @@ export function enableRealTimeTracking() {
     if (scrollPercent > maxScrollDepth) {
       maxScrollDepth = scrollPercent
       
-      const pitchId = window.location.pathname.match(/\/pitch\/([^\/]+)/)?.[1]
+      const pitchId = window.location.pathname.match(/\/pitch\/([^\/]+)(?:\/|$)/)?.[1]
       const referralId = new URLSearchParams(window.location.search).get('ref')
       const parentReferralId = new URLSearchParams(window.location.search).get('parent')
       
-      if (pitchId) {
+      // Skip tracking for special routes like /pitch/new, /pitch/edit, etc.
+      if (pitchId && !['new', 'edit', 'create'].includes(pitchId)) {
         // Track significant scroll milestones
         if (maxScrollDepth >= 25 && maxScrollDepth < 50) {
           await tracking.custom('SCROLL_25_PERCENT', pitchId, referralId || undefined, parentReferralId || undefined, 'web', { scrollDepth: maxScrollDepth })
@@ -349,11 +371,12 @@ export function enableRealTimeTracking() {
   const trackTimeSpent = async () => {
     const timeSpent = Math.round((Date.now() - startTime) / 1000)
     
-    const pitchId = window.location.pathname.match(/\/pitch\/([^\/]+)/)?.[1]
+    const pitchId = window.location.pathname.match(/\/pitch\/([^\/]+)(?:\/|$)/)?.[1]
     const referralId = new URLSearchParams(window.location.search).get('ref')
     const parentReferralId = new URLSearchParams(window.location.search).get('parent')
     
-    if (pitchId) {
+    // Skip tracking for special routes like /pitch/new, /pitch/edit, etc.
+    if (pitchId && !['new', 'edit', 'create'].includes(pitchId)) {
       // Track time milestones
       if (timeSpent === 30) {
         await tracking.custom('TIME_30_SECONDS', pitchId, referralId || undefined, parentReferralId || undefined, 'web', { timeSpent })

@@ -202,7 +202,7 @@ export default function PhotoUpload({
         <input
           ref={fileInputRef}
           type="file"
-          accept="image/*"
+          accept="image/*,.pdf,.doc,.docx"
           onChange={handleFileSelect}
           className="hidden"
         />

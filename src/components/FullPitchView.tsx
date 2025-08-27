@@ -5,11 +5,13 @@ import {
   Shield, CheckCircle, MapPin, Calendar, Eye, Heart, TrendingUp, Users, 
   Phone, LinkIcon, FileText, Star, User, Zap, MessageSquare, 
   Target, Users as UsersIcon, Timer, MessageSquare as MessageSquareIcon,
-  Briefcase, Activity, Clock
+  Briefcase, Activity, Clock, Share2, BookOpen
 } from 'lucide-react'
 import Link from 'next/link'
 import ResumeRequestModal from '@/components/ResumeRequestModal'
 import { tracking } from '@/lib/tracking'
+import SimpleShareModal from './SimpleShareModal'
+import type { StoryPublic } from '../types/xainik'
 
 import type { FullPitchData } from '@/types/domain'
 
@@ -116,6 +118,7 @@ export default function FullPitchView({
   isCommunityVerified 
 }: FullPitchViewProps) {
   const [showResumeModal, setShowResumeModal] = useState(false)
+  const [showShareModal, setShowShareModal] = useState(false)
   const [photoBlobUrl, setPhotoBlobUrl] = useState<string | null>(null)
   const [hasTrackedView, setHasTrackedView] = useState(false)
   
@@ -141,7 +144,7 @@ export default function FullPitchView({
           body: JSON.stringify({
             eventType: 'PITCH_VIEWED',
             pitchId: pitch.id,
-            userId: pitch.user?.id, // Central source of truth
+            userId: pitch.user?.id, // Use pitch.user.id from the user object
             referralId: referralId || undefined,
             parentReferralId: parentReferralId || undefined,
             platform: 'web',
@@ -496,6 +499,9 @@ export default function FullPitchView({
                 </div>
               </div>
             )}
+
+            {/* Stories Section */}
+            <StoriesSection pitchId={id} />
           </div>
 
           {/* Sidebar - 1/3 width */}
@@ -611,41 +617,50 @@ export default function FullPitchView({
               </div>
               
               {/* Contact Actions */}
-              {(phone || linkedin_url) && (
-                <div className="mt-6 pt-4 border-t border-gray-100">
-                  <h4 className="text-sm font-medium text-gray-700 mb-3">Contact Options</h4>
-                  <div className="flex flex-col gap-2">
-                    {phone && (
-                      <button
-                        data-track="phone"
-                        onClick={() => {
-                          window.open(`tel:${phone}`, '_blank');
-                          tracking.phoneClicked(pitch.id, 'web');
-                        }}
-                        className="flex items-center justify-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm font-medium"
-                      >
-                        <Phone className="h-4 w-4" />
-                        Call
-                      </button>
-                    )}
-                                        {linkedin_url && (
-                      <a 
-                        href={linkedin_url} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        data-track="linkedin"
-                        onClick={() => {
-                          tracking.linkedinClicked(pitch.id, 'web');
-                        }}
-                        className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-                      >
-                        <LinkIcon className="h-4 w-4" />
-                        LinkedIn
-                      </a>
-                    )}
-                  </div>
+              <div className="mt-6 pt-4 border-t border-gray-100">
+                <h4 className="text-sm font-medium text-gray-700 mb-3">Actions</h4>
+                <div className="flex flex-col gap-2">
+                  {/* Share Button */}
+                  <button
+                    onClick={() => setShowShareModal(true)}
+                    className="flex items-center justify-center gap-2 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors text-sm font-medium"
+                  >
+                    <Share2 className="h-4 w-4" />
+                    Share Pitch
+                  </button>
+                  
+                  {/* Contact Options */}
+                  {phone && (
+                    <button
+                      data-track="phone"
+                      onClick={() => {
+                        window.open(`tel:${phone}`, '_blank');
+                        tracking.phoneClicked(pitch.id, 'web');
+                      }}
+                      className="flex items-center justify-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm font-medium"
+                    >
+                      <Phone className="h-4 w-4" />
+                      Call
+                    </button>
+                  )}
+                  
+                  {linkedin_url && (
+                    <a 
+                      href={linkedin_url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      data-track="linkedin"
+                      onClick={() => {
+                        tracking.linkedinClicked(pitch.id, 'web');
+                      }}
+                      className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                    >
+                      <LinkIcon className="h-4 w-4" />
+                      LinkedIn
+                    </a>
+                  )}
                 </div>
-              )}
+              </div>
 
               {/* Resume Request Button */}
               {resume_url && resume_share_enabled && (
@@ -732,6 +747,98 @@ export default function FullPitchView({
         pitchId={id}
         currentUserId={user?.id}
       />
+
+      {/* Simple Share Modal */}
+      <SimpleShareModal
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        pitchId={pitch.id}
+        pitchTitle={title}
+        veteranName={pitch.user?.name || 'Veteran'}
+        userId={user?.id || ''}
+      />
+    </div>
+  )
+}
+
+// Stories Section Component
+function StoriesSection({ pitchId }: { pitchId: string }) {
+  const [stories, setStories] = useState<StoryPublic[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    loadStories()
+  }, [pitchId])
+
+  const loadStories = async () => {
+    try {
+      const response = await fetch(`/api/xainik/stories/${pitchId}/by-pitch`)
+      if (response.ok) {
+        const data = await response.json()
+        setStories(data.published || [])
+      }
+    } catch (error) {
+      console.error('Error loading stories:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm">
+        <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+          <BookOpen className="h-5 w-5 text-indigo-500" />
+          More About Me
+        </h3>
+        <div className="animate-pulse space-y-4">
+          {[...Array(2)].map((_, i) => (
+            <div key={i} className="bg-gray-100 rounded-lg p-4">
+              <div className="h-4 bg-gray-200 rounded mb-2"></div>
+              <div className="h-3 bg-gray-200 rounded w-3/4"></div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  if (stories.length === 0) {
+    return null
+  }
+
+  return (
+    <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm">
+      <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+        <BookOpen className="h-5 w-5 text-indigo-500" />
+        More About Me ({stories.length})
+      </h3>
+      <div className="space-y-4">
+        {stories.map((story) => (
+          <div key={story.id} className="bg-gray-50 rounded-2xl p-4 hover:bg-gray-100 transition-colors">
+            <div className="flex items-start justify-between mb-3">
+              <h4 className="font-medium text-gray-900 text-lg leading-tight">
+                {story.title}
+              </h4>
+              <div className="flex items-center gap-1 text-xs text-gray-500">
+                <Calendar className="w-3 h-3" />
+                {story.published_at && new Date(story.published_at).toLocaleDateString()}
+              </div>
+            </div>
+            <p className="text-gray-700 text-sm leading-relaxed mb-3">
+              {story.summary}
+            </p>
+            <div className="flex gap-2">
+              <Link
+                href={`/pitch/${pitchId}/${story.slug}`}
+                className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+              >
+                Read Full Story →
+              </Link>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }

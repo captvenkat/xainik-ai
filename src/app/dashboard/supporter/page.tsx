@@ -16,7 +16,7 @@ import {
 import MissionInvitationModal from '@/components/mission/MissionInvitationModal'
 // import MissionInvitationAnalytics from '@/components/mission/MissionInvitationAnalytics'
 import CommunitySuggestions from '@/components/community/CommunitySuggestions'
-import SupporterShareModal from '@/components/SupporterShareModal'
+import SimpleShareModal from '@/components/SimpleShareModal'
 // import VeteransSupporting from '@/components/supporter/VeteransSupporting'
 // import ConnectedPitches from '@/components/supporter/ConnectedPitches'
 // import FOMOTicker from '@/components/analytics/FOMOTicker'
@@ -659,22 +659,18 @@ export default function SupporterDashboard() {
         />
       )}
 
-      {/* Supporter Share Modal */}
+      {/* Simple Share Modal */}
       {showShareModal && selectedVeteranForShare && (
-        <SupporterShareModal
+        <SimpleShareModal
           isOpen={showShareModal}
           onClose={() => {
             setShowShareModal(false)
             setSelectedVeteranForShare(null)
           }}
-          supporterId={user?.id || ''}
           pitchId={selectedVeteranForShare.id}
           pitchTitle={selectedVeteranForShare.pitchTitle}
           veteranName={selectedVeteranForShare.name}
-          veteranSkills={['Leadership', 'Team Management', 'Strategic Planning']}
-          veteranLocation="India"
-          veteranJobType="Professional"
-          veteranAvailability="Immediate"
+          userId={user?.id || ''}
         />
       )}
     </div>

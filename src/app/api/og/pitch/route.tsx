@@ -1,14 +1,55 @@
 import { ImageResponse } from '@vercel/og'
-import { makeMockPitch } from '@/lib/mockData'
+import { createClient } from '@supabase/supabase-js'
 
 export const runtime = 'edge'
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
-    const id = searchParams.get('id') || '0'
+    const id = searchParams.get('id')
+    const title = searchParams.get('title') || 'Veteran Pitch'
+    const name = searchParams.get('name') || 'Veteran'
     
-    const mockPitch = makeMockPitch(parseInt(id))
+    if (!id) {
+      return new Response('Missing pitch ID', { status: 400 })
+    }
+
+    // Create Supabase client for edge runtime
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+
+    // Fetch real pitch data
+    const { data: pitch } = await supabase
+      .from('pitches')
+      .select(`
+        *,
+        users!pitches_user_id_fkey(
+          name,
+          avatar_url
+        )
+      `)
+      .eq('id', id)
+      .eq('is_active', true)
+      .single()
+
+    // Fetch veteran profile for military info
+    const { data: veteranProfile } = await supabase
+      .from('veterans')
+      .select('rank, service_branch, years_experience')
+      .eq('user_id', pitch?.user_id)
+      .single()
+
+    // Use real data or fallback to params
+    const pitchTitle = pitch?.title || title
+    const veteranName = pitch?.users?.name || name
+    const militaryInfo = veteranProfile ? 
+      `${veteranProfile.rank} ${veteranProfile.service_branch}` : 
+      'Military Veteran'
+    const experience = veteranProfile?.years_experience ? 
+      `${veteranProfile.years_experience} years` : 
+      'Experienced'
 
     return new ImageResponse(
       (
@@ -59,7 +100,7 @@ export async function GET(request: Request) {
                   marginBottom: '8px',
                 }}
               >
-                {mockPitch.name}
+                {veteranName}
               </div>
               <div
                 style={{
@@ -67,7 +108,7 @@ export async function GET(request: Request) {
                   color: '#64748b',
                 }}
               >
-                {mockPitch.service} • {mockPitch.city}
+                {militaryInfo} • {experience}
               </div>
             </div>
           </div>
@@ -93,7 +134,7 @@ export async function GET(request: Request) {
                 textAlign: 'center',
               }}
             >
-              Target Role: {mockPitch.targetRoles[0]}
+              {pitchTitle}
             </div>
             <div
               style={{
@@ -102,7 +143,7 @@ export async function GET(request: Request) {
                 textAlign: 'center',
               }}
             >
-              {mockPitch.endorsements} endorsements
+              Looking for opportunities
             </div>
           </div>
 
@@ -122,7 +163,7 @@ export async function GET(request: Request) {
                   color: '#3b82f6',
                 }}
               >
-                {mockPitch.stats.opens}
+                {pitch?.stats?.opens || 0}
               </div>
               <div
                 style={{
@@ -141,7 +182,7 @@ export async function GET(request: Request) {
                   color: '#10b981',
                 }}
               >
-                {mockPitch.stats.clicks}
+                {pitch?.stats?.clicks || 0}
               </div>
               <div
                 style={{
@@ -160,7 +201,7 @@ export async function GET(request: Request) {
                   color: '#f59e0b',
                 }}
               >
-                {mockPitch.stats.callsWeek}
+                {pitch?.stats?.callsWeek || 0}
               </div>
               <div
                 style={{

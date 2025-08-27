@@ -4,8 +4,111 @@ import { getVeteranEndorsements, isCommunityVerified } from '@/lib/actions/endor
 import { cookies, headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { toFullPitchData } from '@/lib/mappers/pitches'
+import { Metadata } from 'next'
 
 export const revalidate = 30
+
+// Generate metadata for SEO and social sharing
+export async function generateMetadata({ 
+  params 
+}: { 
+  params: Promise<{ id: string }> 
+}): Promise<Metadata> {
+  const { id } = await params
+  const supabase = createSupabaseServerOnly()
+  const supabaseClient = await supabase
+  
+  // Fetch pitch data for metadata
+  const { data: pitch } = await supabaseClient
+    .from('pitches')
+    .select(`
+      *,
+      users!pitches_user_id_fkey(
+        id,
+        name,
+        email,
+        avatar_url,
+        role,
+        phone,
+        metadata
+      )
+    `)
+    .eq('id', id)
+    .eq('is_active', true)
+    .single()
+
+  if (!pitch) {
+    return {
+      title: 'Pitch Not Found - Xainik',
+      description: 'This veteran pitch could not be found.'
+    }
+  }
+
+  const veteranName = pitch.users?.name || 'Veteran'
+  const pitchTitle = pitch.title || 'Veteran Pitch'
+  const pitchDescription = pitch.description || `Check out ${veteranName}'s professional pitch on Xainik`
+  
+  // Get military data for richer description
+  const { data: veteranProfile } = await supabaseClient
+    .from('veterans')
+    .select('rank, service_branch, years_experience')
+    .eq('user_id', pitch.user_id)
+    .single()
+
+  const militaryInfo = veteranProfile ? 
+    `${veteranProfile.rank} ${veteranProfile.service_branch} veteran with ${veteranProfile.years_experience} years experience` : 
+    'Military veteran'
+
+  const fullDescription = `${militaryInfo} looking for opportunities. ${pitchDescription}`
+
+  // Generate OG image URL
+  const ogImageUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://xainik.com'}/api/og/pitch?id=${id}&title=${encodeURIComponent(pitchTitle)}&name=${encodeURIComponent(veteranName)}`
+
+  return {
+    title: `${pitchTitle} by ${veteranName} - Xainik`,
+    description: fullDescription,
+    keywords: ['veteran', 'military', 'job', 'career', 'opportunity', 'pitch', 'referral'],
+    authors: [{ name: veteranName }],
+    openGraph: {
+      title: `${pitchTitle} by ${veteranName}`,
+      description: fullDescription,
+      url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://xainik.com'}/pitch/${id}`,
+      siteName: 'Xainik - Veteran Success Foundation',
+      images: [
+        {
+          url: ogImageUrl,
+          width: 1200,
+          height: 630,
+          alt: `${pitchTitle} by ${veteranName}`,
+        },
+      ],
+      locale: 'en_US',
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${pitchTitle} by ${veteranName}`,
+      description: fullDescription,
+      images: [ogImageUrl],
+      creator: '@xainik',
+      site: '@xainik',
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        'max-video-preview': -1,
+        'max-image-preview': 'large',
+        'max-snippet': -1,
+      },
+    },
+    alternates: {
+      canonical: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://xainik.com'}/pitch/${id}`,
+    },
+  }
+}
 
 async function fetchPitch(id: string) {
   const supabase = createSupabaseServerOnly()
@@ -198,11 +301,13 @@ export default async function PitchDetailPage({
   // The new system uses /api/track-event with user_id as central source of truth
 
   return (
-    <FullPitchView 
-      pitch={fullPitchData} 
-      user={user} 
-      endorsements={endorsements}
-      isCommunityVerified={isVerified}
-    />
+    <div data-pitch-id={id} data-user-id={pitch.user_id}>
+      <FullPitchView 
+        pitch={fullPitchData} 
+        user={user} 
+        endorsements={endorsements}
+        isCommunityVerified={isVerified}
+      />
+    </div>
   )
 }

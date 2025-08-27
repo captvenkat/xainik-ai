@@ -207,7 +207,7 @@ function EmptyState({ searchParams }: { searchParams: any }) {
           </a>
         )}
         <a
-          href="/pitch/new/ai-first"
+                          href="/pitch/new"
           className="inline-flex items-center px-4 py-2 bg-gradient-primary text-white rounded-lg font-medium hover:opacity-90 transition-opacity"
         >
           Create Your Pitch

@@ -35,7 +35,8 @@
     "apply-complete-rls-fix": "node scripts/apply-complete-rls-fix.js",
     "check-column-names": "node scripts/check-column-names.js",
     "check-actual-schema": "node scripts/check-actual-schema.js",
-    "create-existing-user": "node scripts/create-existing-user.js"
+    "create-existing-user": "node scripts/create-existing-user.js",
+    "verify:magic": "ts-node --compiler-options '{\"module\":\"commonjs\"}' scripts/verify_magic_mode.ts"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.7",

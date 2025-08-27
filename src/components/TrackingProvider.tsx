@@ -14,33 +14,48 @@ export function TrackingProvider({ children }: TrackingProviderProps) {
     enableRealTimeTracking()
     
     // Add pixel tracking for all page views
-    const trackPageView = () => {
-      const pitchId = window.location.pathname.match(/\/pitch\/([^\/]+)/)?.[1]
+    const trackPageView = async () => {
+      const pitchId = window.location.pathname.match(/\/pitch\/([^\/]+)(?:\/|$)/)?.[1]
+      // Skip tracking for special routes like /pitch/new, /pitch/edit, etc.
+      if (pitchId && ['new', 'edit', 'create'].includes(pitchId)) {
+        return
+      }
       const referralId = new URLSearchParams(window.location.search).get('ref')
       
       if (pitchId) {
-        // Create pixel tracking URL
-        const params = new URLSearchParams({
-          event: 'PITCH_VIEWED',
-          pitch: pitchId,
-          ...(referralId && { ref: referralId }),
-          platform: 'web'
-        })
-        
-        const pixelUrl = `/api/track-event?${params}`
-        
-        // Create invisible image for pixel tracking
-        const img = new Image()
-        img.src = pixelUrl
-        img.style.display = 'none'
-        document.body.appendChild(img)
-        
-        // Clean up after tracking
-        setTimeout(() => {
-          if (img.parentNode) {
-            img.parentNode.removeChild(img)
+        try {
+          // Get pitch owner user ID from the page data
+          const pitchElement = document.querySelector('[data-pitch-id]')
+          const userId = pitchElement?.getAttribute('data-user-id')
+          
+          if (userId) {
+            // Create pixel tracking URL with user ID
+            const params = new URLSearchParams({
+              event: 'PITCH_VIEWED',
+              pitch: pitchId,
+              user: userId,
+              ...(referralId && { ref: referralId }),
+              platform: 'web'
+            })
+            
+            const pixelUrl = `/api/track-event?${params}`
+            
+            // Create invisible image for pixel tracking
+            const img = new Image()
+            img.src = pixelUrl
+            img.style.display = 'none'
+            document.body.appendChild(img)
+            
+            // Clean up after tracking
+            setTimeout(() => {
+              if (img.parentNode) {
+                img.parentNode.removeChild(img)
+              }
+            }, 1000)
           }
-        }, 1000)
+        } catch (error) {
+          console.error('Error in pixel tracking:', error)
+        }
       }
     }
 

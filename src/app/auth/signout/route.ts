@@ -19,7 +19,12 @@ export async function POST() {
     }
   )
   await supabase.auth.signOut()
-  // Expire the profile cookie
-  await cookieStore.set('x-prof', '', { path: '/', maxAge: 0, httpOnly: true })
-  return NextResponse.redirect(new URL('/auth', process.env.NEXT_PUBLIC_SITE_URL))
+  
+  // Create response with redirect
+  const response = NextResponse.redirect(new URL('/auth', process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'))
+  
+  // Expire the profile cookie in the response
+  response.cookies.set('x-prof', '', { path: '/', maxAge: 0, httpOnly: true })
+  
+  return response
 }

@@ -154,7 +154,7 @@ async function updateAttributionChain(supabase: any, referralId: string, pitchId
 
     // Get original referral (first in chain)
     let originalReferralId = referralId
-    let originalSupporterId = referral.supporter_id
+    let originalSupporterId = referral.user_id
 
     if (referral.parent_referral_id) {
       const { data: parentReferral } = await supabase
@@ -165,7 +165,7 @@ async function updateAttributionChain(supabase: any, referralId: string, pitchId
 
       if (parentReferral) {
         originalReferralId = parentReferral.id
-        originalSupporterId = parentReferral.supporter_id
+        originalSupporterId = parentReferral.user_id
       }
     }
 
@@ -194,13 +194,13 @@ async function updateSupporterPerformance(supabase: any, referralId: string, pit
     // Get referral info to find supporter
     const { data: referral } = await supabase
       .from('referrals')
-      .select('supporter_id, original_supporter_id')
+      .select('user_id, original_supporter_id')
       .eq('id', referralId)
       .single()
 
     if (!referral) return
 
-    const supporterId = referral.original_supporter_id || referral.supporter_id
+    const supporterId = referral.original_supporter_id || referral.user_id
     if (!supporterId) return
 
     // Insert or update supporter performance
@@ -250,7 +250,6 @@ export async function GET(request: NextRequest) {
             .insert({
               user_id: userId, // Central source of truth
               pitch_id: pitchId, // Central tracking entity
-              supporter_id: null,
               share_link: `chain-${pitchId}-${Date.now()}`,
               platform: platform,
               parent_referral_id: parentReferralId,
@@ -278,7 +277,6 @@ export async function GET(request: NextRequest) {
               .insert({
                 user_id: userId, // Central source of truth
                 pitch_id: pitchId, // Central tracking entity
-                supporter_id: null,
                 share_link: `direct-${pitchId}-${Date.now()}`,
                 platform: 'direct',
                 source_type: 'direct'
