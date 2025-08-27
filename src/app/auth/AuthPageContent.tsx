@@ -1,13 +1,13 @@
 'use client'
 import React, { useCallback, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
 
 type Role = 'veteran' | 'supporter' | 'recruiter'
 
 export default function AuthPageContent({ roleHint }: { roleHint?: string }) {
   const params = useSearchParams()
-  const supabase = createClientComponentClient()
+  const supabase = createSupabaseBrowser()
   const [pendingRole, setPendingRole] = useState<Role | null>(null)
 
   const redirectTo = params.get('redirect') ?? '/dashboard'
