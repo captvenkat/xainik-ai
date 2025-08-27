@@ -61,6 +61,7 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next()
   }
 
+  // Only apply auth logic to protected paths
   const isProtected = PROTECTED_PREFIXES.some((p) => path.startsWith(p))
   if (!isProtected) return NextResponse.next()
 
