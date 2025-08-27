@@ -11,6 +11,9 @@ const PROTECTED_PREFIXES = ['/dashboard', '/pitch', '/role-selection']
 export async function middleware(req: NextRequest) {
   const url = req.nextUrl
   const path = url.pathname
+  
+  // Debug logging for production
+  console.log(`[MIDDLEWARE] Path: ${path}, Environment: ${process.env.NODE_ENV}`)
 
   // Apply rate limiting to API endpoints
   if (path.startsWith('/api/')) {
@@ -49,15 +52,18 @@ export async function middleware(req: NextRequest) {
   }
 
   // Allow all static and public paths
-  if (
-    PUBLIC_PATHS.some(p => path === p) ||
+  const isPublicPath = PUBLIC_PATHS.some(p => path === p) ||
     path.startsWith('/_next') ||
     path.startsWith('/api/') ||
     path.startsWith('/images') ||
     path.startsWith('/favicon') ||
     path.startsWith('/robots') ||
     path.startsWith('/sitemap')
-  ) {
+    
+  console.log(`[MIDDLEWARE] IsPublic: ${isPublicPath}, Path: ${path}`)
+  
+  if (isPublicPath) {
+    console.log(`[MIDDLEWARE] Allowing public path: ${path}`)
     return NextResponse.next()
   }
 
