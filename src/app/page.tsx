@@ -84,10 +84,10 @@ export default function HomePage() {
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <Link 
-                  href="/waitlist" 
+                  href="/auth" 
                   className="btn-primary inline-flex items-center gap-2 px-8 py-4 text-lg font-semibold"
                 >
-                  Join the Waitlist
+                  Join as Veteran
                   <ArrowRight className="w-5 h-5" />
                 </Link>
                 <p className="text-sm text-gray-600 mt-2 lg:mt-0 lg:ml-4 lg:self-center">
@@ -212,8 +212,8 @@ export default function HomePage() {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/waitlist" className="btn-primary text-lg inline-flex items-center gap-2 px-10 py-4">
-              Join the Waitlist
+            <Link href="/auth" className="btn-primary text-lg inline-flex items-center gap-2 px-10 py-4">
+              Join as Veteran
               <ArrowRight className="h-5 w-5" />
             </Link>
           </div>

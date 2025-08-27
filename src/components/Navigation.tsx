@@ -169,9 +169,7 @@ export default function Navigation() {
             <Link href="/contact" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
               Contact
             </Link>
-            <Link href="/waitlist" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
-              Waitlist
-            </Link>
+            
             {process.env.NEXT_PUBLIC_FEATURE_IMPACT === 'true' && profile?.role === 'veteran' && (
               <Link href="/dashboard/veteran/impact" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
                 Impact
@@ -276,11 +274,11 @@ export default function Navigation() {
                 Contact
               </Link>
               <Link 
-                href="/waitlist" 
+                href="/auth" 
                 className="text-gray-700 hover:text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 transition-all duration-200"
                 onClick={() => setIsMenuOpen(false)}
               >
-                Waitlist
+                Join as Veteran
               </Link>
               {profile?.role === 'veteran' && (
                 <Link 

@@ -19,7 +19,7 @@ interface ServicePlan {
 
 const servicePlans: ServicePlan[] = [
   {
-    id: 'waitlist',
+    id: 'veteran-access',
     name: 'Privileged Access',
     description: 'First 50 veterans get exclusive access',
     price: 0,
@@ -52,18 +52,18 @@ export default function ServicePurchase({ userId }: { userId: string }) {
       setLoading(true)
       setError(null)
 
-      // Handle waitlist signup
-      if (plan.id === 'waitlist') {
-        // Redirect to waitlist signup page
-        window.location.href = '/waitlist'
+      // Handle veteran access
+      if (plan.id === 'veteran-access') {
+        // Redirect to auth page
+        window.location.href = '/auth'
         return
       }
 
       // This should not be reached for now, but keeping for future
       setError('Invalid plan selection. Please try again.')
     } catch (error) {
-      console.error('Waitlist signup error:', error)
-      setError('Failed to join waitlist. Please try again.')
+      console.error('Veteran access error:', error)
+      setError('Failed to join platform. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -74,10 +74,10 @@ export default function ServicePurchase({ userId }: { userId: string }) {
       {/* Header */}
       <div className="text-center">
         <h2 className="text-3xl font-bold text-gray-900 mb-4">
-          Join the Exclusive Waitlist
+          Join the Platform
         </h2>
         <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-          First 50 veterans get privileged access to the complete platform. Join the waitlist now and be among the founding members.
+          First 50 veterans get privileged access to the complete platform. Join now and be among the founding members.
         </p>
       </div>
 
@@ -140,7 +140,7 @@ export default function ServicePurchase({ userId }: { userId: string }) {
               ) : (
                 <>
                   <CheckCircle className="h-4 w-4" />
-                  Join Waitlist
+                  Join Platform
                   <ArrowRight className="h-4 w-4" />
                 </>
               )}

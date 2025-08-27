@@ -163,7 +163,7 @@ export default function AuthPageContent({ roleHint }: { roleHint?: string }) {
               Military Veterans
             </h2>
             <p className="text-lg text-blue-700 mb-6">
-              Join our exclusive waitlist for priority access to personalized job referrals and career support.
+              Join our exclusive platform for priority access to personalized job referrals and career support.
             </p>
             <div className="space-y-3 mb-8 text-left max-w-sm mx-auto">
               <div className="flex items-center text-blue-800">
@@ -185,15 +185,16 @@ export default function AuthPageContent({ roleHint }: { roleHint?: string }) {
                 Community support network
               </div>
             </div>
-            <a 
-              href="/waitlist" 
-              className="inline-flex items-center px-8 py-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors text-lg"
+            <button
+              onClick={handleGoogle}
+              disabled={isLoading}
+              className="inline-flex items-center px-8 py-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors text-lg disabled:opacity-50"
             >
-              Join Veteran Waitlist
+              {isLoading ? 'Signing in...' : 'Join as Veteran'}
               <svg className="ml-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
               </svg>
-            </a>
+            </button>
           </div>
 
           {/* RIGHT SIDE - Supporters & Recruiters */}

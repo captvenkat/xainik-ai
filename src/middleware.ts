@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server'
 import { applyRateLimit } from './middleware/rateLimit'
 
 const PUBLIC_PATHS = [
-  '/', '/browse', '/pricing', '/donations', '/auth', '/auth/callback', '/auth/warmup', '/auth/signout', '/about', '/contact', '/terms', '/privacy', '/waitlist', '/test-simple', '/test-minimal', '/__health', '/__debug'
+  '/', '/browse', '/pricing', '/donations', '/auth', '/auth/callback', '/auth/warmup', '/auth/signout', '/about', '/contact', '/terms', '/privacy', '/test-simple', '/test-minimal', '/__health', '/__debug'
 ]
 
 const PROTECTED_PREFIXES = ['/dashboard', '/pitch', '/role-selection']
@@ -20,16 +20,7 @@ export async function middleware(req: NextRequest) {
       if (rateLimitResult) return rateLimitResult
     }
     
-    // Waitlist endpoints
-    if (path === '/api/waitlist/join') {
-      const rateLimitResult = applyRateLimit(req, 'waitlistJoin')
-      if (rateLimitResult) return rateLimitResult
-    }
-    
-    if (path === '/api/waitlist/share') {
-      const rateLimitResult = applyRateLimit(req, 'waitlistShare')
-      if (rateLimitResult) return rateLimitResult
-    }
+
     
     // Resume request endpoints
     if (path.startsWith('/api/resume/')) {
@@ -103,17 +94,9 @@ export async function middleware(req: NextRequest) {
     }
     const prof = JSON.parse(decodeBase64Url(profCookie))
     const role = prof?.role as 'veteran'|'supporter'|'recruiter'|undefined
-    const status = prof?.status as 'pending'|'approved'|'blocked'|undefined
     const onboarding_complete = !!prof?.onboarding_complete
 
-    // Waitlist gate (toggle with env) - temporarily disabled for debugging
-    const requireApproval = false // process.env.NEXT_PUBLIC_REQUIRE_APPROVAL !== 'false'
-    if (requireApproval && status !== 'approved' && path !== '/waitlist') {
-      url.pathname = '/waitlist'
-      const res = NextResponse.redirect(url)
-      res.headers.set('x-route-reason', 'not-approved')
-      return res
-    }
+    // Waitlist removed. No approval/status checks.
 
     // Role selection required
     if (!role && path !== '/role-selection') {
