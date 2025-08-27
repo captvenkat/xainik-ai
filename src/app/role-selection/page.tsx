@@ -1,5 +1,5 @@
 'use client'
-import React, { Suspense, useEffect, useMemo, useState } from 'react'
+import React, { Suspense, useEffect, useMemo, useState, useRef } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createSupabaseBrowser } from '@/lib/supabaseBrowser'
@@ -15,6 +15,8 @@ function RoleSelectionInner() {
   const [count, setCount] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [pendingRole, setPendingRole] = useState<'veteran'|'supporter'|'recruiter'|null>(null)
+  const firedRef = useRef(false)
   const slotsLeft = useMemo(() => count == null ? null : Math.max(0, CAP - count), [count])
   const veteranFull = useMemo(() => (count != null && count >= CAP), [count])
 
@@ -32,8 +34,14 @@ function RoleSelectionInner() {
     return () => { mounted = false }
   }, [supabase])
 
-  async function choose(role: 'veteran'|'supporter'|'recruiter') {
+  async function choose(role: 'veteran'|'supporter'|'recruiter', e?: React.MouseEvent<HTMLButtonElement>) {
+    e?.preventDefault()
+    e?.stopPropagation()
+    if (firedRef.current || pendingRole) return
+    firedRef.current = true
+    setPendingRole(role)
     setError(null)
+    
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
       router.push(`/auth?redirect=${encodeURIComponent('/role-selection')}`)
@@ -51,7 +59,11 @@ function RoleSelectionInner() {
         setTimeout(() => router.replace('/contact'), 800)
         return
       }
-      setError(msg); return
+      setError(msg)
+      // Reset state on error
+      firedRef.current = false
+      setPendingRole(null)
+      return
     }
     // Redirect directly to final destination based on role
     if (role === 'veteran') {
@@ -76,17 +88,32 @@ function RoleSelectionInner() {
         </div>
       )}
 
-      <div className="grid gap-3">
+      <div className="grid gap-3" onClickCapture={(e) => e.stopPropagation()}>
         <button
+          type="button"
           className="btn disabled:opacity-50"
-          onClick={() => choose('veteran')}
-          disabled={loading || veteranFull}
+          onClick={(e) => choose('veteran', e)}
+          disabled={loading || veteranFull || (!!pendingRole && pendingRole !== 'veteran')}
           title={veteranFull ? 'Registrations closed (cap reached)' : undefined}
         >
-          Veteran {loading ? '…' : veteranFull ? '(Full)' : ''}
+          {pendingRole === 'veteran' ? 'Redirecting…' : `Veteran ${loading ? '…' : veteranFull ? '(Full)' : ''}`}
         </button>
-        <button className="btn" onClick={() => choose('supporter')}>Supporter</button>
-        <button className="btn" onClick={() => choose('recruiter')}>Recruiter</button>
+        <button 
+          type="button"
+          className="btn" 
+          onClick={(e) => choose('supporter', e)}
+          disabled={!!pendingRole && pendingRole !== 'supporter'}
+        >
+          {pendingRole === 'supporter' ? 'Redirecting…' : 'Supporter'}
+        </button>
+        <button 
+          type="button"
+          className="btn" 
+          onClick={(e) => choose('recruiter', e)}
+          disabled={!!pendingRole && pendingRole !== 'recruiter'}
+        >
+          {pendingRole === 'recruiter' ? 'Redirecting…' : 'Recruiter'}
+        </button>
       </div>
     </div>
   )
