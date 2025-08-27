@@ -52,10 +52,15 @@ export default function AuthPageContent({ roleHint }: { roleHint?: string }) {
     checkAuth();
   }, [router, redirect, error]);
 
-  async function handleGoogle() {
+  async function handleGoogle(role?: string) {
     try {
       setIsLoading(true);
       setAuthError(null);
+
+      // Store the role hint in sessionStorage for after auth
+      if (role) {
+        sessionStorage.setItem('x-role-hint', role);
+      }
 
       // Add a timeout to prevent infinite spinning
       const timeoutId = setTimeout(() => {
@@ -176,7 +181,7 @@ export default function AuthPageContent({ roleHint }: { roleHint?: string }) {
               </div>
             </div>
             <button
-              onClick={handleGoogle}
+              onClick={() => handleGoogle('veteran')}
               disabled={isLoading}
               className="w-full inline-flex justify-center items-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
             >
@@ -221,13 +226,13 @@ export default function AuthPageContent({ roleHint }: { roleHint?: string }) {
               </div>
             </div>
             <button
-              onClick={handleGoogle}
+              onClick={() => handleGoogle('supporter')}
               disabled={isLoading}
               className="w-full inline-flex justify-center items-center px-6 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
             >
               {isLoading ? 'Signing in...' : 'Join as Supporter'}
               <svg className="ml-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m4-4H3" />
               </svg>
             </button>
           </div>
@@ -266,7 +271,7 @@ export default function AuthPageContent({ roleHint }: { roleHint?: string }) {
               </div>
             </div>
             <button
-              onClick={handleGoogle}
+              onClick={() => handleGoogle('recruiter')}
               disabled={isLoading}
               className="w-full inline-flex justify-center items-center px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50"
             >
@@ -283,7 +288,7 @@ export default function AuthPageContent({ roleHint }: { roleHint?: string }) {
           <p className="text-sm text-gray-600">
             Already have an account?{' '}
             <button
-              onClick={handleGoogle}
+              onClick={() => handleGoogle()}
               disabled={isLoading}
               className="text-blue-600 hover:text-blue-800 underline font-medium"
             >
