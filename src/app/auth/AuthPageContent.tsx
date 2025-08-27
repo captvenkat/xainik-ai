@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useCallback, useRef, useState } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { createSupabaseBrowser } from '@/lib/supabaseBrowser';
 
@@ -19,7 +19,6 @@ export default function AuthPageContent({ roleHint }: { roleHint?: string }) {
 
   type Role = 'veteran'|'supporter'|'recruiter';
   const [pendingRole, setPendingRole] = useState<Role | null>(null);
-  const firedRef = useRef(false); // absolute single-fire guard
 
   useEffect(() => {
     // Check if user is already authenticated
@@ -54,8 +53,14 @@ export default function AuthPageContent({ roleHint }: { roleHint?: string }) {
   const joinWithRole = useCallback(async (role: Role, e?: React.MouseEvent<HTMLButtonElement>) => {
     e?.preventDefault();
     e?.stopPropagation();
-    if (firedRef.current || pendingRole) return;
-    firedRef.current = true;
+    
+    // Simple check - if already processing, don't do anything
+    if (pendingRole) {
+      console.log('Already processing role:', pendingRole);
+      return;
+    }
+    
+    console.log('Starting OAuth for role:', role);
     setPendingRole(role);
     
     try {
@@ -74,7 +79,6 @@ export default function AuthPageContent({ roleHint }: { roleHint?: string }) {
       console.error('Google sign-in error:', error);
       setAuthError(error instanceof Error ? error.message : 'Google sign-in failed');
       // Reset state on error
-      firedRef.current = false;
       setPendingRole(null);
     }
   }, [pendingRole, redirect, site, supabase]);
@@ -210,7 +214,7 @@ export default function AuthPageContent({ roleHint }: { roleHint?: string }) {
             <button
               type="button"
               onClick={(e) => joinWithRole('veteran', e)}
-              disabled={!!pendingRole && pendingRole !== 'veteran'}
+              disabled={!!pendingRole}
               className="w-full inline-flex justify-center items-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
             >
               {pendingRole === 'veteran' ? 'Redirecting…' : 'Join as Veteran'}
@@ -256,7 +260,7 @@ export default function AuthPageContent({ roleHint }: { roleHint?: string }) {
             <button
               type="button"
               onClick={(e) => joinWithRole('supporter', e)}
-              disabled={!!pendingRole && pendingRole !== 'supporter'}
+              disabled={!!pendingRole}
               className="w-full inline-flex justify-center items-center px-6 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
             >
               {pendingRole === 'supporter' ? 'Redirecting…' : 'Join as Supporter'}
@@ -302,7 +306,7 @@ export default function AuthPageContent({ roleHint }: { roleHint?: string }) {
             <button
               type="button"
               onClick={(e) => joinWithRole('recruiter', e)}
-              disabled={!!pendingRole && pendingRole !== 'recruiter'}
+              disabled={!!pendingRole}
               className="w-full inline-flex justify-center items-center px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50"
             >
               {pendingRole === 'recruiter' ? 'Redirecting…' : 'Join as Recruiter'}
