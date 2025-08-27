@@ -8,7 +8,7 @@ import AuthPageContent from './AuthPageContent'
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
-export default async function AuthPage({ searchParams }: { searchParams: { redirect?: string, role?: string } }) {
+export default async function AuthPage({ searchParams }: { searchParams: Promise<{ redirect?: string, role?: string }> }) {
   const cookieStore = cookies()
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -22,14 +22,15 @@ export default async function AuthPage({ searchParams }: { searchParams: { redir
     }
   )
 
+  const params = await searchParams
   const { data: { user } } = await supabase.auth.getUser()
   if (user) {
-    redirect(`/auth/warmup?redirect=${encodeURIComponent(searchParams.redirect ?? '/dashboard')}`)
+    redirect(`/auth/warmup?redirect=${encodeURIComponent(params.redirect ?? '/dashboard')}`)
   }
 
   // Optional: role hint
-  if (searchParams.role === 'veteran' || searchParams.role === 'supporter' || searchParams.role === 'recruiter') {
-    cookies().set('x-role-hint', searchParams.role, { httpOnly: false, maxAge: 300, path: '/' })
+  if (params.role === 'veteran' || params.role === 'supporter' || params.role === 'recruiter') {
+    cookies().set('x-role-hint', params.role, { httpOnly: false, maxAge: 300, path: '/' })
   }
 
   // Fetch current veteran count for banner
@@ -59,7 +60,7 @@ export default async function AuthPage({ searchParams }: { searchParams: { redir
           {full && <> {' '}Registrations are closed. <Link href="/contact" className="underline">Contact us</Link>.</>}
         </div>
 
-        <AuthPageContent roleHint={searchParams.role} />
+        <AuthPageContent roleHint={params.role} />
       </div>
     </div>
   )
