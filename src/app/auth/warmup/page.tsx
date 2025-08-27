@@ -35,29 +35,58 @@ export default async function Warmup({ searchParams }: { searchParams: Promise<{
     .eq('id', user.id)
     .single()
 
-  // If role not yet set, and we have a hint, try to assign it server-side
-  const hint = cookieStore.get('x-role-hint')?.value as 'veteran'|'supporter'|'recruiter'|undefined
-  if (!profile?.role && hint && ['veteran','supporter','recruiter'].includes(hint)) {
-    const { error: updErr } = await supabase
-      .from('profiles')
-      .update({ role: hint, onboarding_complete: hint === 'veteran' ? false : true })
-      .eq('id', user.id)
-    if (updErr) {
-      // If DB trigger says cap reached, send gently to /contact
-      if (/cap reached|closed/i.test(updErr.message)) {
-        // clear hint so we don't keep looping
-        cookieStore.set('x-role-hint', '', { path: '/', maxAge: 0 })
-        redirect('/contact')
-      }
-      // Otherwise, fall through; role will remain unset and middleware will send to /role-selection
-    } else {
-      // Re-read profile after update
-      const r = await supabase
+  // If profile doesn't exist, create it
+  if (selErr && selErr.code === 'PGRST116') {
+    // Profile doesn't exist, create it
+    const hint = cookieStore.get('x-role-hint')?.value as 'veteran'|'supporter'|'recruiter'|undefined
+    if (hint && ['veteran','supporter','recruiter'].includes(hint)) {
+      const { data: newProfile, error: createErr } = await supabase
         .from('profiles')
+        .insert({ 
+          id: user.id,
+          role: hint, 
+          onboarding_complete: hint === 'veteran' ? false : true 
+        })
         .select('role,onboarding_complete')
-        .eq('id', user.id)
         .single()
-      profile = r.data ?? profile
+      
+      if (createErr) {
+        // If DB trigger says cap reached, send gently to /contact
+        if (/cap reached|closed/i.test(createErr.message)) {
+          // clear hint so we don't keep looping
+          cookieStore.set('x-role-hint', '', { path: '/', maxAge: 0 })
+          redirect('/contact')
+        }
+        // Otherwise, fall through; role will remain unset and middleware will send to /role-selection
+      } else {
+        profile = newProfile
+      }
+    }
+  } else if (!profile?.role) {
+    // Profile exists but no role set, try to assign it
+    const hint = cookieStore.get('x-role-hint')?.value as 'veteran'|'supporter'|'recruiter'|undefined
+    if (hint && ['veteran','supporter','recruiter'].includes(hint)) {
+      const { error: updErr } = await supabase
+        .from('profiles')
+        .update({ role: hint, onboarding_complete: hint === 'veteran' ? false : true })
+        .eq('id', user.id)
+      if (updErr) {
+        // If DB trigger says cap reached, send gently to /contact
+        if (/cap reached|closed/i.test(updErr.message)) {
+          // clear hint so we don't keep looping
+          cookieStore.set('x-role-hint', '', { path: '/', maxAge: 0 })
+          redirect('/contact')
+        }
+        // Otherwise, fall through; role will remain unset and middleware will send to /role-selection
+      } else {
+        // Re-read profile after update
+        const r = await supabase
+          .from('profiles')
+          .select('role,onboarding_complete')
+          .eq('id', user.id)
+          .single()
+        profile = r.data ?? profile
+      }
     }
   }
 
