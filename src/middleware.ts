@@ -39,7 +39,7 @@ export async function middleware(req: NextRequest) {
     if (generalRateLimit) return generalRateLimit
   }
 
-  // Allow all static and public paths
+  // Allow all static and public paths - this should be the first check
   if (
     PUBLIC_PATHS.some(p => path === p) ||
     path.startsWith('/_next') ||
@@ -49,7 +49,9 @@ export async function middleware(req: NextRequest) {
     path.startsWith('/robots') ||
     path.startsWith('/sitemap')
   ) {
-    return NextResponse.next()
+    const response = NextResponse.next()
+    response.headers.set('x-middleware-public', 'true')
+    return response
   }
 
   // Only apply auth logic to protected paths
@@ -64,10 +66,6 @@ export async function middleware(req: NextRequest) {
   const refreshToken = req.cookies.get('sb-refresh-token')?.value
 
   if (!accessToken && !refreshToken) {
-    // Check if we're already on auth to prevent loops
-    if (path === '/auth') {
-      return NextResponse.next()
-    }
     url.pathname = '/auth'
     url.searchParams.set('redirect', path)
     const res = NextResponse.redirect(url)
@@ -78,10 +76,6 @@ export async function middleware(req: NextRequest) {
 
   const profCookie = req.cookies.get('x-prof')?.value
   if (!profCookie) {
-    // Check if we're already on warmup to prevent loops
-    if (path === '/auth/warmup') {
-      return NextResponse.next()
-    }
     url.pathname = '/auth/warmup'
     url.searchParams.set('redirect', path)
     const res = NextResponse.redirect(url)
