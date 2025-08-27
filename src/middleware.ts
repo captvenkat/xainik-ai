@@ -12,6 +12,9 @@ export async function middleware(req: NextRequest) {
   const url = req.nextUrl
   const path = url.pathname
 
+  // TEMPORARILY DISABLED FOR DEBUGGING
+  console.log('🔍 Middleware running on path:', path)
+  
   // Apply rate limiting to API endpoints
   if (path.startsWith('/api/')) {
     // Contact form - strict rate limiting
@@ -52,6 +55,7 @@ export async function middleware(req: NextRequest) {
     const response = NextResponse.next()
     response.headers.set('x-middleware-public', 'true')
     response.headers.set('x-middleware-path', path)
+    console.log('✅ Allowing public path:', path)
     return response
   }
 
@@ -60,13 +64,17 @@ export async function middleware(req: NextRequest) {
   if (!isProtected) {
     const response = NextResponse.next()
     response.headers.set('x-middleware-skip', 'true')
+    console.log('⏭️  Skipping non-protected path:', path)
     return response
   }
+
+  console.log('🔒 Processing protected path:', path)
 
   const accessToken = req.cookies.get('sb-access-token')?.value
   const refreshToken = req.cookies.get('sb-refresh-token')?.value
 
   if (!accessToken && !refreshToken) {
+    console.log('❌ No auth tokens, redirecting to /auth')
     url.pathname = '/auth'
     url.searchParams.set('redirect', path)
     const res = NextResponse.redirect(url)
@@ -77,6 +85,7 @@ export async function middleware(req: NextRequest) {
 
   const profCookie = req.cookies.get('x-prof')?.value
   if (!profCookie) {
+    console.log('❌ No profile cookie, redirecting to /auth/warmup')
     url.pathname = '/auth/warmup'
     url.searchParams.set('redirect', path)
     const res = NextResponse.redirect(url)
@@ -99,10 +108,13 @@ export async function middleware(req: NextRequest) {
     const role = prof?.role as 'veteran'|'supporter'|'recruiter'|undefined
     const onboarding_complete = !!prof?.onboarding_complete
 
+    console.log('👤 User profile:', { role, onboarding_complete })
+
     // Waitlist removed. No approval/status checks.
 
     // Role selection required
     if (!role && path !== '/role-selection') {
+      console.log('❌ No role, redirecting to /role-selection')
       url.pathname = '/role-selection'
       const res = NextResponse.redirect(url)
       res.headers.set('x-route-reason', 'need-role')
@@ -111,6 +123,7 @@ export async function middleware(req: NextRequest) {
 
     // Veteran first-run Magic Mode
     if (role === 'veteran' && !onboarding_complete && !path.startsWith('/pitch/new')) {
+      console.log('❌ Veteran needs onboarding, redirecting to /pitch/new')
       url.pathname = '/pitch/new'
       const res = NextResponse.redirect(url)
       res.headers.set('x-route-reason', 'need-onboarding')
@@ -119,17 +132,20 @@ export async function middleware(req: NextRequest) {
 
     // Role-based dashboard redirect from /dashboard
     if (path === '/dashboard') {
-      url.pathname =
-        role === 'veteran' ? '/dashboard/veteran' :
+      const targetPath = role === 'veteran' ? '/dashboard/veteran' :
         role === 'recruiter' ? '/dashboard/recruiter' :
         '/dashboard/supporter'
+      console.log('🔄 Redirecting /dashboard to:', targetPath)
+      url.pathname = targetPath
       const res = NextResponse.redirect(url)
       res.headers.set('x-route-reason', 'role-redirect')
       return res
     }
 
+    console.log('✅ Allowing access to:', path)
     return NextResponse.next()
   } catch {
+    console.log('❌ Bad profile cookie, redirecting to /auth/warmup')
     url.pathname = '/auth/warmup'
     url.searchParams.set('redirect', path)
     const res = NextResponse.redirect(url)
