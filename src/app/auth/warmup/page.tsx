@@ -83,13 +83,6 @@ export default async function Warmup({ searchParams }: { searchParams: Promise<{
     redirect('/pitch/new')
   }
 
-  // For supporters/recruiters, redirect to role-specific dashboard
-  if (profile.role === 'supporter') {
-    redirect('/dashboard/supporter')
-  } else if (profile.role === 'recruiter') {
-    redirect('/dashboard/recruiter')
-  } else {
-    // Veterans with completed onboarding
-    redirect('/dashboard/veteran')
-  }
+  // Redirect to /dashboard and let middleware handle role-based routing
+  redirect('/dashboard')
 }
