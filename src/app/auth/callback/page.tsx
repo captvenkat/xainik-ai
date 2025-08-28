@@ -116,22 +116,40 @@ export default function AuthCallbackPage() {
         console.log('AuthCallback: Session verified, checking user role...');
 
         // Check if user already has a role set in profiles table
-        const { data: existingProfile, error: profileError } = await supabase
+        let { data: existingProfile, error: profileError } = await supabase
           .from('profiles')
           .select('role, onboarding_complete')
           .eq('id', session.user.id)
           .single();
 
-        if (profileError) {
-          console.log('AuthCallback: User not found in profiles, they need to select a role');
-          // User doesn't exist in profiles, they need to select a role
-          setUserEmail(session.user.email || '');
-          setStatus('role-selection');
+        // If profile doesn't exist, create it
+        if (profileError && profileError.code === 'PGRST116') {
+          console.log('AuthCallback: Profile not found, creating new profile...');
           
-          // Clear any hash fragments from the URL
-          if (typeof window !== 'undefined') {
-            window.history.replaceState(null, '', window.location.pathname);
+          const { data: newProfile, error: createError } = await supabase
+            .from('profiles')
+            .insert({ 
+              id: session.user.id,
+              email: session.user.email,
+              status: 'pending'
+            })
+            .select('role, onboarding_complete')
+            .single();
+          
+          if (createError) {
+            console.error('AuthCallback: Failed to create profile:', createError);
+            setError('Failed to create user profile. Please try again.');
+            setStatus('error');
+            clearTimeout(timeoutId);
+            return;
           }
+          
+          existingProfile = newProfile;
+          profileError = null;
+        } else if (profileError) {
+          console.error('AuthCallback: Profile query error:', profileError);
+          setError('Failed to access user profile. Please try again.');
+          setStatus('error');
           clearTimeout(timeoutId);
           return;
         }
