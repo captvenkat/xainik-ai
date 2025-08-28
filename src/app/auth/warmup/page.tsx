@@ -93,12 +93,17 @@ export default async function Warmup({ searchParams }: { searchParams: Promise<{
   // Clear the hint (one-shot)
   cookieStore.set('x-role-hint', '', { path: '/', maxAge: 0 })
 
-  const payload = Buffer.from(JSON.stringify(profile ?? {})).toString('base64url')
+  // Set durable x-prof cookie (7 days to avoid flapping)
+  const payload = Buffer.from(JSON.stringify({
+    r: profile?.role,
+    oc: !!profile?.onboarding_complete
+  })).toString('base64')
+  
   cookieStore.set('x-prof', payload, {
     httpOnly: true,
     sameSite: 'lax',
     secure: process.env.NODE_ENV === 'production',
-    maxAge: 60,
+    maxAge: 60 * 60 * 24 * 7, // 7 days
     path: '/',
   })
 
@@ -112,6 +117,6 @@ export default async function Warmup({ searchParams }: { searchParams: Promise<{
     redirect('/pitch/new')
   }
 
-  // Redirect to /dashboard and let middleware handle role-based routing
-  redirect('/dashboard')
+  // IMPORTANT: Go directly to role dashboard to avoid second redirect hop
+  redirect(`/dashboard/${profile.role}`)
 }

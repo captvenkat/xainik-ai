@@ -86,9 +86,10 @@ export function middleware(req: NextRequest) {
   }
 
   try {
+    // Handle new cookie format: {r: role, oc: onboarding_complete}
     const prof = JSON.parse(decodeBase64Url(profCookie))
-    const role = prof?.role as 'veteran'|'supporter'|'recruiter'|undefined
-    const onboarding_complete = !!prof?.onboarding_complete
+    const role = prof?.r as 'veteran'|'supporter'|'recruiter'|undefined
+    const onboarding_complete = !!prof?.oc
 
     // Role selection required
     if (!role && path !== '/role-selection') {
@@ -106,7 +107,8 @@ export function middleware(req: NextRequest) {
       return res
     }
 
-    // Role-based dashboard redirect from /dashboard
+    // CRITICAL: Only redirect /dashboard to role-specific dashboard
+    // Never redirect role-specific dashboards back to /dashboard
     if (path === '/dashboard') {
       const nextPath =
         role === 'veteran' ? '/dashboard/veteran' :
@@ -118,6 +120,7 @@ export function middleware(req: NextRequest) {
       return res
     }
 
+    // Allow access to role-specific dashboards
     return NextResponse.next()
   } catch {
     // Bad or stale cookie → refresh via warmup with skip guard
