@@ -43,41 +43,13 @@ export default function AuthCallbackPage() {
       try {
         console.log('AuthCallback: Starting callback processing...');
         
-        // Check for OAuth tokens in URL (Google OAuth uses query params, not hash)
+        // Check for OAuth errors in URL (Google OAuth typically doesn't pass tokens in URL)
         const urlParams = new URLSearchParams(window.location.search);
-        const hash = window.location.hash.substring(1);
+        const error = urlParams.get('error');
         
         console.log('AuthCallback: URL params:', urlParams.toString());
-        console.log('AuthCallback: Hash fragment:', hash ? 'Present' : 'Missing');
-        
-        // Try to get tokens from URL params first (Google OAuth)
-        let accessToken = urlParams.get('access_token');
-        let refreshToken = urlParams.get('refresh_token');
-        let error = urlParams.get('error');
-        
-        // If not in URL params, try hash fragment (fallback)
-        if (!accessToken && hash) {
-          const hashParams = new URLSearchParams(hash);
-          accessToken = hashParams.get('access_token');
-          refreshToken = hashParams.get('refresh_token');
-          error = hashParams.get('error');
-        }
+        console.log('AuthCallback: Error param:', error);
 
-        console.log('AuthCallback: Tokens found:', { 
-          accessToken: !!accessToken, 
-          refreshToken: !!refreshToken, 
-          error 
-        });
-
-        if (error) {
-          console.error('AuthCallback: Authentication error:', error);
-          setError(`Authentication error: ${error}`);
-          setStatus('error');
-          clearTimeout(timeoutId);
-          return;
-        }
-
-        // For Google OAuth, we might not have tokens in URL - let Supabase handle it
         if (error) {
           console.error('AuthCallback: Authentication error:', error);
           setError(`Authentication error: ${error}`);
@@ -93,11 +65,33 @@ export default function AuthCallbackPage() {
         const supabase = createSupabaseBrowser();
         console.log('AuthCallback: Checking session...');
         
-        // Wait a moment for Supabase to process the URL tokens
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        // Wait for OAuth flow to complete and session to be established
+        let session = null;
+        let sessionError = null;
+        let attempts = 0;
+        const maxAttempts = 5;
         
-        // Get the current session
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        while (attempts < maxAttempts) {
+          attempts++;
+          console.log(`AuthCallback: Session check attempt ${attempts}/${maxAttempts}`);
+          
+          const result = await supabase.auth.getSession();
+          session = result.data.session;
+          sessionError = result.error;
+          
+          if (session) {
+            console.log('AuthCallback: Session found on attempt', attempts);
+            break;
+          }
+          
+          if (sessionError) {
+            console.log('AuthCallback: Session error on attempt', attempts, sessionError);
+            break;
+          }
+          
+          // Wait before next attempt
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
         
         console.log('AuthCallback: Session check result:', { session: !!session, error: sessionError });
         
