@@ -94,10 +94,12 @@ export default function AuthCallbackPage() {
         console.log('AuthCallback: Checking session...');
         
         // Wait a moment for Supabase to process the URL tokens
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 2000));
         
         // Get the current session
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        console.log('AuthCallback: Session check result:', { session: !!session, error: sessionError });
         
         if (sessionError) {
           console.error('AuthCallback: Session error:', sessionError);
@@ -108,8 +110,8 @@ export default function AuthCallbackPage() {
         }
 
         if (!session) {
-          console.error('AuthCallback: No session found');
-          setError('No session found. Please try signing in again.');
+          console.error('AuthCallback: No session found - this usually means OAuth failed');
+          setError('OAuth authentication failed. Please check your Google account settings and try again.');
           setStatus('error');
           clearTimeout(timeoutId);
           return;
