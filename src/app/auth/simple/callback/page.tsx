@@ -76,25 +76,10 @@ export default function SimpleCallbackPage() {
         console.log('SimpleCallback: Profile created successfully')
         setStatus('success')
         
-        // Verify session is properly established before redirecting
-        setTimeout(async () => {
-          try {
-            const { data: { session } } = await supabase.auth.getSession()
-            if (session) {
-              console.log('SimpleCallback: Session verified, redirecting to dashboard')
-              // Use window.location to ensure full page reload and cookie availability
-              window.location.href = '/dashboard/veteran'
-            } else {
-              console.error('SimpleCallback: No session found, staying on callback page')
-              setError('Session not established. Please try again.')
-              setStatus('error')
-            }
-          } catch (e) {
-            console.error('SimpleCallback: Session verification failed:', e)
-            setError('Failed to verify session. Please try again.')
-            setStatus('error')
-          }
-        }, 2000)
+        // Simple redirect - no middleware interference
+        setTimeout(() => {
+          window.location.href = '/dashboard/veteran'
+        }, 1000)
         
       } catch (error) {
         console.error('SimpleCallback: Error:', error)
