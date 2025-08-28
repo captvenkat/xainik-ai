@@ -193,7 +193,7 @@ export default function AuthCallbackPage() {
   };
 
   const handleCloseRoleSelection = () => {
-    // Redirect to a default page if user doesn't want to select role now
+    // Redirect to warmup if user doesn't want to select role now
     router.push('/auth/warmup?redirect=%2Fdashboard');
   };
 
