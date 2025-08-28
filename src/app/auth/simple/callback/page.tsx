@@ -60,6 +60,7 @@ export default function SimpleCallbackPage() {
           .upsert({
             id: session.user.id,
             email: session.user.email,
+            name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'Veteran',
             role: 'veteran', // Default to veteran for now
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
