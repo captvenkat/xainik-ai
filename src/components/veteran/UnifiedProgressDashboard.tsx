@@ -156,10 +156,10 @@ export default function UnifiedProgressDashboard({ userId }: UnifiedProgressDash
         
         // Mock data instead of real API calls
         const mockKpis = { shares: { value: 0, deltaPct: 0, spark: [] }, views: { value: 0, deltaPct: 0, spark: [] }, contacts: { value: 0, deltaPct: 0, spark: [] } }
-        const mockFunnel = []
-        const mockSupporters = []
-        const mockChannels = []
-        const mockContacts = []
+        const mockFunnel: any[] = []
+        const mockSupporters: any[] = []
+        const mockChannels: any[] = []
+        const mockContacts: any[] = []
         
         setKpiData(mockKpis)
         setFunnelData(mockFunnel)
