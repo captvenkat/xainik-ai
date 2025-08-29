@@ -1,19 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { createSupabaseServerOnly } from '@/lib/supabaseServerOnly'
-import { verifySignature, getPaymentDetails } from '@/lib/payments/razorpay'
+import { NextResponse } from 'next/server'
+import { supabaseAdmin } from '@/lib/supabaseClient'
+import crypto from 'crypto'
 
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
   try {
-    // Parse request body
-    const body = await request.json()
-    const { 
-      razorpay_order_id, 
-      razorpay_payment_id, 
-      razorpay_signature, 
-      donationId 
-    } = body
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = await request.json()
 
-    // Validate required fields
+    // Validate inputs
     if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
       return NextResponse.json(
         { error: 'Missing payment verification parameters' },
@@ -21,62 +14,70 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Verify payment signature
-    const isValidSignature = verifySignature({
-      razorpay_order_id,
-      razorpay_payment_id,
-      razorpay_signature
-    })
+    // Verify signature
+    const text = `${razorpay_order_id}|${razorpay_payment_id}`
+    const signature = crypto
+      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET!)
+      .update(text)
+      .digest('hex')
 
-    if (!isValidSignature) {
+    if (signature !== razorpay_signature) {
       return NextResponse.json(
         { error: 'Invalid payment signature' },
         { status: 400 }
       )
     }
 
-    // Get payment details from Razorpay
-    const paymentDetails = await getPaymentDetails(razorpay_payment_id)
-
-    // Verify payment status
-    if (paymentDetails.status !== 'captured') {
-      return NextResponse.json(
-        { error: 'Payment not captured' },
-        { status: 400 }
-      )
-    }
-
-    // Update donation record in database
-    const supabase = await createSupabaseServerOnly()
-    const { error: updateError } = await supabase
+    // Update donation status
+    const { data: donation, error: updateError } = await supabaseAdmin
       .from('donations')
       .update({
-        razorpay_payment_id: razorpay_payment_id,
-        razorpay_order_id: razorpay_order_id,
-        status: 'completed',
-        updated_at: new Date().toISOString()
+        status: 'paid',
+        payment_id: razorpay_payment_id
       })
-      .eq('id', donationId)
+      .eq('order_id', razorpay_order_id)
+      .select('*')
+      .single()
 
     if (updateError) {
       console.error('Error updating donation:', updateError)
       return NextResponse.json(
-        { error: 'Failed to update donation record' },
+        { error: 'Failed to update donation status' },
         { status: 500 }
       )
     }
 
+    if (!donation) {
+      return NextResponse.json(
+        { error: 'Donation not found' },
+        { status: 404 }
+      )
+    }
+
+    // Get donor information for response
+    const { data: donor } = await supabaseAdmin
+      .from('donors')
+      .select('name, email')
+      .eq('id', donation.donor_id)
+      .single()
+
     return NextResponse.json({
       success: true,
-      payment_id: razorpay_payment_id,
-      amount: paymentDetails.amount,
-      status: paymentDetails.status
+      donation: {
+        id: donation.id,
+        amount: donation.amount,
+        display_name: donation.display_name,
+        is_anonymous: donation.is_anonymous
+      },
+      donor: donor ? {
+        name: donor.name,
+        email: donor.email
+      } : null
     })
-
   } catch (error) {
-    console.error('Error verifying donation payment:', error)
+    console.error('Payment verification error:', error)
     return NextResponse.json(
-      { error: 'Failed to verify payment' },
+      { error: 'Internal server error' },
       { status: 500 }
     )
   }
