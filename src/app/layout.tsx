@@ -1,15 +1,24 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
 import './globals.css'
-import { TrackingProvider } from '@/components/TrackingProvider'
-import Navigation from '@/components/Navigation'
-import { StripSkipGuard } from '@/components/StripSkipGuard'
-
-const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'Xainik - Veteran Success Foundation',
-  description: 'Transform your military experience into civilian success',
+  description: 'AI-powered platform helping veterans build successful second careers. Sec-8 Nonprofit committed to veteran success.',
+  keywords: 'veterans, career transition, AI, nonprofit, India, military',
+  authors: [{ name: 'Veteran Success Foundation' }],
+  openGraph: {
+    title: 'Xainik - Veteran Success Foundation',
+    description: 'AI-powered platform helping veterans build successful second careers.',
+    url: 'https://xainik.in',
+    siteName: 'Xainik',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Xainik - Veteran Success Foundation',
+    description: 'AI-powered platform helping veterans build successful second careers.',
+  },
+  viewport: 'width=device-width, initial-scale=1',
 }
 
 export default function RootLayout({
@@ -19,12 +28,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
-        <TrackingProvider>
-          <Navigation />
-          <StripSkipGuard />
-          {children}
-        </TrackingProvider>
+      <body className="min-h-screen bg-gradient-to-b from-white to-slate-50">
+        {children}
+        <script src="https://checkout.razorpay.com/v1/checkout.js" async></script>
       </body>
     </html>
   )

@@ -1,96 +1,113 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { createSupabaseServerOnly } from '@/lib/supabaseServerOnly'
-import { createOrder } from '@/lib/payments/razorpay'
+import { NextResponse } from 'next/server'
+import { supabaseAdmin } from '@/lib/supabaseClient'
+import { razorpay } from '@/lib/razorpay'
+import { v4 as uuidv4 } from 'uuid'
 
-export async function POST(request: NextRequest) {
-  console.log('API: Starting POST request')
+export async function POST(request: Request) {
   try {
-    // Check if Razorpay environment variables are configured
-    console.log('Checking Razorpay environment variables:', {
-      keyId: !!process.env.RAZORPAY_KEY_ID,
-      keySecret: !!process.env.RAZORPAY_KEY_SECRET,
-      keyIdLength: process.env.RAZORPAY_KEY_ID?.length,
-      keySecretLength: process.env.RAZORPAY_KEY_SECRET?.length
-    })
-    
-    if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
-      console.error('Razorpay environment variables missing:', {
-        keyId: !!process.env.RAZORPAY_KEY_ID,
-        keySecret: !!process.env.RAZORPAY_KEY_SECRET
-      })
+    const { name, email, amount, isAnonymous, displayName } = await request.json()
+
+    // Validate inputs
+    if (!name || !email || !amount || amount < 1) {
       return NextResponse.json(
-        { error: 'Payment gateway not configured' },
+        { error: 'Invalid input parameters' },
+        { status: 400 }
+      )
+    }
+
+    // Convert amount to paise (Razorpay expects paise)
+    const amountInPaise = Math.round(amount * 100)
+
+    // Create or get donor
+    let { data: donor, error: donorError } = await supabaseAdmin
+      .from('donors')
+      .select('id')
+      .eq('email', email.toLowerCase().trim())
+      .single()
+
+    if (donorError && donorError.code !== 'PGRST116') {
+      console.error('Error fetching donor:', donorError)
+      return NextResponse.json(
+        { error: 'Failed to process donor information' },
         { status: 500 }
       )
     }
 
-    // Get current user (optional for anonymous donations)
-    const supabase = await createSupabaseServerOnly()
-    const { data: { user } } = await supabase.auth.getUser()
+    let donorId: string
 
-    // Parse request body
-    const body = await request.json()
-    console.log('API: Received request body:', body)
-    const { amount, donationId, donor_name, email } = body
+    if (!donor) {
+      // Create new donor
+      const { data: newDonor, error: createError } = await supabaseAdmin
+        .from('donors')
+        .insert({
+          name: name.trim(),
+          email: email.toLowerCase().trim(),
+          is_public: !isAnonymous
+        })
+        .select('id')
+        .single()
 
-    console.log('API: Parsed values:', { amount, donationId, donor_name, email })
+      if (createError) {
+        console.error('Error creating donor:', createError)
+        return NextResponse.json(
+          { error: 'Failed to create donor record' },
+          { status: 500 }
+        )
+      }
 
-    // Validate required fields
-    if (!amount || amount < 10) {
-      console.log('API: Invalid amount:', amount)
-      return NextResponse.json(
-        { error: 'Invalid amount. Minimum donation is ₹10.' },
-        { status: 400 }
-      )
-    }
-
-    if (!donationId) {
-      console.log('API: Missing donationId')
-      return NextResponse.json(
-        { error: 'Donation ID is required' },
-        { status: 400 }
-      )
+      donorId = newDonor.id
+    } else {
+      donorId = donor.id
     }
 
     // Create Razorpay order
-    const orderParams = {
-      amount: amount * 100, // Convert to paise for Razorpay
+    const orderId = uuidv4()
+    const razorpayOrder = await razorpay.orders.create({
+      amount: amountInPaise,
       currency: 'INR',
-      receipt: `donation_${donationId}`,
+      receipt: orderId,
       notes: {
-        type: 'donation',
-        donation_id: donationId,
-        donor_name: donor_name || 'Anonymous',
-        user_id: user?.id || 'anonymous'
+        donor_id: donorId,
+        display_name: displayName || (isAnonymous ? 'Friend of Veterans' : name)
       }
+    })
+
+    // Create donation record
+    const { error: donationError } = await supabaseAdmin
+      .from('donations')
+      .insert({
+        donor_id: donorId,
+        amount: amount, // Store in rupees
+        order_id: razorpayOrder.id,
+        status: 'created',
+        is_anonymous: isAnonymous,
+        display_name: displayName || (isAnonymous ? 'Friend of Veterans' : name)
+      })
+
+    if (donationError) {
+      console.error('Error creating donation record:', donationError)
+      return NextResponse.json(
+        { error: 'Failed to create donation record' },
+        { status: 500 }
+      )
     }
-    
-    console.log('About to create Razorpay order with params:', orderParams)
-    console.log('Amount in paise:', amount * 100)
-    
-    const order = await createOrder(orderParams)
-    
-    console.log('Razorpay order created successfully:', order.id)
 
     return NextResponse.json({
-      success: true,
-      orderId: order.id,
-      amount: order.amount,
-      currency: order.currency
+      order_id: razorpayOrder.id,
+      key_id: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+      amount: amountInPaise,
+      currency: 'INR',
+      name: 'Xainik - Veteran Success Foundation',
+      description: 'Supporting veteran career transitions',
+      prefill: {
+        name: name,
+        email: email
+      }
     })
-
   } catch (error) {
-    console.error('Error creating donation order:', error)
-    console.error('Error details:', {
-      message: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : 'No stack trace'
-    })
-    
-    // Log the full error for debugging
-    console.error('Full error object:', JSON.stringify(error, Object.getOwnPropertyNames(error)))
-    
+    console.error('Create order API error:', error)
     return NextResponse.json(
-      { error: 'Failed to create payment order' },
+      { error: 'Internal server error' },
       { status: 500 }
     )
   }
