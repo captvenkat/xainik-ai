@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import Filter from "bad-words";
+const BadWords = require("bad-words");
 import { PrismaClient } from "@prisma/client";
 import { getServerSession } from "next-auth";
-import { authOptions } from "../auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth-config";
 
 const prisma = new PrismaClient();
-const filter = new Filter();
+const filter = new BadWords();
 
 const CreateSchema = z.object({
   name: z.string().min(2).max(80),
