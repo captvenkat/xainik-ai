@@ -1,0 +1,80 @@
+<svg width="800" height="600" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="600" fill="#1f2937" rx="8"/>
+  <rect x="50" y="50" width="700" height="500" fill="#374151" rx="4"/>
+  
+  <!-- Document Header -->
+  <rect x="70" y="80" width="660" height="60" fill="#b91c1c" rx="4"/>
+  <text x="400" y="115" text-anchor="middle" fill="#fff" font-family="Arial, sans-serif" font-size="18" font-weight="bold">
+    FORM NO. 10AC - Section 80G Provisional Approval
+  </text>
+  
+  <!-- PAN Number -->
+  <rect x="70" y="160" width="200" height="40" fill="#6b7280" rx="4"/>
+  <text x="170" y="185" text-anchor="middle" fill="#fff" font-family="Arial, sans-serif" font-size="14">
+    PAN: AAICV9997L
+  </text>
+  
+  <!-- Company Name -->
+  <rect x="290" y="160" width="440" height="40" fill="#6b7280" rx="4"/>
+  <text x="510" y="185" text-anchor="middle" fill="#fff" font-family="Arial, sans-serif" font-size="14">
+    VETERAN SUCCESS FOUNDATION
+  </text>
+  
+  <!-- Approval Details -->
+  <rect x="70" y="220" width="320" height="40" fill="#6b7280" rx="4"/>
+  <text x="230" y="245" text-anchor="middle" fill="#fff" font-family="Arial, sans-serif" font-size="12">
+    Approval Date: 11-10-2022
+  </text>
+  
+  <rect x="410" y="220" width="320" height="40" fill="#6b7280" rx="4"/>
+  <text x="570" y="245" text-anchor="middle" fill="#fff" font-family="Arial, sans-serif" font-size="12">
+    Valid Until: AY 2025-2026
+  </text>
+  
+  <!-- Document Content -->
+  <rect x="70" y="280" width="660" height="80" fill="#4b5563" rx="4"/>
+  <text x="400" y="310" text-anchor="middle" fill="#fff" font-family="Arial, sans-serif" font-size="12">
+    Provisional approval for tax exemption under Section 80G
+  </text>
+  <text x="400" y="330" text-anchor="middle" fill="#fff" font-family="Arial, sans-serif" font-size="12">
+    of the Income Tax Act, 1961
+  </text>
+  <text x="400" y="350" text-anchor="middle" fill="#fff" font-family="Arial, sans-serif" font-size="12">
+    Donors can claim tax benefits on their contributions
+  </text>
+  
+  <!-- Tax Benefits Info -->
+  <rect x="70" y="380" width="660" height="60" fill="#dc2626" rx="4"/>
+  <text x="400" y="405" text-anchor="middle" fill="#fff" font-family="Arial, sans-serif" font-size="12" font-weight="bold">
+    TAX BENEFITS FOR DONORS
+  </text>
+  <text x="400" y="425" text-anchor="middle" fill="#fff" font-family="Arial, sans-serif" font-size="12">
+    Contributions eligible for deduction under Section 80G
+  </text>
+  
+  <!-- Official Stamp -->
+  <circle cx="700" cy="120" r="30" fill="none" stroke="#b91c1c" stroke-width="3"/>
+  <text x="700" y="125" text-anchor="middle" fill="#b91c1c" font-family="Arial, sans-serif" font-size="8">
+    INCOME
+  </text>
+  <text x="700" y="140" text-anchor="middle" fill="#b91c1c" font-family="Arial, sans-serif" font-size="8">
+    TAX
+  </text>
+  <text x="700" y="155" text-anchor="middle" fill="#b91c1c" font-family="Arial, sans-serif" font-size="8">
+    DEPT
+  </text>
+  
+  <!-- Footer -->
+  <rect x="70" y="460" width="660" height="40" fill="#6b7280" rx="4"/>
+  <text x="400" y="485" text-anchor="middle" fill="#fff" font-family="Arial, sans-serif" font-size="12">
+    Provisional approval subject to conditions and compliance
+  </text>
+  
+  <!-- Placeholder Text -->
+  <text x="400" y="540" text-anchor="middle" fill="#9ca3af" font-family="Arial, sans-serif" font-size="14">
+    [Placeholder - Actual document image will be displayed here]
+  </text>
+  <text x="400" y="560" text-anchor="middle" fill="#9ca3af" font-family="Arial, sans-serif" font-size="12">
+    Click outside to close
+  </text>
+</svg>

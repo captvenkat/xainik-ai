@@ -1,0 +1,8 @@
+Contact: mailto:security@xainik.com
+Expires: 2026-12-31T23:59:59.000Z
+Preferred-Languages: en, hi
+Canonical: https://xainik.com/.well-known/security.txt
+Policy: https://xainik.com/security-policy
+Hiring: https://xainik.com/careers
+Encryption: https://xainik.com/.well-known/pgp-key.txt
+Acknowledgments: https://xainik.com/security-hall-of-fame

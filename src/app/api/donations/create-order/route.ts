@@ -60,6 +60,15 @@ export async function POST(request: Request) {
       donorId = donor.id
     }
 
+    // Check if Razorpay is initialized
+    if (!razorpay) {
+      console.error('Razorpay not initialized - missing environment variables')
+      return NextResponse.json(
+        { error: 'Payment service not configured' },
+        { status: 500 }
+      )
+    }
+
     // Create Razorpay order
     const orderId = uuidv4()
     const razorpayOrder = await razorpay.orders.create({

@@ -17,7 +17,7 @@ DROP TABLE IF EXISTS public.channel_performance CASCADE;
 DROP TABLE IF EXISTS public.cohort_analytics CASCADE;
 DROP TABLE IF EXISTS public.contact_outcomes CASCADE;
 DROP TABLE IF EXISTS public.conversion_funnel CASCADE;
-DROP TABLE IF EXISTS public.donations_aggregates CASCADE;
+DROP VIEW IF EXISTS public.donations_aggregates CASCADE;
 DROP TABLE IF EXISTS public.email_events CASCADE;
 DROP TABLE IF EXISTS public.endorsements CASCADE;
 DROP TABLE IF EXISTS public.funnel_analytics CASCADE;

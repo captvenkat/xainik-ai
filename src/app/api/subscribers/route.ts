@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabaseClient'
+import EmailService from '@/lib/services/email'
 
 export async function POST(request: Request) {
   try {
-    const { email } = await request.json()
+    const { email, name } = await request.json()
 
     if (!email || !email.includes('@')) {
       return NextResponse.json(
@@ -17,7 +18,8 @@ export async function POST(request: Request) {
       .from('subscribers')
       .insert({
         email: email.toLowerCase().trim(),
-        source: 'stay_connected'
+        source: 'stay_connected',
+        name: name?.trim() || null
       })
 
     if (error) {
@@ -35,6 +37,17 @@ export async function POST(request: Request) {
         { error: 'Failed to subscribe' },
         { status: 500 }
       )
+    }
+
+    // Send welcome email using Resend
+    try {
+      await EmailService.sendNewsletterConfirmation({
+        email: email.toLowerCase().trim(),
+        name: name?.trim()
+      })
+    } catch (emailError) {
+      console.error('Failed to send welcome email:', emailError)
+      // Don't fail the subscription if email fails
     }
 
     return NextResponse.json({ success: true })

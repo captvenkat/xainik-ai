@@ -1,88 +1,180 @@
--- 3.1 Core tables
-create table public.donors (
-  id uuid primary key default gen_random_uuid(),
+-- =====================================================
+-- XAINIK FUNDRAISING APP DATABASE SCHEMA
+-- =====================================================
+-- This script creates the essential tables for the fundraising app
+-- It handles existing tables by dropping them first
+
+-- =====================================================
+-- STEP 1: DROP EXISTING TABLES (if they exist)
+-- =====================================================
+
+-- Drop existing tables in correct order (respecting foreign keys)
+DROP TABLE IF EXISTS public.donations CASCADE;
+DROP TABLE IF EXISTS public.donors CASCADE;
+DROP TABLE IF EXISTS public.subscribers CASCADE;
+DROP TABLE IF EXISTS public.documents CASCADE;
+DROP TABLE IF EXISTS public.badge_tiers CASCADE;
+
+-- Drop existing views
+DROP VIEW IF EXISTS public.v_stats CASCADE;
+DROP VIEW IF EXISTS public.v_public_feed CASCADE;
+
+-- =====================================================
+-- STEP 2: CREATE CORE TABLES
+-- =====================================================
+
+-- Donors table
+CREATE TABLE public.donors (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   name text,
   email text,
-  is_public boolean default true,
-  created_at timestamptz default now()
+  is_public boolean DEFAULT true,
+  created_at timestamptz DEFAULT now()
 );
 
-create table public.donations (
-  id uuid primary key default gen_random_uuid(),
-  donor_id uuid references public.donors(id) on delete set null,
-  amount integer not null check (amount > 0),          -- in INR rupees
-  currency text default 'INR',
+-- Donations table
+CREATE TABLE public.donations (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  donor_id uuid REFERENCES public.donors(id) ON DELETE SET NULL,
+  amount integer NOT NULL CHECK (amount > 0),          -- in INR rupees
+  currency text DEFAULT 'INR',
   order_id text,                                       -- Razorpay order_id
   payment_id text,                                     -- Razorpay payment_id
-  status text check (status in ('created','paid','failed','refunded')) default 'created',
-  is_anonymous boolean default false,
+  status text CHECK (status IN ('created','paid','failed','refunded')) DEFAULT 'created',
+  is_anonymous boolean DEFAULT false,
   display_name text,                                   -- what to show on wall/feed
-  created_at timestamptz default now()
+  created_at timestamptz DEFAULT now()
 );
 
-create table public.subscribers (
-  id uuid primary key default gen_random_uuid(),
-  email text not null,
-  source text check (source in ('stay_connected','post_donation')) default 'stay_connected',
-  created_at timestamptz default now()
+-- Subscribers table
+CREATE TABLE public.subscribers (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  email text NOT NULL,
+  source text CHECK (source IN ('stay_connected','post_donation')) DEFAULT 'stay_connected',
+  created_at timestamptz DEFAULT now()
 );
 
-create table public.documents (
-  id uuid primary key default gen_random_uuid(),
-  title text not null,
+-- Documents table
+CREATE TABLE public.documents (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  title text NOT NULL,
   blurb text,
-  public_url text not null,
-  sort_order int default 0
+  public_url text NOT NULL,
+  sort_order int DEFAULT 0
 );
 
--- Optional: simple badge tiers by threshold
-create table public.badge_tiers (
-  id serial primary key,
-  name text unique not null,        -- 'Friend', 'Champion', 'Founding Supporter'
-  min_amount int not null           -- rupees
+-- Badge tiers table
+CREATE TABLE public.badge_tiers (
+  id serial PRIMARY KEY,
+  name text UNIQUE NOT NULL,        -- 'Friend', 'Champion', 'Founding Supporter'
+  min_amount int NOT NULL           -- rupees
 );
 
-insert into public.badge_tiers (name, min_amount) values
-('Friend', 1), ('Champion', 10000), ('Founding Supporter', 25000)
-on conflict do nothing;
+-- =====================================================
+-- STEP 3: INSERT BADGE TIERS
+-- =====================================================
 
--- 3.2 views for live metrics (Kolkata day)
-create view public.v_stats as
-select
-  (select coalesce(sum(amount),0) from donations where status='paid') as total_raised,
-  (select coalesce(max(amount),0) from donations where status='paid') as highest_single,
-  (select coalesce(sum(amount),0)
-   from donations
-   where status='paid'
-     and (created_at at time zone 'Asia/Kolkata')::date = (now() at time zone 'Asia/Kolkata')::date
-  ) as today_raised,
-  (select count(*) from donations where status='paid') as total_count;
+INSERT INTO public.badge_tiers (name, min_amount) VALUES
+('Friend', 1), 
+('Champion', 10000), 
+('Founding Supporter', 25000)
+ON CONFLICT (name) DO NOTHING;
 
--- 3.3 simple public read, server-side write RLS
-alter table donors enable row level security;
-alter table donations enable row level security;
-alter table subscribers enable row level security;
-alter table documents enable row level security;
-alter table badge_tiers enable row level security;
+-- =====================================================
+-- STEP 4: CREATE VIEWS FOR LIVE METRICS
+-- =====================================================
 
--- Public can read docs, tiers, aggregated view
-create policy "read_docs" on documents for select using (true);
-create policy "read_tiers" on badge_tiers for select using (true);
+-- Stats view for live metrics (Kolkata timezone)
+CREATE VIEW public.v_stats AS
+SELECT
+  (SELECT COALESCE(SUM(amount), 0) FROM donations WHERE status = 'paid') AS total_raised,
+  (SELECT COALESCE(MAX(amount), 0) FROM donations WHERE status = 'paid') AS highest_single,
+  (SELECT COALESCE(SUM(amount), 0)
+   FROM donations
+   WHERE status = 'paid'
+     AND (created_at AT TIME ZONE 'Asia/Kolkata')::date = (NOW() AT TIME ZONE 'Asia/Kolkata')::date
+  ) AS today_raised,
+  (SELECT COUNT(*) FROM donations WHERE status = 'paid') AS total_count;
 
--- Public read metrics via view: grant select explicitly
-grant select on public.v_stats to anon, authenticated;
+-- Public feed view (no PII)
+CREATE VIEW public.v_public_feed AS
+SELECT display_name, amount, created_at
+FROM donations
+WHERE status = 'paid' AND COALESCE(display_name, '') <> ''
+ORDER BY created_at DESC
+LIMIT 50;
 
--- Inserts go through server API with service key (no public insert policies)
-revoke all on donors from anon, authenticated;
-revoke all on donations from anon, authenticated;
-revoke all on subscribers from anon, authenticated;
+-- =====================================================
+-- STEP 5: SET UP ROW LEVEL SECURITY (RLS)
+-- =====================================================
 
--- Allow read donation wall/feed without PII (only display_name, amount, created_at)
-create view public.v_public_feed as
-select display_name, amount, created_at
-from donations
-where status='paid' and coalesce(display_name,'') <> ''
-order by created_at desc
-limit 50;
+-- Enable RLS on all tables
+ALTER TABLE public.donors ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.donations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.subscribers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.documents ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.badge_tiers ENABLE ROW LEVEL SECURITY;
 
-grant select on public.v_public_feed to anon, authenticated;
+-- Public read policies for docs and tiers
+CREATE POLICY "read_docs" ON public.documents FOR SELECT USING (true);
+CREATE POLICY "read_tiers" ON public.badge_tiers FOR SELECT USING (true);
+
+-- Grant select permissions on views
+GRANT SELECT ON public.v_stats TO anon, authenticated;
+GRANT SELECT ON public.v_public_feed TO anon, authenticated;
+
+-- Revoke all permissions on main tables (server-side only)
+REVOKE ALL ON public.donors FROM anon, authenticated;
+REVOKE ALL ON public.donations FROM anon, authenticated;
+REVOKE ALL ON public.subscribers FROM anon, authenticated;
+
+-- =====================================================
+-- STEP 6: CREATE INDEXES FOR PERFORMANCE
+-- =====================================================
+
+-- Index on donor email for lookups
+CREATE INDEX IF NOT EXISTS idx_donors_email ON public.donors(email);
+
+-- Index on donation status and created_at for queries
+CREATE INDEX IF NOT EXISTS idx_donations_status_created ON public.donations(status, created_at);
+
+-- Index on subscriber email for uniqueness checks
+CREATE INDEX IF NOT EXISTS idx_subscribers_email ON public.subscribers(email);
+
+-- Index on documents sort_order for ordering
+CREATE INDEX IF NOT EXISTS idx_documents_sort_order ON public.documents(sort_order);
+
+-- =====================================================
+-- STEP 7: VERIFICATION QUERIES
+-- =====================================================
+
+-- Verify tables were created
+SELECT 
+    table_name,
+    'TABLE' as object_type
+FROM information_schema.tables 
+WHERE table_schema = 'public' 
+    AND table_name IN ('donors', 'donations', 'subscribers', 'documents', 'badge_tiers')
+ORDER BY table_name;
+
+-- Verify views were created
+SELECT 
+    table_name,
+    'VIEW' as object_type
+FROM information_schema.views 
+WHERE table_schema = 'public' 
+    AND table_name IN ('v_stats', 'v_public_feed')
+ORDER BY table_name;
+
+-- Verify badge tiers were inserted
+SELECT name, min_amount FROM public.badge_tiers ORDER BY min_amount;
+
+-- =====================================================
+-- STEP 8: SUCCESS MESSAGE
+-- =====================================================
+
+-- The fundraising app database schema is now ready!
+-- Tables: donors, donations, subscribers, documents, badge_tiers
+-- Views: v_stats, v_public_feed
+-- RLS: Enabled with appropriate policies
+-- Indexes: Created for performance
