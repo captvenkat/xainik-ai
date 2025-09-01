@@ -1,22 +1,18 @@
+/** @jsxImportSource react */
 import { ImageResponse } from "@vercel/og";
-import { PrismaClient } from "@prisma/client";
-import { notFound } from "next/navigation";
 
 export const runtime = "edge";
 
-const prisma = new PrismaClient();
-
-export async function GET(_req: Request, { params }: { params: { id: string } }) {
+export async function GET(req: Request, { params }: { params: { id: string } }) {
   try {
-    const testimonial = await prisma.testimonial.findUnique({
-      where: { 
-        id: params.id,
-        status: "approved"
-      },
-    });
+    // Fetch testimonial via API
+    const baseUrl = new URL(req.url).origin;
+    const testimonialsResponse = await fetch(`${baseUrl}/api/voices`);
+    const { items } = await testimonialsResponse.json();
+    const testimonial = items.find((item: any) => item.id === params.id);
 
     if (!testimonial) {
-      notFound();
+      return new Response("Not found", { status: 404 });
     }
 
     return new ImageResponse(

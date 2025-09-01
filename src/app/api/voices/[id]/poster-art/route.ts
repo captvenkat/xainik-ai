@@ -1,23 +1,18 @@
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
 
 export const runtime = "edge";
 
-const prisma = new PrismaClient();
-
-export async function GET(_req: Request, { params }: { params: { id: string } }) {
+export async function GET(req: Request, { params }: { params: { id: string } }) {
   try {
     if (process.env.POSTER_AI !== "on") {
       return NextResponse.json({ ok: false, reason: "AI poster disabled" }, { status: 200 });
     }
 
     // Fetch testimonial by id (approved)
-    const t = await prisma.testimonial.findUnique({ 
-      where: { 
-        id: params.id, 
-        status: "approved" 
-      } 
-    });
+    const baseUrl = new URL(req.url).origin;
+    const testimonialsResponse = await fetch(`${baseUrl}/api/voices`);
+    const { items } = await testimonialsResponse.json();
+    const t = items.find((item: any) => item.id === params.id);
     
     if (!t) {
       return NextResponse.json({ ok: false, reason: "testimonial-not-found" }, { status: 404 });
