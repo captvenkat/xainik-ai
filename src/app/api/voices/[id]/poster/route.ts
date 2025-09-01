@@ -124,7 +124,6 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
       {
         width: 2480,
         height: 3508,
-        format: "png",
       }
     );
 

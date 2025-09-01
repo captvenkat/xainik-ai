@@ -90,7 +90,6 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
       {
         width: 1200,
         height: 630,
-        format: "png",
       }
     );
   } catch (e: any) {
