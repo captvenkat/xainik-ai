@@ -1,12 +1,10 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth-config";
 import { isAdmin } from "@/lib/voices/admin";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
-
-const prisma = new PrismaClient();
 
 function formatDateTime(date: string | Date): string {
   const d = new Date(date);

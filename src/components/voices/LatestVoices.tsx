@@ -1,14 +1,25 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/lib/db";
 // import VoicesList from "./VoicesList";
 import Link from "next/link";
 
 export default async function LatestVoices({ viewAllHref }: { viewAllHref: string }) {
-  const prisma = new PrismaClient();
-  const items = await prisma.testimonial.findMany({
-    where: { status: "approved" },
-    orderBy: { createdAt: "desc" },
-    take: 3,
-  });
+  let items: Array<{
+    id: string;
+    name: string;
+    message: string;
+    createdAt: string | Date;
+  }> = [];
+  
+  try {
+    items = await prisma.testimonial.findMany({
+      where: { status: "approved" },
+      orderBy: { createdAt: "desc" },
+      take: 3,
+    });
+  } catch (error) {
+    console.error("Failed to fetch testimonials:", error);
+    // Fallback to empty array, will show samples
+  }
 
   const formatDate = (date: string | Date) => {
     const d = new Date(date);

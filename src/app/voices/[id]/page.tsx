@@ -1,11 +1,9 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/lib/db";
 import { notFound } from "next/navigation";
 import TestimonialCard from "@/components/voices/TestimonialCard";
 import ShareMenu from "@/components/voices/ShareMenu";
 
 export const dynamic = "force-dynamic";
-
-const prisma = new PrismaClient();
 
 function formatDate(date: string | Date): string {
   const d = new Date(date);
