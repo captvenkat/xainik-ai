@@ -5,11 +5,23 @@ import Link from "next/link";
 export const dynamic = "force-dynamic";
 
 export default async function VoicesPage() {
-  const items = await prisma.testimonial.findMany({
-    where: { status: "approved" },
-    orderBy: { createdAt: "desc" },
-    take: 100,
-  });
+  let items: Array<{
+    id: string;
+    name: string;
+    message: string;
+    createdAt: string | Date;
+  }> = [];
+  
+  try {
+    items = await prisma.testimonial.findMany({
+      where: { status: "approved" },
+      orderBy: { createdAt: "desc" },
+      take: 100,
+    });
+  } catch (error) {
+    console.error("Failed to fetch testimonials:", error);
+    // Fallback to empty array if database fails
+  }
 
   return (
     <main className="mx-auto max-w-5xl p-4 sm:p-6">

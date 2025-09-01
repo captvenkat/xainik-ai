@@ -23,7 +23,22 @@ export default async function AdminVoicesPage() {
     );
   }
 
-  const items = await prisma.testimonial.findMany({ where: { status: { in: ["pending", "rejected"] } }, orderBy: { createdAt: "desc" } });
+  let items: Array<{
+    id: string;
+    name: string;
+    message: string;
+    createdAt: string | Date;
+  }> = [];
+  
+  try {
+    items = await prisma.testimonial.findMany({ 
+      where: { status: { in: ["pending", "rejected"] } }, 
+      orderBy: { createdAt: "desc" } 
+    });
+  } catch (error) {
+    console.error("Failed to fetch pending testimonials:", error);
+    // Fallback to empty array if database fails
+  }
 
   async function act(id: string, action: "approve" | "reject" | "delete") {
     "use server";

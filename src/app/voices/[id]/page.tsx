@@ -12,12 +12,24 @@ function formatDate(date: string | Date): string {
 }
 
 export default async function TestimonialPage({ params }: { params: { id: string } }) {
-  const testimonial = await prisma.testimonial.findUnique({
-    where: { 
-      id: params.id,
-      status: "approved"
-    },
-  });
+  let testimonial: {
+    id: string;
+    name: string;
+    message: string;
+    createdAt: string | Date;
+  } | null = null;
+  
+  try {
+    testimonial = await prisma.testimonial.findUnique({
+      where: { 
+        id: params.id,
+        status: "approved"
+      },
+    });
+  } catch (error) {
+    console.error("Failed to fetch testimonial:", error);
+    // Fallback to null, will show notFound()
+  }
 
   if (!testimonial) {
     notFound();
