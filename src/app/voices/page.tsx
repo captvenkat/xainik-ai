@@ -1,10 +1,8 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/lib/db";
 import VoicesList from "@/components/voices/VoicesList";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
-
-const prisma = new PrismaClient();
 
 export default async function VoicesPage() {
   const items = await prisma.testimonial.findMany({
