@@ -1,0 +1,37 @@
+<svg width="1200" height="800" viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="heroGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0F0F0F;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#1B365D;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0F0F0F;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1200" height="800" fill="url(#heroGradient)"/>
+  
+  <!-- Soldier Silhouette (simplified) -->
+  <g fill="#D4AF37" opacity="0.3">
+    <!-- Head -->
+    <circle cx="600" cy="200" r="60"/>
+    
+    <!-- Body -->
+    <rect x="570" y="260" width="60" height="200" rx="30"/>
+    
+    <!-- Arms -->
+    <rect x="500" y="280" width="80" height="20" rx="10"/>
+    <rect x="620" y="280" width="80" height="20" rx="10"/>
+    
+    <!-- Legs -->
+    <rect x="570" y="460" width="25" height="120" rx="12"/>
+    <rect x="605" y="460" width="25" height="120" rx="12"/>
+    
+    <!-- Military Cap -->
+    <ellipse cx="600" cy="160" rx="70" ry="25"/>
+  </g>
+  
+  <!-- Text Overlay -->
+  <text x="600" y="650" text-anchor="middle" fill="#D4AF37" font-family="Arial, sans-serif" font-size="24" opacity="0.6">
+    Soldier Silhouette (Representational)
+  </text>
+</svg>

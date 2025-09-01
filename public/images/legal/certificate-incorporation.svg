@@ -1,0 +1,71 @@
+<svg width="800" height="600" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="600" fill="#1f2937" rx="8"/>
+  <rect x="50" y="50" width="700" height="500" fill="#374151" rx="4"/>
+  
+  <!-- Document Header -->
+  <rect x="70" y="80" width="660" height="60" fill="#10b981" rx="4"/>
+  <text x="400" y="115" text-anchor="middle" fill="#000" font-family="Arial, sans-serif" font-size="18" font-weight="bold">
+    Certificate of Incorporation
+  </text>
+  
+  <!-- Company Details -->
+  <rect x="70" y="160" width="660" height="40" fill="#6b7280" rx="4"/>
+  <text x="400" y="185" text-anchor=" fill="#fff" font-family="Arial, sans-serif" font-size="14">
+    VETERAN SUCCESS FOUNDATION
+  </text>
+  
+  <!-- Registration Details -->
+  <rect x="70" y="220" width="320" height="40" fill="#6b7280" rx="4"/>
+  <text x="230" y="245" text-anchor="middle" fill="#fff" font-family="Arial, sans-serif" font-size="12">
+    Registration Number
+  </text>
+  
+  <rect x="410" y="220" width="320" height="40" fill="#6b7280" rx="4"/>
+  <text x="570" y="245" text-anchor="middle" fill="#fff" font-family="Arial, sans-serif" font-size="12">
+    Date of Incorporation
+  </text>
+  
+  <!-- Document Content -->
+  <rect x="70" y="280" width="660" height="80" fill="#4b5563" rx="4"/>
+  <text x="400" y="310" text-anchor="middle" fill="#fff" font-family="Arial, sans-serif" font-size="12">
+    This is to certify that VETERAN SUCCESS FOUNDATION
+  </text>
+  <text x="400" y="330" text-anchor="middle" fill="#fff" font-family="Arial, sans-serif" font-size="12">
+    has been incorporated under the Companies Act, 2013
+  </text>
+  <text x="400" y="350" text-anchor="middle" fill="#fff" font-family="Arial, sans-serif" font-size="12">
+    as a Section 8 Company (Non-Profit Organization)
+  </text>
+  
+  <!-- Official Stamp -->
+  <rect x="650" y="100" width="80" height="80" fill="none" stroke="#10b981" stroke-width="2" rx="8"/>
+  <text x="690" y="130" text-anchor="middle" fill="#10b981" font-family="Arial, sans-serif" font-size="8">
+    OFFICIAL
+  </text>
+  <text x="690" y="145" text-anchor="middle" fill="#10b981" font-family="Arial, sans-serif" font-size="8">
+    STAMP
+  </text>
+  <text x="690" y="160" text-anchor="middle" fill="#10b981" font-family="Arial, sans-serif" font-size="8">
+    REGISTRAR
+  </text>
+  <text x="690" y="175" text-anchor="middle" fill="#10b981" font-family="Arial, sans-serif" font-size="8">
+    OF
+  </text>
+  <text x="690" y="190" text-anchor="middle" fill="#10b981" font-family="Arial, sans-serif" font-size="8">
+    COMPANIES
+  </text>
+  
+  <!-- Footer -->
+  <rect x="70" y="380" width="660" height="40" fill="#6b7280" rx="4"/>
+  <text x="400" y="405" text-anchor="middle" fill="#fff" font-family="Arial, sans-serif" font-size="12">
+    Issued under the authority of the Companies Act, 2013
+  </text>
+  
+  <!-- Placeholder Text -->
+  <text x="400" y="480" text-anchor="middle" fill="#9ca3af" font-family="Arial, sans-serif" font-size="14">
+    [Placeholder - Actual document image will be displayed here]
+  </text>
+  <text x="400" y="500" text-anchor="middle" fill="#9ca3af" font-family="Arial, sans-serif" font-size="12">
+    Click outside to close
+  </text>
+</svg>

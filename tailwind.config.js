@@ -8,54 +8,67 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        primary: {
-          50: '#f0f9ff',
-          100: '#e0f2fe',
-          200: '#bae6fd',
-          300: '#7dd3fc',
-          400: '#38bdf8',
-          500: '#0ea5e9',
-          600: '#0284c7',
-          700: '#0369a1',
-          800: '#075985',
-          900: '#0c4a6e',
-        },
-        secondary: {
-          50: '#fefce8',
-          100: '#fef9c3',
-          200: '#fef08a',
-          300: '#fde047',
-          400: '#facc15',
-          500: '#eab308',
-          600: '#ca8a04',
-          700: '#a16207',
-          800: '#854d0e',
-          900: '#713f12',
-        }
+        'military-gold': '#D4AF37',
+        'military-navy': '#1B365D',
+        'military-red': '#B91C1C',
+        'military-green': '#059669',
+        'premium-black': '#0F0F0F',
+        'premium-gray': '#1F2937',
+        'premium-light': '#F9FAFB',
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        'premium': ['Playfair Display', 'serif'],
+        'sans': ['Inter', 'system-ui', 'sans-serif'],
       },
       animation: {
-        blob: "blob 7s infinite",
+        'float': 'float 6s ease-in-out infinite',
+        'pulse-gold': 'pulse-gold 2s ease-in-out infinite',
+        'slide-in': 'slideInUp 0.8s ease-out forwards',
+        'blob': 'blob 7s infinite',
       },
       keyframes: {
-        blob: {
-          "0%": {
-            transform: "translate(0px, 0px) scale(1)",
+        float: {
+          '0%, 100%': { transform: 'translateY(0px)' },
+          '50%': { transform: 'translateY(-20px)' },
+        },
+        'pulse-gold': {
+          '0%, 100%': { boxShadow: '0 0 20px rgba(212, 175, 55, 0.3)' },
+          '50%': { boxShadow: '0 0 40px rgba(212, 175, 55, 0.6)' },
+        },
+        slideInUp: {
+          '0%': {
+            opacity: '0',
+            transform: 'translateY(30px)',
           },
-          "33%": {
-            transform: "translate(30px, -50px) scale(1.1)",
-          },
-          "66%": {
-            transform: "translate(-20px, 20px) scale(0.9)",
-          },
-          "100%": {
-            transform: "translate(0px, 0px) scale(1)",
+          '100%': {
+            opacity: '1',
+            transform: 'translateY(0)',
           },
         },
+        blob: {
+          '0%': {
+            transform: 'translate(0px, 0px) scale(1)',
+          },
+          '33%': {
+            transform: 'translate(30px, -50px) scale(1.1)',
+          },
+          '66%': {
+            transform: 'translate(-20px, 20px) scale(0.9)',
+          },
+          '100%': {
+            transform: 'translate(0px, 0px) scale(1)',
+          },
+        },
+      },
+      boxShadow: {
+        '2xl': '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+        '3xl': '0 35px 60px -12px rgba(0, 0, 0, 0.35)',
+      },
+      backdropBlur: {
+        'xs': '2px',
       },
     },
   },
   plugins: [],
 }
+

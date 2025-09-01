@@ -1,44 +1,49 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
-interface Stats {
+interface Metrics {
   total_raised: number
   highest_single: number
   today_raised: number
   total_count: number
+  recent_donations: Array<{
+    amount: number
+    display_name: string
+    is_anonymous: boolean
+    created_at: string
+  }>
 }
 
 export default function ImpactTracker() {
-  const [stats, setStats] = useState<Stats>({
-    total_raised: 642000,
-    highest_single: 25000,
-    today_raised: 2000,
-    total_count: 156
+  const [metrics, setMetrics] = useState<Metrics>({
+    total_raised: 0,
+    highest_single: 0,
+    today_raised: 0,
+    total_count: 0,
+    recent_donations: []
   })
-
-  const phase1Goal = 1000000 // ₹10,00,000
-  const progress = (stats.total_raised / phase1Goal) * 100
-  const isUnlocked = stats.total_raised >= 500000 // 50% threshold
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const response = await fetch('/api/metrics')
-        if (response.ok) {
-          const data = await response.json()
-          setStats(data)
-        }
-      } catch (error) {
-        console.error('Failed to fetch stats:', error)
-      }
-    }
-
-    fetchStats()
-    const interval = setInterval(fetchStats, 10000) // Update every 10 seconds
-
+    fetchMetrics()
+    const interval = setInterval(fetchMetrics, 30000) // Refresh every 30 seconds
     return () => clearInterval(interval)
   }, [])
+
+  const fetchMetrics = async () => {
+    try {
+      const response = await fetch('/api/metrics')
+      if (response.ok) {
+        const data = await response.json()
+        setMetrics(data)
+      }
+    } catch (error) {
+      console.error('Error fetching metrics:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-IN', {
@@ -49,96 +54,148 @@ export default function ImpactTracker() {
     }).format(amount)
   }
 
+  const phase1Goal = 1000000 // ₹10L
+  const progress = Math.min((metrics.total_raised / phase1Goal) * 100, 100)
+  const isUnlocked = progress >= 50
+
+  if (loading) {
+    return (
+      <section className="app-section bg-premium-black">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center">
+            <div className="inline-block w-8 h-8 border-4 border-military-gold border-t-transparent rounded-full animate-spin"></div>
+            <p className="mt-4 text-gray-400">Loading impact data...</p>
+          </div>
+        </div>
+      </section>
+    )
+  }
+
   return (
-    <section className="py-16 px-4 bg-white">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Phase 1 Goal: ₹10,00,000 (Build & Launch Fund)
+    <section className="app-section bg-premium-black relative overflow-hidden">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 opacity-5">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23D4AF37' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+        }}></div>
+      </div>
+
+      <div className="relative z-10 max-w-6xl mx-auto">
+        {/* Section Header */}
+        <div className="text-center mb-16">
+          <h2 className="premium-heading text-3xl md:text-5xl mb-6 text-premium-light">
+            Phase 1 Mission: <span className="military-heading">₹10,00,000</span>
           </h2>
-          <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-            Part of a ₹50,00,000 one-year mission to make transition truly frictionless for lakhs of veterans.
+          <p className="text-xl text-gray-400 max-w-3xl mx-auto">
+            Building the foundation for a <span className="text-military-gold font-semibold">₹50,00,000</span> one-year mission 
+            to make veteran transitions truly frictionless.
           </p>
         </div>
 
-        {/* Progress Bar */}
-        <div className="mb-8">
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-sm font-medium text-gray-700">
-              {formatCurrency(stats.total_raised)} raised
+        {/* Progress Section */}
+        <div className="military-card mb-12">
+          <div className="flex justify-between items-center mb-4">
+            <span className="text-lg font-semibold text-premium-light">
+              {formatCurrency(metrics.total_raised)} raised
             </span>
-            <span className="text-sm font-medium text-gray-700">
-              {Math.round(progress)}% reached
+            <span className="text-lg font-semibold text-military-gold">
+              {progress.toFixed(1)}% reached
             </span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+          
+          <div className="premium-progress mb-6">
             <div 
-              className="bg-gradient-to-r from-blue-500 to-green-500 h-4 rounded-full transition-all duration-1000 ease-out"
-              style={{ width: `${Math.min(progress, 100)}%` }}
+              className="premium-progress-bar"
+              style={{ width: `${progress}%` }}
             ></div>
           </div>
-        </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-blue-50 p-6 rounded-xl text-center">
-            <div className="text-2xl font-bold text-blue-600 mb-2">
-              {formatCurrency(stats.total_raised)}
+          {/* Milestone Indicators */}
+          <div className="flex justify-between items-center text-sm text-gray-400">
+            <div className="text-center">
+              <div className={`w-3 h-3 rounded-full mb-2 ${progress >= 0 ? 'bg-military-green' : 'bg-premium-gray'}`}></div>
+              <span>₹0</span>
             </div>
-            <div className="text-sm text-gray-600">Raised so far</div>
-          </div>
-          
-          <div className="bg-green-50 p-6 rounded-xl text-center">
-            <div className="text-2xl font-bold text-green-600 mb-2">
-              {formatCurrency(stats.today_raised)}
+            <div className="text-center">
+              <div className={`w-3 h-3 rounded-full mb-2 ${progress >= 25 ? 'bg-military-green' : 'bg-premium-gray'}`}></div>
+              <span>₹2.5L</span>
             </div>
-            <div className="text-sm text-gray-600">Donated today</div>
-          </div>
-          
-          <div className="bg-purple-50 p-6 rounded-xl text-center">
-            <div className="text-2xl font-bold text-purple-600 mb-2">
-              {formatCurrency(stats.highest_single)}
+            <div className="text-center">
+              <div className={`w-3 h-3 rounded-full mb-2 ${progress >= 50 ? 'bg-military-green' : 'bg-premium-gray'}`}></div>
+              <span>₹5L</span>
             </div>
-            <div className="text-sm text-gray-600">Highest single donation</div>
+            <div className="text-center">
+              <div className={`w-3 h-3 rounded-full mb-2 ${progress >= 75 ? 'bg-military-green' : 'bg-premium-gray'}`}></div>
+              <span>₹7.5L</span>
+            </div>
+            <div className="text-center">
+              <div className={`w-3 h-3 rounded-full mb-2 ${progress >= 100 ? 'bg-military-green' : 'bg-premium-gray'}`}></div>
+              <span>₹10L</span>
+            </div>
           </div>
         </div>
 
         {/* Unlock Status */}
         {isUnlocked && (
-          <div className="bg-green-50 border border-green-200 rounded-xl p-6 text-center mb-8">
-            <div className="text-green-600 text-2xl mb-2">🔓</div>
-            <h3 className="text-lg font-semibold text-green-800 mb-2">
-              Build Phase Unlocked!
-            </h3>
-            <p className="text-green-700">
-              We start building once we cross 50% of Phase 1 — ₹5,00,000. Together, we've already unlocked it.
+          <div className="premium-card mb-12 text-center border border-military-green/30">
+            <div className="text-military-green text-4xl mb-4">🔓</div>
+            <h3 className="text-2xl font-bold text-military-green mb-3">Build Phase Unlocked!</h3>
+            <p className="text-military-green/80 text-lg">
+              We've crossed the 50% threshold. Together, we're building the future our veterans deserve.
             </p>
           </div>
         )}
 
-        {/* Milestone Indicators */}
-        <div className="flex justify-between items-center text-sm text-gray-500">
-          <div className="text-center">
-            <div className="w-3 h-3 bg-gray-300 rounded-full mb-1"></div>
-            <span>₹0</span>
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+          <div className="premium-stat">
+            <div className="premium-stat-value">{formatCurrency(metrics.total_raised)}</div>
+            <div className="premium-stat-label">Total Raised</div>
           </div>
-          <div className="text-center">
-            <div className={`w-3 h-3 rounded-full mb-1 ${stats.total_raised >= 250000 ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-            <span>₹2.5L</span>
+          
+          <div className="premium-stat">
+            <div className="premium-stat-value">{formatCurrency(metrics.today_raised)}</div>
+            <div className="premium-stat-label">Today's Support</div>
           </div>
-          <div className="text-center">
-            <div className={`w-3 h-3 rounded-full mb-1 ${stats.total_raised >= 500000 ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-            <span>₹5L</span>
+          
+          <div className="premium-stat">
+            <div className="premium-stat-value">{formatCurrency(metrics.highest_single)}</div>
+            <div className="premium-stat-label">Highest Donation</div>
           </div>
-          <div className="text-center">
-            <div className={`w-3 h-3 rounded-full mb-1 ${stats.total_raised >= 750000 ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-            <span>₹7.5L</span>
+        </div>
+
+        {/* Recent Supporters */}
+        {metrics.recent_donations.length > 0 && (
+          <div className="premium-card">
+            <h3 className="text-2xl font-bold text-premium-light mb-6 text-center">
+              Recent Supporters
+            </h3>
+            <div className="space-y-4">
+              {metrics.recent_donations.slice(0, 5).map((donation, index) => (
+                <div key={index} className="flex items-center justify-between p-4 bg-premium-gray/30 rounded-xl border border-military-gold/20">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-military-gold/20 rounded-full flex items-center justify-center">
+                      <span className="text-military-gold text-sm">⭐</span>
+                    </div>
+                    <span className="text-premium-light font-medium">
+                      {donation.is_anonymous ? 'Anonymous Hero' : donation.display_name}
+                    </span>
+                  </div>
+                  <span className="text-military-gold font-semibold">
+                    {formatCurrency(donation.amount)}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="text-center">
-            <div className={`w-3 h-3 rounded-full mb-1 ${stats.total_raised >= 1000000 ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-            <span>₹10L</span>
-          </div>
+        )}
+
+        {/* Mission Statement */}
+        <div className="text-center mt-12">
+          <p className="text-lg text-gray-400 max-w-3xl mx-auto">
+            Every rupee brings us closer to building the <span className="text-military-gold font-semibold">AI-powered platform</span> 
+            that will transform how veterans transition to civilian careers.
+          </p>
         </div>
       </div>
     </section>

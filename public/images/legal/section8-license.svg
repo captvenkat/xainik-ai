@@ -1,0 +1,57 @@
+<svg width="800" height="600" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="600" fill="#1f2937" rx="8"/>
+  <rect x="50" y="50" width="700" height="500" fill="#374151" rx="4"/>
+  
+  <!-- Document Header -->
+  <rect x="70" y="80" width="660" height="60" fill="#d4af37" rx="4"/>
+  <text x="400" y="115" text-anchor="middle" fill="#000" font-family="Arial, sans-serif" font-size="18" font-weight="bold">
+    Section 8 Licence - Companies Act 2013
+  </text>
+  
+  <!-- License Number -->
+  <rect x="70" y="160" width="200" height="40" fill="#6b7280" rx="4"/>
+  <text x="170" y="185" text-anchor="middle" fill="#fff" font-family="Arial, sans-serif" font-size="14">
+    License No: 138784
+  </text>
+  
+  <!-- Company Name -->
+  <rect x="290" y="160" width="440" height="40" fill="#6b7280" rx="4"/>
+  <text x="510" y="185" text-anchor="middle" fill="#fff" font-family="Arial, sans-serif" font-size="14">
+    VETERAN SUCCESS FOUNDATION
+  </text>
+  
+  <!-- Document Content -->
+  <rect x="70" y="220" width="660" height="80" fill="#4b5563" rx="4"/>
+  <text x="400" y="250" text-anchor="middle" fill="#fff" font-family="Arial, sans-serif" font-size="12">
+    Official license granting non-profit status
+  </text>
+  <text x="400" y="270" text-anchor="middle" fill="#fff" font-family="Arial, sans-serif" font-size="12">
+    under Section 8 of the Companies Act, 2013
+  </text>
+  <text x="400" y="290" text-anchor="middle" fill="#fff" font-family="Arial, sans-serif" font-size="12">
+    Permits operation without "Limited" suffix
+  </text>
+  
+  <!-- Official Seal -->
+  <circle cx="700" cy="120" r="30" fill="none" stroke="#d4af37" stroke-width="3"/>
+  <text x="700" y="125" text-anchor="middle" fill="#d4af37" font-family="Arial, sans-serif" font-size="10">
+    OFFICIAL
+  </text>
+  <text x="700" y="140" text-anchor="middle" fill="#d4af37" font-family="Arial, sans-serif" font-size="10">
+    SEAL
+  </text>
+  
+  <!-- Footer -->
+  <rect x="70" y="320" width="660" height="40" fill="#6b7280" rx="4"/>
+  <text x="400" y="345" text-anchor="middle" fill="#fff" font-family="Arial, sans-serif" font-size="12">
+    Issued by Registrar of Companies, Hyderabad
+  </text>
+  
+  <!-- Placeholder Text -->
+  <text x="400" y="400" text-anchor="middle" fill="#9ca3af" font-family="Arial, sans-serif" font-size="14">
+    [Placeholder - Actual document image will be displayed here]
+  </text>
+  <text x="400" y="420" text-anchor="middle" fill="#9ca3af" font-family="Arial, sans-serif" font-size="12">
+    Click outside to close
+  </text>
+</svg>
