@@ -23,7 +23,7 @@ export default function NewVoicePage() {
   return (
     <main className="mx-auto max-w-xl p-4">
       <h1 className="text-2xl font-bold mb-4">Add your voice</h1>
-      <ComposeForm defaultName={session.user?.name || ""} />
+      <ComposeForm defaultName={session?.user?.name || ""} />
     </main>
   );
 }
