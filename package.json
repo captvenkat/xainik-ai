@@ -4,25 +4,24 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && next build",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
-    "@prisma/client": "^6.15.0",
     "@supabase/supabase-js": "^2.56.0",
     "@vercel/og": "^0.8.5",
-    "bad-words": "^4.0.0",
+    "dotenv": "^17.2.1",
+    "framer-motion": "^12.23.12",
     "lottie-react": "^2.4.1",
+    "lucide-react": "^0.542.0",
     "next": "14.2.5",
-    "next-auth": "^4.24.11",
-    "prisma": "^6.15.0",
+    "openai": "^5.16.0",
     "razorpay": "^2.9.6",
     "react": "^18",
     "react-dom": "^18",
-    "resend": "^6.0.2",
-    "uuid": "^11.1.0",
-    "zod": "^4.1.5"
+    "sharp": "^0.34.3",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@types/node": "^20",

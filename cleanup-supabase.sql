@@ -162,23 +162,23 @@ DROP TRIGGER IF EXISTS tr_mission_invitations_insert ON public.mission_invitatio
 DROP TRIGGER IF EXISTS tr_notifications_insert ON public.notifications CASCADE;
 DROP TRIGGER IF EXISTS tr_payment_events_insert ON public.payment_events CASCADE;
 DROP TRIGGER IF EXISTS tr_pitch_connections_insert ON public.pitch_connections CASCADE;
-DROP TRIGGER IF EXISTS tr_pitch_tracking_insert ON public.pitch_tracking CASCADE;
-DROP TRIGGER IF EXISTS tr_pitches_insert ON public.pitches CASCADE;
-DROP TRIGGER IF EXISTS tr_platform_emails_insert ON public.platform_emails CASCADE;
-DROP TRIGGER IF EXISTS tr_profiles_insert ON public.profiles CASCADE;
-DROP TRIGGER IF EXISTS tr_referral_events_insert ON public.referral_events CASCADE;
-DROP TRIGGER IF EXISTS tr_referrals_insert ON public.referrals CASCADE;
-DROP TRIGGER IF EXISTS tr_resume_requests_insert ON public.resume_requests CASCADE;
-DROP TRIGGER IF EXISTS tr_service_plans_insert ON public.service_plans CASCADE;
-DROP TRIGGER IF EXISTS tr_shares_insert ON public.shares CASCADE;
-DROP TRIGGER IF EXISTS tr_shortlist_insert ON public.shortlist CASCADE;
-DROP TRIGGER IF EXISTS tr_stories_insert ON public.stories CASCADE;
-DROP TRIGGER IF EXISTS tr_supporter_analytics_insert ON public.supporter_analytics CASCADE;
-DROP TRIGGER IF EXISTS tr_user_activity_insert ON public.user_activity CASCADE;
-DROP TRIGGER IF EXISTS tr_user_roles_insert ON public.user_roles CASCADE;
-DROP TRIGGER IF EXISTS tr_users_insert ON public.users CASCADE;
-DROP TRIGGER IF EXISTS tr_veteran_value_activity_insert ON public.veteran_value_activity CASCADE;
-DROP TRIGGER IF EXISTS tr_voting_insert ON public.voting CASCADE;
+DROP TRIGGER IF EXISTS tr_pitch_tracking_insert ON public.pitch_connections CASCADE;
+DROP TABLE IF EXISTS public.pitches CASCADE;
+DROP TABLE IF EXISTS public.platform_emails CASCADE;
+DROP TABLE IF EXISTS public.profiles CASCADE;
+DROP TABLE IF EXISTS public.referral_events CASCADE;
+DROP TABLE IF EXISTS public.referrals CASCADE;
+DROP TABLE IF EXISTS public.resume_requests CASCADE;
+DROP TABLE IF EXISTS public.service_plans CASCADE;
+DROP TABLE IF EXISTS public.shares CASCADE;
+DROP TABLE IF EXISTS public.shortlist CASCADE;
+DROP TABLE IF EXISTS public.stories CASCADE;
+DROP TABLE IF EXISTS public.supporter_analytics CASCADE;
+DROP TABLE IF EXISTS public.user_activity CASCADE;
+DROP TABLE IF EXISTS public.user_roles CASCADE;
+DROP TABLE IF EXISTS public.users CASCADE;
+DROP TABLE IF EXISTS public.veteran_value_activity CASCADE;
+DROP TABLE IF EXISTS public.voting CASCADE;
 
 -- =====================================================
 -- STEP 5: DROP UNNECESSARY INDEXES
@@ -232,3 +232,10 @@ ORDER BY p.proname;
 
 -- Total cleanup: Removed ~50+ unnecessary tables, views, functions, and triggers
 -- Kept only the essential fundraising app structure
+
+-- =====================================================
+-- STEP 8: ADD THEME SUPPORT FOR POSTERS
+-- =====================================================
+
+-- Add theme_id column for poster variety
+alter table memes add column if not exists theme_id text;
