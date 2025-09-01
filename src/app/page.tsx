@@ -14,6 +14,7 @@ import HeroOverlay from '@/components/xk/HeroOverlay'
 import StatsBand from '@/components/xk/StatsBand'
 import StoryCard from '@/components/xk/StoryCard'
 import FinalCall from '@/components/xk/FinalCall'
+import LatestVoices from '@/components/voices/LatestVoices'
 
 export default function Home() {
   const [showShareModal, setShowShareModal] = useState(false)
@@ -47,6 +48,7 @@ export default function Home() {
       <Solution />
       <LedByExperience />
       <StoryCard />
+      <LatestVoices viewAllHref="/voices" />
       <Transparency />
       <StayConnected />
       
