@@ -18,7 +18,7 @@ export default async function VoicesPage() {
       <div className="mb-8">
         <h1 className="text-3xl sm:text-4xl font-bold mb-4 text-[#111827]">Voices for Xainik</h1>
         <p className="text-lg text-gray-600 mb-6">
-          Real stories from people who believe in supporting our veterans' futures. 
+          Real stories from people who believe in supporting military veterans.
         </p>
         <Link 
           href="/voices/new"
