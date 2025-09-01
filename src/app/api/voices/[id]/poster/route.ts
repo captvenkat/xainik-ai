@@ -6,12 +6,12 @@ export const runtime = "edge";
 
 const prisma = new PrismaClient();
 
-export async function GET(_req: Request, { params }: { params: { slug: string } }) {
+export async function GET(_req: Request, { params }: { params: { id: string } }) {
   try {
     // Fetch testimonial
     const t = await prisma.testimonial.findUnique({ 
       where: { 
-        id: params.slug, 
+        id: params.id, 
         status: "approved" 
       } 
     });
@@ -24,7 +24,7 @@ export async function GET(_req: Request, { params }: { params: { slug: string } 
     let backgroundImage = null;
     if (process.env.POSTER_AI === "on") {
       try {
-        const aiResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/voices/${params.slug}/poster-art`);
+                 const aiResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/voices/${params.id}/poster-art`);
         const aiData = await aiResponse.json();
         if (aiData.ok && aiData.url) {
           backgroundImage = aiData.url;

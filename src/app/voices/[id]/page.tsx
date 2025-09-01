@@ -7,10 +7,10 @@ export const dynamic = "force-dynamic";
 
 const prisma = new PrismaClient();
 
-export default async function TestimonialPage({ params }: { params: { slug: string } }) {
+export default async function TestimonialPage({ params }: { params: { id: string } }) {
   const testimonial = await prisma.testimonial.findUnique({
     where: { 
-      id: params.slug,
+      id: params.id,
       status: "approved"
     },
   });
@@ -35,21 +35,21 @@ export default async function TestimonialPage({ params }: { params: { slug: stri
         
         <div className="space-y-4">
           <div className="flex flex-wrap gap-3">
-            <a
-              href={`/api/voices/${params.slug}/poster`}
-              download={`xainik-voice-${params.slug}.png`}
-              className="px-4 py-2 bg-[#D4AF37] text-[#111827] rounded hover:bg-[#B8941F] transition-colors"
-            >
-              Download A4 Poster
-            </a>
-            
-            <a
-              href={`/api/voices/${params.slug}/og`}
-              download={`xainik-share-${params.slug}.png`}
-              className="px-4 py-2 bg-[#1B365D] text-[#F9FAFB] rounded hover:bg-[#152A4A] transition-colors"
-            >
-              Download Share Image
-            </a>
+                         <a
+               href={`/api/voices/${params.id}/poster`}
+               download={`xainik-voice-${params.id}.png`}
+               className="px-4 py-2 bg-[#D4AF37] text-[#111827] rounded hover:bg-[#B8941F] transition-colors"
+             >
+               Download A4 Poster
+             </a>
+             
+             <a
+               href={`/api/voices/${params.id}/og`}
+               download={`xainik-share-${params.id}.png`}
+               className="px-4 py-2 bg-[#1B365D] text-[#F9FAFB] rounded hover:bg-[#152A4A] transition-colors"
+             >
+               Download Share Image
+             </a>
           </div>
           
           <div className="pt-4 border-t border-[#374151]">

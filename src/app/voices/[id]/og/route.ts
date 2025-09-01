@@ -6,11 +6,11 @@ export const runtime = "edge";
 
 const prisma = new PrismaClient();
 
-export async function GET(_req: Request, { params }: { params: { slug: string } }) {
+export async function GET(_req: Request, { params }: { params: { id: string } }) {
   try {
     const testimonial = await prisma.testimonial.findUnique({
       where: { 
-        id: params.slug,
+        id: params.id,
         status: "approved"
       },
     });
