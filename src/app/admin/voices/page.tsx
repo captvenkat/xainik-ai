@@ -8,6 +8,12 @@ export const dynamic = "force-dynamic";
 
 const prisma = new PrismaClient();
 
+function formatDateTime(date: string | Date): string {
+  const d = new Date(date);
+  // Use consistent UTC-based formatting to avoid server/client mismatch
+  return d.toISOString().replace('T', ' ').slice(0, 19); // Returns YYYY-MM-DD HH:mm:ss format
+}
+
 export default async function AdminVoicesPage() {
   const session = await getServerSession(authOptions);
   const email = session?.user?.email || null;
@@ -37,7 +43,7 @@ export default async function AdminVoicesPage() {
         {items.map((t) => (
           <div key={t.id} className="rounded border p-4">
             <div className="font-semibold">{t.name}</div>
-            <div className="text-sm opacity-70">{new Date(t.createdAt).toLocaleString()}</div>
+            <div className="text-sm opacity-70">{formatDateTime(t.createdAt)}</div>
             <p className="mt-2 whitespace-pre-wrap">{t.message}</p>
             <div className="mt-3 flex gap-2">
               <form action={act.bind(null, t.id, "approve")}>

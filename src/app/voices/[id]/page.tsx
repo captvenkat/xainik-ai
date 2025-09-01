@@ -7,6 +7,12 @@ export const dynamic = "force-dynamic";
 
 const prisma = new PrismaClient();
 
+function formatDate(date: string | Date): string {
+  const d = new Date(date);
+  // Use consistent UTC-based formatting to avoid server/client mismatch
+  return d.toISOString().split('T')[0]; // Returns YYYY-MM-DD format
+}
+
 export default async function TestimonialPage({ params }: { params: { id: string } }) {
   const testimonial = await prisma.testimonial.findUnique({
     where: { 
@@ -25,7 +31,7 @@ export default async function TestimonialPage({ params }: { params: { id: string
         <h1 className="text-2xl sm:text-3xl font-bold mb-4">Voice for Xainik</h1>
         <TestimonialCard 
           name={testimonial.name}
-          date={new Date(testimonial.createdAt).toLocaleDateString()}
+          date={formatDate(testimonial.createdAt)}
           message={testimonial.message}
         />
       </div>
