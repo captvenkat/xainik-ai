@@ -8,16 +8,20 @@ async function findDeadFiles() {
   files.forEach(f=>map.set(path.resolve(f), fs.readFileSync(f,'utf8')));
 
   const used = new Set<string>();
-  for(const [f,code] of map.entries()){
-    for(const m of code.matchAll(/from ['"](.+?)['"]/g)){
-      const imp = m[1]; 
-      if(!imp.startsWith('.')) continue;
-      const target = path.resolve(path.dirname(f), imp);
-      for(const [cand] of map.entries()) if(cand.startsWith(target)) used.add(cand);
+  const entries = Array.from(map.entries());
+  for(const [f,code] of entries){
+    const matches = code.match(/from ['"](.+?)['"]/g);
+    if(matches) {
+      for(const match of matches){
+        const imp = match.replace(/from ['"](.+?)['"]/, '$1');
+        if(!imp.startsWith('.')) continue;
+        const target = path.resolve(path.dirname(f), imp);
+        for(const [cand] of entries) if(cand[0].startsWith(target)) used.add(cand[0]);
+      }
     }
   }
 
-  const all = [...map.keys()];
+  const all = Array.from(map.keys());
   const roots = all.filter(f=>/app\/(page|layout)\.tsx$/.test(f));
   roots.forEach(r=>used.add(r));
 
