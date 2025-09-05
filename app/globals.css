@@ -61,3 +61,11 @@ html, body { background:#0B1220; color:#fff; }
   animation: shimmer 1.2s ease-in-out infinite;
 }
 @keyframes shimmer { 100% { transform: translateX(100%); } }
+
+/* Custom line-clamp utility */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

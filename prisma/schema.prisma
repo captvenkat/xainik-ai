@@ -1,0 +1,321 @@
+// Xainik Prisma Schema - SSOT aligned with docs/SPEC.yaml
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String   @id @default(cuid())
+  email      String   @unique
+  name       String?
+  roles      String[] @default([])
+  tz         String?  @default("Asia/Kolkata")
+  created_at DateTime @default(now())
+
+  // Relations
+  speakers     Speaker[]
+  events       Event[]
+  donations    Donation[]
+  notifications Notification[]
+  sentMessages Message[] @relation("MessageSender")
+  auditLogs    Audit[]
+  organizerThreads MessageThread[]
+
+  @@map("users")
+}
+
+model Speaker {
+  id               String   @id @default(cuid())
+  user_id          String
+  headline         String?
+  bio              String?
+  topics           String[] @default([])
+  audiences        String[] @default([])
+  formats          String[] @default([])
+  delivery         String[] @default([])
+  locations        String[] @default([])
+  languages        String[] @default([])
+  fee_min          Int?
+  fee_max          Int?
+  currency         String   @default("INR")
+  availability_json Json?
+  verified_at      DateTime?
+  published        Boolean  @default(false)
+  created_at       DateTime @default(now())
+
+  // Relations
+  user        User        @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  media       Media[]
+  quotes      Quote[]
+  bookings    Booking[]
+  payouts     Payout[]
+  threads     MessageThread[]
+
+  @@map("speakers")
+}
+
+model Media {
+  id         String @id @default(cuid())
+  speaker_id String
+  kind       MediaKind
+  url        String
+  meta       Json?
+
+  // Relations
+  speaker Speaker @relation(fields: [speaker_id], references: [id], onDelete: Cascade)
+
+  @@map("media")
+}
+
+enum MediaKind {
+  poster
+  audio
+  reel
+  doc
+}
+
+model Event {
+  id            String   @id @default(cuid())
+  organizer_id  String
+  title         String
+  city          String
+  country       String   @default("India")
+  venue         String?
+  date          DateTime?
+  time_window   String?
+  audience_type String
+  audience_size Int?
+  format        String?
+  delivery      String?
+  budget_min    Int?
+  budget_max    Int?
+  currency      String   @default("INR")
+  details       String?
+  status        String   @default("draft")
+  created_at    DateTime @default(now())
+
+  // Relations
+  organizer User           @relation(fields: [organizer_id], references: [id], onDelete: Cascade)
+  quotes    Quote[]
+  bookings  Booking[]
+  threads   MessageThread[]
+
+  @@map("events")
+}
+
+model Quote {
+  id          String      @id @default(cuid())
+  event_id    String
+  speaker_id  String
+  amount      Int
+  currency    String      @default("INR")
+  terms       String?
+  status      QuoteStatus @default(pending)
+  expires_at  DateTime?
+  created_at  DateTime    @default(now())
+
+  // Relations
+  event   Event   @relation(fields: [event_id], references: [id], onDelete: Cascade)
+  speaker Speaker @relation(fields: [speaker_id], references: [id], onDelete: Cascade)
+  booking Booking?
+
+  @@map("quotes")
+}
+
+enum QuoteStatus {
+  pending
+  accepted
+  countered
+  declined
+  expired
+}
+
+model Booking {
+  id                String        @id @default(cuid())
+  event_id          String
+  speaker_id        String
+  final_fee         Int
+  currency          String        @default("INR")
+  status            BookingStatus @default(pending)
+  service_fee_pct   Float         @default(10.0)
+  pg_fee_absorbed   Boolean       @default(true)
+  invoice_id        String?
+  contract_url      String?
+  rating            Int?
+  created_at        DateTime      @default(now())
+  confirmed_at      DateTime?
+  completed_at      DateTime?
+  canceled_at       DateTime?
+
+  // Relations
+  event   Event   @relation(fields: [event_id], references: [id], onDelete: Cascade)
+  speaker Speaker @relation(fields: [speaker_id], references: [id], onDelete: Cascade)
+  quote   Quote?  @relation(fields: [id], references: [id])
+  payments Payment[]
+  payouts Payout[]
+  invoice Invoice?
+
+  @@map("bookings")
+}
+
+enum BookingStatus {
+  pending
+  confirmed
+  completed
+  canceled
+  refunded
+}
+
+model Payment {
+  id                  String @id @default(cuid())
+  booking_id          String
+  razorpay_order_id   String
+  razorpay_payment_id String?
+  amount_gross        Int
+  amount_net          Int
+  currency            String @default("INR")
+  status              String @default("pending")
+  pg_fee_amount       Int?
+  pg_fee_pct          Float?
+  meta                Json?
+  created_at          DateTime @default(now())
+
+  // Relations
+  booking Booking @relation(fields: [booking_id], references: [id], onDelete: Cascade)
+
+  @@map("payments")
+}
+
+model Payout {
+  id            String   @id @default(cuid())
+  booking_id    String
+  speaker_id    String
+  amount        Int
+  currency      String   @default("INR")
+  processor_id  String?
+  status        String   @default("pending")
+  meta          Json?
+  created_at    DateTime @default(now())
+
+  // Relations
+  booking Booking @relation(fields: [booking_id], references: [id], onDelete: Cascade)
+  speaker Speaker @relation(fields: [speaker_id], references: [id], onDelete: Cascade)
+
+  @@map("payouts")
+}
+
+model Invoice {
+  id             String    @id @default(cuid())
+  booking_id     String    @unique
+  invoice_number String    @unique
+  pdf_url        String?
+  breakdown      Json?
+  gst_details    Json?
+  issued_at      DateTime  @default(now())
+  paid_at        DateTime?
+
+  // Relations
+  booking Booking @relation(fields: [booking_id], references: [id], onDelete: Cascade)
+
+  @@map("invoices")
+}
+
+model Donation {
+  id               String   @id @default(cuid())
+  user_id          String
+  tier_amount      Int
+  currency         String   @default("INR")
+  receipt_number   String   @unique
+  receipt_pdf_url  String?
+  status           String   @default("pending")
+  processor_ref    String?
+  created_at       DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("donations")
+}
+
+model Notification {
+  id           String          @id @default(cuid())
+  user_id      String
+  channel      NotificationChannel
+  template_key String
+  payload      Json?
+  status       String          @default("pending")
+  created_at   DateTime        @default(now())
+  sent_at      DateTime?
+
+  // Relations
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+enum NotificationChannel {
+  email
+  push
+  sms
+  in_app
+}
+
+model MessageThread {
+  id           String   @id @default(cuid())
+  event_id     String
+  organizer_id String
+  speaker_id   String
+  created_at   DateTime @default(now())
+
+  // Relations
+  event     Event     @relation(fields: [event_id], references: [id], onDelete: Cascade)
+  organizer User      @relation(fields: [organizer_id], references: [id], onDelete: Cascade)
+  speaker   Speaker   @relation(fields: [speaker_id], references: [id], onDelete: Cascade)
+  messages  Message[]
+
+  @@map("message_threads")
+}
+
+model Message {
+  id          String   @id @default(cuid())
+  thread_id   String
+  sender_id   String
+  body        String
+  attachments Json?
+  created_at  DateTime @default(now())
+
+  // Relations
+  thread MessageThread @relation(fields: [thread_id], references: [id], onDelete: Cascade)
+  sender User          @relation("MessageSender", fields: [sender_id], references: [id], onDelete: Cascade)
+
+  @@map("messages")
+}
+
+model Audit {
+  id        String   @id @default(cuid())
+  who       String
+  action    String
+  resource  String
+  before    Json?
+  after     Json?
+  source    String?
+  created_at DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [who], references: [id], onDelete: Cascade)
+
+  @@map("audit")
+}
+
+model FeatureFlag {
+  key     String @id
+  enabled Boolean @default(false)
+  payload Json?
+
+  @@map("feature_flags")
+}

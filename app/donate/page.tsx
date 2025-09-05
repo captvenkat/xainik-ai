@@ -5,10 +5,12 @@ export default function Donate() {
   const [loading, setLoading] = useState(false);
   const [showUPI, setShowUPI] = useState(false);
 
-  const donationAmounts = [
-    { amount: 99, label: 'Basic Support', description: 'Helps one veteran' },
-    { amount: 499, label: 'Strong Support', description: 'Helps five veterans' },
-    { amount: 999, label: 'Major Impact', description: 'Helps ten veterans' }
+  const donationTiers = [
+    { amount: 1000, label: '₹1,000', description: 'Supports veteran training' },
+    { amount: 2500, label: '₹2,500', description: 'Helps veteran placement' },
+    { amount: 5000, label: '₹5,000', description: 'Major veteran impact' },
+    { amount: 7500, label: '₹7,500', description: 'Transform veteran lives' },
+    { amount: 10000, label: '₹10,000', description: 'Maximum veteran support' }
   ];
 
   async function handleDonation(amount: number) {
@@ -83,7 +85,7 @@ export default function Donate() {
       
       {!showUPI ? (
         <div className="space-y-4 max-w-md">
-          {donationAmounts.map(({ amount, label, description }) => (
+          {donationTiers.map(({ amount, label, description }) => (
             <button
               key={amount}
               onClick={() => handleDonation(amount)}
@@ -92,14 +94,26 @@ export default function Donate() {
             >
               <div className="flex justify-between items-center">
                 <div>
-                  <div className="text-lg font-bold">₹{amount}</div>
-                  <div className="text-sm opacity-70">{label}</div>
-                  <div className="text-xs opacity-50">{description}</div>
+                  <div className="text-lg font-bold">{label}</div>
+                  <div className="text-sm opacity-70">{description}</div>
                 </div>
                 <div className="text-2xl">→</div>
               </div>
             </button>
           ))}
+          
+          <button
+            onClick={() => {/* TODO: Implement custom amount modal */}}
+            className="w-full rounded-xl px-4 py-4 border border-white text-white hover:bg-white hover:text-black transition-colors"
+          >
+            <div className="flex justify-between items-center">
+              <div>
+                <div className="text-lg font-bold">Custom Amount</div>
+                <div className="text-sm opacity-70">Choose your own amount</div>
+              </div>
+              <div className="text-2xl">→</div>
+            </div>
+          </button>
           
           <button
             onClick={() => setShowUPI(true)}
