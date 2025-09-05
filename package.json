@@ -6,22 +6,32 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "spec:check": "tsx scripts/spec-check.ts",
+    "dead:find": "tsx scripts/find-dead.ts",
+    "guards:check": "tsx scripts/codemod-guards.ts",
+    "ci": "npx prisma generate && npm run spec:check && npm run dead:find && tsc --noEmit && npm test --if-present"
   },
   "dependencies": {
+    "@prisma/client": "^6.15.0",
     "@supabase/supabase-js": "^2.56.0",
     "@vercel/og": "^0.8.5",
     "dotenv": "^17.2.1",
     "framer-motion": "^12.23.12",
+    "glob": "^11.0.3",
     "lottie-react": "^2.4.1",
     "lucide-react": "^0.542.0",
     "next": "14.2.5",
     "openai": "^5.16.0",
+    "prisma": "^6.15.0",
     "razorpay": "^2.9.6",
     "react": "^18",
     "react-dom": "^18",
     "sharp": "^0.34.3",
-    "uuid": "^11.1.0"
+    "tsx": "^4.20.5",
+    "uuid": "^11.1.0",
+    "yaml": "^2.8.1",
+    "zod": "^4.1.5"
   },
   "devDependencies": {
     "@types/node": "^20",

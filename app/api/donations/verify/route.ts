@@ -1,14 +1,27 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { supabaseService } from '@/lib/supabase-server';
+import { z } from 'zod';
+
+const VerifyPaymentSchema = z.object({
+  razorpay_order_id: z.string().min(1),
+  razorpay_payment_id: z.string().min(1),
+  razorpay_signature: z.string().min(1),
+});
 
 export async function POST(req: Request) {
   try {
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = await req.json();
-
-    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
-      return NextResponse.json({ error: 'Missing payment details' }, { status: 400 });
+    const body = await req.json();
+    const parsed = VerifyPaymentSchema.safeParse(body);
+    
+    if (!parsed.success) {
+      return NextResponse.json({ 
+        error: 'Invalid request data', 
+        details: parsed.error.issues 
+      }, { status: 400 });
     }
+    
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = parsed.data;
 
     // Verify signature
     const text = `${razorpay_order_id}|${razorpay_payment_id}`;
