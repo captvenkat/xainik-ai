@@ -50,3 +50,13 @@ OrganizerIntent, ShortlistResponse, SpeakerOnboardResult, DonationOffer, QuoteAc
 - Admin alerts enabled: 3+ failures on /api/posters within 10 minutes triggers a Resend email to ceo@faujnet.com; cooldown 30 minutes. 
 - Utility: src/lib/alert-throttle.ts (reusable for any route).
 - Env: RESEND_API_KEY, ADMIN_ALERTS_EMAIL.
+
+## Deploy & Preflight
+- **Preflight workflow**: Runs on PR and push to main; validates schema, tests, policy, dead code.
+- **Deploy workflow**: Triggers Preview on PR, Production on main merge (via Vercel Git integration).
+- **Smoke tests**: `scripts/predeploy-smoke.sh` validates endpoints on Preview/Production.
+- **Usage**: 
+  - `npm run preflight` - Run full preflight checks locally
+  - `PREVIEW_URL=<url> npm run smoke:preview` - Test preview deployment
+  - `npm run smoke:prod` - Test production deployment
+- **Admin alerts**: ceo@faujnet.com receives failure notifications.
