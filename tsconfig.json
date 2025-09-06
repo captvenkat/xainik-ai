@@ -19,6 +19,9 @@
       "node"
     ],
     "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"]
+    },
     "incremental": true,
     "esModuleInterop": true,
     "plugins": [
