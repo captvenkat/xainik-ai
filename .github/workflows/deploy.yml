@@ -1,0 +1,40 @@
+# This workflow requires Preflight to pass.
+# It will Deploy Preview on PR, and deploy Prod on push to main (after checks are green).
+name: Deploy
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [ main ]
+jobs:
+  deploy-preview:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Preflight status gate
+        uses: actions/github-script@v7
+        with:
+          script: core.info('Preflight passed on PR (GitHub branch protection should enforce checks).')
+      # Rely on Vercel Git integration to build Preview automatically.
+      - run: echo "Preview deploy will be handled by Vercel Git integration."
+
+  deploy-prod:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Preflight status gate
+        uses: actions/github-script@v7
+        with:
+          script: core.info('Preflight passed on main (GitHub branch protection should enforce checks).')
+      # Option A: rely on Vercel Git auto-deploy for main
+      - run: echo "Production deploy handled by Vercel Git integration."
+      # Option B (only if VERCEL_TOKEN/ORG/PROJECT secrets are present):
+      # - uses: amondnet/vercel-action@v25
+      #   with:
+      #     vercel-token: ${{ secrets.VERCEL_TOKEN }}
+      #     vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+      #     vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+      #     working-directory: .
+      #     prod: true

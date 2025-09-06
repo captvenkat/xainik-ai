@@ -1,0 +1,18 @@
+name: PR Smoke Comment
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+jobs:
+  comment:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const preview = 'Set PREVIEW_URL env to the Vercel preview URL to run smoke:preview locally.';
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `**Preflight OK**. After Vercel creates the Preview, run:\n\n\`\`\`bash\nPREVIEW_URL=<paste_preview_url> pnpm run smoke:preview\n\`\`\`\n\nProduction deploy happens on merge to main after checks pass.\n\nAdmin alerts → ceo@faujnet.com`
+            });

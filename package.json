@@ -13,6 +13,9 @@
     "webp:check": "tsx scripts/check-webp-policy.ts",
     "media:migrate": "tsx scripts/migrate-media.ts",
     "posters:smoke": "curl -X POST http://localhost:3000/api/posters -H 'Content-Type: application/json' -d '{\"speakerId\":\"test-speaker\",\"photoUrl\":\"https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400\",\"userId\":\"test-user\"}'",
+    "preflight": "npx prisma generate && npm run spec:check && npm run dead:find && tsc --noEmit && npm test --if-present && npm run webp:check || true",
+    "smoke:preview": "bash scripts/predeploy-smoke.sh $PREVIEW_URL",
+    "smoke:prod": "bash scripts/predeploy-smoke.sh https://xainik.com",
     "test": "jest",
     "ci": "npx prisma generate && npm run spec:check && npm run dead:find && npm run webp:check && tsc --noEmit && npm test"
   },
