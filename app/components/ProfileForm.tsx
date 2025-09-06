@@ -12,7 +12,7 @@ export default function ProfileForm(){
       setForm({
         headline: j.me.headline || "",
         bio: j.me.bio || "",
-        topics: (j.me.topics||[]).join(", ")
+        topics: j.me.topics ? JSON.parse(j.me.topics).join(", ") : ""
       });
     }
   })(); },[]);
