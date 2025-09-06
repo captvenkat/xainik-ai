@@ -1,14 +1,18 @@
 import { prisma } from "@/lib/db";
+import BookingActions from "../../components/BookingActions";
 
 export default async function OrganizerDashboard(){
-  const events = await prisma.event.findMany({
-    orderBy: { date: "asc" },
-    include: {
-      bookings: { include: { speaker: { include: { user: true } } } },
-      shortlists: true
-    } as any
-  });
-  const speakers = await prisma.speaker.findMany({ include: { user: true }});
+  try {
+    const events = await prisma.event.findMany({
+      orderBy: { date: "asc" },
+      include: {
+        bookings: { include: { speaker: { include: { user: true } } } }
+      } as any
+    });
+    
+    // Get shortlists separately for now
+    const shortlists = await prisma.shortlist.findMany();
+    const speakers = await prisma.speaker.findMany({ include: { user: true }});
 
   return (
     <div>
@@ -36,6 +40,11 @@ export default async function OrganizerDashboard(){
                   <li key={b.id}>
                     Speaker: <b>{b.speaker?.user?.name || "Unknown"}</b> — Amount: ₹ {b.amountINR.toLocaleString("en-IN")} — Status: {b.status}
                     {" "}• <a href={`/api/invoices/${b.id}`} target="_blank">Invoice PDF</a>
+                    {b.status === "pending" && (
+                      <>
+                        {" "}• <BookingActions bookingId={b.id} />
+                      </>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -43,9 +52,9 @@ export default async function OrganizerDashboard(){
           </div>
           <hr/>
           <h4>Shortlists</h4>
-          {(ev.shortlists||[]).length===0 ? <p>None</p> : (
+          {shortlists.filter(s => s.eventId === ev.id).length===0 ? <p>None</p> : (
             <ul>
-              {ev.shortlists.map((s:any)=> <li key={s.id}><code>{s.speakerId}</code> — {s.status}</li>)}
+              {shortlists.filter(s => s.eventId === ev.id).map((s:any)=> <li key={s.id}><code>{s.speakerId}</code> — {s.status}</li>)}
             </ul>
           )}
           <form action="/api/shortlists" method="post" style={{marginTop:12}}>
@@ -69,4 +78,14 @@ export default async function OrganizerDashboard(){
       ))}
     </div>
   );
+  } catch (error) {
+    return (
+      <div>
+        <h1>Organizer — Dashboard</h1>
+        <div className="card">
+          <p>Error loading dashboard: {String(error)}</p>
+        </div>
+      </div>
+    );
+  }
 }
