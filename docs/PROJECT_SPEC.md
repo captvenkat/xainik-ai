@@ -11,6 +11,9 @@ AI-first speakers marketplace (organizers, speakers, donors). Voice-or-text chat
 - **WebP-only pipeline**: All images auto-converted to WebP with 3 sizes (hero 1600w, card 800w, thumb 320w).
 - **Auto-resize**: Server-side Sharp pipeline processes all uploads and Runware outputs.
 - **One-time migration CLI**: Batch converts legacy images, keeps old assets archived.
+- **Runware integration**: AI poster generation via RUNWARE_API_KEY with feature flag control.
+- **Rate limiting**: Per-user limits (10 posters/24h) with audit logging.
+- **Admin dashboard**: Media health monitoring at /admin/media with migration tools.
 - Larger-than-life speaker visuals (Runware posters) + 30s voice pitch.
 - Donor tiers: ₹1,000 / ₹2,500 / ₹5,000 / ₹7,500 / ₹10,000 / Custom.
 - Impact counters: Speakers Onboarded, Talks Delivered, Audience Reached, Donations Raised.
@@ -35,6 +38,8 @@ OrganizerIntent, ShortlistResponse, SpeakerOnboardResult, DonationOffer, QuoteAc
 - **WebP pipeline implemented**: Sharp-based auto-conversion with 3 sizes
 - **Migration CLI ready**: Batch conversion of legacy images
 - **CI enforces WebP policy**: Automated checks prevent non-WebP uploads
+- **Runware wired**: AI poster generation with rate limiting and feature flags
+- **Admin dashboard**: Media health monitoring and migration tools
 - Contract tests + minimal e2e
 - CI green
 - Spec Compliance Report attached in PR

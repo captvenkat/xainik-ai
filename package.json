@@ -12,6 +12,7 @@
     "guards:check": "tsx scripts/codemod-guards.ts",
     "webp:check": "tsx scripts/check-webp-policy.ts",
     "media:migrate": "tsx scripts/migrate-media.ts",
+    "posters:smoke": "curl -X POST http://localhost:3000/api/posters -H 'Content-Type: application/json' -d '{\"speakerId\":\"test-speaker\",\"photoUrl\":\"https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400\",\"userId\":\"test-user\"}'",
     "test": "jest",
     "ci": "npx prisma generate && npm run spec:check && npm run dead:find && npm run webp:check && tsc --noEmit && npm test"
   },
