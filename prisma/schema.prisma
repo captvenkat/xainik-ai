@@ -29,6 +29,8 @@ model Speaker {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   bookings    Booking[]
+  shortlists  Shortlist[]
+  payouts     Payout[]
 }
 
 model Event {
@@ -41,6 +43,7 @@ model Event {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   bookings    Booking[]
+  Shortlist   Shortlist[]
 }
 
 model Booking {
@@ -54,6 +57,8 @@ model Booking {
 
   event   Event   @relation(fields: [eventId], references: [id])
   speaker Speaker @relation(fields: [speakerId], references: [id])
+  invoice Invoice?
+  payout  Payout?
 }
 
 model Donation {
@@ -64,4 +69,51 @@ model Donation {
   orderId    String?  // Razorpay order id
   status     String   @default("created") // created|paid|failed
   createdAt  DateTime @default(now())
+}
+
+model Shortlist {
+  id        String   @id @default(cuid())
+  eventId   String
+  speakerId String
+  status    String   @default("pending") // pending|selected|rejected
+  createdAt DateTime @default(now())
+
+  event     Event    @relation(fields: [eventId], references: [id])
+  speaker   Speaker  @relation(fields: [speakerId], references: [id])
+}
+
+model QuoteThread {
+  id        String   @id @default(cuid())
+  eventId   String
+  speakerId String
+  // flat log for MVP (you can switch to a messages table later)
+  log       String   @default("[]") // JSON string [{by:"organizer|speaker",text,ts}]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Invoice {
+  id         String   @id @default(cuid())
+  bookingId  String   @unique
+  amountINR  Int
+  taxINR     Int      @default(0)
+  totalINR   Int
+  status     String   @default("issued") // issued|paid|void
+  issuedAt   DateTime @default(now())
+
+  booking    Booking  @relation(fields: [bookingId], references: [id])
+}
+
+model Payout {
+  id           String   @id @default(cuid())
+  bookingId    String   @unique
+  speakerId    String
+  amountINR    Int
+  status       String   @default("queued") // queued|paid|failed
+  payoutToEmail String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  booking      Booking  @relation(fields: [bookingId], references: [id])
+  speaker      Speaker  @relation(fields: [speakerId], references: [id])
 }

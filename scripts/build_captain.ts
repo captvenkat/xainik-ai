@@ -31,11 +31,17 @@ async function main(){
   put("app/api/speakers/route.ts", SPEAKERS);
   put("app/api/bookings/route.ts", BOOKINGS);
   put("app/api/donations/receipt/route.ts", DONO_RECEIPT);
+  // Phase-3 ensures
+  put("app/api/shortlists/route.ts", `import { NextResponse } from "next/server"; export async function GET(){return NextResponse.json({ok:true,shortlists:[]})} export async function POST(){return NextResponse.json({ok:true})}`);
+  put("app/api/quotes/route.ts", `import { NextResponse } from "next/server"; export async function GET(){return NextResponse.json({ok:true,log:[]})} export async function POST(){return NextResponse.json({ok:true})}`);
+  put("app/api/bookings/confirm/route.ts", `import { NextResponse } from "next/server"; export async function POST(){return NextResponse.json({ok:true})}`);
+  put("app/api/invoices/[bookingId]/route.ts", `import { NextResponse } from "next/server"; export async function GET(){return new NextResponse("PDF stub")}`);
+  put("app/api/payouts/queue/route.ts", `import { NextResponse } from "next/server"; export async function POST(){return NextResponse.json({ok:true})}`);
 
   ensureApiRoute("app/api/payments/razorpay/verify/route.ts", "import { NextResponse } from 'next/server'; export async function POST(){ return NextResponse.json({ ok:true, verified:true }); }");
 
   // prisma
-  acts.push("prisma generate & migrate");
+  acts.push("prisma generate & migrate (Phase-3)");
   try { generate(); } catch {}
   try { migrateDeploy(); } catch {}
 

@@ -16,7 +16,7 @@ export default async function SpeakersPage(){
       {!me ? (
         <p>Login to manage your profile → <Link href="/api/auth/signin">Sign in with Google</Link></p>
       ) : (
-        <p>Logged in as <b>{me.name}</b> — <Link href="/api/auth/signout">Sign out</Link></p>
+        <p>Logged in as <b>{me.name}</b> — <Link href="/api/auth/signout">Sign out</Link> — <Link href="/speakers/availability">Edit Availability</Link></p>
       )}
 
       <div className="card">
