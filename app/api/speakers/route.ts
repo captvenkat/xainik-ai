@@ -24,12 +24,14 @@ export async function POST(req: Request){
       userId: user.id,
       headline: body.headline || "",
       bio: body.bio || "",
-      topics: Array.isArray(body.topics) ? JSON.stringify(body.topics) : "[]"
+      topics: Array.isArray(body.topics) ? JSON.stringify(body.topics) : "[]",
+      availability: body.availability ? JSON.stringify(body.availability) : undefined
     },
     update: {
       headline: body.headline || "",
       bio: body.bio || "",
-      topics: Array.isArray(body.topics) ? JSON.stringify(body.topics) : "[]"
+      topics: Array.isArray(body.topics) ? JSON.stringify(body.topics) : "[]",
+      availability: body.availability ? JSON.stringify(body.availability) : undefined
     }
   });
 

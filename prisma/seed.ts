@@ -11,7 +11,18 @@ async function main() {
       budgetINR: 25000
     }
   });
-  console.log("Seeded demo event.");
+  // Optional demo speaker (if user already created via Google sign-in this may be skipped)
+  const u = await prisma.user.upsert({
+    where: { email: "demo.speaker@xainik.com" },
+    create: { email: "demo.speaker@xainik.com", name: "Demo Speaker" },
+    update: {}
+  });
+  await prisma.speaker.upsert({
+    where: { userId: u.id },
+    create: { userId: u.id, headline: "Veteran Leadership", bio: "Talks on resilience", topics: JSON.stringify(["Leadership","Teamwork"]) },
+    update: {}
+  });
+  console.log("Seeded demo event and speaker.");
 }
 
 main().finally(() => prisma.$disconnect());
