@@ -31,7 +31,7 @@ export default async function SpeakersPage(){
           <div key={s.id} style={{marginBottom:12}}>
             <b>{s.user?.name ?? "Unnamed"}</b><br/>
             <small>{s.headline ?? ""}</small><br/>
-            <small>Topics: {(s.topics||[]).join(", ")}</small>
+            <small>Topics: {s.topics ? JSON.parse(s.topics).join(", ") : "None"}</small>
           </div>
         ))}
       </div>

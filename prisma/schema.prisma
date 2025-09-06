@@ -23,11 +23,12 @@ model Speaker {
   user        User     @relation(fields: [userId], references: [id])
   headline    String?
   bio         String?
-  topics      String[] @default([])
-  availability Json?
+  topics      String?  // JSON string for SQLite compatibility
+  availability String? // JSON string for SQLite compatibility
   audioPitch  String? // URL
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  bookings    Booking[]
 }
 
 model Event {
@@ -39,6 +40,7 @@ model Event {
   budgetINR   Int?     // quote budget
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  bookings    Booking[]
 }
 
 model Booking {
