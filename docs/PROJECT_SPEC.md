@@ -8,6 +8,9 @@ AI-first speakers marketplace (organizers, speakers, donors). Voice-or-text chat
 - No listing fee.
 - Facts ONLY from DB; creative from AI.
 - Mobile-first, thumb-operated, WebP images, lazy-loading.
+- **WebP-only pipeline**: All images auto-converted to WebP with 3 sizes (hero 1600w, card 800w, thumb 320w).
+- **Auto-resize**: Server-side Sharp pipeline processes all uploads and Runware outputs.
+- **One-time migration CLI**: Batch converts legacy images, keeps old assets archived.
 - Larger-than-life speaker visuals (Runware posters) + 30s voice pitch.
 - Donor tiers: ₹1,000 / ₹2,500 / ₹5,000 / ₹7,500 / ₹10,000 / Custom.
 - Impact counters: Speakers Onboarded, Talks Delivered, Audience Reached, Donations Raised.
@@ -29,6 +32,9 @@ OrganizerIntent, ShortlistResponse, SpeakerOnboardResult, DonationOffer, QuoteAc
 - Zod contracts updated
 - API handlers updated with Zod validation
 - UI wired (chips/buttons minimal)
+- **WebP pipeline implemented**: Sharp-based auto-conversion with 3 sizes
+- **Migration CLI ready**: Batch conversion of legacy images
+- **CI enforces WebP policy**: Automated checks prevent non-WebP uploads
 - Contract tests + minimal e2e
 - CI green
 - Spec Compliance Report attached in PR
