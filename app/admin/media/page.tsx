@@ -225,6 +225,21 @@ export default function AdminMediaHealth() {
           </div>
         </div>
 
+        {/* Alerts */}
+        <div className="bg-white rounded-lg shadow p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Alerts</h3>
+          <p className="text-sm text-gray-600 mb-4">
+            Automatic email alerts trigger if <b>3+ errors</b> occur on <code className="bg-gray-100 px-2 py-1 rounded">/api/posters</code> within 10 minutes.
+            Alerts cool down for 30 minutes to avoid spam.
+          </p>
+          <ul className="text-sm text-gray-600 list-disc pl-5 space-y-1">
+            <li>Recipient: <code className="bg-gray-100 px-2 py-1 rounded">{process.env.ADMIN_ALERTS_EMAIL || 'unset'}</code></li>
+            <li>Provider: Resend</li>
+            <li>Threshold: 3 errors in 10 minutes</li>
+            <li>Cooldown: 30 minutes between alerts</li>
+          </ul>
+        </div>
+
         {/* Actions */}
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Actions</h3>
