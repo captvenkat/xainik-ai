@@ -1,18 +1,19 @@
 import "./globals.css";
-import { Inter, Bebas_Neue, Sora } from "next/font/google";
+import Link from "next/link";
 
-const inter = Inter({ subsets:["latin"], variable:"--font-body" });
-const bebas = Bebas_Neue({ weight:"400", subsets:["latin"], variable:"--font-headline-compact" });
-const sora  = Sora({ subsets:["latin"], variable:"--font-headline-rounded" });
+export const metadata = { title: "Xainik", description: "Guidance+ and Events" };
 
-export const metadata = { title:"Xainik — Unlocking Veterans", description:"Impossible Is Routine." };
-
-export default function RootLayout({ children }:{children:React.ReactNode}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body className={`${inter.variable} ${bebas.variable} ${sora.variable} min-h-screen bg-[#0B1220] text-white`}>
-        {children}
-      </body>
-    </html>
+    <html lang="en"><body style={{fontFamily:"Inter, system-ui, -apple-system, Segoe UI"}}>
+      <nav style={{display:"flex", gap:16, padding:12, borderBottom:"1px solid #eee"}}>
+        <Link href="/">Home</Link>
+        <Link href="/organizer">Organizer</Link>
+        <Link href="/speakers">Speakers</Link>
+        <Link href="/donate">Donate</Link>
+        <Link href="/admin/media">Admin</Link>
+      </nav>
+      <main style={{maxWidth:900, margin:"20px auto", padding:"0 12px"}}>{children}</main>
+    </body></html>
   );
 }

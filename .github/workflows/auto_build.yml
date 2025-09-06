@@ -1,0 +1,23 @@
+name: Build Captain Auto-Mode
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: {}
+
+jobs:
+  captain:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: corepack enable
+      - run: pnpm i --frozen-lockfile
+      - run: echo "CAPTAIN_ENABLED=true" >> $GITHUB_ENV
+      - run: pnpm captain:auto
+      - name: Upload reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: captain-reports
+          path: reports/*.md
