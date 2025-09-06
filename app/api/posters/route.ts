@@ -1,25 +1,49 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-// import runware SDK here when key provided
-import { createClient } from '@supabase/supabase-js';
+import { ImagePipeline } from '@/lib/image-pipeline';
 
 const Body = z.object({
-  speakerId: z.string(),
+  speakerId: z.string().min(1),
   photoUrl: z.string().url(),
-  variants: z.array(z.enum(['hero','square','story'])).default(['hero','square','story'])
+  variants: z.array(z.enum(['hero','square','story'])).default(['hero','square','story']),
+  source: z.enum(['runware', 'upload']).default('runware')
 });
 
 export async function POST(req: NextRequest) {
-  const parsed = Body.safeParse(await req.json());
-  if(!parsed.success) return NextResponse.json({error:'Bad request'}, {status:400});
-  const { speakerId, photoUrl, variants } = parsed.data;
+  try {
+    const parsed = Body.safeParse(await req.json());
+    if (!parsed.success) {
+      return NextResponse.json({
+        error: 'Invalid request data',
+        details: parsed.error.issues
+      }, { status: 400 });
+    }
 
-  // TODO: Call Runware with variants and photoUrl → get images (buffers/urls)
-  // const images = await runwareGenerate({ photoUrl, variants });
+    const { speakerId, photoUrl, variants, source } = parsed.data;
 
-  // Save to Supabase Storage with WebP preference
-  const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
-  // TODO: upload images, return signed URLs, insert into media table kind='poster'
+    // TODO: Call Runware with variants and photoUrl → get images (buffers/urls)
+    // For now, we'll process the input photo directly
+    // When Runware is integrated, replace photoUrl with the generated poster URLs
+    
+    const processedImage = await ImagePipeline.processImage(
+      photoUrl,
+      speakerId,
+      'poster',
+      source
+    );
 
-  return NextResponse.json({ ok: true /*, urls*/ }, { status: 200 });
+    return NextResponse.json({
+      ok: true,
+      mediaId: processedImage.mediaId,
+      urls: processedImage.urls,
+      meta: processedImage.meta
+    }, { status: 200 });
+
+  } catch (error) {
+    console.error('Poster generation error:', error);
+    return NextResponse.json({
+      error: 'Failed to generate poster',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
+  }
 }

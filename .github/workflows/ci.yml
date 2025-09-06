@@ -11,6 +11,7 @@ jobs:
       - run: pnpm prisma generate
       - run: pnpm tsx scripts/spec-check.ts
       - run: pnpm tsx scripts/find-dead.ts
+      - run: pnpm tsx scripts/check-webp-policy.ts
       - run: pnpm tsc --noEmit
       - run: pnpm lint --if-present
       - run: pnpm test --if-present
