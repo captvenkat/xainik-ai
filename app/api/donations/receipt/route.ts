@@ -6,6 +6,8 @@ export async function GET(req: Request){
   const name = url.searchParams.get("name") || "Donor";
   const email = url.searchParams.get("donorEmail") || "unknown@example.com";
   const amount = Number(url.searchParams.get("amountINR") || 0);
+  const orderId = url.searchParams.get("orderId") || "";
+  const paymentId = url.searchParams.get("paymentId") || "";
 
   const pdf = await PDFDocument.create();
   const page = pdf.addPage([595, 842]); // A4
@@ -15,8 +17,10 @@ export async function GET(req: Request){
   page.drawText(`Donor: ${name}`, { x: 50, y: 740, size: 12, font });
   page.drawText(`Email: ${email}`, { x: 50, y: 720, size: 12, font });
   page.drawText(`Amount: ₹ ${amount.toLocaleString("en-IN")}`, { x: 50, y: 700, size: 12, font });
-  page.drawText(`Date: ${new Date().toLocaleString("en-IN")}`, { x: 50, y: 680, size: 12, font });
-  page.drawText("Thank you for supporting veterans and families.", { x: 50, y: 650, size: 12, font });
+  if (orderId) page.drawText(`Order ID: ${orderId}`, { x: 50, y: 680, size: 12, font });
+  if (paymentId) page.drawText(`Payment ID: ${paymentId}`, { x: 50, y: 660, size: 12, font });
+  page.drawText(`Date: ${new Date().toLocaleString("en-IN")}`, { x: 50, y: 640, size: 12, font });
+  page.drawText("Thank you for supporting veterans and families.", { x: 50, y: 620, size: 12, font });
 
   const bytes = await pdf.save();
   return new NextResponse(bytes, {
