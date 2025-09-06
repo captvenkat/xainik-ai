@@ -18,7 +18,7 @@ const ALERT_SPEC = {
   service: 'api',
   route: '/api/posters',
   window: { windowMs: 10 * 60 * 1000, maxErrors: 3, cooldownMs: 30 * 60 * 1000 }, // 3 errors/10m → alert, 30m cooldown
-  emailTo: 'ops@xainik.com',
+  emailTo: 'ceo@faujnet.com',
 };
 
 export async function POST(req: NextRequest) {

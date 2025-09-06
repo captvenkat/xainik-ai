@@ -47,6 +47,6 @@ OrganizerIntent, ShortlistResponse, SpeakerOnboardResult, DonationOffer, QuoteAc
 - Spec Compliance Report attached in PR
 
 ## Alerts
-- Admin alerts enabled: 3+ failures on /api/posters within 10 minutes triggers a Resend email to ADMIN_ALERTS_EMAIL; cooldown 30 minutes. 
+- Admin alerts enabled: 3+ failures on /api/posters within 10 minutes triggers a Resend email to ceo@faujnet.com; cooldown 30 minutes. 
 - Utility: src/lib/alert-throttle.ts (reusable for any route).
 - Env: RESEND_API_KEY, ADMIN_ALERTS_EMAIL.
