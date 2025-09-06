@@ -14,6 +14,7 @@ AI-first speakers marketplace (organizers, speakers, donors). Voice-or-text chat
 - **Runware integration**: AI poster generation via RUNWARE_API_KEY with feature flag control.
 - **Rate limiting**: Per-user limits (10 posters/24h) with audit logging.
 - **Admin dashboard**: Media health monitoring at /admin/media with migration tools.
+- **Admin alerts**: Auto-email alerts on repeated API failures with cooldown.
 - Larger-than-life speaker visuals (Runware posters) + 30s voice pitch.
 - Donor tiers: ₹1,000 / ₹2,500 / ₹5,000 / ₹7,500 / ₹10,000 / Custom.
 - Impact counters: Speakers Onboarded, Talks Delivered, Audience Reached, Donations Raised.
@@ -40,6 +41,12 @@ OrganizerIntent, ShortlistResponse, SpeakerOnboardResult, DonationOffer, QuoteAc
 - **CI enforces WebP policy**: Automated checks prevent non-WebP uploads
 - **Runware wired**: AI poster generation with rate limiting and feature flags
 - **Admin dashboard**: Media health monitoring and migration tools
+- **Admin alerts**: Threshold-based email alerts with cooldown
 - Contract tests + minimal e2e
 - CI green
 - Spec Compliance Report attached in PR
+
+## Alerts
+- Admin alerts enabled: 3+ failures on /api/posters within 10 minutes triggers a Resend email to ADMIN_ALERTS_EMAIL; cooldown 30 minutes. 
+- Utility: src/lib/alert-throttle.ts (reusable for any route).
+- Env: RESEND_API_KEY, ADMIN_ALERTS_EMAIL.

@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { ImagePipeline } from '@/lib/image-pipeline';
 import { RunwareService } from '@/lib/runware-service';
 import { RateLimiter } from '@/lib/rate-limiter';
+import { recordFailureAndMaybeAlert } from '@/src/lib/alert-throttle';
 
 const Body = z.object({
   speakerId: z.string().min(1),
@@ -12,6 +13,13 @@ const Body = z.object({
   style: z.string().max(100).optional(),
   aspectRatio: z.string().max(20).optional()
 });
+
+const ALERT_SPEC = {
+  service: 'api',
+  route: '/api/posters',
+  window: { windowMs: 10 * 60 * 1000, maxErrors: 3, cooldownMs: 30 * 60 * 1000 }, // 3 errors/10m → alert, 30m cooldown
+  emailTo: 'ops@xainik.com',
+};
 
 export async function POST(req: NextRequest) {
   try {
@@ -99,10 +107,17 @@ export async function POST(req: NextRequest) {
       }
     }, { status: 200 });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Poster generation error:', error);
+    
+    // Fire-and-forget alert; do not block response
+    const msg = error?.message || 'unknown_error';
+    const stack = error?.stack || '';
+    const summary = `Error: ${msg}\n${stack}`;
+    recordFailureAndMaybeAlert(ALERT_SPEC, summary).catch(console.error);
+    
     return NextResponse.json({
-      error: 'Failed to generate poster',
+      error: 'POSTER_GENERATION_FAILED',
       message: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });
   }
