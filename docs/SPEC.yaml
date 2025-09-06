@@ -1,51 +1,9 @@
-models:
-  User:
-    fields: [id, email, name, roles, tz, created_at]
-  Speaker:
-    fields: [id, user_id, headline, bio, topics, audiences, formats, delivery, locations, languages, fee_min, fee_max, currency, availability_json, verified_at, published]
-  Media:
-    fields: [id, speaker_id, kind, url, meta]
-    enums: { kind: [poster, audio, reel, doc] }
-  Event:
-    fields: [id, organizer_id, title, city, country, venue, date, time_window, audience_type, audience_size, format, delivery, budget_min, budget_max, currency, details, status]
-  Quote:
-    fields: [id, event_id, speaker_id, amount, currency, terms, status, expires_at, created_at]
-    enums: { status: [pending, accepted, countered, declined, expired] }
-  Booking:
-    fields: [id, event_id, speaker_id, final_fee, currency, status, service_fee_pct, pg_fee_absorbed, invoice_id, contract_url, rating, created_at, confirmed_at, completed_at, canceled_at]
-    enums: { status: [pending, confirmed, completed, canceled, refunded] }
-  Payment:
-    fields: [id, booking_id, razorpay_order_id, razorpay_payment_id, amount_gross, amount_net, currency, status, pg_fee_amount, pg_fee_pct, meta]
-  Payout:
-    fields: [id, booking_id, speaker_id, amount, currency, processor_id, status, meta, created_at]
-  Invoice:
-    fields: [id, booking_id, invoice_number, pdf_url, breakdown, gst_details, issued_at, paid_at]
-  Donation:
-    fields: [id, user_id, tier_amount, currency, receipt_number, receipt_pdf_url, status, processor_ref, created_at]
-  Notification:
-    fields: [id, user_id, channel, template_key, payload, status, created_at, sent_at]
-    enums: { channel: [email, push, sms, in_app] }
-  MessageThread:
-    fields: [id, event_id, organizer_id, speaker_id, created_at]
-  Message:
-    fields: [id, thread_id, sender_id, body, attachments, created_at]
-  Audit:
-    fields: [id, who, action, resource, before, after, source, created_at]
-  FeatureFlag:
-    fields: [key, enabled, payload]
-
-contracts:
-  OrganizerIntent:
-    fields: [city, date, audience_type, audience_size, format, delivery, budget_min, budget_max]
-  ShortlistResponse:
-    fields: [speakers, chips]
-  SpeakerOnboardResult:
-    fields: [topics, audiences, fee_band_suggestion, poster_set, source]
-  DonationOffer:
-    fields: [tiers, custom_allowed]
-
-non_negotiables:
-  - service_fee_10_percent_pg_absorbed
-  - no_listing_fee
-  - facts_from_db_only
-  - mobile_first_webp
+openapi: 3.0.0
+info: { title: Xainik API, version: "0.1" }
+paths:
+  /api/events: { get: {}, post: {} }
+  /api/speakers: { get: {}, post: {} }
+  /api/bookings: { post: {} }
+  /api/donations/create-order: { post: {} }
+  /api/donations/verify: { post: {} }
+  /api/donations/receipt: { get: {} }

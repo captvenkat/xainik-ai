@@ -1,145 +1,49 @@
-'use client';
-import { useState } from 'react';
+"use client";
+import { useState } from "react";
 
-export default function Donate() {
-  const [loading, setLoading] = useState(false);
-  const [showUPI, setShowUPI] = useState(false);
+const tiers = [1000, 2500, 5000, 7500, 10000];
 
-  const donationTiers = [
-    { amount: 1000, label: '₹1,000', description: 'Supports veteran training' },
-    { amount: 2500, label: '₹2,500', description: 'Helps veteran placement' },
-    { amount: 5000, label: '₹5,000', description: 'Major veteran impact' },
-    { amount: 7500, label: '₹7,500', description: 'Transform veteran lives' },
-    { amount: 10000, label: '₹10,000', description: 'Maximum veteran support' }
-  ];
+export default function Donate(){
+  const [amount, setAmount] = useState<number>(tiers[0]);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [resp, setResp] = useState("");
 
-  async function handleDonation(amount: number) {
-    setLoading(true);
-    try {
-      // Create Razorpay order
-      const response = await fetch('/api/donations/create-order', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount })
-      });
+  async function donate(e:any){
+    e.preventDefault();
+    const orderRes = await fetch("/api/donations/create-order", {
+      method: "POST",
+      body: JSON.stringify({ amountINR: amount, donorName: name, donorEmail: email })
+    });
+    const order = await orderRes.json();
+    setResp("Order Created: " + JSON.stringify(order));
 
-      if (!response.ok) throw new Error('Order creation failed');
+    // Simulate payment → verify immediately (for MVP)
+    const verify = await fetch("/api/donations/verify", { method: "POST", body: JSON.stringify({ orderId: order.orderId }) });
+    const v = await verify.json();
 
-      const { orderId, keyId } = await response.json();
-
-      // Initialize Razorpay
-      const options = {
-        key: keyId,
-        amount: amount * 100, // Razorpay expects amount in paise
-        currency: 'INR',
-        name: 'Xainik',
-        description: 'Unlocking Veterans',
-        order_id: orderId,
-        handler: async function (response: any) {
-          try {
-            // Verify payment
-            const verifyResponse = await fetch('/api/donations/verify', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature
-              })
-            });
-
-            if (verifyResponse.ok) {
-              alert('🎉 You helped unlock a veteran\'s future!');
-              // Refresh page or show success state
-            } else {
-              throw new Error('Verification failed');
-            }
-          } catch (error) {
-            alert('Payment verification failed. Please contact support.');
-          }
-        },
-        prefill: {
-          name: '',
-          email: '',
-          contact: ''
-        },
-        theme: {
-          color: '#0A1F44'
-        }
-      };
-
-      const razorpay = new (window as any).Razorpay(options);
-      razorpay.open();
-    } catch (error) {
-      console.error('Donation error:', error);
-      setShowUPI(true); // Show UPI fallback
-    } finally {
-      setLoading(false);
-    }
+    const receipt = await fetch(`/api/donations/receipt?donorEmail=${encodeURIComponent(email)}&amountINR=${amount}&name=${encodeURIComponent(name)}`);
+    const blob = await receipt.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "Xainik-Donation-Receipt.pdf"; a.click();
   }
 
   return (
-    <main className="min-h-screen bg-[#0A1F44] text-white p-6">
-      <h1 className="text-2xl font-extrabold mb-2">Donate</h1>
-      <p className="opacity-90 mb-4">🪖 5 lakh veterans need meaningful jobs. Your support helps.</p>
-      
-      {!showUPI ? (
-        <div className="space-y-4 max-w-md">
-          {donationTiers.map(({ amount, label, description }) => (
-            <button
-              key={amount}
-              onClick={() => handleDonation(amount)}
-              disabled={loading}
-              className="w-full rounded-xl px-4 py-4 bg-white text-black font-semibold text-left hover:bg-gray-100 transition-colors disabled:opacity-50"
-            >
-              <div className="flex justify-between items-center">
-                <div>
-                  <div className="text-lg font-bold">{label}</div>
-                  <div className="text-sm opacity-70">{description}</div>
-                </div>
-                <div className="text-2xl">→</div>
-              </div>
-            </button>
-          ))}
-          
-          <button
-            onClick={() => {/* TODO: Implement custom amount modal */}}
-            className="w-full rounded-xl px-4 py-4 border border-white text-white hover:bg-white hover:text-black transition-colors"
-          >
-            <div className="flex justify-between items-center">
-              <div>
-                <div className="text-lg font-bold">Custom Amount</div>
-                <div className="text-sm opacity-70">Choose your own amount</div>
-              </div>
-              <div className="text-2xl">→</div>
-            </div>
-          </button>
-          
-          <button
-            onClick={() => setShowUPI(true)}
-            className="w-full rounded-xl px-4 py-3 border border-white text-white hover:bg-white hover:text-black transition-colors"
-          >
-            Having trouble? Use UPI
-          </button>
-        </div>
-      ) : (
-        <div className="max-w-md text-center">
-          <div className="bg-white text-black rounded-xl p-6 mb-4">
-            <div className="text-2xl font-bold mb-2">UPI Payment</div>
-            <div className="text-lg mb-4">xainik@upi</div>
-            <div className="text-sm opacity-70">Scan with any UPI app</div>
-          </div>
-          <button
-            onClick={() => setShowUPI(false)}
-            className="rounded-xl px-4 py-2 border border-white hover:bg-white hover:text-black transition-colors"
-          >
-            Back to Razorpay
-          </button>
-        </div>
-      )}
-
-      {/* Razorpay Script */}
-      <script src="https://checkout.razorpay.com/v1/checkout.js" async></script>
-    </main>
+    <div>
+      <h1>Support Xainik</h1>
+      <form onSubmit={donate} className="card">
+        <label>Donor Name</label>
+        <input value={name} onChange={e=>setName(e.target.value)} placeholder="Your Name"/>
+        <label>Email</label>
+        <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@example.com"/>
+        <label>Amount (₹)</label>
+        <select value={amount} onChange={e=>setAmount(Number(e.target.value))}>
+          {tiers.map(t => <option key={t} value={t}>₹ {t.toLocaleString()}</option>)}
+        </select>
+        <button type="submit">Donate & Download Receipt</button>
+      </form>
+      {resp && <pre className="card" style={{whiteSpace:"pre-wrap"}}>{resp}</pre>}
+    </div>
   );
 }

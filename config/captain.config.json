@@ -1,0 +1,17 @@
+{
+  "specPaths": {
+    "projectSpec": "docs/PROJECT_SPEC.md",
+    "apiSpec": "docs/SPEC.yaml"
+  },
+  "priority": ["organizer", "speaker", "booking", "auth", "donor"],
+  "scores": { "organizer": 10, "speaker": 10, "donor": 10, "admin": 10, "system": 10 },
+  "thresholds": { "deploy": 44, "warn": 32 },
+  "routes": {
+    "events": "/api/events",
+    "speakers": "/api/speakers",
+    "bookings": "/api/bookings",
+    "donations": "/api/donations",
+    "auth": "/api/auth"
+  },
+  "razorpay": { "enabled": true, "modes": ["donation", "booking"] }
+}
