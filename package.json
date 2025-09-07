@@ -6,9 +6,10 @@
     "build": "next build",
     "start": "next start -p 3000",
     "prisma:studio": "prisma studio",
+    "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev --name init",
     "seed": "tsx prisma/seed.ts",
-    "preflight": "pnpm prisma generate && pnpm spec:check && pnpm dead:find && tsc --noEmit && pnpm test --if-present && pnpm run webp:check || true",
+    "preflight": "npm run prisma:generate && npm run spec:check && npm run dead:find && tsc --noEmit && npm test --if-present && npm run webp:check || true",
     "spec:check": "tsx scripts/spec-check.ts",
     "dead:find": "tsx scripts/find-dead.ts",
     "webp:check": "tsx scripts/check-webp-policy.ts",
@@ -22,6 +23,12 @@
   },
   "dependencies": {
     "@prisma/client": "^5.18.0",
+    "@supabase/supabase-js": "^2.57.2",
+    "@types/glob": "^8.1.0",
+    "@types/jest": "^30.0.0",
+    "@vercel/og": "^0.8.5",
+    "glob": "^11.0.3",
+    "lucide-react": "^0.542.0",
     "next": "^14.2.5",
     "next-auth": "^5.0.0-beta.25",
     "pdf-lib": "^1.17.1",
@@ -30,6 +37,7 @@
     "react-dom": "^18.3.1",
     "resend": "^3.5.0",
     "sharp": "^0.33.4",
+    "uuid": "^12.0.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {

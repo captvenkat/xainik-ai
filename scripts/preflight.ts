@@ -65,11 +65,11 @@ class PreflightRunner {
   }
 
   private async checkSpec(): Promise<void> {
-    await this.runCheck('pnpm tsx scripts/spec-check.ts', 'Spec Check');
+    await this.runCheck('npm run spec:check', 'Spec Check');
   }
 
   private async checkDeadCode(): Promise<void> {
-    await this.runCheck('pnpm tsx scripts/find-dead.ts', 'Dead Code Check');
+    await this.runCheck('npm run dead:find', 'Dead Code Check');
   }
 
   private async checkTypes(): Promise<void> {
@@ -89,14 +89,14 @@ class PreflightRunner {
     });
 
     if (hasTests) {
-      await this.runCheck('pnpm test --if-present', 'Tests');
+      await this.runCheck('npm test --if-present', 'Tests');
     } else {
       this.log('Tests', 'No test files found - skipping');
     }
   }
 
   private async checkWebP(): Promise<void> {
-    await this.runCheck('pnpm tsx scripts/check-webp-policy.ts', 'WebP Policy', true);
+    await this.runCheck('npm run webp:check', 'WebP Policy', true);
   }
 
   private generateReport(): void {
