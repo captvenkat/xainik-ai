@@ -8,6 +8,10 @@ echo "🔥 SMOKE TEST - $BASE_URL"
 echo "=" | tr -d '\n' && printf "%*s" 50 | tr ' ' '='
 echo ""
 
+echo "==> /api/health (expect 200 with { ok: true })"
+curl -s -o - "$BASE_URL/api/health" | sed -e 's/.*/RESPONSE: &/'
+echo ""
+
 # Test 1: Admin media page
 echo "==> Testing /admin/media (expect 200)"
 ADMIN_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL/admin/media")
