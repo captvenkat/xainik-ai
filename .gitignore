@@ -19,3 +19,4 @@ coverage/
 # lock/caches generated elsewhere
 pnpm-store/
 _backups/
+.vercel
