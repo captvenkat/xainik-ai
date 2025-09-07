@@ -75,8 +75,8 @@ class MasterRunbook {
     }
 
     // Run preflight checks
-    await this.runCommand('pnpm prisma generate', 'Preflight');
-    await this.runCommand('pnpm run preflight', 'Preflight');
+    await this.runCommand('npm run prisma:generate', 'Preflight');
+    await this.runCommand('npm run preflight', 'Preflight');
 
     if (this.shouldStop) {
       throw new Error('Preflight checks failed');
@@ -88,7 +88,7 @@ class MasterRunbook {
     console.log('='.repeat(50));
 
     // Run the full self-check task
-    await this.runCommand('pnpm tsx scripts/self-check.ts', 'Self-Check');
+    await this.runCommand('npm run self-check', 'Self-Check');
 
     if (this.shouldStop) {
       throw new Error('Self-check failed - see compliance report above');
@@ -106,7 +106,7 @@ class MasterRunbook {
       return;
     }
 
-    await this.runCommand(`PREVIEW_URL=${previewUrl} pnpm run smoke:preview`, 'Preview Smoke');
+    await this.runCommand(`PREVIEW_URL=${previewUrl} npm run smoke:preview`, 'Preview Smoke');
 
     if (this.shouldStop) {
       throw new Error('Preview smoke test failed');
@@ -124,7 +124,7 @@ class MasterRunbook {
     // Wait a bit for deployment
     await new Promise(resolve => setTimeout(resolve, 30000));
 
-    await this.runCommand('pnpm run smoke:prod', 'Production Smoke');
+    await this.runCommand('npm run smoke:prod', 'Production Smoke');
 
     if (this.shouldStop) {
       console.log('\n🔄 ROLLBACK REQUIRED');
