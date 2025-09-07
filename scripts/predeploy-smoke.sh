@@ -12,6 +12,10 @@ echo "==> /api/health (expect 200 with { ok: true })"
 curl -s -o - "$BASE_URL/api/health" | sed -e 's/.*/RESPONSE: &/'
 echo ""
 
+echo "==> /api/bookings/confirm (POST) expects 200 or handler-specific response"
+curl -s -X POST "$BASE_URL/api/bookings/confirm" -H "Content-Type: application/json" -d '{"bookingId":"test"}' | sed -e 's/.*/RESPONSE: &/'
+echo ""
+
 # Test 1: Admin media page
 echo "==> Testing /admin/media (expect 200)"
 ADMIN_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL/admin/media")
