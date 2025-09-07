@@ -4,6 +4,15 @@ import { rz } from "@/lib/razorpay";
 import { inrToPaise } from "@/lib/money";
 
 export async function POST(req: Request){
+  // Check if Razorpay is configured
+  if (!rz) {
+    return NextResponse.json({
+      ok: false,
+      code: "PAYMENTS_DISABLED",
+      error: "Payment processing is currently disabled. Please contact support."
+    }, { status: 503 });
+  }
+
   const body = await req.json();
   const amountINR = Number(body.amountINR || 0);
   const donorName = (body.donorName || "Anonymous").toString();

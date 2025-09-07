@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import BookingActions from "../../components/BookingActions";
+import BookingActions from "@/app/components/BookingActions";
 
 export default async function OrganizerDashboard(){
   try {
