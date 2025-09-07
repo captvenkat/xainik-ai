@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useParams } from 'next/navigation';
 
 type Poster = {
   id: string;
@@ -23,21 +24,22 @@ type FeedResponse = {
 };
 
 const SORT_OPTIONS = ['Latest', 'Trending', 'Most Liked', 'Most Shared'];
-const TAG_OPTIONS = ['Motivation', 'Leadership', 'Teamwork', 'Crisis', 'Transition', 'Resilience', 'Mentorship', 'Innovation', 'Values', 'Discipline', 'Performance'];
 
-export default function Home() {
+export default function TagFeed() {
+  const params = useParams();
+  const tag = params.tag as string;
+  
   const [selectedSort, setSelectedSort] = useState('Latest');
-  const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [posters, setPosters] = useState<Poster[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
 
-  const fetchPosters = async (sort: string, tag: string | null, after?: string) => {
+  const fetchPosters = async (sort: string, after?: string) => {
     try {
       const params = new URLSearchParams({
         sort: sort.toLowerCase().replace(' ', '_'),
-        ...(tag && { tag }),
+        tag,
         ...(after && { after }),
       });
       
@@ -60,8 +62,8 @@ export default function Home() {
   };
 
   useEffect(() => {
-    fetchPosters(selectedSort, selectedTag);
-  }, [selectedSort, selectedTag]);
+    fetchPosters(selectedSort);
+  }, [selectedSort, tag]);
 
   const handleSortChange = (sort: string) => {
     setSelectedSort(sort);
@@ -69,16 +71,8 @@ export default function Home() {
     setError(null);
   };
 
-  const handleTagClick = (tag: string) => {
-    setSelectedTag(tag);
-    setLoading(true);
-    setError(null);
-  };
-
-  const handleReload = () => {
-    setLoading(true);
-    setError(null);
-    fetchPosters(selectedSort, selectedTag);
+  const handleBackToLatest = () => {
+    window.location.href = '/';
   };
 
   if (error) {
@@ -87,7 +81,7 @@ export default function Home() {
         <div className="text-center">
           <p className="text-lg mb-4">{error}</p>
           <button 
-            onClick={handleReload}
+            onClick={() => fetchPosters(selectedSort)}
             className="px-6 py-2 bg-white text-black font-bold rounded"
           >
             Reload
@@ -101,12 +95,12 @@ export default function Home() {
     return (
       <main className="min-h-screen bg-black text-white flex items-center justify-center">
         <div className="text-center">
-          <p className="text-lg mb-4">No posters yet.</p>
+          <p className="text-lg mb-4">Nothing here yet.</p>
           <button 
-            onClick={handleReload}
+            onClick={handleBackToLatest}
             className="px-6 py-2 bg-white text-black font-bold rounded"
           >
-            Reload
+            Back to Latest
           </button>
         </div>
       </main>
@@ -156,21 +150,11 @@ export default function Home() {
             ))}
           </div>
           
-          {/* Tag chips */}
+          {/* Selected tag chip */}
           <div className="flex gap-2 overflow-x-auto">
-            {TAG_OPTIONS.map((tag) => (
-              <button
-                key={tag}
-                onClick={() => handleTagClick(tag)}
-                className={`px-4 py-2 rounded-full font-bold whitespace-nowrap ${
-                  selectedTag === tag
-                    ? 'bg-white text-black'
-                    : 'bg-white/10 text-white border border-white/20'
-                }`}
-              >
-                {tag}
-              </button>
-            ))}
+            <button className="px-4 py-2 rounded-full font-bold whitespace-nowrap bg-white text-black">
+              {tag}
+            </button>
           </div>
         </div>
       </div>

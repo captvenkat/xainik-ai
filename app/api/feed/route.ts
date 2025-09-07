@@ -1,92 +1,110 @@
-import { NextResponse } from 'next/server';
-import { supabaseService } from '@/lib/supabase-server';
-import { z } from 'zod';
+import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 
-const FeedQuerySchema = z.object({
-  filter: z.enum(['newest', 'most-liked', 'most-shared', 'most-remixed']).default('newest'),
-  limit: z.coerce.number().int().min(1).max(100).default(50),
-});
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
-export const runtime = 'nodejs';
+type Poster = {
+  id: string;
+  slug: string;
+  title_line: string;
+  contrast_line: string;
+  image_url: string;
+  og_image_url: string;
+  thumb_url: string;
+  likes: number;
+  views: number;
+  shares: number;
+  created_at: string;
+};
 
-export async function GET(req: Request) {
+type FeedResponse = {
+  items: Poster[];
+  nextCursor: string | null;
+};
+
+export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url);
-    const queryParams = {
-      filter: searchParams.get('filter') || 'newest',
-      limit: searchParams.get('limit') || '50',
-    };
-    
-    const parsed = FeedQuerySchema.safeParse(queryParams);
-    if (!parsed.success) {
-      return NextResponse.json({ 
-        error: 'Invalid query parameters', 
-        details: parsed.error.issues 
-      }, { status: 400 });
-    }
-    
-    const { filter, limit } = parsed.data;
-    
-    const sb = supabaseService();
-    
-    let query = sb
-      .from('memes')
-      .select('*')
-      .order('created_at', { ascending: false });
+    const { searchParams } = new URL(request.url);
+    const sort = searchParams.get('sort') || 'latest';
+    const tag = searchParams.get('tag');
+    const after = searchParams.get('after');
 
-    // Apply filters
-    switch (filter) {
-      case 'most-liked':
-        query = query.order('likes', { ascending: false });
-        break;
-      case 'most-shared':
-        query = query.order('shares', { ascending: false });
-        break;
-      case 'most-remixed':
-        query = query.order('remix_count', { ascending: false });
-        break;
-      case 'newest':
-      default:
+    let query = supabase
+      .from('posters')
+      .select('*')
+      .eq('is_published', true);
+
+    // Apply tag filter if provided
+    if (tag) {
+      query = query.contains('tags', [tag]);
+    }
+
+    // Apply sorting
+    switch (sort) {
+      case 'latest':
         query = query.order('created_at', { ascending: false });
         break;
+      case 'trending':
+        // Trending = recent likes + views
+        query = query.order('likes', { ascending: false }).order('views', { ascending: false });
+        break;
+      case 'likes':
+        query = query.order('likes', { ascending: false });
+        break;
+      case 'views':
+        query = query.order('views', { ascending: false });
+        break;
+      case 'shares':
+        query = query.order('shares', { ascending: false });
+        break;
+      default:
+        query = query.order('created_at', { ascending: false });
     }
 
-    const { data: memes, error } = await query.limit(limit);
+    // Apply cursor pagination
+    if (after) {
+      query = query.lt('created_at', after);
+    }
+
+    // Limit results
+    query = query.limit(20);
+
+    const { data, error } = await query;
 
     if (error) {
       console.error('Database error:', error);
-      return NextResponse.json({ error: 'Failed to fetch memes' }, { status: 500 });
+      return NextResponse.json({ error: 'Failed to fetch posters' }, { status: 500 });
     }
 
-    // Transform database columns to expected format
-    const transformedMemes = (memes || [])
-      .filter(meme => {
-        // Only show memes with military backgrounds
-        return meme.bg_key && meme.bg_key.startsWith('military-');
-      })
-      .map(meme => ({
-        id: meme.id,
-        mode: meme.tagline?.includes('INSPIRATION') ? 'inspiration' : 'humor', // Infer mode from tagline
-        line: meme.output_l1 || meme.input_text || 'Military skill unlocked',
-        bgKey: meme.bg_key,
-        imageUrl: `https://byleslhlkakxnsurzyzt.supabase.co/storage/v1/object/public/backgrounds/military/${meme.bg_key}`,
-        creatorName: meme.name_label || 'Supporter of Military',
-        likes: meme.likes || 0,
-        shares: meme.shares || 0,
-        remixCount: meme.remix_count || 0,
-        createdAt: meme.created_at,
-        parentId: meme.parent_id
-      }));
+    // Transform data to match API spec
+    const items: Poster[] = (data || []).map((poster: any) => ({
+      id: poster.id,
+      slug: poster.slug || poster.id,
+      title_line: poster.title || poster.title_line || 'Military Experience',
+      contrast_line: 'Experience. Not certificates.',
+      image_url: poster.image_url || '',
+      og_image_url: poster.og_image_url || poster.image_url || '',
+      thumb_url: poster.thumb_url || poster.image_url || '',
+      likes: poster.likes || 0,
+      views: poster.views || 0,
+      shares: poster.shares || 0,
+      created_at: poster.created_at,
+    }));
 
-    console.log(`Feed API: Fetched ${transformedMemes.length} memes with filter: ${filter}`);
+    // Generate next cursor
+    const nextCursor = items.length === 20 ? items[items.length - 1].created_at : null;
 
-    return NextResponse.json({ 
-      ok: true, 
-      memes: transformedMemes,
-      filter 
-    });
+    const response: FeedResponse = {
+      items,
+      nextCursor,
+    };
+
+    return NextResponse.json(response);
   } catch (error) {
-    console.error('Feed API error:', error);
+    console.error('API error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
