@@ -15,6 +15,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'posterId is required' }, { status: 400 });
     }
 
+    // For now, just return success until database is ready
+    return NextResponse.json({ success: true });
+
+    // TODO: Uncomment when database is ready
+    /*
     const deviceId = getOrSetDeviceId();
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
 
@@ -56,6 +61,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true });
+    */
   } catch (error) {
     console.error('View API error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
