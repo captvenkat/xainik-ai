@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "postbuild": "node scripts/assert-server-functions.ts",
     "start": "next start -p 3000",
     "prisma:studio": "prisma studio",
