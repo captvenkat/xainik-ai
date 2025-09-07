@@ -16,45 +16,48 @@ export async function POST(request: NextRequest) {
     }
 
     const deviceId = getOrSetDeviceId();
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
 
-    // Check if like already exists for this device
-    const { data: existingLike } = await supabase
-      .from('poster_likes')
+    // Check if view already exists for this device today
+    const { data: existingView } = await supabase
+      .from('poster_views')
       .select('id')
       .eq('poster_id', posterId)
       .eq('device_id', deviceId)
+      .gte('created_at', `${today}T00:00:00.000Z`)
+      .lt('created_at', `${today}T23:59:59.999Z`)
       .single();
 
-    if (existingLike) {
-      // Like already exists
-      return NextResponse.json({ success: true, alreadyLiked: true });
+    if (existingView) {
+      // View already tracked for today
+      return NextResponse.json({ success: true, alreadyTracked: true });
     }
 
-    // Insert new like
+    // Insert new view
     const { error: insertError } = await supabase
-      .from('poster_likes')
+      .from('poster_views')
       .insert({
         poster_id: posterId,
         device_id: deviceId,
       });
 
     if (insertError) {
-      console.error('Error inserting like:', insertError);
-      return NextResponse.json({ error: 'Failed to track like' }, { status: 500 });
+      console.error('Error inserting view:', insertError);
+      return NextResponse.json({ error: 'Failed to track view' }, { status: 500 });
     }
 
-    // Increment like count
+    // Increment view count
     const { error: updateError } = await supabase
-      .rpc('increment_likes', { poster_id: posterId });
+      .rpc('increment_views', { poster_id: posterId });
 
     if (updateError) {
-      console.error('Error incrementing likes:', updateError);
-      return NextResponse.json({ error: 'Failed to increment likes' }, { status: 500 });
+      console.error('Error incrementing views:', updateError);
+      return NextResponse.json({ error: 'Failed to increment views' }, { status: 500 });
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Like API error:', error);
+    console.error('View API error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

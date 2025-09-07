@@ -17,44 +17,31 @@ export async function POST(request: NextRequest) {
 
     const deviceId = getOrSetDeviceId();
 
-    // Check if like already exists for this device
-    const { data: existingLike } = await supabase
-      .from('poster_likes')
-      .select('id')
-      .eq('poster_id', posterId)
-      .eq('device_id', deviceId)
-      .single();
-
-    if (existingLike) {
-      // Like already exists
-      return NextResponse.json({ success: true, alreadyLiked: true });
-    }
-
-    // Insert new like
+    // Insert share record
     const { error: insertError } = await supabase
-      .from('poster_likes')
+      .from('poster_shares')
       .insert({
         poster_id: posterId,
         device_id: deviceId,
       });
 
     if (insertError) {
-      console.error('Error inserting like:', insertError);
-      return NextResponse.json({ error: 'Failed to track like' }, { status: 500 });
+      console.error('Error inserting share:', insertError);
+      return NextResponse.json({ error: 'Failed to track share' }, { status: 500 });
     }
 
-    // Increment like count
+    // Increment share count
     const { error: updateError } = await supabase
-      .rpc('increment_likes', { poster_id: posterId });
+      .rpc('increment_shares', { poster_id: posterId });
 
     if (updateError) {
-      console.error('Error incrementing likes:', updateError);
-      return NextResponse.json({ error: 'Failed to increment likes' }, { status: 500 });
+      console.error('Error incrementing shares:', updateError);
+      return NextResponse.json({ error: 'Failed to increment shares' }, { status: 500 });
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Like API error:', error);
+    console.error('Share API error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
