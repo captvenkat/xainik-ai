@@ -7,6 +7,8 @@ const FeedQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(50),
 });
 
+export const runtime = 'nodejs';
+
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
