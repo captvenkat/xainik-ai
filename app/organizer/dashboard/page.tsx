@@ -24,7 +24,7 @@ export default async function OrganizerDashboard(){
         <h3>All Speakers (copy ID to shortlist)</h3>
         {speakers.length===0 ? <p>No speakers onboarded yet.</p> : (
           <ul>
-            {speakers.map(s => (<li key={s.id}><b>{s.user?.name || "Unnamed"}</b> — ID: <code>{s.id}</code> — Topics: {s.topics ? JSON.parse(s.topics).join(", ") : "None"}</li>))}
+            {speakers.map((s: any) => (<li key={s.id}><b>{s.user?.name || "Unnamed"}</b> — ID: <code>{s.id}</code> — Topics: {s.topics ? JSON.parse(s.topics).join(", ") : "None"}</li>))}
           </ul>
         )}
       </div>
@@ -52,9 +52,9 @@ export default async function OrganizerDashboard(){
           </div>
           <hr/>
           <h4>Shortlists</h4>
-          {shortlists.filter(s => s.eventId === ev.id).length===0 ? <p>None</p> : (
+          {shortlists.filter((s: any) => s.eventId === ev.id).length===0 ? <p>None</p> : (
             <ul>
-              {shortlists.filter(s => s.eventId === ev.id).map((s:any)=> <li key={s.id}><code>{s.speakerId}</code> — {s.status}</li>)}
+              {shortlists.filter((s: any) => s.eventId === ev.id).map((s:any)=> <li key={s.id}><code>{s.speakerId}</code> — {s.status}</li>)}
             </ul>
           )}
           <form action="/api/shortlists" method="post" style={{marginTop:12}}>

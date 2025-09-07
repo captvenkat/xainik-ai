@@ -22,5 +22,5 @@ export async function GET(_: Request, { params }: { params: { bookingId: string 
     page.drawText(`Status: ${inv.status}`, { x:50, y:650, size:12, font });
   }
   const bytes = await pdf.save();
-  return new NextResponse(bytes, { headers: { "content-type": "application/pdf", "content-disposition": `attachment; filename="Xainik-Invoice-${bId}.pdf"` }});
+  return new NextResponse(bytes as any, { headers: { "content-type": "application/pdf", "content-disposition": `attachment; filename="Xainik-Invoice-${bId}.pdf"` }});
 }

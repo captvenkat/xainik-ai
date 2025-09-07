@@ -23,7 +23,7 @@ export async function GET(req: Request){
   page.drawText("Thank you for supporting veterans and families.", { x: 50, y: 620, size: 12, font });
 
   const bytes = await pdf.save();
-  return new NextResponse(bytes, {
+  return new NextResponse(bytes as any, {
     headers: {
       "content-type": "application/pdf",
       "content-disposition": `attachment; filename="Xainik-Donation-Receipt.pdf"`

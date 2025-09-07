@@ -27,7 +27,7 @@ export default async function SpeakersPage(){
       <div className="card">
         <h3>All Speakers</h3>
         {speakers.length === 0 && <p>No speakers yet.</p>}
-        {speakers.map(s => (
+        {speakers.map((s: any) => (
           <div key={s.id} style={{marginBottom:12}}>
             <b>{s.user?.name ?? "Unnamed"}</b><br/>
             <small>{s.headline ?? ""}</small><br/>
