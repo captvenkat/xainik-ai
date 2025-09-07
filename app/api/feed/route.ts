@@ -32,17 +32,6 @@ export async function GET(request: NextRequest) {
     const tag = searchParams.get('tag');
     const after = searchParams.get('after');
 
-    // For now, return empty array until database is properly set up
-    // This prevents the 500 error and shows the empty state
-    const response: FeedResponse = {
-      items: [],
-      nextCursor: null,
-    };
-
-    return NextResponse.json(response);
-
-    // TODO: Uncomment when database is ready
-    /*
     let query = supabase
       .from('posters')
       .select('*')
@@ -94,8 +83,8 @@ export async function GET(request: NextRequest) {
     const items: Poster[] = (data || []).map((poster: any) => ({
       id: poster.id,
       slug: poster.slug || poster.id,
-      title_line: poster.title || poster.title_line || 'Military Experience',
-      contrast_line: 'Experience. Not certificates.',
+      title_line: poster.title_line || poster.title || 'Military Experience',
+      contrast_line: poster.contrast_line || 'Experience. Not certificates.',
       image_url: poster.image_url || '',
       og_image_url: poster.og_image_url || poster.image_url || '',
       thumb_url: poster.thumb_url || poster.image_url || '',
@@ -114,7 +103,6 @@ export async function GET(request: NextRequest) {
     };
 
     return NextResponse.json(response);
-    */
   } catch (error) {
     console.error('API error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
