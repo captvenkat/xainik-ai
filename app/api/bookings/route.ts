@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 
+export const runtime = 'nodejs';
+
 export async function POST(req: Request){
   const ct = req.headers.get("content-type") || "";
   let b: any = {};

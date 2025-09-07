@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { auth } from "@/lib/auth";
 
+export const runtime = 'nodejs';
+
 export async function GET(){
   const session = await auth();
   const meUser = session?.user?.email ? await prisma.user.findUnique({ where: { email: session.user.email }}) : null;
