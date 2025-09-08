@@ -45,27 +45,8 @@ export async function GET() {
       query = query.contains('tags', [tag]);
     }
 
-    // Apply sorting
-    switch (sort) {
-      case 'latest':
-        query = query.order('created_at', { ascending: false });
-        break;
-      case 'trending':
-        // Trending = recent likes + views
-        query = query.order('likes', { ascending: false }).order('views', { ascending: false });
-        break;
-      case 'likes':
-        query = query.order('likes', { ascending: false });
-        break;
-      case 'views':
-        query = query.order('views', { ascending: false });
-        break;
-      case 'shares':
-        query = query.order('shares', { ascending: false });
-        break;
-      default:
-        query = query.order('created_at', { ascending: false });
-    }
+    // Apply sorting - using latest for now
+    query = query.order('created_at', { ascending: false });
 
     // Apply cursor pagination
     if (after) {
