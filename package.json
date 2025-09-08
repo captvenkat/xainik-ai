@@ -22,7 +22,8 @@
     "captain": "ts-node --transpile-only scripts/build_captain.ts",
     "captain:auto": "node --enable-source-maps --loader ts-node/esm scripts/build_captain.ts --auto",
     "captain:dry": "node --enable-source-maps --loader ts-node/esm scripts/build_captain.ts --dry-run",
-    "make:posters": "node scripts/make_posters.mjs"
+    "make:posters": "node scripts/make_posters.mjs",
+    "generate:runware": "node scripts/runware-generator.mjs"
   },
   "dependencies": {
     "@prisma/client": "^5.18.0",
