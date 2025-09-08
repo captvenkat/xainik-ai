@@ -34,8 +34,8 @@ export async function GET(request: NextRequest) {
 
     let query = supabase
       .from('posters')
-      .select('*')
-      .eq('is_published', true);
+      .select('*');
+      // Temporarily removing is_published filter to test
 
     // Apply tag filter if provided
     if (tag) {
