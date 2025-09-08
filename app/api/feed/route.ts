@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
+export const runtime = 'nodejs';
+
 // Use service role key for admin access
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
