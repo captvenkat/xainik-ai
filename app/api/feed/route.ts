@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 export const fetchCache = 'force-no-store';
 export const maxDuration = 30;
-// Force cache refresh for final posters - Updated paths to /posters/
+// Force cache refresh for final posters - Updated paths to /posters/ - NEW CINEMATIC POSTERS
 export const preferredRegion = 'auto';
 
 // Use service role key for admin access
@@ -135,6 +135,7 @@ export async function GET() {
                   items: hardcodedItems,
                   nextCursor: null,
                   timestamp: new Date().toISOString(), // Force cache refresh
+                  version: "cinematic-v2", // Force complete refresh
                 };
 
     return NextResponse.json(response);
