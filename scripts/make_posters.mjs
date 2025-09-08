@@ -1,6 +1,6 @@
 /**
- * Xainik Phase-1 — Poster Composer
- * Spec: Add title at top, footer block at bottom.
+ * 🎬 Xainik Poster Builder - Cinematic Movie Poster Style
+ * Spec: Centered title at ~25% from top, footer block at bottom
  * Rebel line: "Experience. Not certificates."
  * Output: 1024x1024 poster + 1200x630 OG + 512x512 thumb
  * Do not deviate.
@@ -11,9 +11,9 @@ import slugify from "slugify";
 import fs from "fs/promises";
 import path from "path";
 
-const OUT_POSTERS = "out/posters";
-const OUT_OG = "out/og";
-const OUT_THUMBS = "out/thumbs";
+const OUT_POSTERS = "public/posters";
+const OUT_OG = "public/og";
+const OUT_THUMBS = "public/thumbs";
 await fs.mkdir(OUT_POSTERS, { recursive: true });
 await fs.mkdir(OUT_OG, { recursive: true });
 await fs.mkdir(OUT_THUMBS, { recursive: true });
@@ -24,20 +24,19 @@ await fs.mkdir(OUT_THUMBS, { recursive: true });
  * Replace bg paths if needed (keep 5 items).
  */
 const ITEMS = [
-  { bg: "assets/bg1.png", title: "Untamed Valor: Triumph Amidst Turmoil" },
-  { bg: "assets/bg2.png", title: "Unbroken Chains: Valor Forged in Fire" },
-  { bg: "assets/bg3.png", title: "Rising From Ashes: Rallying Against All Odds" },
-  { bg: "assets/bg4.png", title: "Unyielding Valor: The Triumph of Disciplined Excellence" },
-  { bg: "assets/bg5.png", title: "Forging Futures: The Crucible of Valor" }
+  { bg: "assets/bg1.png", title: "Made decisions in zero visibility" },
+  { bg: "assets/bg2.png", title: "Led when failure wasn't an option" },
+  { bg: "assets/bg3.png", title: "Built trust under fire" },
+  { bg: "assets/bg4.png", title: "Turned setbacks into comebacks" },
+  { bg: "assets/bg5.png", title: "Adapted when the map ended" }
 ];
 
 // Global render config
 const W = 1024, H = 1024;
-const PADDING = Math.round(W * 0.06);            // ~6% padding
-const TITLE_SIZE = 56;                            // ~poster-scale
-const FOOTER_SIZE_MAIN = 28;
-const FOOTER_LINE_GAP = 36;                       // line-to-line
-const TITLE_MAX_CH = 22;                          // quick guard
+const TITLE_SIZE = 64;                            // Larger, more cinematic
+const FOOTER_SIZE_MAIN = 32;                      // Slightly larger footer
+const FOOTER_LINE_GAP = 40;                       // More spacing
+const TITLE_MAX_CH = 20;                          // Shorter lines for impact
 
 // Guardrails
 function assertTitle(t) {
@@ -52,7 +51,7 @@ function toSlug(s) {
   return slugify(s, { lower: true, strict: true });
 }
 
-// Basic text wrap for title (SVG <text> doesn't auto-wrap)
+// Smart text wrap for title (SVG <text> doesn't auto-wrap)
 function wrapTitle(t, maxChars = TITLE_MAX_CH) {
   const words = t.split(/\s+/);
   const lines = [];
@@ -69,57 +68,65 @@ function wrapTitle(t, maxChars = TITLE_MAX_CH) {
   return lines.slice(0, 3); // max 3 lines safeguard
 }
 
-// SVG overlay generator
+// SVG overlay generator with centered, cinematic layout
 function makeSVGOverlay({ title }) {
   const titleLines = wrapTitle(title);
-  const titleLineHeight = TITLE_SIZE * 1.05;
-  const titleYStart = PADDING + TITLE_SIZE; // first line baseline
+  const titleLineHeight = TITLE_SIZE * 1.1;
+  
+  // Title positioned at ~25% from top, centered horizontally
+  const titleYStart = Math.round(H * 0.25);
+  
+  // Calculate total title height for centering
+  const totalTitleHeight = titleLines.length * titleLineHeight;
+  const titleStartY = titleYStart - (totalTitleHeight / 2);
 
   const titleTSpans = titleLines.map((line, i) => {
-    const y = titleYStart + i * titleLineHeight;
-    return `<text x="${PADDING}" y="${y}" fill="#ffffff" font-size="${TITLE_SIZE}" font-weight="800" font-family="Inter, Arial, Helvetica, sans-serif" letter-spacing="0.5px">${escapeXml(line)}</text>`;
+    const y = titleStartY + (i * titleLineHeight) + TITLE_SIZE; // +TITLE_SIZE for baseline
+    return `<text x="50%" y="${y}" text-anchor="middle" fill="#ffffff" font-size="${TITLE_SIZE}" font-weight="900" font-family="Impact, Oswald, Arial Black, sans-serif" letter-spacing="1px" stroke="#000000" stroke-width="2">${escapeXml(line)}</text>`;
   }).join("");
 
-  // Footer lines
+  // Footer block - centered at bottom
   const footerBlock = [
     { text: "Natural Leaders", size: FOOTER_SIZE_MAIN, weight: 600 },
     { text: "Experience. Not certificates.", size: FOOTER_SIZE_MAIN, weight: 700 },
     { text: "Xainik", size: FOOTER_SIZE_MAIN, weight: 600 }
   ];
 
-  const footerStartY = H - PADDING - FOOTER_LINE_GAP; // last line baseline
+  // Footer positioned at bottom with proper spacing
+  const footerStartY = H - 60; // 60px from bottom
   const footerLines = footerBlock
     .map((l, idx) => {
       const y = footerStartY - (FOOTER_LINE_GAP * (footerBlock.length - 1 - idx));
-      return `<text x="${PADDING}" y="${y}" fill="#ffffff" font-size="${l.size}" font-weight="${l.weight}" font-family="Inter, Arial, Helvetica, sans-serif" letter-spacing="0.25px">${escapeXml(l.text)}</text>`;
+      return `<text x="50%" y="${y}" text-anchor="middle" fill="#ffffff" font-size="${l.size}" font-weight="${l.weight}" font-family="Inter, Arial, sans-serif" letter-spacing="0.5px" stroke="#000000" stroke-width="1">${escapeXml(l.text)}</text>`;
     })
     .join("");
 
-  // Top/bottom gradient rectangles for readability
-  // Using black→transparent linear gradients
+  // Enhanced gradient overlays for better readability
   const svg = `
 <svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <linearGradient id="topFade" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="black" stop-opacity="0.6"/>
+      <stop offset="0%" stop-color="black" stop-opacity="0.7"/>
+      <stop offset="50%" stop-color="black" stop-opacity="0.3"/>
       <stop offset="100%" stop-color="black" stop-opacity="0"/>
     </linearGradient>
     <linearGradient id="bottomFade" x1="0" y1="1" x2="0" y2="0">
-      <stop offset="0%" stop-color="black" stop-opacity="0.6"/>
+      <stop offset="0%" stop-color="black" stop-opacity="0.7"/>
+      <stop offset="50%" stop-color="black" stop-opacity="0.3"/>
       <stop offset="100%" stop-color="black" stop-opacity="0"/>
     </linearGradient>
   </defs>
 
-  <!-- Top gradient -->
-  <rect x="0" y="0" width="${W}" height="${Math.round(H*0.30)}" fill="url(#topFade)"/>
+  <!-- Top gradient for title readability -->
+  <rect x="0" y="0" width="${W}" height="${Math.round(H*0.40)}" fill="url(#topFade)"/>
 
-  <!-- Bottom gradient -->
-  <rect x="0" y="${Math.round(H*0.70)}" width="${W}" height="${Math.round(H*0.30)}" fill="url(#bottomFade)"/>
+  <!-- Bottom gradient for footer readability -->
+  <rect x="0" y="${Math.round(H*0.60)}" width="${W}" height="${Math.round(H*0.40)}" fill="url(#bottomFade)"/>
 
-  <!-- Title lines -->
+  <!-- Title lines - centered and cinematic -->
   ${titleTSpans}
 
-  <!-- Footer block -->
+  <!-- Footer block - centered at bottom -->
   ${footerLines}
 </svg>`;
   return Buffer.from(svg);
@@ -171,13 +178,13 @@ async function processOne({ bg, title }) {
 }
 
 (async () => {
-  console.log("▶ Generating 5 posters…");
+  console.log("🎬 Generating 5 cinematic posters…");
   for (const item of ITEMS) {
     console.log(`- ${item.title}`);
     const res = await processOne(item);
     console.log(`  → ${res.outPoster}`);
   }
-  console.log("✅ Done. Files in out/posters, out/og, out/thumbs");
+  console.log("✅ Done. Files in public/posters, public/og, public/thumbs");
 })().catch(err => {
   console.error("❌ Failed:", err);
   process.exit(1);
