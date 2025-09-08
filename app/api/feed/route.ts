@@ -103,7 +103,7 @@ export async function GET() {
     const response: FeedResponse = {
       items: hardcodedItems,
       nextCursor: null,
-      version: "cinematic-v2-new",
+      version: "cinematic-v3-new-footer",
       timestamp: new Date().toISOString(),
     };
 
