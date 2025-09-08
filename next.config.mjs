@@ -9,7 +9,7 @@ const nextConfig = {
   // IMPORTANT: do NOT set output:'export' here. We need server functions for /api
   images: { 
     formats: ['image/avif','image/webp'],
-    domains: ['images.unsplash.com'],
+    domains: ['images.unsplash.com', 'oaidalleapiprodscus.blob.core.windows.net'],
   },
 };
 export default nextConfig;
