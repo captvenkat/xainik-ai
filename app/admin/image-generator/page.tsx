@@ -116,7 +116,8 @@ export default function ImageGenerator() {
       }
     } catch (error) {
       console.error('Generation error:', error);
-      alert('Failed to generate images: ' + error.message);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      alert('Failed to generate images: ' + errorMessage);
     } finally {
       setIsGenerating(false);
     }
