@@ -2,7 +2,6 @@
 const nextConfig = {
   reactStrictMode: true,
   experimental: { 
-    appDir: true,
     // Ensure API routes are properly handled
     serverComponentsExternalPackages: ['@prisma/client']
   },
