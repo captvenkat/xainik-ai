@@ -34,8 +34,8 @@ export async function GET(request: NextRequest) {
 
     let query = supabase
       .from('posters')
-      .select('*');
-      // Temporarily removing is_published filter to test
+      .select('*')
+      .eq('is_published', true);
 
     // Apply tag filter if provided
     if (tag) {
@@ -79,7 +79,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch posters', details: error.message }, { status: 500 });
     }
 
-    console.log('Database query result:', { dataCount: data?.length || 0, error: error?.message || 'none' });
+    console.log('Database query result:', { 
+      dataCount: data?.length || 0, 
+      error: error?.message || 'none',
+      queryParams: { sort, tag, after }
+    });
 
     // Transform data to match API spec
     const items: Poster[] = (data || []).map((poster: any) => ({
