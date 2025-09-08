@@ -7,6 +7,16 @@ const nextConfig = {
     serverComponentsExternalPackages: ['@prisma/client']
   },
   // IMPORTANT: do NOT set output:'export' here. We need server functions for /api
-  images: { formats: ['image/avif','image/webp'] },
+  images: { 
+    formats: ['image/avif','image/webp'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+        port: '',
+        pathname: '/**',
+      },
+    ],
+  },
 };
 export default nextConfig;
