@@ -82,23 +82,27 @@ export async function GET(request: NextRequest) {
     console.log('Database query result:', { 
       dataCount: data?.length || 0, 
       error: error?.message || 'none',
-      queryParams: { sort, tag, after }
+      queryParams: { sort, tag, after },
+      rawData: data?.[0] || null
     });
 
     // Transform data to match API spec
-    const items: Poster[] = (data || []).map((poster: any) => ({
-      id: poster.id,
-      slug: poster.slug || poster.id,
-      title_line: poster.title_line || poster.title || 'Military Experience',
-      contrast_line: poster.contrast_line || 'Experience. Not certificates.',
-      image_url: poster.image_url || '',
-      og_image_url: poster.og_image_url || poster.image_url || '',
-      thumb_url: poster.thumb_url || poster.image_url || '',
-      likes: poster.likes || 0,
-      views: poster.views || 0,
-      shares: poster.shares || 0,
-      created_at: poster.created_at,
-    }));
+    const items: Poster[] = (data || []).map((poster: any) => {
+      console.log('Transforming poster:', { id: poster.id, title: poster.title, image_url: poster.image_url });
+      return {
+        id: poster.id,
+        slug: poster.slug || poster.id,
+        title_line: poster.title_line || poster.title || 'Military Experience',
+        contrast_line: poster.contrast_line || 'Experience. Not certificates.',
+        image_url: poster.image_url || '',
+        og_image_url: poster.og_image_url || poster.image_url || '',
+        thumb_url: poster.thumb_url || poster.image_url || '',
+        likes: poster.likes || 0,
+        views: poster.views || 0,
+        shares: poster.shares || 0,
+        created_at: poster.created_at,
+      };
+    });
 
     // Generate next cursor
     const nextCursor = items.length === 20 ? items[items.length - 1].created_at : null;
