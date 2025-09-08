@@ -32,35 +32,14 @@ type Poster = {
 type FeedResponse = {
   items: Poster[];
   nextCursor: string | null;
+  version?: string;
+  timestamp?: string;
 };
 
 export async function GET() {
   try {
-    // For now, use default values to avoid dynamic server usage
-    const sort = 'latest';
-    const tag = null;
-    const after = null;
-
-    // Simple query without filters first
-    let query = supabase
-      .from('posters')
-      .select('*');
-
-    // Apply tag filter if provided
-    if (tag) {
-      query = query.contains('tags', [tag]);
-    }
-
-    // Apply sorting - using latest for now
-    query = query.order('created_at', { ascending: false });
-
-    // Apply cursor pagination
-    if (after) {
-      query = query.lt('created_at', after);
-    }
-
-    // Limit results
-    query = query.limit(20);
+    // CINEMATIC POSTERS V2 - Force complete refresh
+    console.log('🎬 Serving new cinematic posters with centered text');
 
                 // Xainik Cinematic Posters with Centered Text (1024x1024)
                 const hardcodedItems: Poster[] = [
