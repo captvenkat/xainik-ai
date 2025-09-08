@@ -32,10 +32,9 @@ export async function GET(request: NextRequest) {
     const tag = searchParams.get('tag');
     const after = searchParams.get('after');
 
-    // Test with minimal query first
     let query = supabase
       .from('posters')
-      .select('id, title, slug, image_url, created_at')
+      .select('*')
       .eq('is_published', true);
 
     // Apply tag filter if provided
