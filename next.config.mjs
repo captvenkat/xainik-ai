@@ -9,14 +9,7 @@ const nextConfig = {
   // IMPORTANT: do NOT set output:'export' here. We need server functions for /api
   images: { 
     formats: ['image/avif','image/webp'],
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'images.unsplash.com',
-        port: '',
-        pathname: '/**',
-      },
-    ],
+    domains: ['images.unsplash.com'],
   },
 };
 export default nextConfig;
