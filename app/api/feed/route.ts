@@ -28,12 +28,12 @@ type FeedResponse = {
   nextCursor: string | null;
 };
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const { searchParams } = new URL(request.url);
-    const sort = searchParams.get('sort') || 'latest';
-    const tag = searchParams.get('tag');
-    const after = searchParams.get('after');
+    // For now, use default values to avoid dynamic server usage
+    const sort = 'latest';
+    const tag = null;
+    const after = null;
 
     // Simple query without filters first
     let query = supabase
