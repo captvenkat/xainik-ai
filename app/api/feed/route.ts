@@ -81,7 +81,7 @@ export async function GET(request: NextRequest) {
 
     console.log('Database query result:', { 
       dataCount: data?.length || 0, 
-      error: error?.message || 'none',
+      error: error ? error.message : 'none',
       queryParams: { sort, tag, after },
       rawData: data?.[0] || null
     });
