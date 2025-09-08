@@ -6,6 +6,8 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 export const fetchCache = 'force-no-store';
 export const maxDuration = 30;
+// Force cache refresh for final posters
+export const preferredRegion = 'auto';
 
 // Use service role key for admin access
 const supabase = createClient(
