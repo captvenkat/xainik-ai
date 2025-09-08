@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
+// Use service role key for admin access
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
 type Poster = {
@@ -32,10 +33,10 @@ export async function GET(request: NextRequest) {
     const tag = searchParams.get('tag');
     const after = searchParams.get('after');
 
+    // Simple query without filters first
     let query = supabase
       .from('posters')
-      .select('*')
-      .eq('is_published', true);
+      .select('*');
 
     // Apply tag filter if provided
     if (tag) {
