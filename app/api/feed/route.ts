@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 export const fetchCache = 'force-no-store';
 export const maxDuration = 30;
-// Force cache refresh for final posters
+// Force cache refresh for final posters - Updated paths to /posters/
 export const preferredRegion = 'auto';
 
 // Use service role key for admin access
@@ -131,10 +131,11 @@ export async function GET() {
                   }
                 ];
 
-    const response: FeedResponse = {
-      items: hardcodedItems,
-      nextCursor: null,
-    };
+                const response: FeedResponse = {
+                  items: hardcodedItems,
+                  nextCursor: null,
+                  timestamp: new Date().toISOString(), // Force cache refresh
+                };
 
     return NextResponse.json(response);
   } catch (error) {
